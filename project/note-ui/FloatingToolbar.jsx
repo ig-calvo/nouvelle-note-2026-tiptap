@@ -1,6 +1,11 @@
-/* global React Quill */
+/* global React */
 
-// Shared color palette (matches the provided color-selection menu) — 5×5 grid.
+// Barre flottante réécrite pour l'éditeur Tiptap unique (phase E). Suit la
+// sélection (selectionchange) ou reste épinglée près du bouton « T »
+// (événement ftbar-pin, voir editor-field.jsx) tant qu'aucune sélection
+// valide ni clic extérieur ne la remplace/ferme. Formats lus/écrits via
+// editor.isActive()/editor.chain() — plus d'état de formats dupliqué.
+
 const PALETTE = [
 '#1f1f1f', '#5c5c5c', '#8f8f8f', '#bfbfbf', '#ffffff',
 '#ffd170', '#ffc01f', '#cfa70c', '#a9790a', '#b4cb2f',
@@ -8,101 +13,107 @@ const PALETTE = [
 '#6f2ee2', '#2e1ba0', '#f4a596', '#ed6a5a', '#e0394b',
 '#a8322a', '#7ed6f1', '#16bef0', '#1f7ed1', '#0a5cab'];
 
-
 const BLOCK_TYPES = [
-{ label: 'Paragraphe', value: false, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 400 } },
-{ label: 'Titre 1', value: 1, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 19, fontWeight: 600, letterSpacing: '-0.2px' } },
-{ label: 'Titre 2', value: 2, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 16, fontWeight: 600 } },
-{ label: 'Titre 3', value: 3, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 14, fontWeight: 600 } }];
+{ label: 'Paragraphe', level: 0, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 400 } },
+{ label: 'Titre 1', level: 1, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 19, fontWeight: 600, letterSpacing: '-0.2px' } },
+{ label: 'Titre 2', level: 2, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 16, fontWeight: 600 } },
+{ label: 'Titre 3', level: 3, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 14, fontWeight: 600 } }];
 
+function editorFromNode(node) {
+  const el = node && (node.nodeType === 1 ? node : node.parentElement);
+  const host = el && el.closest && el.closest('.note-field');
+  return host ? host.__editor : null;
+}
+
+function selectionState() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  const editor = editorFromNode(sel.anchorNode);
+  if (!editor) return null;
+  const rect = sel.getRangeAt(0).getBoundingClientRect();
+  if (!rect || (rect.width === 0 && rect.height === 0)) return null;
+  return { editor, left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, pinned: false };
+}
 
 function FloatingToolbar() {
-  const [state, setState] = React.useState(null); // { left, top, quill, formats }
+  const [state, setState] = React.useState(null); // { editor, left, bottom, pinned }
   const [blockOpen, setBlockOpen] = React.useState(false);
+  const [, bump] = React.useState(0);
   const toolbarRef = React.useRef(null);
+  const stateRef = React.useRef(null);
+  stateRef.current = state;
 
   React.useEffect(() => {
-    function onSelChange() {
-      const sel = window.getSelection();
-      if (!sel || sel.isCollapsed || sel.rangeCount === 0) {
+    function onSelectionChange() {
+      const next = selectionState();
+      if (next) { setState(next); return; }
+      // Pas de sélection exploitable : une barre épinglée reste ouverte,
+      // une barre suivant la sélection se ferme.
+      if (!stateRef.current || !stateRef.current.pinned) {
         setState(null);
         setBlockOpen(false);
-        return;
       }
-      const anchor = sel.anchorNode;
-      const qlEditor = anchor && (anchor.closest ? anchor.closest('.ql-editor') : anchor.parentNode && anchor.parentNode.closest && anchor.parentNode.closest('.ql-editor'));
-      if (!qlEditor) {setState(null);return;}
-      const qlContainer = qlEditor.closest('.ql-container');
-      if (!qlContainer) {setState(null);return;}
-      const quill = Quill.find(qlContainer);
-      if (!quill) {setState(null);return;}
-      const range = sel.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      const qRange = quill.getSelection();
-      const formats = qRange ? quill.getFormat(qRange) : {};
-      setState({ left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, quill, formats });
     }
-
     function onPin(e) {
-      const { quill, rect } = e.detail;
-      const qr = quill.getSelection();
-      const formats = qr ? quill.getFormat(qr) : {};
-      setState({ left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, quill, formats });
+      const { editor, rect } = e.detail;
+      setState({ editor, left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, pinned: true });
     }
-
-    document.addEventListener('selectionchange', onSelChange);
+    function onKeyDown(e) {
+      if (e.key === 'Escape' && stateRef.current) { setState(null); setBlockOpen(false); }
+    }
+    function onDocMouseDown(e) {
+      if (!stateRef.current) return;
+      if (toolbarRef.current && toolbarRef.current.contains(e.target)) return;
+      const shell = e.target.closest && e.target.closest('.note-field-shell');
+      const host = shell && shell.querySelector('.note-field');
+      if (host && host.__editor === stateRef.current.editor) return;
+      setState(null);
+      setBlockOpen(false);
+    }
+    document.addEventListener('selectionchange', onSelectionChange);
     window.addEventListener('ftbar-pin', onPin);
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('mousedown', onDocMouseDown, true);
     return () => {
-      document.removeEventListener('selectionchange', onSelChange);
+      document.removeEventListener('selectionchange', onSelectionChange);
       window.removeEventListener('ftbar-pin', onPin);
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('mousedown', onDocMouseDown, true);
     };
   }, []);
 
+  // Re-render sur chaque transaction pour garder editor.isActive() à jour
+  // (gras/titre/couleur courants) sans dupliquer l'état des formats.
+  React.useEffect(() => {
+    if (!state || !state.editor) return undefined;
+    const editor = state.editor;
+    const onTx = () => bump((n) => n + 1);
+    editor.on('transaction', onTx);
+    return () => editor.off('transaction', onTx);
+  }, [state && state.editor]);
+
   if (!state) return null;
+  const { editor } = state;
 
-  const { quill, formats } = state;
+  function run(fn) { fn(editor.chain().focus()).run(); }
 
-  function fmt(format, value) {
-    const qr = quill.getSelection();
-    if (!qr) return;
-    if (value === undefined) {
-      quill.format(format, !formats[format]);
-    } else {
-      quill.format(format, value);
-    }
-    // re-read formats
-    const newFormats = quill.getFormat(quill.getSelection() || qr);
-    setState((s) => s ? { ...s, formats: newFormats } : s);
-  }
-
-  function clearFmt() {
-    const qr = quill.getSelection();if (!qr) return;
-    quill.removeFormat(qr.index, qr.length);
-    setState((s) => s ? { ...s, formats: {} } : s);
-  }
-
-  function setBlock(val) {
-    const qr = quill.getSelection();if (!qr) return;
-    quill.format('header', val);
-    setState((s) => s ? { ...s, formats: { ...s.formats, header: val } } : s);
-    setBlockOpen(false);
-  }
-
-  const curBlock = BLOCK_TYPES.find((b) => b.value === (formats.header || false)) || BLOCK_TYPES[0];
+  const curLevel = [1, 2, 3].find((l) => editor.isActive('heading', { level: l })) || 0;
+  const curBlock = BLOCK_TYPES.find((b) => b.level === curLevel) || BLOCK_TYPES[0];
+  const curColor = editor.getAttributes('textStyle').color;
+  const curHighlight = editor.getAttributes('highlight').color;
 
   const W = 620;
   const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
-  const bottom = state.bottom;
 
   return (
     <div
       ref={toolbarRef}
-      style={{ ...{ ...ftS.bar, left, bottom, width: W }, width: "620px" }}
+      style={{ ...ftS.bar, left, bottom: state.bottom, width: W }}
       onMouseDown={(e) => e.preventDefault()}>
-      
-      {/* Block type */}
+
+      {/* Type de bloc */}
       <div style={{ position: 'relative' }}>
-        <button style={ftS.typeBtn} onMouseDown={(e) => {e.preventDefault();setBlockOpen((o) => !o);}}>
+        <button style={ftS.typeBtn} onMouseDown={(e) => { e.preventDefault(); setBlockOpen((o) => !o); }}>
           <span>{curBlock.label}</span>
           <span style={ftS.chevrons}>
             <span style={ftS.chevUp}>⌃</span>
@@ -112,8 +123,12 @@ function FloatingToolbar() {
         {blockOpen &&
         <div style={ftS.blockDrop}>
             {BLOCK_TYPES.map((b) =>
-          <div key={String(b.value)} style={{ ...ftS.blockItem, ...b.preview, background: curBlock.value === b.value ? '#ddeaff' : 'transparent' }}
-          onMouseDown={(e) => {e.preventDefault();setBlock(b.value);}}>
+          <div key={b.level} style={{ ...ftS.blockItem, ...b.preview, background: curBlock.level === b.level ? '#ddeaff' : 'transparent' }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            run((c) => b.level === 0 ? c.setParagraph() : c.toggleHeading({ level: b.level }));
+            setBlockOpen(false);
+          }}>
                 {b.label}
               </div>
           )}
@@ -123,45 +138,27 @@ function FloatingToolbar() {
 
       <div style={ftS.sep} />
 
-      {/* Inline formatting */}
-      <FtBtn icon="format_bold" title="Gras" active={!!formats.bold} onCmd={() => fmt('bold')} />
-      <FtBtn icon="format_italic" title="Italique" active={!!formats.italic} onCmd={() => fmt('italic')} iconStyle={{ fontStyle: 'italic' }} />
-      <FtBtn icon="format_underlined" title="Souligné" active={!!formats.underline} onCmd={() => fmt('underline')} />
-      <FtBtn icon="strikethrough_s" title="Barré" active={!!formats.strike} onCmd={() => fmt('strike')} />
+      <FtBtn icon="format_bold" title="Gras" active={editor.isActive('bold')} onCmd={() => run((c) => c.toggleBold())} />
+      <FtBtn icon="format_italic" title="Italique" active={editor.isActive('italic')} onCmd={() => run((c) => c.toggleItalic())} iconStyle={{ fontStyle: 'italic' }} />
+      <FtBtn icon="format_underlined" title="Souligné" active={editor.isActive('underline')} onCmd={() => run((c) => c.toggleUnderline())} />
+      <FtBtn icon="strikethrough_s" title="Barré" active={editor.isActive('strike')} onCmd={() => run((c) => c.toggleStrike())} />
 
       <div style={ftS.sep} />
 
-      {/* Block / rich */}
-      <FtBtn icon="format_quote" title="Citation" active={!!formats.blockquote} onCmd={() => fmt('blockquote')} />
-      <FtBtn icon="link" title="Lien" active={!!formats.link} onCmd={() => {const url = prompt('URL :');if (url) fmt('link', url);}} />
-      <FtBtn icon="code" title="Code" active={!!formats['code-block']} onCmd={() => fmt('code-block')} />
-
-      <div style={ftS.sep} />
-
-      {/* Color */}
       <ColorBtn
         icon="format_color_text" title="Couleur du texte"
-        current={formats.color} defaultBar="#1f1f1f"
-        onPick={(v) => fmt('color', v)} />
+        current={curColor} defaultBar="#1f1f1f"
+        onPick={(v) => run((c) => v === curColor ? c.unsetColor() : c.setColor(v))} />
       <ColorBtn
         icon="border_color" title="Surlignage"
-        current={formats.background} defaultBar="#ffc01f"
-        onPick={(v) => fmt('background', v)} />
+        current={curHighlight} defaultBar="#ffc01f"
+        onPick={(v) => run((c) => v === curHighlight ? c.unsetHighlight() : c.toggleHighlight({ color: v }))} />
 
       <div style={ftS.sep} />
 
-      {/* Lists + indent */}
-      <FtBtn icon="format_list_bulleted" title="Liste à puces" active={formats.list === 'bullet'} onCmd={() => fmt('list', formats.list === 'bullet' ? false : 'bullet')} />
-      <FtBtn icon="format_list_numbered" title="Liste numérotée" active={formats.list === 'ordered'} onCmd={() => fmt('list', formats.list === 'ordered' ? false : 'ordered')} />
-      <FtBtn icon="format_indent_decrease" title="Désindenter" active={false} onCmd={() => {const qr = quill.getSelection();if (qr) quill.format('indent', '-1');}} />
-      <FtBtn icon="format_indent_increase" title="Indenter" active={false} onCmd={() => {const qr = quill.getSelection();if (qr) quill.format('indent', '+1');}} />
-
-      <div style={ftS.sep} />
-
-      {/* Clear */}
-      <FtBtn icon="format_clear" title="Effacer le formatage" active={false} onCmd={clearFmt} />
+      <FtBtn icon="format_list_bulleted" title="Liste à puces" active={editor.isActive('bulletList')} onCmd={() => run((c) => c.toggleBulletList())} />
+      <FtBtn icon="format_list_numbered" title="Liste numérotée" active={editor.isActive('orderedList')} onCmd={() => run((c) => c.toggleOrderedList())} />
     </div>);
-
 }
 
 function FtBtn({ icon, title, active, onCmd, iconStyle }) {
@@ -169,11 +166,9 @@ function FtBtn({ icon, title, active, onCmd, iconStyle }) {
     <button
       title={title}
       style={{ ...ftS.btn, ...(active ? ftS.btnActive : {}) }}
-      onMouseDown={(e) => {e.preventDefault();onCmd();}}>
-      
+      onMouseDown={(e) => { e.preventDefault(); onCmd(); }}>
       <span className="material-icons-outlined" style={{ fontSize: 18, ...iconStyle }}>{icon}</span>
     </button>);
-
 }
 
 function ColorBtn({ icon, title, current, defaultBar, onPick }) {
@@ -185,14 +180,13 @@ function ColorBtn({ icon, title, current, defaultBar, onPick }) {
       <button
         title={title}
         style={{ ...ftS.btn, ...ftS.colorBtn, ...(open || active ? ftS.btnActive : {}) }}
-        onMouseDown={(e) => {e.preventDefault();setOpen((o) => !o);}}>
-        
+        onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
         <span className="material-icons-outlined" style={{ fontSize: 18 }}>{icon}</span>
         <span style={{ ...ftS.colorBar, background: bar }} />
       </button>
       {open &&
       <>
-          <div style={ftS.menuScrim} onMouseDown={(e) => {e.preventDefault();setOpen(false);}} />
+          <div style={ftS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
           <div style={ftS.colorMenu}>
             {PALETTE.map((hex) => {
             const isCur = (current || '').toLowerCase() === hex.toLowerCase();
@@ -202,21 +196,18 @@ function ColorBtn({ icon, title, current, defaultBar, onPick }) {
                 key={hex}
                 title={hex}
                 style={{ ...ftS.swatchBtn, ...(isCur ? ftS.swatchBtnActive : {}) }}
-                onMouseDown={(e) => {e.preventDefault();onPick(hex);setOpen(false);}}>
-                
+                onMouseDown={(e) => { e.preventDefault(); onPick(hex); setOpen(false); }}>
                   <span style={{
                   ...ftS.swatch,
                   background: hex,
                   ...(isWhite ? { border: '1px solid #d8d8e0' } : {})
                 }} />
                 </button>);
-
           })}
           </div>
         </>
       }
     </div>);
-
 }
 
 const ftS = {
@@ -232,7 +223,7 @@ const ftS = {
     padding: '4px 10px',
     gap: 2,
     fontFamily: "'Inter', sans-serif",
-    animation: 'ftbar-in 140ms cubic-bezier(0.2,0,0,1)'
+    animation: 'pop-in 140ms cubic-bezier(0.2,0,0,1)'
   },
   typeBtn: {
     display: 'flex', alignItems: 'center', gap: 4,

@@ -364,6 +364,78 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
   );
 }
 
+// DiagnosticDropdown — mode « /dx », affiché pendant la saisie du nom du
+// diagnostic. Les suggestions viennent de searchCIM10 (editor-schema.jsx).
+function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickSuggestion, onClose }) {
+  const ref = useRefP(null);
+  useEffectP(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [onClose]);
+  return (
+    <div ref={ref} style={{
+      position: 'fixed', top: position.top, left: position.left,
+      background: '#fff', border: '1px solid #b3ccf0', borderRadius: 10,
+      boxShadow: '0 4px 16px rgba(37,36,94,0.16)',
+      zIndex: 60, minWidth: 320, maxWidth: 420,
+      fontFamily: "'Inter',sans-serif", overflow: 'hidden'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
+        <span className="material-icons-outlined" style={{ fontSize: 18, color: '#1a5fd4', flexShrink: 0 }}>local_hospital</span>
+        {query
+          ? <span style={{ font: "400 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.75)', flex: 1 }}>
+              Diagnostic : <strong>{query}</strong>
+            </span>
+          : <span style={{ font: "400 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.45)', flex: 1 }}>
+              Saisissez le nom du diagnostic…
+            </span>
+        }
+        {query && (
+          <kbd style={{
+            marginLeft: 'auto', background: '#f0f0f8', border: '1px solid #d0d0e0',
+            borderRadius: 4, padding: '2px 7px', font: "500 12px 'Inter',sans-serif", color: '#555', flexShrink: 0
+          }}>↵</kbd>
+        )}
+      </div>
+      {suggestions && suggestions.length > 0 && (
+        <>
+          <div style={{ height: 1, background: '#e8ecf5', margin: '0 12px' }} />
+          <div style={{ padding: '4px 0 6px' }}>
+            {suggestions.map((s, i) => {
+              const showDivider = i > 0 && suggestions[i - 1].generic && !s.generic;
+              return (
+                <React.Fragment key={s.code + '-' + i}>
+                  {showDivider && (
+                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
+                      Codes précis
+                    </div>
+                  )}
+                  <div
+                    onMouseDown={(e) => { e.preventDefault(); if (onPickSuggestion) onPickSuggestion(s.libelle); }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 10,
+                      padding: '6px 16px', cursor: 'pointer',
+                      background: i === activeIndex ? '#eef3fb' : 'transparent'
+                    }}
+                  >
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, minWidth: 44, flexShrink: 0,
+                      color: s.generic ? '#6967d1' : '#1a5fd4', fontVariantNumeric: 'tabular-nums'
+                    }}>{s.generic ? 'Général' : s.code}</span>
+                    <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.82)', fontWeight: s.generic ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.libelle}</span>
+                    {i === activeIndex && <kbd style={{ background: '#f0f0f8', border: '1px solid #d0d0e0', borderRadius: 3, padding: '1px 5px', fontSize: 11, color: '#888', flexShrink: 0 }}>↵</kbd>}
+                  </div>
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // Functions / "Ajouter" menu — opened from the + button
 function AddMenu({ position, tools, orders, onPickTool, onPickOrder, onPickFile, onAddSection, onClose }) {
   const stop = (e) => e.stopPropagation();
@@ -472,7 +544,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, activeAction, onSelect, onHover, onToggleFav, onClose }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -492,10 +564,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, activeAction
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
   const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
-  const kbdAction = activeAction || 0;
-  const activeItem = profil.concat(results.favoris, results.frequents, results.autres)[activeIndex];
-  const activeIsMed = activeItem && activeItem.med && activeItem.medStatus === 'active';
-  const enterVerb = activeIsMed ? ['Renouveler', 'Ajuster', 'Cesser'][kbdAction] : d.verb;
   let flat = -1;
 
   return (
@@ -512,7 +580,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, activeAction
               const idx = flat;
               const fav = favSet.has(it.key);
               const isActiveMed = it.med && it.medStatus === 'active';
-              const kbdOn = idx === activeIndex ? kbdAction : -1;
               return (
                 <div key={it.key} role="option" aria-selected={idx === activeIndex}
                   className={'rx-item' + (idx === activeIndex ? ' is-active' : '')}
@@ -529,17 +596,17 @@ function RxMenu({ position, kind, def, query, results, activeIndex, activeAction
                     {it.med
                       ? (isActiveMed
                           ? <span className="rx-med-actions">
-                              <button type="button" className={'rx-med-btn' + (kbdOn === 0 ? ' is-kbd' : '')} title="Renouveler — même posologie"
+                              <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
                                 <span className="material-icons-outlined">refresh</span>
                               </button>
-                              <button type="button" className={'rx-med-btn' + (kbdOn === 1 ? ' is-kbd' : '')} title="Ajuster la posologie"
+                              <button type="button" className="rx-med-btn" title="Ajuster la posologie"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
                                 <span className="material-icons-outlined">tune</span>
                               </button>
-                              <button type="button" className={'rx-med-btn rx-med-btn--stop' + (kbdOn === 2 ? ' is-kbd' : '')} title="Cesser"
+                              <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
                                 <span className="material-icons-outlined">block</span>
@@ -566,11 +633,10 @@ function RxMenu({ position, kind, def, query, results, activeIndex, activeAction
       </div>
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>
-        {activeIsMed && <span><kbd>← →</kbd> action</span>}
-        <span><kbd>↵</kbd> {enterVerb}</span>
+        <span><kbd>↵</kbd> {d.verb}</span>
         <span><kbd>Esc</kbd> annuler</span>
       </div>
     </div>);
 }
 
-Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu });
+Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu, DiagnosticDropdown });

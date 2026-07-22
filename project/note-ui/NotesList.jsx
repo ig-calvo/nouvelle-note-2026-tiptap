@@ -97,110 +97,87 @@ function roChipStyle(type) {
   };
 }
 
-// Render one line's content (plain text + inline chip pills) into an array.
-function renderInline(text, chips, keyPrefix) {
-  var out = [];
-  (text || '').split(/(\{\{CHIP:[^}]+\}\})/g).forEach(function(p, i) {
-    var m = /^\{\{CHIP:([^}]+)\}\}$/.exec(p);
-    if (m) {
-      var chip = chips && chips[m[1]];
-      if (!chip || !chip.entity) return;
-      var ent = chip.entity;
-      var type = ent.type;
-      var isPrx = type === 'prescription';
-      var iconMap = { lab: 'science', imaging: 'radiology', referral: 'person_add', problem: 'flag', instructions: 'menu_book', diagnostic: 'local_hospital', file: 'attach_file' };
-      var label = roChipLabel(ent);
-      var iconColor = type === 'lab' ? '#1975d1' : type === 'imaging' ? '#7a3ec2' : type === 'referral' ? '#2e7d32' : '#25245E';
-      out.push(
-        <span key={keyPrefix + '-chip-' + i} style={roChipStyle(type)}>
-          {isPrx
-            ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 15, color: '#25245E', lineHeight: 1 }}>℞</span>
-            : <span className="material-symbols-outlined" style={{ fontSize: 14, color: iconColor }}>{iconMap[type] || 'bookmark'}</span>
-          }
-          <span>{label}</span>
-        </span>
-      );
-    } else if (p) {
-      out.push(<React.Fragment key={keyPrefix + '-t-' + i}>{p}</React.Fragment>);
-    }
-  });
-  return out;
+// Rendu read-only d'un chip (nœud atom Tiptap 'chip' — attrs = entité complète).
+function ChipPill({ attrs, keyProp }) {
+  var type = attrs.type;
+  var isPrx = type === 'prescription';
+  var iconMap = { lab: 'science', imaging: 'radiology', referral: 'person_add', problem: 'flag', instructions: 'menu_book', diagnostic: 'local_hospital', file: 'attach_file' };
+  var label = roChipLabel(attrs);
+  var iconColor = type === 'lab' ? '#1975d1' : type === 'imaging' ? '#7a3ec2' : type === 'referral' ? '#2e7d32' : '#25245E';
+  return (
+    <span key={keyProp} style={roChipStyle(type)}>
+      {isPrx
+        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 15, color: '#25245E', lineHeight: 1 }}>℞</span>
+        : <span className="material-symbols-outlined" style={{ fontSize: 14, color: iconColor }}>{iconMap[type] || 'bookmark'}</span>
+      }
+      <span>{label}</span>
+    </span>
+  );
 }
 
-// Render a run of lines (with <br> between) into an array of elements.
-function renderLines(lines, chips, keyPrefix) {
-  var out = [];
-  lines.forEach(function(ln, li) {
-    if (li > 0) out.push(<br key={keyPrefix + '-br-' + li} />);
-    renderInline(ln, chips, keyPrefix + '-' + li).forEach(function(e) { out.push(e); });
-  });
-  return out;
+// Rendu read-only d'un nœud inline (texte avec marques, ou chip).
+function DocInline({ node, keyProp }) {
+  if (node.type === 'text') {
+    var el = node.text;
+    (node.marks || []).forEach(function(m) {
+      if (m.type === 'bold') el = <strong>{el}</strong>;
+      else if (m.type === 'italic') el = <em>{el}</em>;
+      else if (m.type === 'strike') el = <s>{el}</s>;
+      else if (m.type === 'code') el = <code>{el}</code>;
+    });
+    return <React.Fragment key={keyProp}>{el}</React.Fragment>;
+  }
+  if (node.type === 'chip') return <ChipPill attrs={node.attrs} keyProp={keyProp} />;
+  return null;
 }
 
-const RO_DIAG_OPEN = /^\{\{DIAG:([A-Za-z0-9_-]+)\|([^}]*)\}\}$/;
-const RO_REF_OPEN = /^\{\{REF:([^|]*)\|([^}]*)\}\}$/;
-
-// Read-only section renderer: walks lines, grouping {{DIAG:..}}…{{/DIAG}}
-// regions into blue callout blocks and {{REF:..}} lines into citation
-// blocks; everything else is normal text + chips.
-function SectionContent({ content, chips }) {
-  var lines = (content || '').split('\n');
-  var blocks = [];          // {type:'text', lines} | {type:'diag', name, lines} | {type:'ref', source, text}
-  var textRun = [];
-  var cur = null;
-  function flushText() { if (textRun.length) { blocks.push({ type: 'text', lines: textRun }); textRun = []; } }
-  lines.forEach(function(line) {
-    var mo = RO_DIAG_OPEN.exec(line);
-    if (mo) {
-      flushText();
-      var nm = '';
-      try { nm = decodeURIComponent(mo[2]); } catch (e) { nm = mo[2]; }
-      cur = { type: 'diag', name: nm, lines: [] };
-      blocks.push(cur);
-      return;
+// Rendu read-only d'un document Tiptap complet (note complétée) : titres,
+// paragraphes, chips, blocs de référence. Remplace l'ancien rendu à
+// marqueurs {{CHIP}}/{{DIAG}}/{{REF}} — le doc JSON est déjà structuré.
+function DocView({ doc }) {
+  if (!doc || !doc.content) return null;
+  var blocks = doc.content.map(function(node, bi) {
+    if (node.type === 'heading') {
+      var level = (node.attrs && node.attrs.level) || 2;
+      var Tag = 'h' + Math.min(4, Math.max(1, level));
+      return React.createElement(Tag, { key: 'h-' + bi, style: nlStyles.detailsLabel },
+        (node.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; }));
     }
-    if (line === '{{/DIAG}}') { cur = null; return; }
-    var mr = RO_REF_OPEN.exec(line);
-    if (mr && !cur) {
-      flushText();
-      var src = '', txt = '';
-      try { src = decodeURIComponent(mr[1]); } catch (e) { src = mr[1]; }
-      try { txt = decodeURIComponent(mr[2]); } catch (e) { txt = mr[2]; }
-      blocks.push({ type: 'ref', source: src, text: txt });
-      return;
-    }
-    if (cur) cur.lines.push(line); else textRun.push(line);
-  });
-  flushText();
-
-  var els = blocks.map(function(b, bi) {
-    if (b.type === 'text') {
-      var hasContent = b.lines.some(function(l) { return l.trim() || /\{\{CHIP:/.test(l); });
-      if (!hasContent) return null;
-      return <div key={'tb-' + bi}>{renderLines(b.lines, chips, 'tb' + bi)}</div>;
-    }
-    if (b.type === 'ref') {
+    if (node.type === 'reference') {
       return (
         <div key={'rb-' + bi} style={nlStyles.roRef}>
           <div style={nlStyles.roRefHeader}>
             <span className="material-icons-outlined" style={nlStyles.roRefIcon}>format_quote</span>
-            <span style={nlStyles.roRefSource}>Référence — {b.source}</span>
+            <span style={nlStyles.roRefSource}>Référence — {node.attrs.source}</span>
           </div>
-          <div style={nlStyles.roRefBody}>{b.text.split('\n').map(function(l, li) { return <React.Fragment key={li}>{li > 0 && <br />}{l}</React.Fragment>; })}</div>
+          <div style={nlStyles.roRefBody}>{(node.attrs.text || '').split('\n').map(function(l, li) { return <React.Fragment key={li}>{li > 0 && <br />}{l}</React.Fragment>; })}</div>
         </div>
       );
     }
-    return (
-      <div key={'db-' + bi} style={nlStyles.roDiag}>
-        <div style={nlStyles.roDiagHeader}>
-          <span className="material-icons-outlined" style={nlStyles.roDiagIcon}>local_hospital</span>
-          <span style={nlStyles.roDiagName}>{b.name}</span>
+    if (node.type === 'paragraph') {
+      var kids = node.content || [];
+      if (!kids.length) return null;
+      return <p key={'p-' + bi} style={{ margin: '0 0 8px' }}>{kids.map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; })}</p>;
+    }
+    if (node.type === 'diagnosticRegion') {
+      var bodyParas = (node.content || []).filter(function(p) { return (p.content || []).length; });
+      return (
+        <div key={'db-' + bi} style={nlStyles.roDiag}>
+          <div style={nlStyles.roDiagHeader}>
+            <span className="material-icons-outlined" style={nlStyles.roDiagIcon}>local_hospital</span>
+            <span style={nlStyles.roDiagName}>{node.attrs.name}</span>
+          </div>
+          <div style={nlStyles.roDiagBody}>
+            {bodyParas.map(function(p, pi) {
+              return <p key={pi} style={{ margin: '0 0 4px' }}>{(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; })}</p>;
+            })}
+          </div>
         </div>
-        <div style={nlStyles.roDiagBody}>{renderLines(b.lines, chips, 'db' + bi)}</div>
-      </div>
-    );
+      );
+    }
+    return null;
   });
-  return <React.Fragment>{els}</React.Fragment>;
+  return <React.Fragment>{blocks}</React.Fragment>;
 }
 
 function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
@@ -296,7 +273,6 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
       {filtered.map((n, i) => {
         const origIdx = NOTE_ITEMS.indexOf(n);
         const isOpen = !!openNotes[origIdx];
-        const starredSections = (n.sections || []).filter(function(s) { return s.starred; });
         const epMembers = n.episodeId ? episodeGroups[n.episodeId] : null;
         const epTotal = epMembers ? epMembers.length : 0;
         const epVisitNum = epMembers ? epTotal - epMembers.indexOf(origIdx) : 0;
@@ -326,8 +302,6 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
                   <div style={nlStyles.mode}>{n.mode}</div>
                   <div style={nlStyles.noteTitle}>
                     {n.title}
-                    {starredSections.length > 0 &&
-                      <span className="material-icons" style={nlStyles.titleStarIcon} title="Contient une section importante">star</span>}
                   </div>
                 </div>
                 {epTotal > 1 &&
@@ -347,26 +321,13 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
                 </div>
               </div>
 
-              {/* Expanded: sections éditeur (nouvelles notes) ou détails texte (notes template) */}
-              {isOpen && n.sections && n.sections.length > 0 ? (
-                n.sections.map(function(sec, si) {
-                  var hasContent = sec.content && sec.content.trim();
-                  if (!hasContent) return null;
-                  return (
-                    <div key={sec.id || si} style={nlStyles.detailsSection}>
-                      {(n.sections.length > 1 || sec.type === 'diagnostic') && (
-                        <div style={nlStyles.detailsLabel}>
-                          {sec.title}
-                          {sec.starred &&
-                            <span className="material-icons" style={nlStyles.titleStarIcon} title="Section importante">star</span>}
-                        </div>
-                      )}
-                      <div style={nlStyles.detailsText}>
-                        <SectionContent content={sec.content} chips={n.chips} />
-                      </div>
-                    </div>
-                  );
-                })
+              {/* Expanded: document Tiptap (nouvelles notes) ou détails texte (notes template) */}
+              {isOpen && n.doc ? (
+                <div style={nlStyles.detailsSection}>
+                  <div style={nlStyles.detailsText}>
+                    <DocView doc={n.doc} />
+                  </div>
+                </div>
               ) : isOpen && n.details ? (
                 <div style={nlStyles.detailsSection}>
                   <div style={nlStyles.detailsLabel}>Détails de la note</div>
@@ -377,26 +338,6 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
                   </div>
                 </div>
               ) : null}
-
-              {/* Section(s) étoilée(s) — signal clinique partagé, visible même
-                  repliée. Une fois la note ouverte, la section apparaît déjà
-                  dans la liste complète ci-dessus (avec son étoile), donc on
-                  évite le doublon. */}
-              {!isOpen && starredSections.length > 0 && starredSections.map(function(sec, si) {
-                var hasContent = sec.content && sec.content.trim();
-                if (!hasContent) return null;
-                return (
-                  <div key={'star-' + (sec.id || si)} style={nlStyles.starredRow}>
-                    <div style={nlStyles.starredHeader}>
-                      <span className="material-icons" style={nlStyles.starredIcon}>star</span>
-                      <span style={nlStyles.starredLabel}>{sec.title}</span>
-                    </div>
-                    <div style={nlStyles.starredBody}>
-                      <SectionContent content={sec.content} chips={n.chips} />
-                    </div>
-                  </div>
-                );
-              })}
 
               {/* Diagnostics — always visible (collapsed only shows these) */}
               {n.diagnostics && n.diagnostics.length > 0 && (
@@ -411,7 +352,7 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
               )}
 
               {/* Conclusion — uniquement pour les notes template (n.conclusion) */}
-              {isOpen && !n.sections && n.conclusion ? (
+              {isOpen && !n.doc && n.conclusion ? (
                 <>
                   <div style={nlStyles.conclLabelWrap}>
                     <div style={nlStyles.conclLabelOpen}>Conclusion</div>
@@ -531,7 +472,6 @@ const nlStyles = {
   bodyHead: { display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 },
   mode: { fontSize: 11, fontWeight: 500, letterSpacing: 0.8, color: "rgba(0,0,0,0.5)" },
   noteTitle: { fontSize: 17, fontWeight: 600, color: "rgba(0,0,0,0.85)", marginTop: 2 },
-  titleStarIcon: { fontSize: 16, color: "#f59e0b", marginLeft: 6, verticalAlign: "middle" },
   actionIcons: { display: "flex", alignItems: "center", gap: 10 },
   actionIcon: { fontSize: 20, color: "rgba(0,0,0,0.5)", cursor: "pointer" },
   checkoutBtn: {
@@ -559,11 +499,6 @@ const nlStyles = {
     padding: '8px 14px', font: "500 13px 'Inter', sans-serif", cursor: 'pointer',
     boxShadow: '0 6px 18px rgba(0,0,0,0.22)', whiteSpace: 'nowrap',
   },
-  starredRow: { margin: '2px 0 12px', border: '1px solid #f5d896', borderRadius: 10, overflow: 'hidden', background: '#fffaf0' },
-  starredHeader: { display: 'flex', alignItems: 'center', gap: 7, padding: '6px 12px', background: '#fef3dd' },
-  starredIcon: { fontSize: 15, color: '#f59e0b' },
-  starredLabel: { fontSize: 13, fontWeight: 600, color: '#92670c' },
-  starredBody: { padding: '8px 12px', fontSize: 14, color: 'rgba(0,0,0,0.8)', lineHeight: 1.5 },
   diagRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, marginTop: 2 },
   diagChip: {
     display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -572,10 +507,7 @@ const nlStyles = {
   },
   diagChipIcon: { fontSize: 14, color: '#1a5fd4' },
   roDiag: { margin: '8px 0', border: '1px solid #b3ccf0', borderRadius: 10, overflow: 'hidden' },
-  roDiagHeader: {
-    display: 'flex', alignItems: 'center', gap: 7,
-    background: '#e8f0fb', padding: '6px 12px',
-  },
+  roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: '#e8f0fb', padding: '6px 12px' },
   roDiagIcon: { fontSize: 16, color: '#1a5fd4' },
   roDiagName: { fontSize: 14, fontWeight: 600, color: '#1a5fd4' },
   roDiagBody: { background: '#f5f9ff', padding: '8px 12px', fontSize: 15, color: 'rgba(0,0,0,0.82)', lineHeight: 1.6 },

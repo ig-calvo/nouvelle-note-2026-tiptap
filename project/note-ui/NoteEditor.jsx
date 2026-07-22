@@ -1,23 +1,4 @@
 /* global React */
-// Collect diagnostic names from section contents by scanning the {{DIAG:id|name}}
-// region markers (diagnostics now live INSIDE sections rather than being sections).
-function scanDiagNames(sections) {
-  var re = /\{\{DIAG:[A-Za-z0-9_-]+\|([^}]*)\}\}/g;
-  var seen = {};
-  var out = [];
-  (sections || []).forEach(function(s) {
-    var m;
-    re.lastIndex = 0;
-    while ((m = re.exec(s.content || ''))) {
-      var nm = '';
-      try { nm = decodeURIComponent(m[1]); } catch (e) { nm = m[1]; }
-      nm = nm.trim();
-      if (nm && !seen[nm]) { seen[nm] = true; out.push(nm); }
-    }
-  });
-  return out;
-}
-
 function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onDraftSaved, onSmartPick, saveDraftRef, pediatricPatient = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
@@ -39,31 +20,22 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   const [drafts, setDrafts] = React.useState([]);
   const [episodeId, setEpisodeId] = React.useState(null);
 
-  const DEFAULT_SECTIONS = [
-    { id: 'sec-details',    title: 'Détails de la consultation', content: '' },
-    { id: 'sec-conclusion', title: 'Conclusion',                 content: '' },
-  ];
+  // L'éditeur Tiptap est non contrôlé : React n'écrit dans le doc que par
+  // commandes impératives. `editorRef` référence l'instance vivante (le
+  // temps où isOpen est vrai) ; `initialDocRef` porte le contenu de départ
+  // pour le PROCHAIN montage de NoteBody (brouillon repris, dernière note,
+  // gabarit appliqué avant ouverture) — voir handleEditorReady/handleDocChange.
+  const editorRef = React.useRef(null);
+  const initialDocRef = React.useRef(null);
+  const [docStats, setDocStats] = React.useState({ counts: {}, items: [], diagNames: [], chips: [] });
 
-  const [sections, setSections] = React.useState(
-    function() { return DEFAULT_SECTIONS.map(function(s) { return Object.assign({}, s); }); }
-  );
-  // Position de la zone d'outils entre les sections (0 = avant tout, 1 = entre s[0] et s[1], ...)
-  // Par défaut placée AVANT la section « Détails de la consultation ».
-  const [toolZoneIndex, setToolZoneIndex] = React.useState(0);
-
-  // splits pour drag-to-place: { [sectionId]: { top: '', bot: '' } }
-  const [sectionSplits, setSectionSplits] = React.useState({});
-
-  const [chips, setChips] = React.useState({});
   const [popover, setPopover] = React.useState(null);
   const [inlineEdit, setInlineEdit] = React.useState(null); // { chipId, field, fieldRect }
   const [linkedChipId, setLinkedChipId] = React.useState(null);
 
-  const [everOpened, setEverOpened] = React.useState(false);
   const [toolOpen, setToolOpen] = React.useState(false);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerAnchor, setPickerAnchor] = React.useState(null);
-  const [pickerSourceId, setPickerSourceId] = React.useState(null);
   const [checkoutOpen, setCheckoutOpen] = React.useState(false);
   const [checkoutGroups, setCheckoutGroups] = React.useState([]);
   const [noteDate, setNoteDate] = React.useState(function() { return new Date().toISOString().slice(0, 10); });
@@ -77,24 +49,35 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   const [raison, setRaison] = React.useState('');
   const noteCardRef = React.useRef(null);
 
-  // --- drag-to-place tool state
-  // toolLoc: 'default' | sectionId
-  const [toolLoc, setToolLoc] = React.useState('default');
-  const [dragging, setDragging] = React.useState(false);
-  const [drop, setDrop] = React.useState(null);
-  const sectionWrapRefs = React.useRef({});
-  const defaultZoneRef = React.useRef(null);
-  const dragRef = React.useRef({ on: false });
-  const dropRef = React.useRef(null);
+  function handleEditorReady(editor) { editorRef.current = editor; }
 
-  React.useEffect(function() {
-    if (isOpen && !everOpened) setEverOpened(true);
-  }, [isOpen]);
+  function handleDocChange(docJson) {
+    const stats = window.scanDoc(docJson);
+    setDocStats(stats);
+    window.dispatchEvent(new CustomEvent('note:chips-change', { detail: stats.counts }));
+    window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
+  }
+
+  // Insère des blocs (paragraphes, node reference, node chip…) à la fin de
+  // la première section — que l'éditeur soit déjà monté (commande live) ou
+  // pas encore (contenu amorcé pour le prochain montage). Utilisé par la
+  // référence de passage, l'Assistant IA et le glisser-déposer du Sommaire.
+  function appendToFirstSection(blocks) {
+    if (editorRef.current) {
+      const pos = window.endOfFirstSectionPos(editorRef.current.state.doc);
+      editorRef.current.chain().insertContentAt(pos, blocks).run();
+    } else {
+      const doc = initialDocRef.current || window.DEFAULT_DOC();
+      const idx = window.endOfFirstSectionIndexJSON(doc);
+      doc.content.splice.apply(doc.content, [idx, 0].concat(blocks));
+      initialDocRef.current = doc;
+    }
+    if (onOpen) onOpen();
+  }
 
   React.useEffect(function() {
     function onPickerOpen(e) {
       setPickerAnchor((e.detail && e.detail.rect) || null);
-      setPickerSourceId((e.detail && e.detail.id) || null);
       setPickerOpen(true);
     }
     window.addEventListener('ct-picker-open', onPickerOpen);
@@ -102,117 +85,46 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   }, []);
 
   // Gabarit de note (/virus, /itu, /periodique — editor-data.jsx NOTE_TEMPLATES) :
-  // règle structure + sections + outil clinique en un geste. Note vierge →
-  // les sections du gabarit remplacent les sections par défaut ; note déjà
-  // amorcée → elles s'ajoutent à la suite pour ne rien écraser.
+  // règle structure + sections (Titre 2 + paragraphes) + outil clinique en un
+  // geste. Note vierge → remplace tout le doc ; note déjà amorcée → ajoute à
+  // la suite pour ne rien écraser.
   React.useEffect(function() {
     function onApplyTemplate(e) {
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
-      setSections(function(secs) {
-        var isBlank = secs.every(function(s) { return !s.content || !s.content.trim(); });
-        var tplSections = (tpl.sections || []).map(function(s, i) {
-          return { id: 'sec-' + Date.now() + '-' + i, title: s.title, content: s.content || '' };
-        });
-        return isBlank ? tplSections : secs.concat(tplSections);
+      var blocks = [];
+      (tpl.sections || []).forEach(function(s) {
+        blocks = blocks.concat(window.plainToBlocks(s.title, s.content || ''));
       });
+      if (editorRef.current) {
+        var blank = window.docIsBlank(editorRef.current.getJSON());
+        if (blank) editorRef.current.commands.setContent({ type: 'doc', content: blocks }, true);
+        else editorRef.current.chain().insertContentAt(editorRef.current.state.doc.content.size, blocks).run();
+      } else {
+        initialDocRef.current = { type: 'doc', content: blocks };
+      }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
       if (tpl.tool === 'itu') setToolOpen(true);
+      if (onOpen) onOpen();
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
     return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
   }, []);
 
   // Référencer un passage sélectionné dans une note antérieure complétée
-  // (sélection + bouton flottant dans NotesList.jsx). Ajouté à la 1re
-  // section — même convention que l'Assistant IA (onAddToNote ci-dessous).
+  // (sélection + bouton flottant dans NotesList.jsx). Ajouté à la fin de la
+  // 1re section — même convention que l'Assistant IA (onAddToNote plus bas).
   React.useEffect(function() {
     function onAddReference(e) {
       var detail = e.detail || {};
       var text = (detail.text || '').trim();
       if (!text) return;
-      var sentinel = '{{REF:' + encodeURIComponent(detail.source || '') + '|' + encodeURIComponent(text) + '}}';
-      setSections(function(secs) {
-        if (!secs.length) return secs;
-        return secs.map(function(s, i) {
-          if (i !== 0) return s;
-          var v = s.content;
-          var prefix = v && v.trim() ? v.replace(/\n*$/, '') + '\n' : '';
-          return Object.assign({}, s, { content: prefix + sentinel + '\n' });
-        });
-      });
-      if (onOpen) onOpen();
+      appendToFirstSection([{ type: 'reference', attrs: { source: detail.source || '', text: text } }]);
     }
     window.addEventListener('note:add-reference', onAddReference);
     return function() { window.removeEventListener('note:add-reference', onAddReference); };
   }, []);
-
-  // Dispatch chip counts whenever chips or sections change (drives footer counters).
-  // Diagnostics are counted from the {{DIAG:..}} region markers in section content.
-  React.useEffect(function() {
-    // Ne compter que les chips RÉELLEMENT présents dans le contenu : la map
-    // `chips` conserve les chips supprimés de l'éditeur (orphelins), donc on
-    // scanne les marqueurs {{CHIP:id}} de toutes les zones éditables.
-    var blob = sections.map(function(s) { return s.content || ''; }).join('\n');
-    Object.keys(sectionSplits).forEach(function(k) {
-      var sp = sectionSplits[k] || {};
-      blob += '\n' + (sp.top || '') + '\n' + (sp.bot || '');
-    });
-    var present = {};
-    var re = /\{\{CHIP:([^}]+)\}\}/g, m;
-    while ((m = re.exec(blob))) present[m[1]] = true;
-    var counts = {};
-    Object.keys(present).forEach(function(id) {
-      var c = chips[id];
-      var t = c && c.entity && c.entity.type;
-      if (t) counts[t] = (counts[t] || 0) + 1;
-    });
-    var dxCount = scanDiagNames(sections).length;
-    if (dxCount) counts.diagnostic = dxCount;
-    window.dispatchEvent(new CustomEvent('note:chips-change', { detail: counts }));
-
-    // Liste détaillée des éléments présents dans la note → le Sommaire affiche
-    // chacun en « pending » dans sa section correspondante.
-    var items = [];
-    Object.keys(present).forEach(function(id) {
-      var c = chips[id];
-      if (c && c.entity && c.entity.type) items.push({ id: id, type: c.entity.type, label: c.entity.label });
-    });
-    scanDiagNames(sections).forEach(function(nm, i) { items.push({ id: 'dx-' + i, type: 'diagnostic', label: nm }); });
-    window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: items } }));
-  }, [chips, sections, sectionSplits]);
-
-  // ----- section content helpers -----
-  function setSectionContent(sectionId, valOrFn) {
-    setSections(function(secs) {
-      return secs.map(function(s) {
-        if (s.id !== sectionId) return s;
-        return Object.assign({}, s, { content: typeof valOrFn === 'function' ? valOrFn(s.content) : valOrFn });
-      });
-    });
-  }
-  // Étoile = signal clinique partagé : posée par l'auteur, visible par tous
-  // les intervenants qui consultent la note (liste de notes → note-ui/NotesList.jsx).
-  function toggleSectionStar(sectionId) {
-    setSections(function(secs) {
-      return secs.map(function(s) {
-        return s.id === sectionId ? Object.assign({}, s, { starred: !s.starred }) : s;
-      });
-    });
-  }
-  function setSplitTop(sectionId, valOrFn) {
-    setSectionSplits(function(sp) {
-      var prev = sp[sectionId] || { top: '', bot: '' };
-      return Object.assign({}, sp, { [sectionId]: Object.assign({}, prev, { top: typeof valOrFn === 'function' ? valOrFn(prev.top) : valOrFn }) });
-    });
-  }
-  function setSplitBot(sectionId, valOrFn) {
-    setSectionSplits(function(sp) {
-      var prev = sp[sectionId] || { top: '', bot: '' };
-      return Object.assign({}, sp, { [sectionId]: Object.assign({}, prev, { bot: typeof valOrFn === 'function' ? valOrFn(prev.bot) : valOrFn }) });
-    });
-  }
 
   function deriveLabel(entity) {
     var d = entity.details || {};
@@ -233,32 +145,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     return entity.label;
   }
 
-  function onAddChip(fieldId, { chipId, entity, openAfter, storedOverride }) {
-    var targetSectionId = null, part = null;
-    for (var i = 0; i < sections.length; i++) {
-      var s = sections[i];
-      if (fieldId === s.id) { targetSectionId = s.id; part = null; break; }
-      if (fieldId === s.id + '-top') { targetSectionId = s.id; part = 'top'; break; }
-      if (fieldId === s.id + '-bot') { targetSectionId = s.id; part = 'bot'; break; }
-    }
-    if (storedOverride != null && targetSectionId) {
-      if (part === 'top') setSplitTop(targetSectionId, storedOverride);
-      else if (part === 'bot') setSplitBot(targetSectionId, storedOverride);
-      else setSectionContent(targetSectionId, storedOverride);
-    }
-    setChips(function(cs) { return Object.assign({}, cs, { [chipId]: { entity: entity } }); });
-    if (openAfter) {
-      setTimeout(function() {
-        var node = document.querySelector('[data-cid="' + chipId + '"]');
-        if (node) setPopover({ chipId: chipId, anchorRect: node.getBoundingClientRect() });
-      }, 80);
-    }
-  }
-
   function onChipClick(chipId, rect, extra) {
-    var chip = chips[chipId];
-    if (chip && chip.entity && chip.entity.type === 'file' && chip.entity.url) {
-      window.open(chip.entity.url, '_blank');
+    var entity = editorRef.current ? window.getChipEntity(editorRef.current, chipId) : null;
+    if (entity && entity.type === 'file' && entity.url) {
+      window.open(entity.url, '_blank');
       return;
     }
     // Edit button (···) → open full modal
@@ -269,9 +159,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       return;
     }
     // Zone click → inline autocomplete editor (prescription, lab, imaging, referral)
-    if (extra && extra.field && chip && chip.entity) {
+    if (extra && extra.field && entity) {
       var editableTypes = ['prescription', 'lab', 'imaging', 'referral'];
-      if (editableTypes.indexOf(chip.entity.type) !== -1) {
+      if (editableTypes.indexOf(entity.type) !== -1) {
         setInlineEdit({ chipId: chipId, field: extra.field, fieldRect: extra.fieldRect || rect });
         setLinkedChipId(chipId);
         return;
@@ -283,125 +173,109 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   }
 
   function saveInlineEdit(chipId, field, val) {
-    setChips(function(cs) {
-      var c = cs[chipId]; if (!c) return cs;
-      var details = Object.assign({}, c.entity.details || {});
-      var type = c.entity.type;
-      if (type === 'prescription') {
-        if (field === 'dose') {
-          var dm = /^([\d.]+)\s*(mg|g|mcg|µg|mL|unités?|UI)$/i.exec(val.trim());
-          if (dm) { details.dose = dm[1]; details.unit = dm[2]; }
-          else { details.dose = val.replace(/[^0-9.]/g, '') || details.dose; }
-        } else if (field === 'frequency') {
-          details.frequency = val;
-        } else if (field === 'form') {
-          var fmMap = {
-            '1 co': 'comprimé', '2 co': 'comprimé', '½ co': 'comprimé', '1½ co': 'comprimé', '3 co': 'comprimé', '4 co': 'comprimé',
-            '1 gél': 'gélule', '2 gél': 'gélule',
-            '1 cap': 'capsule', '2 cap': 'capsule',
-            '1 timbre': 'timbre',
-            '2 inh': 'aérosol-doseur', '1 inh': 'aérosol-doseur', '4 inh': 'aérosol-doseur',
-            '1 vap nasale': 'vaporisateur nasal', '2 vap nasale': 'vaporisateur nasal',
-            '1 amp': 'ampoule',
-            '5 mL': 'sirop', '10 mL': 'sirop', '15 mL': 'sirop', '20 mL': 'sirop',
-            '1 supp': 'suppositoire'
-          };
-          details.form = fmMap[val] || val;
-        } else if (field === 'route') {
-          details.route = val;
-        } else if (field === 'duration_refills') {
-          var drm = /^(\d+)\s*(jours?|semaines?|mois)(?:\s+R(\d+))?$/i.exec(val.trim());
-          if (drm) { details.duration = drm[1]; details.durationUnit = drm[2]; if (drm[3] !== undefined) details.refills = drm[3]; }
-          else if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
-        } else if (field === 'duration') {
-          if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; }
-          else {
-            var dm2 = /^(\d+)\s*(jours?|semaines?|mois|an|ans|année?s?)?/i.exec(val.trim());
-            if (dm2) { details.duration = dm2[1]; if (dm2[2]) details.durationUnit = /an|ann/i.test(dm2[2]) ? 'mois' : dm2[2].replace(/s$/, '') + (/jour|semaine/i.test(dm2[2]) ? 's' : ''); }
-          }
-        } else if (field === 'refills') {
-          var rfm = /R?\s*(\d+)/i.exec(val.trim());
-          details.refills = rfm ? rfm[1] : '0';
+    var editor = editorRef.current;
+    var entity = editor ? window.getChipEntity(editor, chipId) : null;
+    if (!editor || !entity) { setInlineEdit(null); return; }
+    var details = Object.assign({}, entity.details || {});
+    var type = entity.type;
+    if (type === 'prescription') {
+      if (field === 'dose') {
+        var dm = /^([\d.]+)\s*(mg|g|mcg|µg|mL|unités?|UI)$/i.exec(val.trim());
+        if (dm) { details.dose = dm[1]; details.unit = dm[2]; }
+        else { details.dose = val.replace(/[^0-9.]/g, '') || details.dose; }
+      } else if (field === 'frequency') {
+        details.frequency = val;
+      } else if (field === 'form') {
+        var fmMap = {
+          '1 co': 'comprimé', '2 co': 'comprimé', '½ co': 'comprimé', '1½ co': 'comprimé', '3 co': 'comprimé', '4 co': 'comprimé',
+          '1 gél': 'gélule', '2 gél': 'gélule',
+          '1 cap': 'capsule', '2 cap': 'capsule',
+          '1 timbre': 'timbre',
+          '2 inh': 'aérosol-doseur', '1 inh': 'aérosol-doseur', '4 inh': 'aérosol-doseur',
+          '1 vap nasale': 'vaporisateur nasal', '2 vap nasale': 'vaporisateur nasal',
+          '1 amp': 'ampoule',
+          '5 mL': 'sirop', '10 mL': 'sirop', '15 mL': 'sirop', '20 mL': 'sirop',
+          '1 supp': 'suppositoire'
+        };
+        details.form = fmMap[val] || val;
+      } else if (field === 'route') {
+        details.route = val;
+      } else if (field === 'duration_refills') {
+        var drm = /^(\d+)\s*(jours?|semaines?|mois)(?:\s+R(\d+))?$/i.exec(val.trim());
+        if (drm) { details.duration = drm[1]; details.durationUnit = drm[2]; if (drm[3] !== undefined) details.refills = drm[3]; }
+        else if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
+      } else if (field === 'duration') {
+        if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; }
+        else {
+          var dm2 = /^(\d+)\s*(jours?|semaines?|mois|an|ans|année?s?)?/i.exec(val.trim());
+          if (dm2) { details.duration = dm2[1]; if (dm2[2]) details.durationUnit = /an|ann/i.test(dm2[2]) ? 'mois' : dm2[2].replace(/s$/, '') + (/jour|semaine/i.test(dm2[2]) ? 's' : ''); }
         }
-      } else if (type === 'lab' || type === 'imaging' || type === 'referral') {
-        if (field === 'priority') {
-          details.priority = val;
-        } else if (field === 'exam' && type === 'imaging') {
-          var examParts = val.split(' ');
-          details.modality = examParts[0];
-          details.region = examParts.slice(1).join(' ');
-        } else if (field === 'specialty' && type === 'referral') {
-          details.specialty = val;
-        }
+      } else if (field === 'refills') {
+        var rfm = /R?\s*(\d+)/i.exec(val.trim());
+        details.refills = rfm ? rfm[1] : '0';
       }
-      var newEntity = Object.assign({}, c.entity, { details: details });
-      newEntity = Object.assign({}, newEntity, { label: deriveLabel(newEntity) });
-      if (newEntity.type === 'prescription' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRx(details, newEntity.rx);
-      else if (newEntity.type === 'lab' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveLabRx(details);
-      else if (newEntity.type === 'imaging' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveImgRx(details);
-      else if (newEntity.type === 'referral' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRefRx(details);
-      return Object.assign({}, cs, { [chipId]: { entity: newEntity } });
-    });
+    } else if (type === 'lab' || type === 'imaging' || type === 'referral') {
+      if (field === 'priority') {
+        details.priority = val;
+      } else if (field === 'exam' && type === 'imaging') {
+        var examParts = val.split(' ');
+        details.modality = examParts[0];
+        details.region = examParts.slice(1).join(' ');
+      } else if (field === 'specialty' && type === 'referral') {
+        details.specialty = val;
+      }
+    }
+    var newEntity = Object.assign({}, entity, { details: details });
+    newEntity.label = deriveLabel(newEntity);
+    if (newEntity.type === 'prescription' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRx(details, newEntity.rx);
+    else if (newEntity.type === 'lab' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveLabRx(details);
+    else if (newEntity.type === 'imaging' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveImgRx(details);
+    else if (newEntity.type === 'referral' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRefRx(details);
+    window.updateChipEntity(editor, chipId, newEntity);
     setInlineEdit(null);
   }
 
   function savePopover(chipId, draft) {
-    setChips(function(cs) {
-      var ent = Object.assign({}, draft, { label: deriveLabel(draft) });
-      if (ent.type === 'prescription' && ent.rx) ent.rx = window.NOTE_DATA.deriveRx(ent.details || {}, ent.rx);
-      else if (ent.type === 'lab' && ent.rx) ent.rx = window.NOTE_DATA.deriveLabRx(ent.details || {});
-      else if (ent.type === 'imaging' && ent.rx) ent.rx = window.NOTE_DATA.deriveImgRx(ent.details || {});
-      else if (ent.type === 'referral' && ent.rx) ent.rx = window.NOTE_DATA.deriveRefRx(ent.details || {});
-      return Object.assign({}, cs, { [chipId]: { entity: ent } });
-    });
+    var ent = Object.assign({}, draft, { label: deriveLabel(draft) });
+    if (ent.type === 'prescription' && ent.rx) ent.rx = window.NOTE_DATA.deriveRx(ent.details || {}, ent.rx);
+    else if (ent.type === 'lab' && ent.rx) ent.rx = window.NOTE_DATA.deriveLabRx(ent.details || {});
+    else if (ent.type === 'imaging' && ent.rx) ent.rx = window.NOTE_DATA.deriveImgRx(ent.details || {});
+    else if (ent.type === 'referral' && ent.rx) ent.rx = window.NOTE_DATA.deriveRefRx(ent.details || {});
+    if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent);
     setPopover(null);
   }
 
   function revertChip(chipId) {
-    var chip = chips[chipId]; if (!chip) return;
-    var txt = chip.entity.text || chip.entity.label || '';
-    var marker = '{{CHIP:' + chipId + '}}';
-    setSections(function(secs) {
-      return secs.map(function(s) {
-        return Object.assign({}, s, { content: s.content.split(marker).join(txt) });
-      });
-    });
-    setSectionSplits(function(sp) {
-      var n = Object.assign({}, sp);
-      Object.keys(n).forEach(function(sid) {
-        n[sid] = { top: n[sid].top.split(marker).join(txt), bot: n[sid].bot.split(marker).join(txt) };
-      });
-      return n;
-    });
-    setChips(function(cs) { var n = Object.assign({}, cs); delete n[chipId]; return n; });
+    var editor = editorRef.current;
+    if (editor) {
+      var entity = window.getChipEntity(editor, chipId);
+      var txt = (entity && (entity.text || entity.label)) || '';
+      var pos = window.findChipPos(editor, chipId);
+      if (pos >= 0) editor.chain().focus().deleteRange({ from: pos, to: pos + 1 }).insertContentAt(pos, txt).run();
+    }
     setPopover(null);
   }
 
   function deleteChip(chipId) {
-    var marker = '{{CHIP:' + chipId + '}}';
-    setSections(function(secs) {
-      return secs.map(function(s) {
-        return Object.assign({}, s, { content: s.content.split(marker + ' ').join('').split(marker).join('') });
-      });
-    });
-    setSectionSplits(function(sp) {
-      var n = Object.assign({}, sp);
-      Object.keys(n).forEach(function(sid) {
-        n[sid] = {
-          top: n[sid].top.split(marker + ' ').join('').split(marker).join(''),
-          bot: n[sid].bot.split(marker + ' ').join('').split(marker).join(''),
-        };
-      });
-      return n;
-    });
-    setChips(function(cs) { var n = Object.assign({}, cs); delete n[chipId]; return n; });
+    var editor = editorRef.current;
+    if (editor) {
+      var pos = window.findChipPos(editor, chipId);
+      if (pos >= 0) {
+        var end = pos + 1;
+        var after = editor.state.doc.textBetween(end, Math.min(end + 1, editor.state.doc.content.size));
+        if (after === ' ') end += 1;
+        editor.chain().focus().deleteRange({ from: pos, to: end }).run();
+      }
+    }
     setPopover(null);
   }
 
-  var popoverChip = popover && chips[popover.chipId] ?
-    { id: popover.chipId, entity: chips[popover.chipId].entity } : null;
+  var popoverEntity = popover && editorRef.current ? window.getChipEntity(editorRef.current, popover.chipId) : null;
+  var popoverChip = popoverEntity ? { id: popover.chipId, entity: popoverEntity } : null;
+  var inlineEditEntity = inlineEdit && editorRef.current ? window.getChipEntity(editorRef.current, inlineEdit.chipId) : null;
 
-  // Handle summary section drops anywhere on the note
+  // Handle summary section drops anywhere on the note — insère du texte à
+  // puces en fin de première section.
   React.useEffect(function() {
     function handleDragEnter(e) {
       if (!window.__omniSummaryDrag) return;
@@ -420,9 +294,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       e.stopPropagation();
       var payload = window.__omniSummaryDrag;
       window.__omniSummaryDrag = null;
-      if (payload && sections.length > 0) {
-        insertSummaryContent(0, payload);
-      }
+      if (payload) insertSummaryContent(payload);
     }
     var card = noteCardRef.current;
     if (!card) return;
@@ -434,32 +306,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       card.removeEventListener('dragover', handleDragOver);
       card.removeEventListener('drop', handleDrop);
     };
-  }, [sections]);
+  }, []);
 
-  function insertSummaryContent(sectionIdx, payload) {
-    if (sectionIdx >= sections.length) return;
-    var targetSection = sections[sectionIdx];
+  function insertSummaryContent(payload) {
     var sectionId = payload.sectionId, label = payload.label || '', items = payload.items || [];
-    var newContent = '';
-
-    // Format section content
-    newContent += label + '\n';
+    var blocks = [];
+    if (label) blocks.push({ type: 'paragraph', content: [{ type: 'text', text: label }] });
     if (items.length === 0) {
-      newContent += '• (aucun élément au dossier)\n';
+      blocks.push({ type: 'paragraph', content: [{ type: 'text', text: '• (aucun élément au dossier)' }] });
     } else {
       items.forEach(function(item) {
         var txt = summaryItemText(sectionId, item);
-        newContent += '• ' + txt + '\n';
+        blocks.push(txt ? { type: 'paragraph', content: [{ type: 'text', text: '• ' + txt }] } : { type: 'paragraph' });
       });
     }
-
-    // Append to existing content instead of replacing it
-    setSectionContent(targetSection.id, function(existing) {
-      var result = (existing || '').trim();
-      if (result) result += '\n\n';
-      result += newContent;
-      return result;
-    });
+    appendToFirstSection(blocks);
   }
 
   function summaryItemText(sectionId, item) {
@@ -475,177 +336,28 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     return s.trim();
   }
 
-  // ----- drag-to-place helpers -----
-  function combinedSection(sectionId) {
-    if (toolLoc === sectionId) {
-      var sp = sectionSplits[sectionId] || { top: '', bot: '' };
-      return sp.top + (sp.top && sp.bot ? '\n' : '') + sp.bot;
-    }
-    var sec = sections.find(function(s) { return s.id === sectionId; });
-    return sec ? sec.content : '';
-  }
-  function blockGaps(wrap, sectionId, out) {
-    if (!wrap) return;
-    var blocks = [];
-    wrap.querySelectorAll('.ql-editor').forEach(function(ed) {
-      blocks = blocks.concat([].slice.call(ed.children).filter(function(n) { return n.nodeType === 1; }));
-    });
-    blocks.forEach(function(b, i) { out.push({ field: sectionId, k: i, vy: b.getBoundingClientRect().top }); });
-    if (blocks.length) out.push({ field: sectionId, k: blocks.length, vy: blocks[blocks.length - 1].getBoundingClientRect().bottom });
-  }
-  function onHandleDown(e) {
-    e.preventDefault();
-    dragRef.current = { on: true };
-    setDragging(true);
-    setToolBodyCollapsed(true);
-    window.addEventListener('pointermove', onDragMove);
-    window.addEventListener('pointerup', onDragUp);
-  }
-  function onDragMove(e) {
-    if (!dragRef.current.on) return;
-    var dz = defaultZoneRef.current;
-    if (dz) {
-      var r = dz.getBoundingClientRect();
-      if (e.clientY >= r.top && e.clientY <= r.bottom) {
-        dropRef.current = { type: 'default' }; setDrop({ type: 'default' }); return;
-      }
-    }
-    var cands = [];
-    var refs = sectionWrapRefs.current;
-    Object.keys(refs).forEach(function(sid) { blockGaps(refs[sid], sid, cands); });
-    if (!cands.length) { dropRef.current = { type: 'default' }; setDrop({ type: 'default' }); return; }
-    var best = cands[0], bd = Math.abs(e.clientY - cands[0].vy);
-    for (var i = 1; i < cands.length; i++) {
-      var d = Math.abs(e.clientY - cands[i].vy);
-      if (d < bd) { bd = d; best = cands[i]; }
-    }
-    var wrapEl = refs[best.field];
-    var top = wrapEl ? wrapEl.getBoundingClientRect().top : 0;
-    var res = { type: 'gap', field: best.field, k: best.k, y: best.vy - top };
-    dropRef.current = res; setDrop(res);
-  }
-  function recombineCurrent() {
-    if (toolLoc !== 'default') {
-      var sid = toolLoc;
-      setSectionContent(sid, combinedSection(sid));
-      setSectionSplits(function(sp) { var n = Object.assign({}, sp); delete n[sid]; return n; });
-    }
-  }
-  function onDragUp() {
-    dragRef.current = { on: false };
-    window.removeEventListener('pointermove', onDragMove);
-    window.removeEventListener('pointerup', onDragUp);
-    var t = dropRef.current;
-    if (t && t.type === 'default') {
-      recombineCurrent(); setToolLoc('default');
-    } else if (t && t.type === 'gap') {
-      recombineCurrent();
-      var sid = t.field;
-      var P = combinedSection(sid).split('\n');
-      setSplitTop(sid, P.slice(0, t.k).join('\n'));
-      setSplitBot(sid, P.slice(t.k).join('\n'));
-      setToolLoc(sid);
-    }
-    dropRef.current = null;
-    setDragging(false); setDrop(null);
-  }
-  function closeTool() { recombineCurrent(); setToolLoc('default'); setToolOpen(false); }
-  function toggleTool() { if (toolOpen) { closeTool(); } else { setToolOpen(true); } }
+  function closeTool() { setToolOpen(false); }
+  function toggleTool() { setToolOpen(function(o) { return !o; }); }
   function handleToolSelect(tool) { setPickerOpen(false); if (tool.hasTool) setToolOpen(true); }
 
-  function onWrapKey(sectionId) {
-    return function(e) {
-      if (e.defaultPrevented) return;
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-      var topEl = document.querySelector('[data-field-id="' + sectionId + '-top"]');
-      var botEl = document.querySelector('[data-field-id="' + sectionId + '-bot"]');
-      if (!topEl || !botEl || !window.Quill) return;
-      var topQ = Quill.find(topEl), botQ = Quill.find(botEl);
-      if (!topQ || !botQ) return;
-      var inTop = e.target.closest && e.target.closest('[data-field-id="' + sectionId + '-top"]');
-      var inBot = e.target.closest && e.target.closest('[data-field-id="' + sectionId + '-bot"]');
-      if (inTop && (e.key === 'ArrowDown' || e.key === 'ArrowRight')) {
-        var sel = topQ.getSelection();
-        if (sel && sel.index >= topQ.getLength() - 1) { e.preventDefault(); botQ.focus(); botQ.setSelection(0, 0); }
-      } else if (inBot && (e.key === 'ArrowUp' || e.key === 'ArrowLeft')) {
-        var sel2 = botQ.getSelection();
-        if (sel2 && sel2.index === 0) { e.preventDefault(); var len = topQ.getLength(); topQ.focus(); topQ.setSelection(Math.max(0, len - 1), 0); }
-      }
-    };
-  }
-
-  // ----- section reordering -----
-  function moveSectionUp(idx) {
-    if (idx === 0) return;
-    setSections(function(secs) {
-      var n = secs.slice();
-      var tmp = n[idx - 1]; n[idx - 1] = n[idx]; n[idx] = tmp;
-      return n;
-    });
-  }
-  function moveSectionDown(idx) {
-    setSections(function(secs) {
-      if (idx >= secs.length - 1) return secs;
-      var n = secs.slice();
-      var tmp = n[idx + 1]; n[idx + 1] = n[idx]; n[idx] = tmp;
-      return n;
-    });
-  }
-
-  // ----- tool zone position -----
-  function moveToolZoneUp() {
-    setToolZoneIndex(function(i) { return Math.max(0, i - 1); });
-  }
-  function moveToolZoneDown() {
-    setToolZoneIndex(function(i) { return Math.min(sections.length, i + 1); });
-  }
-
-  // ----- section add/remove -----
-  function removeSection(sectionId) {
-    var idx = sections.findIndex(function(s) { return s.id === sectionId; });
-    setSectionSplits(function(sp) { var n = Object.assign({}, sp); delete n[sectionId]; return n; });
-    if (toolLoc === sectionId) setToolLoc('default');
-    setSections(function(secs) { return secs.filter(function(s) { return s.id !== sectionId; }); });
-    // Ajuster toolZoneIndex si la section supprimée était avant la zone
-    if (idx >= 0 && toolZoneIndex > idx) {
-      setToolZoneIndex(function(i) { return Math.max(0, i - 1); });
-    }
-  }
-  function addSection(afterFieldId) {
-    var newId = 'sec-' + Date.now();
-    setSections(function(secs) {
-      var idx = afterFieldId
-        ? secs.findIndex(function(s) { return s.id === afterFieldId || afterFieldId.startsWith(s.id + '-'); })
-        : -1;
-      var newSec = { id: newId, title: 'Nouvelle section', content: '' };
-      if (idx === -1) return secs.concat([newSec]);
-      var result = secs.slice();
-      result.splice(idx, 0, newSec);
-      return result;
-    });
-  }
-
   function resetNote() {
-    setSections(DEFAULT_SECTIONS.map(function(s) { return Object.assign({}, s); }));
+    initialDocRef.current = null;
     setRaison('');
     setTags([]);
-    setSectionSplits({});
-    setChips({});
-    setToolLoc('default');
-    setToolZoneIndex(1);
     setShowTags(false);
     setToolOpen(false);
     setToolBodyCollapsed(false);
     setInlineEdit(null);
+    setPopover(null);
+    setLinkedChipId(null);
     setEpisodeId(null);
+    setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
   }
 
   // ----- Points de départ (tweak "Points de départ") -----
   function startFromLast() {
-    if (lastNote && lastNote.sections && lastNote.sections.length) {
-      setSections(lastNote.sections.map(function(s, i) {
-        return { id: 'sec-' + Date.now() + '-' + i, title: s.title, content: s.content || '', starred: false };
-      }));
+    if (lastNote && lastNote.doc) {
+      initialDocRef.current = lastNote.doc;
       if (!raison.trim()) setRaison(lastNote.title || '');
     }
     var epId = (lastNote && lastNote.episodeId) || ('ep-' + Date.now());
@@ -657,8 +369,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function saveDraft() {
     var id = 'draft-' + Date.now();
     var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
+    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
     setDrafts(function(prev) {
-      return [{ id: id, savedLabel: savedLabel, raison: raison, sections: sections, chips: chips,
+      return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags }].concat(prev);
     });
     if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
@@ -670,9 +383,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     var draft = drafts.find(function(d) { return d.id === id; });
     if (!draft) return;
     setDrafts(function(prev) { return prev.filter(function(d) { return d.id !== id; }); });
-    setSections(draft.sections);
+    initialDocRef.current = draft.doc;
     setRaison(draft.raison || '');
-    setChips(draft.chips || {});
     setTags(draft.tags || []);
     if (draft.visitType) setVisitType(draft.visitType);
     if (onOpen) onOpen();
@@ -687,19 +399,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   // Build the list of sendable documents (prescriptions, requests, patient
   // instructions) actually present in the note, grouped by destination.
-  // Mirrors the chip-count scan: only chips whose {{CHIP:id}} marker is still
-  // in the content are included (orphans left in the `chips` map are skipped).
   function buildCheckoutGroups() {
-    var blob = sections.map(function(s) { return s.content || ''; }).join('\n');
-    Object.keys(sectionSplits).forEach(function(k) {
-      var sp = sectionSplits[k] || {};
-      blob += '\n' + (sp.top || '') + '\n' + (sp.bot || '');
-    });
-    var order = [], seen = {}, re = /\{\{CHIP:([^}]+)\}\}/g, m;
-    while ((m = re.exec(blob))) { if (!seen[m[1]]) { seen[m[1]] = true; order.push(m[1]); } }
-    var ents = order
-      .map(function(id) { return { id: id, entity: (chips[id] || {}).entity }; })
-      .filter(function(x) { return x.entity; });
+    var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
 
     function mk(e) {
       var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
@@ -720,7 +421,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       } else if (t === 'instructions') {
         label = d.title || ent.label || 'Consignes au patient';
       }
-      return { id: e.id, type: t, label: label, sub: sub };
+      return { id: e.cid, type: t, label: label, sub: sub };
     }
     function byType(tp) {
       return ents.filter(function(e) { return e.entity.type === tp; }).map(mk);
@@ -748,15 +449,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   // Finalisation réelle, déclenchée par la confirmation du checkout :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
+    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
+    var stats = window.scanDoc(doc);
     var data = {
       raison: raison,
       date: noteDate,
       time: noteTime,
       visitType: visitType,
       tags: tags,
-      diagnostics: scanDiagNames(sections),
-      sections: sections,
-      chips: chips,
+      diagnostics: stats.diagNames,
+      doc: doc,
       episodeId: episodeId,
     };
     resetNote();
@@ -771,14 +473,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     window.addEventListener('note:open-checkout', onOpenCheckout);
     return function() { window.removeEventListener('note:open-checkout', onOpenCheckout); };
   });
-
-  // ----- build interleaved items list -----
-  // sectionItems: array of { type:'section', sec, idx } | { type:'toolzone' }
-  var sectionItems = [];
-  for (var _si = 0; _si <= sections.length; _si++) {
-    if (_si === toolZoneIndex) sectionItems.push({ type: 'toolzone' });
-    if (_si < sections.length) sectionItems.push({ type: 'section', sec: sections[_si], idx: _si });
-  }
 
   return (
     <div ref={noteCardRef} style={neStyles.card}>
@@ -810,7 +504,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         <div style={{ marginBottom: 20 }}>
           <NoteStartCards
             onPick={handleStartPick}
-            hasLastNote={!!(lastNote && lastNote.sections && lastNote.sections.length)}
+            hasLastNote={!!(lastNote && lastNote.doc)}
             drafts={drafts} />
         </div>}
 
@@ -835,207 +529,61 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
       {/* Assistant IA */}
       <AIBox onAddToNote={function(text) {
-        if (onOpen) onOpen();
-        setSections(function(secs) {
-          return secs.map(function(s, i) {
-            if (i !== 0) return s;
-            var v = s.content;
-            return Object.assign({}, s, { content: v && v.trim() ? v.replace(/\n*$/, '') + '\n\n' + text : text });
-          });
-        });
+        appendToFirstSection((text || '').split('\n').map(function(line) {
+          return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
+        }));
       }} />
 
       {/* Expanding content */}
       {isOpen &&
         <div style={{ marginTop: 20, animation: 'note-expand 300ms ease-in-out' }}>
 
-          {sectionItems.map(function(item, renderIdx) {
-            var hasDividerBefore = renderIdx > 0;
+          <div className="ct-default-zone">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={neStyles.chipsRow}>
+                {showClinicalTools
+                  ? <button
+                      className="ct-toolsbtn"
+                      title="Outils cliniques"
+                      style={pickerOpen ? { background: '#eef1fb', color: 'var(--brand-primary, #1a5fd4)' } : undefined}
+                      onClick={function(e) {
+                        var r = e.currentTarget.getBoundingClientRect();
+                        if (pickerOpen) { setPickerOpen(false); } else { setPickerAnchor(r); setPickerOpen(true); }
+                      }}>
+                      <span className="material-icons-outlined">handyman</span>
+                    </button>
+                  : null}
+                {toolOpen
+                  ? <button className="ct-chip" onClick={toggleTool}>
+                      <span className="material-icons-outlined">medical_information</span>
+                      Feuille de route - Symptômes urinaires
+                    </button>
+                  : ['Assurance privée', 'Cardiologie', 'CNESST', 'Examen physique simple'].map(function(label) {
+                      return (
+                        <button key={label} className="ct-chip">
+                          <span className="material-icons-outlined">description</span>
+                          {label}
+                        </button>
+                      );
+                    })}
+              </div>
+            </div>
+            {toolOpen &&
+              <ClinicalTool
+                onClose={closeTool}
+                bodyCollapsed={toolBodyCollapsed}
+                onBodyCollapseChange={setToolBodyCollapsed} />}
+          </div>
 
-            if (item.type === 'toolzone') {
-              return (
-                React.createElement(React.Fragment, { key: 'toolzone' },
-                  hasDividerBefore ? React.createElement('div', { style: neStyles.divider }) : null,
-
-                  React.createElement('div', {
-                    ref: defaultZoneRef,
-                    className: 'ct-default-zone' + (dragging && drop && drop.type === 'default' ? ' is-target' : '')
-                  },
-                    React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 4 } },
-                      React.createElement('div', { style: neStyles.chipsRow },
-                        showClinicalTools
-                          ? React.createElement('button', {
-                              className: 'ct-toolsbtn',
-                              title: 'Outils cliniques',
-                              style: pickerOpen ? { background: '#eef1fb', color: 'var(--brand-primary, #1a5fd4)' } : undefined,
-                              onClick: function(e) {
-                                var r = e.currentTarget.getBoundingClientRect();
-                                if (pickerOpen) { setPickerOpen(false); } else { setPickerAnchor(r); setPickerOpen(true); }
-                              }
-                            }, React.createElement('span', { className: 'material-icons-outlined' }, 'handyman'))
-                          : null,
-                        toolOpen
-                          ? React.createElement('button', { className: 'ct-chip', onClick: toggleTool },
-                              React.createElement('span', { className: 'material-icons-outlined' }, 'medical_information'),
-                              'Feuille de route - Symptômes urinaires'
-                            )
-                          : ['Assurance privée', 'Cardiologie', 'CNESST', 'Examen physique simple'].map(function(label) {
-                              return React.createElement('button', { key: label, className: 'ct-chip' },
-                                React.createElement('span', { className: 'material-icons-outlined' }, 'description'),
-                                label
-                              );
-                            })
-                      ),
-                      toolZoneIndex > 0
-                        ? React.createElement('button', {
-                            style: neStyles.tbtn,
-                            title: 'Remonter la zone d\'outils',
-                            onClick: moveToolZoneUp
-                          }, React.createElement('span', { className: 'material-icons-outlined', style: { fontSize: 16 } }, 'arrow_upward'))
-                        : null,
-                      toolZoneIndex < sections.length
-                        ? React.createElement('button', {
-                            style: neStyles.tbtn,
-                            title: 'Descendre la zone d\'outils',
-                            onClick: moveToolZoneDown
-                          }, React.createElement('span', { className: 'material-icons-outlined', style: { fontSize: 16 } }, 'arrow_downward'))
-                        : null
-                    ),
-
-                    toolOpen && toolLoc === 'default'
-                      ? React.createElement(ClinicalTool, {
-                          onClose: closeTool,
-                          onHandleDown: onHandleDown,
-                          dragging: dragging,
-                          bodyCollapsed: toolBodyCollapsed,
-                          onBodyCollapseChange: setToolBodyCollapsed
-                        })
-                      : null
-                  )
-                )
-              );
-            }
-
-            // Section
-            var sec = item.sec;
-            var idx = item.idx;
-            var sp = sectionSplits[sec.id] || { top: '', bot: '' };
-            var isSplit = toolLoc === sec.id;
-
-            return (
-              React.createElement(React.Fragment, { key: sec.id },
-                hasDividerBefore ? React.createElement('div', { style: neStyles.divider }) : null,
-
-                /* En-tête de section */
-                React.createElement('div', { style: neStyles.secHead },
-                  sec.type === 'diagnostic'
-                    ? React.createElement('div', { style: neStyles.diagTitleRow },
-                        React.createElement('span', { className: 'material-icons-outlined', style: neStyles.diagIcon }, 'local_hospital'),
-                        React.createElement(SectionTitle, {
-                          value: sec.title,
-                          labelStyle: neStyles.diagLabel,
-                          onChange: function(newTitle) {
-                            setSections(function(secs) {
-                              return secs.map(function(s) {
-                                return s.id === sec.id ? Object.assign({}, s, { title: newTitle }) : s;
-                              });
-                            });
-                          }
-                        })
-                      )
-                    : React.createElement(SectionTitle, {
-                        value: sec.title,
-                        onChange: function(newTitle) {
-                          setSections(function(secs) {
-                            return secs.map(function(s) {
-                              return s.id === sec.id ? Object.assign({}, s, { title: newTitle }) : s;
-                            });
-                          });
-                        }
-                      }),
-                  React.createElement('div', { style: { display: 'flex', gap: 2, alignItems: 'center' } },
-                    /* Étoile — signal clinique partagé, visible dans la liste de notes */
-                    React.createElement('button', {
-                        style: neStyles.tbtn,
-                        title: sec.starred ? 'Retirer l\'étoile' : 'Marquer cette section comme importante',
-                        onClick: function() { toggleSectionStar(sec.id); }
-                      }, React.createElement('span', {
-                        className: 'material-icons',
-                        style: { fontSize: 18, color: sec.starred ? '#f59e0b' : 'rgba(0,0,0,0.25)' }
-                      }, 'star')),
-                    /* Boutons de réordonnancement */
-                    sections.length > 1 && idx > 0
-                      ? React.createElement('button', {
-                          style: neStyles.tbtn,
-                          title: 'Remonter la section',
-                          onClick: function() { moveSectionUp(idx); }
-                        }, React.createElement('span', { className: 'material-icons-outlined', style: { fontSize: 16 } }, 'arrow_upward'))
-                      : null,
-                    sections.length > 1 && idx < sections.length - 1
-                      ? React.createElement('button', {
-                          style: neStyles.tbtn,
-                          title: 'Descendre la section',
-                          onClick: function() { moveSectionDown(idx); }
-                        }, React.createElement('span', { className: 'material-icons-outlined', style: { fontSize: 16 } }, 'arrow_downward'))
-                      : null,
-                    /* Bouton supprimer */
-                    sections.length > 1
-                      ? React.createElement('button', {
-                          style: neStyles.tbtn,
-                          title: 'Supprimer la section',
-                          onClick: function() { removeSection(sec.id); }
-                        }, React.createElement('span', { className: 'material-icons-outlined', style: { fontSize: 18 } }, 'delete_outline'))
-                      : null
-                  )
-                ),
-
-                /* Éditeur */
-                React.createElement('div', {
-                  ref: function(el) { sectionWrapRefs.current[sec.id] = el; },
-                  onKeyDown: onWrapKey(sec.id),
-                  style: { position: 'relative' }
-                },
-                  isSplit
-                    ? React.createElement(React.Fragment, null,
-                        sp.top.trim() !== ''
-                          ? React.createElement(EditorField, {
-                              id: sec.id + '-top',
-                              placeholder: 'Appuyer sur « / » pour afficher les commandes',
-                              value: sp.top, chips: chips,
-                              onChange: function(v) { setSplitTop(sec.id, v); },
-                              onAddChip: onAddChip, onChipClick: onChipClick, linkedChipId: linkedChipId, onAddSection: addSection
-                            })
-                          : null,
-                        toolOpen
-                          ? React.createElement(ClinicalTool, {
-                              onClose: closeTool, onHandleDown: onHandleDown,
-                              dragging: dragging, bodyCollapsed: toolBodyCollapsed,
-                              onBodyCollapseChange: setToolBodyCollapsed
-                            })
-                          : null,
-                        React.createElement(EditorField, {
-                          id: sec.id + '-bot',
-                          placeholder: 'Appuyer sur « / » pour afficher les commandes',
-                          value: sp.bot, chips: chips,
-                          onChange: function(v) { setSplitBot(sec.id, v); },
-                          onAddChip: onAddChip, onChipClick: onChipClick, linkedChipId: linkedChipId, onAddSection: addSection
-                        })
-                      )
-                    : React.createElement(EditorField, {
-                        id: sec.id,
-                        placeholder: 'Appuyer sur « / » pour afficher les commandes',
-                        value: sec.content, chips: chips,
-                        onChange: function(v) { setSectionContent(sec.id, v); },
-                        onAddChip: onAddChip, onChipClick: onChipClick, linkedChipId: linkedChipId, onAddSection: addSection
-                      }),
-                  dragging && drop && drop.type === 'gap' && drop.field === sec.id
-                    ? React.createElement('div', { className: 'ct-dropline', style: { top: drop.y } })
-                    : null
-                )
-              )
-            );
-          })}
-
+          <div style={{ marginTop: 12 }}>
+            <NoteBody
+              placeholder="Appuyer sur « / » pour afficher les commandes"
+              initialDoc={initialDocRef.current}
+              onReady={handleEditorReady}
+              onDocChange={handleDocChange}
+              onChipClick={onChipClick}
+              linkedChipId={linkedChipId} />
+          </div>
         </div>
       }
 
@@ -1046,7 +594,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           onClose={function() { setPickerOpen(false); }}
           onBack={function() {
             setPickerOpen(false);
-            window.dispatchEvent(new CustomEvent('ct-addmenu-open', { detail: { id: pickerSourceId } }));
+            window.dispatchEvent(new CustomEvent('ct-addmenu-open'));
           }}
           onSelect={handleToolSelect} />
       }
@@ -1074,12 +622,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       }
 
       {/* Inline field editor (click on chip zone) */}
-      {inlineEdit && chips[inlineEdit.chipId] &&
+      {inlineEdit && inlineEditEntity &&
         <ChipInlineEditor
           chipId={inlineEdit.chipId}
           field={inlineEdit.field}
           fieldRect={inlineEdit.fieldRect}
-          chips={chips}
+          entity={inlineEditEntity}
           onSave={saveInlineEdit}
           onClose={function() { setInlineEdit(null); }} />
       }
@@ -1088,45 +636,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 }
 
 // ---------------------------------------------------------
-// SectionTitle — titre de section éditable inline
-// ---------------------------------------------------------
-function SectionTitle({ value, onChange, labelStyle }) {
-  var _s = React.useState(false);
-  var editing = _s[0], setEditing = _s[1];
-  var _d = React.useState(value);
-  var draft = _d[0], setDraft = _d[1];
-
-  function commit() { if (draft.trim()) onChange(draft.trim()); setEditing(false); }
-
-  if (editing) {
-    return React.createElement('input', {
-      autoFocus: true,
-      style: neStyles.secTitleInput,
-      value: draft,
-      onChange: function(e) { setDraft(e.target.value); },
-      onBlur: commit,
-      onKeyDown: function(e) {
-        if (e.key === 'Enter') commit();
-        if (e.key === 'Escape') setEditing(false);
-      }
-    });
-  }
-
-  return React.createElement('span', {
-    style: Object.assign({}, neStyles.sectionLabel, neStyles.sectionLabelEditable, labelStyle || {}),
-    title: 'Cliquer pour renommer',
-    onClick: function() { setDraft(value); setEditing(true); }
-  },
-    value
-  );
-}
-
-// ---------------------------------------------------------
 // ChipInlineEditor — autocomplete dropdown for a specific Rx chip field
 // ---------------------------------------------------------
-function ChipInlineEditor({ chipId, field, fieldRect, chips, onSave, onClose }) {
-  var chip = chips[chipId];
-  var details = (chip && chip.entity && chip.entity.details) || {};
+function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose }) {
+  var details = (entity && entity.details) || {};
 
   var initialVal = '';
   if (field === 'dose') initialVal = (details.dose || '') + (details.unit || '');
@@ -1390,25 +903,9 @@ const neStyles = {
   aiActionBtn: { display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '9px 16px', cursor: 'pointer', font: "500 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.8)' },
   aiActionIcon: { fontSize: 20, color: 'rgba(0,0,0,0.6)' },
   infoIcon: { fontSize: 22, color: 'rgba(0,0,0,0.4)', cursor: 'pointer' },
-  secHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8, marginBottom: 4 },
-  sectionLabel: { fontSize: 14, fontWeight: 400, fontFamily: "'Inter',sans-serif", color: 'rgba(0,0,0,0.6)', cursor: 'default' },
-  sectionLabelEditable: { cursor: 'pointer', display: 'inline-flex', alignItems: 'center' },
-  secTitleInput: { fontSize: 14, fontWeight: 400, fontFamily: "'Inter',sans-serif", color: 'rgba(0,0,0,0.8)', border: 'none', borderBottom: '1px solid #6967d1', outline: 'none', background: 'transparent', padding: '0 2px', minWidth: 180 },
-  secTools: { display: 'flex', gap: 2 },
-  tbtn: { width: 28, height: 28, border: 0, background: 'transparent', borderRadius: 6, color: 'rgba(0,0,0,0.38)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  divider: { height: 1, background: '#eee', margin: '12px 0' },
   chipsRow: { flex: 1, display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', paddingBottom: 4 },
-  zoneControls: { display: 'flex', gap: 2, marginBottom: 4 },
   toolsIconBtn: { width: 36, height: 36, border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 8, background: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   chip: { display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 20, padding: '6px 14px', cursor: 'pointer', whiteSpace: 'nowrap', font: "500 13px 'Inter', sans-serif", color: 'rgba(0,0,0,0.72)', background: '#fff', flexShrink: 0 },
-  addSectionBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', font: "400 13px 'Inter', sans-serif", padding: '4px 0', borderRadius: 6 },
-  diagTitleRow: { display: 'flex', alignItems: 'center', gap: 6 },
-  diagIcon: { fontSize: 16, color: '#1a5fd4' },
-  diagLabel: { fontWeight: 600, color: '#1a5fd4', fontSize: 15 },
-  addDiagForm: { display: 'inline-flex', alignItems: 'center', gap: 8 },
-  diagInput: { border: 'none', borderBottom: '1.5px solid #1a5fd4', outline: 'none', background: 'transparent', font: "400 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.85)', padding: '2px 4px', minWidth: 220 },
-  diagConfirmBtn: { border: 0, borderRadius: 6, background: '#1a5fd4', color: '#fff', padding: '4px 12px', cursor: 'pointer', font: "500 13px 'Inter', sans-serif" },
-  diagCancelBtn: { border: '1px solid #ccc', borderRadius: 6, background: 'transparent', color: 'rgba(0,0,0,0.55)', padding: '4px 12px', cursor: 'pointer', font: "400 13px 'Inter', sans-serif" },
 };
 
 window.NoteEditor = NoteEditor;
