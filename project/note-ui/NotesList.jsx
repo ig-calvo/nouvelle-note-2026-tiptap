@@ -91,7 +91,7 @@ function roChipStyle(type) {
     background: isRx || isLab || isImg || isRef ? '#fff' : 'var(--brand-primary-container, #e8e8ff)',
     border: isRx || isLab || isImg || isRef ? '1px solid #b9b9d0' : '1px solid var(--brand-primary, #3f3ec8)',
     color: isRx || isLab || isImg || isRef ? 'rgba(0,0,0,0.8)' : 'var(--brand-primary, #3f3ec8)',
-    fontSize: 13, fontWeight: 500, verticalAlign: 'baseline',
+    fontSize: 14, fontWeight: 500, verticalAlign: 'baseline',
     whiteSpace: 'nowrap', margin: '0 2px', lineHeight: 1.5,
     boxShadow: '0 1px 2px rgba(37,36,94,0.06)',
   };
@@ -107,7 +107,7 @@ function ChipPill({ attrs, keyProp }) {
   return (
     <span key={keyProp} style={roChipStyle(type)}>
       {isPrx
-        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 15, color: '#25245E', lineHeight: 1 }}>℞</span>
+        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 500, fontSize: 16, color: '#25245E', lineHeight: 1 }}>℞</span>
         : <span className="material-symbols-outlined" style={{ fontSize: 14, color: iconColor }}>{iconMap[type] || 'bookmark'}</span>
       }
       <span>{label}</span>
@@ -139,8 +139,9 @@ function DocView({ doc }) {
   var blocks = doc.content.map(function(node, bi) {
     if (node.type === 'heading') {
       var level = (node.attrs && node.attrs.level) || 2;
-      var Tag = 'h' + Math.min(4, Math.max(1, level));
-      return React.createElement(Tag, { key: 'h-' + bi, style: nlStyles.detailsLabel },
+      var Tag = 'h' + Math.min(3, Math.max(1, level));
+      var hStyle = level <= 1 ? nlStyles.roHeading1 : level === 2 ? nlStyles.roHeading2 : nlStyles.roHeading3;
+      return React.createElement(Tag, { key: 'h-' + bi, style: hStyle },
         (node.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; }));
     }
     if (node.type === 'reference') {
@@ -485,12 +486,32 @@ const nlStyles = {
   },
   caretIcon: { fontSize: 20, color: "rgba(0,0,0,0.45)" },
   detailsSection: { marginBottom: 16 },
+  // Titres de section — étiquette discrète (majuscules, gris, poids medium),
+  // même traitement que .ql-editor h1/h2/h3 (editor.css), pour qu'une note
+  // complétée garde l'apparence qu'elle avait en édition.
+  roHeading1: {
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 16,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)", margin: '14px 0 6px',
+  },
+  roHeading2: {
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)", margin: '12px 0 5px',
+  },
+  roHeading3: {
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 12,
+    lineHeight: '16px', letterSpacing: 0.4, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)", margin: '10px 0 4px',
+  },
   detailsLabel: {
-    fontSize: 14, fontWeight: 400, color: "rgba(0,0,0,0.7)",
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)",
     marginBottom: 8,
   },
   detailsText: {
-    fontSize: 15, color: "rgba(0,0,0,0.82)", lineHeight: 1.6,
+    fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25,
   },
   refBtn: {
     position: 'fixed', transform: 'translateX(-50%)', zIndex: 500,
@@ -509,23 +530,25 @@ const nlStyles = {
   roDiag: { margin: '8px 0', border: '1px solid #b3ccf0', borderRadius: 10, overflow: 'hidden' },
   roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: '#e8f0fb', padding: '6px 12px' },
   roDiagIcon: { fontSize: 16, color: '#1a5fd4' },
-  roDiagName: { fontSize: 14, fontWeight: 600, color: '#1a5fd4' },
-  roDiagBody: { background: '#f5f9ff', padding: '8px 12px', fontSize: 15, color: 'rgba(0,0,0,0.82)', lineHeight: 1.6 },
+  roDiagName: { fontSize: 12, fontWeight: 500, color: '#1a5fd4' },
+  roDiagBody: { background: '#f5f9ff', padding: '8px 12px', fontSize: 14, color: 'rgba(0,0,0,0.82)', lineHeight: 1.5, letterSpacing: 0.25 },
   roRef: { margin: '8px 0', padding: '9px 14px', borderLeft: '3px solid #b0a99a', background: '#faf9f6', borderRadius: '0 8px 8px 0' },
   roRefHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 },
   roRefIcon: { fontSize: 15, color: '#8a7f68' },
-  roRefSource: { fontSize: 11.5, fontWeight: 600, color: '#756b56', letterSpacing: '0.02em' },
+  roRefSource: { fontSize: 12, fontWeight: 500, color: '#756b56', letterSpacing: '0.02em' },
   roRefBody: { fontSize: 14, fontStyle: 'italic', color: 'rgba(0,0,0,0.68)', lineHeight: 1.5 },
   conclLabelWrap: { marginTop: 4, marginBottom: 4 },
   conclLabel: {
-    fontSize: 11, fontWeight: 500, letterSpacing: 0.8,
+    fontSize: 12, fontWeight: 500, letterSpacing: 0.4,
     color: "rgba(0,0,0,0.45)", marginBottom: 4,
   },
   conclLabelOpen: {
-    fontSize: 14, fontWeight: 500, color: "rgba(0,0,0,0.75)",
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)",
     marginBottom: 8, marginTop: 12,
   },
-  conclText: { fontSize: 15, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, marginBottom: 14 },
+  conclText: { fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25, marginBottom: 14 },
   fileRow: { display: "flex", gap: 12, flexWrap: "wrap" },
   fileChip: {
     display: "inline-flex", alignItems: "center", gap: 6,

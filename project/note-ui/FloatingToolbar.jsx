@@ -15,9 +15,9 @@ const PALETTE = [
 
 const BLOCK_TYPES = [
 { label: 'Paragraphe', level: 0, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 400 } },
-{ label: 'Titre 1', level: 1, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 19, fontWeight: 600, letterSpacing: '-0.2px' } },
-{ label: 'Titre 2', level: 2, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 16, fontWeight: 600 } },
-{ label: 'Titre 3', level: 3, preview: { fontFamily: "'Poppins',sans-serif", fontSize: 14, fontWeight: 600 } }];
+{ label: 'Titre 1', level: 1, preview: { fontFamily: "'Inter',sans-serif", fontSize: 16, fontWeight: 600 } },
+{ label: 'Titre 2', level: 2, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 600 } },
+{ label: 'Titre 3', level: 3, preview: { fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 } }];
 
 function editorFromNode(node) {
   const el = node && (node.nodeType === 1 ? node : node.parentElement);

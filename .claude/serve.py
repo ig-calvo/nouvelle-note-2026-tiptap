@@ -15,8 +15,8 @@ import functools
 import http.server
 import socketserver
 
-ROOT = "/Users/ignaciocalvo/prototype-test-nouvelle-note-2026/project"
-PORT = 8000
+ROOT = "/Users/ignaciocalvo/Prototypes nouvelles note/nouvelle-note-2026-tiptap/project"
+PORT = int(os.environ.get("PORT", "8000"))
 
 # Best-effort: move off the (possibly forbidden) inherited CWD. Not required
 # because the handler is pinned to ROOT below, so failure here is harmless.

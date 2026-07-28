@@ -28,20 +28,22 @@
   font-style: normal;
   color: var(--fg-4);
 }
-.note-field .ql-editor { font-family: var(--font-body) !important; font-size: 15px !important; line-height: 1.7 !important; color: var(--fg-1); min-height: 72px; height: auto !important; overflow-y: visible !important; padding: 8px 4px !important; caret-color: var(--brand-primary); }
-.note-field .ql-editor p, .note-field .ql-editor ol, .note-field .ql-editor ul, .note-field .ql-editor pre, .note-field .ql-editor blockquote { font-size: 15px !important; line-height: 1.7 !important; font-family: var(--font-body) !important; margin: 0 0 6px; }
-.note-field .ql-editor p:last-child, .note-field .ql-editor h1:last-child, .note-field .ql-editor h2:last-child, .note-field .ql-editor h3:last-child, .note-field .ql-editor h4:last-child { margin-bottom: 0; }
+.note-field .ql-editor { font-family: var(--font-body) !important; font-size: 14px !important; line-height: 21px !important; letter-spacing: 0.25px; color: var(--fg-1); min-height: 72px; height: auto !important; overflow-y: visible !important; padding: 8px 4px !important; caret-color: var(--brand-primary); }
+.note-field .ql-editor p, .note-field .ql-editor ol, .note-field .ql-editor ul, .note-field .ql-editor pre, .note-field .ql-editor blockquote { font-size: 14px !important; line-height: 21px !important; letter-spacing: 0.25px; font-family: var(--font-body) !important; margin: 0 0 6px; }
+.note-field .ql-editor p:last-child, .note-field .ql-editor h1:last-child, .note-field .ql-editor h2:last-child, .note-field .ql-editor h3:last-child { margin-bottom: 0; }
 
-/* Headings — Omnimed DS3 display scale (Poppins), tuned for in-note density */
-.note-field .ql-editor h1 { font-family: var(--font-display) !important; font-weight: 600 !important; font-size: 25px !important; line-height: 1.25 !important; letter-spacing: -0.2px; color: var(--fg-1); margin: 14px 0 6px !important; }
-.note-field .ql-editor h2 { font-family: var(--font-display) !important; font-weight: 600 !important; font-size: 20px !important; line-height: 1.3 !important; color: var(--fg-1); margin: 12px 0 5px !important; }
-.note-field .ql-editor h3 { font-family: var(--font-display) !important; font-weight: 600 !important; font-size: 17px !important; line-height: 1.35 !important; color: var(--fg-1); margin: 10px 0 4px !important; }
-.note-field .ql-editor h4 { font-family: var(--font-display) !important; font-weight: 700 !important; font-size: 14px !important; line-height: 1.4 !important; letter-spacing: 0.3px; text-transform: uppercase; color: var(--fg-3); margin: 10px 0 4px !important; }
-.note-field .ql-editor h1:first-child, .note-field .ql-editor h2:first-child, .note-field .ql-editor h3:first-child, .note-field .ql-editor h4:first-child { margin-top: 0 !important; }
+/* Headings — étiquette discrète (majuscules, gris, poids medium) plutôt que
+   titre gras noir. Levels 1-3 only: StarterKit caps heading at level 3.
+   Titre 2/3 tombent pile sur label-large/label-medium (DS3, poids 500) ;
+   Titre 1 étend le même traitement à 16px, au-delà du plancher label du DS3. */
+.note-field .ql-editor h1 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 16px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 14px 0 6px !important; }
+.note-field .ql-editor h2 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 14px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 12px 0 5px !important; } /* --mat-sys-label-large */
+.note-field .ql-editor h3 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 12px !important; line-height: 16px !important; letter-spacing: 0.4px; text-transform: uppercase; color: var(--fg-3); margin: 10px 0 4px !important; } /* --mat-sys-label-medium */
+.note-field .ql-editor h1:first-child, .note-field .ql-editor h2:first-child, .note-field .ql-editor h3:first-child { margin-top: 0 !important; }
 .note-field .ql-editor ul, .note-field .ql-editor ol { padding-left: 1.2em; }
 
 /* Inline chips */
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: 6px; background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 600; font-size: 14px; cursor: pointer; vertical-align: baseline; white-space: nowrap; transition: background 150ms, box-shadow 150ms; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: 6px; background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 500; font-size: 14px; cursor: pointer; vertical-align: baseline; white-space: nowrap; transition: background 150ms, box-shadow 150ms; }
 
 /* Live "/command" highlight while the slash menu is open (décoration posée
    par le plugin @tiptap/suggestion — decorationClass: 'slash-pending') */
@@ -81,7 +83,7 @@
 }
 .note-field .ql-editor .dxr-name {
   font-family: var(--font-body);
-  font-weight: 700;
+  font-weight: 500;
   font-size: 12px;
   color: #4a6f94;
   letter-spacing: 0.07em;
@@ -105,7 +107,7 @@
   border-radius: 10px;
   padding: 2px 8px 2px 5px;
   font-family: var(--font-body);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 120ms, border-color 120ms, color 120ms;
@@ -151,8 +153,8 @@
   font-size: 13px !important;
 }
 .diag-style-carte .note-field .ql-editor .dxr-name {
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 500;
+  font-size: 12px;
   letter-spacing: 0;
   text-transform: none;
   color: #0f5fa8;
@@ -178,8 +180,8 @@
   color: var(--brand-primary, rgb(46, 56, 166));
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-name {
-  font-weight: 600;
-  font-size: 12.5px;
+  font-weight: 500;
+  font-size: 12px;
   letter-spacing: 0;
   text-transform: none;
   color: var(--brand-primary, rgb(46, 56, 166));
@@ -202,7 +204,7 @@
   color: #3d5a80;
 }
 .diag-style-rail .note-field .ql-editor .dxr-name {
-  font-weight: 700;
+  font-weight: 500;
   font-size: 12px;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -233,8 +235,8 @@
 .diag-style-numbered .note-field .ql-editor .dxr-head::before {
   content: counter(omd-diag-counter) '.';
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 500;
+  font-size: 14px;
   color: #25245E;
   flex-shrink: 0;
 }
@@ -243,8 +245,8 @@
 }
 .diag-style-numbered .note-field .ql-editor .dxr-name {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
+  font-weight: 500;
+  font-size: 14px;
   letter-spacing: 0;
   text-transform: none;
   color: rgba(0, 0, 0, 0.85);
@@ -279,8 +281,8 @@
 }
 .note-field .ql-editor .ql-ref-source {
   font-family: var(--font-body);
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: #756b56;
   letter-spacing: 0.02em;
 }
@@ -302,20 +304,20 @@
 /* Cessation d'une médication au dossier — distincte d'une nouvelle Rx */
 .chip--rx.chip--ceased { background: #fbf1f1; border-color: #e3bcbc; }
 .chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: #b04a4a; }
-.chip--rx.chip--ceased .chip-rx-poso { color: #a13d3d; font-weight: 700; }
+.chip--rx.chip--ceased .chip-rx-poso { color: #a13d3d; font-weight: 500; }
 .chip--rx.open { background: #f2f1fc; box-shadow: 0 0 0 2px rgba(46,56,166,0.14); }
-.chip--rx .chip-rx-icon { font-family: var(--font-display); font-weight: 700; font-size: 16px; color: #25245E; line-height: 1; }
+.chip--rx .chip-rx-icon { font-family: var(--font-display); font-weight: 500; font-size: 16px; color: #25245E; line-height: 1; }
 .chip--rx .chip-rx-glyph { font-size: 17px !important; line-height: 1; color: #25245E; }
 .chip--lab .chip-rx-glyph { color: #1975d1; }
 .chip--img .chip-rx-glyph { color: #7a3ec2; }
-.chip--rx .chip-rx-name { font-weight: 700; font-size: 14px; color: var(--fg-1); padding: 0 0 0 2px; }
+.chip--rx .chip-rx-name { font-weight: 500; font-size: 14px; color: var(--fg-1); padding: 0 0 0 2px; }
 .chip--rx .chip-rx-head { display: inline; }
 /* La dose fait partie de l'en-tête « Nom dose » — cliquable pour édition inline */
 .chip--rx .chip-rx-dose { font-weight: 500; font-size: 14px; color: var(--fg-2); cursor: pointer; border-radius: 4px; padding: 1px 4px; transition: background 0.12s, color 0.12s, box-shadow 0.12s; }
 .chip--rx .chip-rx-dose:empty { display: none; }
 /* Posologie : texte continu lisible (gris). Chaque segment reste cliquable. */
 .chip--rx .chip-rx-poso,
-.chip--rx .chip-rx-sig { font-weight: 500; font-size: 13px; color: var(--fg-3); }
+.chip--rx .chip-rx-sig { font-weight: 500; font-size: 12px; color: var(--fg-3); }
 .chip--rx .chip-rx-sig:empty { display: none; }
 .chip--rx .chip-rx-poso > span { border-radius: 4px; padding: 1px 4px; }
 .chip--rx .chip-rx-poso > span[data-field] { cursor: pointer; transition: background 0.12s, color 0.12s, box-shadow 0.12s; }
@@ -328,7 +330,7 @@
 .chip--rx .chip-rx-glyph { cursor: pointer; }
 .chip--rx .chip-rx-glyph:hover { opacity: 0.75; }
 /* Clickable badge for lab/img/ref priority and other quick-edit zones */
-.chip--rx .chip-rx-badge { font-weight: 600; font-size: 12px; color: var(--fg-2); background: #f0f0f7; border: 1px solid #e0e0ec; border-radius: 4px; padding: 2px 6px; cursor: pointer; transition: background 0.1s, border-color 0.1s; }
+.chip--rx .chip-rx-badge { font-weight: 500; font-size: 12px; color: var(--fg-2); background: #f0f0f7; border: 1px solid #e0e0ec; border-radius: 4px; padding: 2px 6px; cursor: pointer; transition: background 0.1s, border-color 0.1s; }
 .chip--rx .chip-rx-badge:hover { background: #e4e2f7; border-color: #b9b5e0; }
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: #2e7d32; }
