@@ -1,6 +1,6 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onDraftSaved, onSmartPick, saveDraftRef, pediatricPatient = false }) {
+  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, pediatricPatient = false, ftBarStyle = 'haut' }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -28,28 +28,32 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   const editorRef = React.useRef(null);
   const initialDocRef = React.useRef(null);
   const [docStats, setDocStats] = React.useState({ counts: {}, items: [], diagNames: [], chips: [] });
+  // État (pas seulement une ref) pour que NoteRichTextToolbar — rendu en flux
+  // normal, voir plus bas — se (re)monte quand l'éditeur apparaît/disparaît.
+  const [editorInstance, setEditorInstance] = React.useState(null);
 
   const [popover, setPopover] = React.useState(null);
   const [inlineEdit, setInlineEdit] = React.useState(null); // { chipId, field, fieldRect }
   const [linkedChipId, setLinkedChipId] = React.useState(null);
 
-  const [toolOpen, setToolOpen] = React.useState(false);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerAnchor, setPickerAnchor] = React.useState(null);
   const [checkoutOpen, setCheckoutOpen] = React.useState(false);
   const [checkoutGroups, setCheckoutGroups] = React.useState([]);
+  const [checkoutMode, setCheckoutMode] = React.useState('complete'); // 'complete' | 'chip'
   const [noteDate, setNoteDate] = React.useState(function() { return new Date().toISOString().slice(0, 10); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
   const [visitType, setVisitType] = React.useState('Visite en clinique');
   const [showTags, setShowTags] = React.useState(false);
   const [tags, setTags] = React.useState([]);
 
-  const [toolBodyCollapsed, setToolBodyCollapsed] = React.useState(false);
-
   const [raison, setRaison] = React.useState('');
   const noteCardRef = React.useRef(null);
 
-  function handleEditorReady(editor) { editorRef.current = editor; }
+  function handleEditorReady(editor) {
+    editorRef.current = editor;
+    setEditorInstance(editor);
+  }
 
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
@@ -70,6 +74,24 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       const doc = initialDocRef.current || window.DEFAULT_DOC();
       const idx = window.endOfFirstSectionIndexJSON(doc);
       doc.content.splice.apply(doc.content, [idx, 0].concat(blocks));
+      initialDocRef.current = doc;
+    }
+    if (onOpen) onOpen();
+  }
+
+  // Insère un outil clinique (node inline, voir ClinicalToolNode dans
+  // editor-schema.jsx) à la position du curseur — permet plusieurs
+  // instances dans une même note, comme les chips d'ordonnance. Si
+  // l'éditeur n'est pas encore monté, l'ajoute à la fin du contenu amorcé
+  // (même convention que appendToFirstSection ci-dessus).
+  function insertClinicalTool(toolId, label) {
+    var node = window.buildClinicalToolNode(toolId, label);
+    if (editorRef.current) {
+      var pos = window.safeBlockInsertPos(editorRef.current.state.doc, editorRef.current.state.selection.from);
+      editorRef.current.chain().focus().insertContentAt(pos, [node]).run();
+    } else {
+      var doc = initialDocRef.current || window.DEFAULT_DOC();
+      doc.content.push(node);
       initialDocRef.current = doc;
     }
     if (onOpen) onOpen();
@@ -97,6 +119,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       (tpl.sections || []).forEach(function(s) {
         blocks = blocks.concat(window.plainToBlocks(s.title, s.content || ''));
       });
+      if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
         if (blank) editorRef.current.commands.setContent({ type: 'doc', content: blocks }, true);
@@ -105,7 +128,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         initialDocRef.current = { type: 'doc', content: blocks };
       }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
-      if (tpl.tool === 'itu') setToolOpen(true);
       if (onOpen) onOpen();
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
@@ -182,7 +204,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       if (field === 'dose') {
         var dm = /^([\d.]+)\s*(mg|g|mcg|µg|mL|unités?|UI)$/i.exec(val.trim());
         if (dm) { details.dose = dm[1]; details.unit = dm[2]; }
-        else { details.dose = val.replace(/[^0-9.]/g, '') || details.dose; }
+        // Non reconnu : on garde le texte tel quel plutôt que de l'effacer
+        // silencieusement (ex. « q8h » tapé dans le champ Dose par erreur).
+        else if (val.trim()) { details.dose = val.trim(); details.unit = ''; }
       } else if (field === 'frequency') {
         details.frequency = val;
       } else if (field === 'form') {
@@ -198,17 +222,24 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           '1 supp': 'suppositoire'
         };
         details.form = fmMap[val] || val;
+        // La quantité par prise (« 2 » dans « 2 co ») doit suivre la forme,
+        // sinon le chip continue d'afficher « 1 comp. » quelle que soit la
+        // valeur choisie — voir deriveLabel/_rxQty (NOTE_DATA).
+        var qm = /^([\d.½]+)/.exec(val.trim());
+        if (qm) details.qtyDose = qm[1];
       } else if (field === 'route') {
         details.route = val;
       } else if (field === 'duration_refills') {
         var drm = /^(\d+)\s*(jours?|semaines?|mois)(?:\s+R(\d+))?$/i.exec(val.trim());
         if (drm) { details.duration = drm[1]; details.durationUnit = drm[2]; if (drm[3] !== undefined) details.refills = drm[3]; }
         else if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
+        else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
       } else if (field === 'duration') {
         if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; }
         else {
           var dm2 = /^(\d+)\s*(jours?|semaines?|mois|an|ans|année?s?)?/i.exec(val.trim());
           if (dm2) { details.duration = dm2[1]; if (dm2[2]) details.durationUnit = /an|ann/i.test(dm2[2]) ? 'mois' : dm2[2].replace(/s$/, '') + (/jour|semaine/i.test(dm2[2]) ? 's' : ''); }
+          else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
         }
       } else if (field === 'refills') {
         var rfm = /R?\s*(\d+)/i.exec(val.trim());
@@ -336,17 +367,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     return s.trim();
   }
 
-  function closeTool() { setToolOpen(false); }
-  function toggleTool() { setToolOpen(function(o) { return !o; }); }
-  function handleToolSelect(tool) { setPickerOpen(false); if (tool.hasTool) setToolOpen(true); }
+  function handleToolSelect(tool) {
+    setPickerOpen(false);
+    if (tool.hasTool) insertClinicalTool(tool.id, tool.label);
+  }
 
   function resetNote() {
     initialDocRef.current = null;
     setRaison('');
     setTags([]);
     setShowTags(false);
-    setToolOpen(false);
-    setToolBodyCollapsed(false);
     setInlineEdit(null);
     setPopover(null);
     setLinkedChipId(null);
@@ -366,6 +396,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     if (onOpen) onOpen();
   }
 
+  // Sauvegarde un instantané du brouillon SANS toucher à la note en cours
+  // d'édition — « Sauvegarder » ne doit pas la fermer ni en effacer le contenu.
   function saveDraft() {
     var id = 'draft-' + Date.now();
     var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
@@ -375,8 +407,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         date: noteDate, time: noteTime, visitType: visitType, tags: tags }].concat(prev);
     });
     if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
-    resetNote();
-    if (onDraftSaved) onDraftSaved();
   }
 
   function continueDraft(id) {
@@ -399,8 +429,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   // Build the list of sendable documents (prescriptions, requests, patient
   // instructions) actually present in the note, grouped by destination.
-  function buildCheckoutGroups() {
+  // `onlyCid`, si fourni, restreint le checkout à un seul chip — utilisé par
+  // « Prescrire »/« Transmettre » sur une chip (menu de survol), qui ne doit
+  // envoyer QUE cet item, pas toute la note.
+  function buildCheckoutGroups(onlyCid) {
     var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
+    if (onlyCid) ents = ents.filter(function(e) { return e.cid === onlyCid; });
 
     function mk(e) {
       var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
@@ -440,9 +474,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     }).filter(function(g) { return g.items.length > 0; });
   }
 
-  // « Compléter » ouvre d'abord la fenêtre d'envoi (checkout).
-  function openCheckout() {
-    setCheckoutGroups(buildCheckoutGroups());
+  // « Compléter » ouvre d'abord la fenêtre d'envoi (checkout) — sur toute la
+  // note. Un « Prescrire »/« Transmettre » ponctuel sur une chip (onlyCid)
+  // ouvre le même modal restreint à cet item ; sa confirmation ne doit donc
+  // PAS compléter/enregistrer la note (voir checkoutMode dans onConfirm ci-dessous).
+  function openCheckout(onlyCid) {
+    setCheckoutGroups(buildCheckoutGroups(onlyCid));
+    setCheckoutMode(onlyCid ? 'chip' : 'complete');
     setCheckoutOpen(true);
   }
 
@@ -468,14 +506,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   React.useEffect(function() {
     if (completeRef) completeRef.current = openCheckout;
     if (saveDraftRef) saveDraftRef.current = saveDraft;
-    // « Prescrire » / « Transmettre » sur un chip ouvre le flux d'envoi (checkout).
-    function onOpenCheckout() { openCheckout(); }
+    // « Prescrire » / « Transmettre » sur un chip ouvre le flux d'envoi (checkout),
+    // restreint à ce chip (voir checkoutMode).
+    function onOpenCheckout(e) { openCheckout(e && e.detail && e.detail.cid); }
     window.addEventListener('note:open-checkout', onOpenCheckout);
     return function() { window.removeEventListener('note:open-checkout', onOpenCheckout); };
   });
 
   return (
-    <div ref={noteCardRef} style={neStyles.card}>
+    <div ref={noteCardRef} className="note-card" style={neStyles.card}>
       <div style={neStyles.topRow}>
         <div>
           <div style={neStyles.overline}>CLINIQUE DU CENTRE VILLE</div>
@@ -538,6 +577,20 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       {isOpen &&
         <div style={{ marginTop: 20, animation: 'note-expand 300ms ease-in-out' }}>
 
+          {ftBarStyle === 'haut' && <NoteRichTextToolbar editor={editorInstance} />}
+
+          <div style={neStyles.noteDiv} />
+
+          <NoteBody
+            placeholder="Appuyer sur « / » pour afficher les commandes"
+            initialDoc={initialDocRef.current}
+            onReady={handleEditorReady}
+            onDocChange={handleDocChange}
+            onChipClick={onChipClick}
+            linkedChipId={linkedChipId} />
+
+          <div style={neStyles.noteDiv} />
+
           <div className="ct-default-zone">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <div style={neStyles.chipsRow}>
@@ -553,36 +606,24 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
                       <span className="material-icons-outlined">handyman</span>
                     </button>
                   : null}
-                {toolOpen
-                  ? <button className="ct-chip" onClick={toggleTool}>
-                      <span className="material-icons-outlined">medical_information</span>
-                      Feuille de route - Symptômes urinaires
+                {[
+                  { label: 'Assurance privée' },
+                  { label: 'Cardiologie' },
+                  { label: 'CNESST' },
+                  { label: 'Examen physique - Version courte', toolId: 'exam-court' }
+                ].map(function(chip) {
+                  return (
+                    <button key={chip.label} className="ct-chip"
+                      onClick={chip.toolId
+                        ? function() { handleToolSelect({ id: chip.toolId, label: chip.label, hasTool: true }); }
+                        : undefined}>
+                      <span className="material-icons-outlined">description</span>
+                      {chip.label}
                     </button>
-                  : ['Assurance privée', 'Cardiologie', 'CNESST', 'Examen physique simple'].map(function(label) {
-                      return (
-                        <button key={label} className="ct-chip">
-                          <span className="material-icons-outlined">description</span>
-                          {label}
-                        </button>
-                      );
-                    })}
+                  );
+                })}
               </div>
             </div>
-            {toolOpen &&
-              <ClinicalTool
-                onClose={closeTool}
-                bodyCollapsed={toolBodyCollapsed}
-                onBodyCollapseChange={setToolBodyCollapsed} />}
-          </div>
-
-          <div style={{ marginTop: 12 }}>
-            <NoteBody
-              placeholder="Appuyer sur « / » pour afficher les commandes"
-              initialDoc={initialDocRef.current}
-              onReady={handleEditorReady}
-              onDocChange={handleDocChange}
-              onChipClick={onChipClick}
-              linkedChipId={linkedChipId} />
           </div>
         </div>
       }
@@ -607,7 +648,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           institution={institution}
           note={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
           onCancel={function() { setCheckoutOpen(false); }}
-          onConfirm={function() { setCheckoutOpen(false); finalizeComplete(); }} />
+          onConfirm={function() {
+            setCheckoutOpen(false);
+            if (checkoutMode === 'complete') finalizeComplete();
+            else if (window.toast) window.toast('Envoyé', { icon: 'check_circle' });
+          }} />
       }
 
       {/* Chip popover */}
@@ -880,6 +925,10 @@ const neFieldStyles = {
 
 const neStyles = {
   card: { background: '#fff', borderRadius: 8, padding: '16px 20px 18px', boxShadow: '0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)', fontFamily: "'Inter', sans-serif" },
+  // Cadre le corps éditable de la note (NoteBody) — un trait au-dessus, un en
+  // dessous — repris de la maquette Figma (« redaction » y démarre par cette
+  // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
+  noteDiv: { height: 1, background: 'var(--border-subtle, #e5e5ec)', margin: '12px 0' },
   topRow: { display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 18 },
   titleRow: { display: 'flex', alignItems: 'center', gap: 12, marginTop: 2 },
   statusBadge: { background: '#e8e6f5', color: '#4b3fa6', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, padding: '4px 12px', borderRadius: 8 },
@@ -903,7 +952,7 @@ const neStyles = {
   aiActionBtn: { display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '9px 16px', cursor: 'pointer', font: "500 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.8)' },
   aiActionIcon: { fontSize: 20, color: 'rgba(0,0,0,0.6)' },
   infoIcon: { fontSize: 22, color: 'rgba(0,0,0,0.4)', cursor: 'pointer' },
-  chipsRow: { flex: 1, display: 'flex', alignItems: 'center', gap: 8, overflowX: 'auto', paddingBottom: 4 },
+  chipsRow: { flex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
   toolsIconBtn: { width: 36, height: 36, border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 8, background: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   chip: { display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 20, padding: '6px 14px', cursor: 'pointer', whiteSpace: 'nowrap', font: "500 13px 'Inter', sans-serif", color: 'rgba(0,0,0,0.72)', background: '#fff', flexShrink: 0 },
 };
@@ -994,4 +1043,82 @@ const tagStyles = {
   input: { border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 120, font: "400 15px 'Inter', sans-serif", color: 'rgba(0,0,0,0.85)', padding: '4px 0' },
   menu: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: '#fff', border: '1px solid #e3e3ea', borderRadius: 8, boxShadow: '0 8px 20px rgba(37,36,94,0.16)', padding: '4px 0', zIndex: 30 },
   menuItem: { display: 'flex', alignItems: 'center', gap: 9, padding: '8px 14px', fontSize: 14, color: 'rgba(0,0,0,0.8)', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }
+};
+
+// ---------------------------------------------------------
+// NoteRichTextToolbar — barre de mise en forme du tweak "Barre de mise en
+// forme = Haut de note" (maquette Figma "Ds2 - Rich text Toolbar"). Bloc en
+// flux normal entre l'Assistant IA et le corps de la note — jamais en
+// position fixe/overlay, contrairement au mode "Flottante"
+// (FloatingToolbar.jsx, qui suit la sélection). Boutons/palettes/logique de
+// débordement partagés avec ce dernier — voir rich-text-controls.jsx : les deux
+// modes ne doivent plus dériver l'un de l'autre.
+// ---------------------------------------------------------
+function NoteRichTextToolbar({ editor }) {
+  const [, bump] = React.useState(0);
+  const barRef = React.useRef(null);
+  const S = window.ToolbarShared;
+
+  React.useEffect(function () {
+    if (!editor) return undefined;
+    function onTx() { bump(function (n) { return n + 1; }); }
+    editor.on('transaction', onTx);
+    return function () { editor.off('transaction', onTx); };
+  }, [editor]);
+
+  // Mesure la largeur réelle disponible — la barre est en flux normal (pas
+  // flottante), sa largeur dépend du panneau/de la fenêtre. Dépend de
+  // `editor` (pas []) : au tout premier rendu editor est encore null (voir
+  // le early-return plus bas), donc rien n'est monté sous barRef — un effet
+  // [] figerait l'observer sur cet état et ne se redéclencherait jamais une
+  // fois la barre réellement affichée.
+  const containerWidth = S.useToolbarWidth(barRef, [editor]);
+
+  // Doit rester appelé à chaque render (règle des Hooks) même quand
+  // `editor` est encore null — voir le early-return juste après.
+  const linkEditor = S.useLinkEditor(editor);
+
+  if (!editor) return null;
+
+  function run(fn) { fn(editor.chain().focus()).run(); }
+
+  var curLevel = [1, 2, 3].find(function (l) { return editor.isActive('heading', { level: l }); }) || 0;
+  var curBlock = S.TOOLBAR_BLOCK_TYPES.find(function (b) { return b.level === curLevel; }) || S.TOOLBAR_BLOCK_TYPES[0];
+
+  var chunks = S.buildToolbarChunks(editor, linkEditor, run);
+  var visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, containerWidth);
+  var hiddenChunks = chunks.slice(visibleCount);
+
+  return (
+    <div ref={barRef} style={rtS.bar}>
+      {linkEditor.editing ? (
+        <S.ToolbarLinkEditRow linkEditor={linkEditor} />
+      ) : (
+        <React.Fragment>
+          <S.ToolbarBlockDropdown
+            curBlock={curBlock}
+            onPick={function (b) { run(function (c) { return b.level === 0 ? c.setParagraph() : c.toggleHeading({ level: b.level }); }); }} />
+
+          {chunks.slice(0, visibleCount).map(function (chunk) {
+            return (
+              <React.Fragment key={chunk.key}>
+                <div style={S.tbS.sep} />
+                {chunk.render(false)}
+              </React.Fragment>
+            );
+          })}
+
+          {hiddenChunks.length > 0 &&
+            <React.Fragment>
+              <div style={S.tbS.sep} />
+              <S.ToolbarOverflowMenu chunks={hiddenChunks} />
+            </React.Fragment>}
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+const rtS = {
+  bar: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, flexWrap: 'nowrap', marginBottom: 12 }
 };

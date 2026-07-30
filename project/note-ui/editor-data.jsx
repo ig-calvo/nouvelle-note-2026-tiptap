@@ -373,6 +373,7 @@ function deriveRx(d, prev) {
 const RX_OTHERS = MED_CATALOG.map(function (m, i) {
   return {
     key: 'cat-' + i, name: m.details.molecule || _cap(m.stem), brand: m.brand,
+    klass: m.klass, din: m.din,
     dose: (m.details.dose + ' ' + m.details.unit).trim(),
     sig: (m.text.split(' — ')[1] || '') + (m.klass ? ', ' + m.klass : ''),
     chipSig: deriveRxSig(m.details),
@@ -402,15 +403,22 @@ const PATIENT_MEDS = [
 function searchRx(q) {
   const nq = _norm((q || '').trim());
   const match = function (it) {
-    return !nq || _norm(it.name).startsWith(nq) || (it.brand && _norm(it.brand).startsWith(nq));
+    if (!nq) return true;
+    if (_norm(it.name).includes(nq)) return true;
+    if (it.brand && _norm(it.brand).includes(nq)) return true;
+    if (it.klass && _norm(it.klass).includes(nq)) return true;
+    if (it.din && /\d/.test(nq) && it.din.includes(nq.replace(/\D/g, ''))) return true;
+    return false;
   };
-  const profil = PATIENT_MEDS.filter(match);
+  const profilAll = PATIENT_MEDS.filter(match);
+  const profil = profilAll.filter(function (it) { return !it.med || it.medStatus === 'active'; });
+  const profilCeased = profilAll.filter(function (it) { return it.med && it.medStatus !== 'active'; });
   const favoris = RX_ALL.filter(function (it) { return RX_FAVS.has(it.key) && match(it); });
   const frequents = RX_ALL.filter(function (it) { return it.freq && !RX_FAVS.has(it.key) && match(it); });
   const autres = nq
     ? RX_ALL.filter(function (it) { return !it.freq && !RX_FAVS.has(it.key) && match(it); }).slice(0, 6)
     : [];
-  return { profil, favoris, frequents, autres };
+  return { profil, profilCeased, favoris, frequents, autres };
 }
 
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
@@ -420,7 +428,7 @@ function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add
 // =========================================================
 const LAB_FAVS = new Set(['fsc', 'lipide']);
 const LAB_ITEMS = [
-  { key: 'fsc', name: 'FSC', dose: '', active: true,
+  { key: 'fsc', name: 'FSC', dose: '',
     sig: 'Formule sanguine complète · Routine',
     chipSig: 'Routine',
     details: { tests: ['FSC'], priority: 'Routine', fasting: false, context: '', collection: 'Au CH le plus proche' } },
@@ -470,7 +478,7 @@ const LAB_ITEMS = [
 // =========================================================
 const IMG_FAVS = new Set(['rxpoumon']);
 const IMG_ITEMS = [
-  { key: 'rxpoumon', name: 'Radiographie pulmonaire', dose: '', active: true,
+  { key: 'rxpoumon', name: 'Radiographie pulmonaire', dose: '',
     sig: '2 incidences (PA + latérale) · Sans contraste · Routine',
     chipSig: '2 incidences · Routine',
     details: { modality: 'Radiographie', region: 'Thorax', views: 'PA + latérale', priority: 'Routine', context: '', contrast: 'Sans' } },
@@ -509,7 +517,7 @@ const IMG_ITEMS = [
 // =========================================================
 const REF_FAVS = new Set(['cardio', 'ortho', 'derm']);
 const REF_ITEMS = [
-  { key: 'cardio',  name: 'Cardiologie',       dose: '', active: true,
+  { key: 'cardio',  name: 'Cardiologie',       dose: '',
     sig: 'Avis cardiologie · Routine',      chipSig: 'Routine',
     details: { specialty: 'Cardiologie',       question: '', indication: '', priority: 'Routine', crds: '' } },
   { key: 'ortho',   name: 'Orthopédie',         dose: '', freq: true,
@@ -622,13 +630,13 @@ const SLASH_ITEMS = [
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
     noteTemplate: 'periodique' },
   // ── FONCTIONS ────────────────────────────────────────────
-  { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: 'Alt+A',
-    kbdNoSlash: true, fileAction: true },
+  { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
+    noKbd: true, fileAction: true },
   { key: 'instructions', section: 'Fonctions', icon: 'menu_book', title: 'Instructions patient', desc: 'Consignes au patient', kbd: 'instr',
     template: { type: 'instructions', label: 'Consignes', text: 'Consignes au patient',
       details: { title: '', body: '', delivery: 'Imprimer + portail' } } },
-  { key: 'textes-rapides', section: 'Fonctions', icon: 'bolt', title: 'Textes rapides', desc: 'Insérer un modèle de texte', kbd: 'Ctrl+R',
-    kbdNoSlash: true, textRapides: true },
+  { key: 'textes-rapides', section: 'Fonctions', icon: 'bolt', title: 'Textes rapides', desc: 'Insérer un modèle de texte', kbd: '',
+    noKbd: true, textRapides: true },
   { key: 'diagnostic', section: 'Fonctions', icon: 'local_hospital', title: 'Diagnostic', desc: 'Créer une section diagnostic', kbd: 'dx',
     diagnosticEntry: true },
   { key: 'prescription', section: 'Fonctions', icon: 'prescriptions', title: 'Prescriptions', desc: 'Rechercher et prescrire un médicament', kbd: 'rx',

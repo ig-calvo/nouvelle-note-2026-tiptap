@@ -4,6 +4,15 @@ function PatientBanner({ forceCollapsed, portalActive = true }) {
   const phaseRef = React.useRef(phase);
   phaseRef.current = phase;
 
+  // Source unique du patient fictif — voir editor-data.jsx (window.NOTE_DATA.PATIENT).
+  // Auparavant la bannière affichait « Julie Tremblay » pendant que le reste
+  // de la note (allergies, grossesse) référait à une autre patiente.
+  const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
+  const patientName = P.name || 'Geneviève Tremblay';
+  const sexLabel = P.sex === 'M' ? 'Homme né le' : 'Femme née le';
+  const patientSub = sexLabel + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
+  const patientRamq = P.ramq || 'TREG 8705 0301';
+
   React.useEffect(() => {
     if (forceCollapsed && phase === 'expanded') setPhase('collapsed');
   }, [forceCollapsed]);
@@ -34,10 +43,10 @@ function PatientBanner({ forceCollapsed, portalActive = true }) {
             <span className="material-icons" style={{ color: "#8a5cb8", fontSize: 16 }}>person</span>
           </span>
           <div style={pbStyles.collapsedStack}>
-            <span style={pbStyles.collapsedName}>Julie Tremblay</span>
+            <span style={pbStyles.collapsedName}>{patientName}</span>
             <div style={pbStyles.collapsedMeta}>
-              <span style={pbStyles.collapsedSub}>Femme née le 14 mars 1991 (35 ans)</span>
-              <span style={pbStyles.collapsedRamq}>TREJ 9153 1401</span>
+              <span style={pbStyles.collapsedSub}>{patientSub}</span>
+              <span style={pbStyles.collapsedRamq}>{patientRamq}</span>
               <span style={pbStyles.collapsedExp}>EXP. 03/28</span>
               <span style={pbStyles.collapsedFileChip}>
                 <span className="material-icons-outlined" style={{ fontSize: 14, color: "rgba(0,0,0,0.55)" }}>folder_open</span>
@@ -92,10 +101,10 @@ function PatientBanner({ forceCollapsed, portalActive = true }) {
           <span className="material-icons" style={{ color: "#8a5cb8", fontSize: 22 }}>person</span>
         </span>
         <div data-comment-anchor="8227936f7b-div-10-9" style={{ flex: 1 }}>
-          <div style={pbStyles.name}>Julie Tremblay</div>
-          <div style={pbStyles.sub}>Femme née le 14 mars 1991 (35 ans)</div>
+          <div style={pbStyles.name}>{patientName}</div>
+          <div style={pbStyles.sub}>{patientSub}</div>
           <div style={pbStyles.ramqRow}>
-            <span style={pbStyles.ramq}>TREJ 9153 1401</span>
+            <span style={pbStyles.ramq}>{patientRamq}</span>
             <span style={{ ...pbStyles.exp, color: "rgb(138, 138, 138)" }}>EXP. 03/28</span>
           </div>
           <div style={pbStyles.fileRow}>
@@ -117,7 +126,7 @@ function PatientBanner({ forceCollapsed, portalActive = true }) {
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
         <div style={{ ...pbStyles.contactRow, paddingLeft: 30 }}>
-          <span style={pbStyles.email}>julie.tremblay.test@example.com</span>
+          <span style={pbStyles.email}>genevieve.tremblay.test@example.com</span>
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
       </div>

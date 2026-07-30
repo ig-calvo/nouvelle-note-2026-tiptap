@@ -195,6 +195,12 @@
 .ct-default-zone { border-radius: 8px; transition: background 130ms; }
 .ct-default-zone.is-target { background: var(--ct-blue-soft); outline: 2px dashed var(--ct-blue); outline-offset: 3px; }
 
+/* Outil clinique inséré dans le texte (ClinicalToolNode, node bloc atomique
+   du document Tiptap) — même chrome que .ct-panel, juste un peu d'air avec
+   les paragraphes voisins puisqu'il est maintenant dans le flux normal. */
+.note-field .ql-editor .ct-node { margin: 10px 0; }
+.note-field .ql-editor .ct-node .ct-panel { margin-top: 0; }
+
 /* Compact the split text editors so the tool sits snug between paragraphs */
 [data-field-id="detail-top"], [data-field-id="detail-bot"],
 [data-field-id="conclusion-top"], [data-field-id="conclusion-bot"] { min-height: 0 !important; }

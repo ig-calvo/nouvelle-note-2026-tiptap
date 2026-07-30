@@ -2,12 +2,13 @@
 function TopBar({
   user = "Véronique Charland",
   mandate = "En mon nom",
-  clinic = "Clinique du Centre-ville"
+  clinic = "Clinique du Centre-ville",
+  onMenuClick
 }) {
   return (
     <div style={tbStyles.bar}>
       <div style={tbStyles.left}>
-        <button style={tbStyles.iconBtn} aria-label="menu">
+        <button style={tbStyles.iconBtn} aria-label="menu" onClick={onMenuClick}>
           <span className="material-icons" style={{ color: "#fff", fontSize: 24 }}>menu</span>
         </button>
         <div style={{ ...tbStyles.logo, width: "174px" }}>omnimed</div>

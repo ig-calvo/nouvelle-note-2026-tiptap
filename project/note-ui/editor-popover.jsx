@@ -337,7 +337,12 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
   items.forEach(it => { if (!grouped[it.section]) grouped[it.section] = []; grouped[it.section].push(it); });
   return (
     <div className="slash-menu" ref={ref} style={position}>
-      {items.length === 0 && <div style={{padding:16, fontSize:12, color:'var(--fg-3)', textAlign:'center'}}>Aucune commande.</div>}
+      {items.length === 0 &&
+        <div style={{padding:16, fontSize:12, color:'var(--fg-3)', textAlign:'center'}}>
+          {query
+            ? <>Aucun résultat pour «&nbsp;{query}&nbsp;». <kbd style={{fontFamily:'var(--font-mono)', background:'var(--bg-subtle)', border:'1px solid var(--border-subtle)', borderRadius:4, padding:'1px 5px'}}>Échap</kbd> pour écrire en texte libre.</>
+            : 'Aucune commande.'}
+        </div>}
       {Object.entries(grouped).map(([section, list]) => (
         <div key={section}>
           <div className="sm-section">{section}</div>
@@ -546,6 +551,7 @@ function RxNameHighlight({ name, query }) {
 
 function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose }) {
   const ref = useRefP(null);
+  const [showCeased, setShowCeased] = useStateP(false);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
     // Différé d'un tick : l'item du SlashMenu déclenche sur mousedown et React
@@ -558,12 +564,13 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const d = def || window.NOTE_DATA.ORDER_DEFS.rx;
   const favSet = d.favs;
   const profil = results.profil || [];
+  const profilCeased = results.profilCeased || [];
   const sections = [];
   if (profil.length) sections.push(['Médications au dossier', profil]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
+  const total = profil.length + profilCeased.length + results.favoris.length + results.frequents.length + results.autres.length;
   let flat = -1;
 
   return (
@@ -630,6 +637,27 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
             })}
           </div>
         ))}
+        {profilCeased.length > 0 &&
+          <div className="rx-sec-block">
+            <button type="button" className="rx-sec rx-sec--toggle" onClick={() => setShowCeased((v) => !v)}>
+              <span className="material-icons-outlined" style={{ fontSize: 15, verticalAlign: 'middle' }}>
+                {showCeased ? 'expand_less' : 'expand_more'}
+              </span>
+              {' '}Médicaments cessés <span className="rx-sec-count">({profilCeased.length})</span>
+            </button>
+            {showCeased && profilCeased.map((it) => (
+              <div key={it.key} className="rx-item rx-item--ceased">
+                <div className="rx-item__body">
+                  <div className="rx-item__name"><RxNameHighlight name={it.name} query={query} /> {it.dose}</div>
+                  <div className="rx-item__sig">{it.medStatusLabel || 'Cessé'}</div>
+                </div>
+                <div className="rx-item__actions">
+                  <span className="rx-status rx-status--ceased">Cessé</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        }
       </div>
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>

@@ -199,6 +199,14 @@ function TweaksPanel({ title = 'Tweaks', children }) {
   const dragRef = React.useRef(null);
   const offsetRef = React.useRef({ x: 16, y: 16 });
   const PAD = 16;
+  // En séance de test, le panneau doit rester inerte face à un host qui
+  // poste le protocole d'édition par erreur — mais Ctrl+0 reste actif (voir
+  // plus bas) car un participant ne tombe pas dessus par accident.
+  // Ajouter ?tweaks=1 à l'URL pour l'équipe qui prépare le prototype.
+  const tweaksEnabled = React.useMemo(function () {
+    try { return new URLSearchParams(window.location.search).get('tweaks') === '1'; }
+    catch (e) { return false; }
+  }, []);
 
   const clampToViewport = React.useCallback(() => {
     const panel = dragRef.current;
@@ -227,6 +235,7 @@ function TweaksPanel({ title = 'Tweaks', children }) {
   }, [open, clampToViewport]);
 
   React.useEffect(() => {
+    if (!tweaksEnabled) return;
     const onMsg = (e) => {
       const t = e?.data?.type;
       if (t === '__activate_edit_mode') setOpen(true);
@@ -235,8 +244,12 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     window.addEventListener('message', onMsg);
     window.parent.postMessage({ type: '__edit_mode_available' }, '*');
     return () => window.removeEventListener('message', onMsg);
-  }, []);
+  }, [tweaksEnabled]);
 
+  // Contrairement au protocole postMessage et au bouton flottant, le
+  // raccourci Ctrl+0 reste actif même sans ?tweaks=1 : un participant de
+  // test doit connaître la combinaison pour s'en servir, donc le risque
+  // d'ouverture accidentelle est faible.
   React.useEffect(() => {
     const onKey = (e) => {
       if (e.ctrlKey && e.key === '0') {
@@ -278,7 +291,28 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     window.addEventListener('mouseup', up);
   };
 
-  if (!open) return null;
+  // Filet de rappel : le panneau se pilote normalement depuis l'outil hôte
+  // (postMessage __activate_edit_mode) ou via Ctrl+0, mais ce dernier est
+  // souvent intercepté par le navigateur (reset de zoom) avant d'atteindre
+  // la page — sans hôte qui envoie le message, le panneau devient
+  // impossible à rouvrir. Un petit bouton toujours visible (uniquement
+  // derrière ?tweaks=1, jamais en séance de test) évite cette impasse.
+  if (!open) {
+    if (!tweaksEnabled) return null;
+    return (
+      <button type="button" title="Ouvrir les tweaks (Ctrl+0)" data-omelette-chrome=""
+        onClick={() => setOpen(true)}
+        style={{
+          position: 'fixed', right: 16, bottom: 16, zIndex: 99998,
+          width: 40, height: 40, borderRadius: '50%', border: '1px solid #d8d8e0',
+          background: '#fff', boxShadow: '0 4px 14px rgba(37,36,94,0.18)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0
+        }}>
+        ⚙
+      </button>
+    );
+  }
   return (
     <>
       <style>{__TWEAKS_STYLE}</style>

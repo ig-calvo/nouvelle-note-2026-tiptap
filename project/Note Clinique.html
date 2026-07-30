@@ -136,28 +136,50 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- Tiptap (exploration — remplace Quill). Module script : deferred par le
-     spec HTML, donc exécuté après le parsing du document mais AVANT
-     DOMContentLoaded — c'est-à-dire avant que Babel standalone ne compile
-     les <script type="text/babel"> ci-dessous. window.Tiptap est donc déjà
-     prêt quand EditorField s'exécute. Version épinglée sur tous les paquets
-     @tiptap/* pour éviter une double instance de prosemirror-model. -->
+<!-- Tiptap (exploration — remplace Quill). Import dynamique (au lieu d'un
+     `import` statique) pour pouvoir intercepter un échec réseau — un CDN
+     injoignable (esm.sh) faisait autrement planter silencieusement tout le
+     reste du chargement (page blanche, sans message). Version épinglée sur
+     tous les paquets @tiptap/* pour éviter une double instance de
+     prosemirror-model. -->
 <script type="module">
-  import { Editor, Node, Extension, mergeAttributes } from 'https://esm.sh/@tiptap/core@2.11.5';
-  import StarterKit from 'https://esm.sh/@tiptap/starter-kit@2.11.5';
-  import Placeholder from 'https://esm.sh/@tiptap/extension-placeholder@2.11.5';
-  import Suggestion from 'https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5';
-  import Underline from 'https://esm.sh/@tiptap/extension-underline@2.11.5?deps=@tiptap/core@2.11.5';
-  import TextStyle from 'https://esm.sh/@tiptap/extension-text-style@2.11.5?deps=@tiptap/core@2.11.5';
-  import Color from 'https://esm.sh/@tiptap/extension-color@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/extension-text-style@2.11.5';
-  import Highlight from 'https://esm.sh/@tiptap/extension-highlight@2.11.5?deps=@tiptap/core@2.11.5';
-  window.Tiptap = { Editor, Node, Extension, mergeAttributes, StarterKit, Placeholder, Suggestion, Underline, TextStyle, Color, Highlight };
-  window.dispatchEvent(new Event('tiptap:ready'));
+  (async function () {
+    try {
+      const [core, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
+        import('https://esm.sh/@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-placeholder@2.11.5'),
+        import('https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-underline@2.11.5?deps=@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-text-style@2.11.5?deps=@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-color@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/extension-text-style@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-highlight@2.11.5?deps=@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/extension-link@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
+      ]);
+      window.Tiptap = {
+        Editor: core.Editor, Node: core.Node, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
+        StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
+        Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
+        Link: link.default
+      };
+      window.dispatchEvent(new Event('tiptap:ready'));
+    } catch (err) {
+      window.dispatchEvent(new CustomEvent('tiptap:error', { detail: { message: (err && err.message) || String(err) } }));
+    }
+  })();
 </script>
 
 <script>fetch('note-ui/cim10-fr-clinique.json?v=' + Date.now()).then(function(r){return r.json();}).then(function(d){window.CIM10_DATA=d;});</script>
 <!-- Chargeur JSX avec anti-cache : ajoute un horodatage à chaque rechargement
-     pour qu'on voie toujours la dernière version du code pendant le prototypage. -->
+     pour qu'on voie toujours la dernière version du code pendant le prototypage.
+     TOUJOURS synchrone et inconditionnel : document.write() appelé après la
+     fin du parsing (ex. depuis un callback asynchrone comme un event listener
+     ou une Promise résolue) déclenche un document.open() implicite qui EFFACE
+     toute la page (dont #root) — une version antérieure attendait l'événement
+     tiptap:ready avant d'appeler document.write ici, ce qui cassait le
+     chargement de façon intermittente. Ne plus reproduire ce piège : ce
+     chargeur doit rester un bloc <script> classique exécuté pendant le
+     parsing initial, sans dépendance asynchrone. -->
 <script>
 (function () {
   var srcs = [
@@ -174,6 +196,7 @@
     'note-ui/ClinicalTool.jsx',
     'note-ui/ClinicalToolPicker.jsx',
     'note-ui/CheckoutModal.jsx',
+    'note-ui/rich-text-controls.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
     'note-ui/SmartNoteModal.jsx',
@@ -188,6 +211,26 @@
   }
 })();
 </script>
+<!-- Message diagnostic si Tiptap échoue à charger (CDN injoignable/bloqué) —
+     posé via les API DOM normales (createElement/appendChild), jamais
+     document.write, justement pour rester sans risque même déclenché de
+     façon asynchrone par l'événement tiptap:error ci-dessus. -->
+<script>
+(function () {
+  function showBanner(message) {
+    var div = document.createElement('div');
+    div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;padding:32px;font-family:sans-serif;text-align:center;';
+    div.innerHTML =
+      '<div style="max-width:480px;"><h2 style="color:#b3261e;margin-bottom:8px;">Le prototype n’a pas pu charger Tiptap</h2>' +
+      '<p style="color:#444;margin-bottom:6px;">' + String(message).replace(/</g, '&lt;') + '</p>' +
+      '<p style="color:#777;font-size:13px;">Vérifiez votre connexion internet (esm.sh) et rechargez la page.</p></div>';
+    (document.body || document.documentElement).appendChild(div);
+  }
+  window.addEventListener('tiptap:error', function (e) {
+    showBanner((e.detail && e.detail.message) || 'Erreur de chargement de Tiptap.');
+  });
+})();
+</script>
 
 <script type="text/babel">
 
@@ -195,15 +238,50 @@
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
-  "diagStyle": "numbered",
+  "diagStyle": "carte",
   "showClinicalTools": true,
   "portalActive": true,
   "startPoints": false,
-  "pediatricPatient": false
+  "pediatricPatient": false,
+  "ftBarStyle": "flottant"
 } /*EDITMODE-END*/;
+
+// Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
+// window.XXX manquant si un script a échoué à charger) — sans ça, React
+// démonte tout silencieusement et la page reste blanche sans indice.
+class AppErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error: error }; }
+  componentDidCatch(error, info) { console.error('Erreur de rendu :', error, info); }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: 'sans-serif', textAlign: 'center' }}>
+          <div style={{ maxWidth: 480 }}>
+            <h2 style={{ color: '#b3261e', marginBottom: 8 }}>Le prototype a rencontré une erreur</h2>
+            <p style={{ color: '#444', marginBottom: 6 }}>{String(this.state.error && this.state.error.message || this.state.error)}</p>
+            <p style={{ color: '#777', fontSize: 13 }}>Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.</p>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [navCollapsed, setNavCollapsed] = React.useState(function () {
+    return window.innerWidth <= 1500;
+  });
+  // Rail auto : réduit ≤1500px, déployé au-delà — recalculé à chaque
+  // redimensionnement (écrase un repli/déploiement manuel au prochain resize,
+  // par design : c'est une règle de largeur, pas juste une valeur par défaut).
+  React.useEffect(function () {
+    function onResize() { setNavCollapsed(window.innerWidth <= 1500); }
+    window.addEventListener('resize', onResize);
+    return function () { window.removeEventListener('resize', onResize); };
+  }, []);
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [bannerCollapsed, setBannerCollapsed] = React.useState(false);
   const [smartModal, setSmartModal] = React.useState(false);
@@ -242,10 +320,6 @@ function App() {
       return prev.map((n, i) => i === 0 ? { ...n, episodeId: epId } : n);
     });
   }
-  function handleDraftSaved() {
-    setNoteOpen(false);
-    setBannerCollapsed(false);
-  }
   function handleNoteComplete(data) {
     const months = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
     const d = new Date(data.date + 'T' + (data.time || '00:00'));
@@ -272,9 +346,9 @@ function App() {
   }
   return (
     <div className={"app diag-style-" + (t.diagStyle || 'numbered')}>
-      <TopBar user={t.doctorName} />
+      <TopBar user={t.doctorName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
-        <SideNav />
+        <SideNav collapsed={navCollapsed} />
         <div className="content">
           <div className="center-wrap">
           <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} />
@@ -291,10 +365,10 @@ function App() {
               startPoints={t.startPoints}
               lastNote={completedNotes[0] || null}
               onLinkEpisode={handleLinkEpisode}
-              onDraftSaved={handleDraftSaved}
               onSmartPick={() => setSmartModal(true)}
               saveDraftRef={noteSaveDraftRef}
-              pediatricPatient={t.pediatricPatient} />
+              pediatricPatient={t.pediatricPatient}
+              ftBarStyle={t.ftBarStyle || 'haut'} />
             <NotesList doctorName={t.doctorName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -353,7 +427,7 @@ function App() {
         </div>
       </div>
 
-      <FloatingToolbar />
+      {(t.ftBarStyle || 'haut') === 'flottant' && <FloatingToolbar />}
       <ToastHost />
       {smartModal &&
         <SmartNoteModal
@@ -372,6 +446,13 @@ function App() {
                      onChange={(v) => setTweak('startPoints', v)} />
         <TweakToggle label="Patient pédiatrique (poids)" value={t.pediatricPatient === true}
                      onChange={(v) => setTweak('pediatricPatient', v)} />
+        <TweakRadio label="Barre de mise en forme"
+                    value={t.ftBarStyle || 'haut'}
+                    options={[
+                      { value: 'haut', label: 'Haut de note' },
+                      { value: 'flottant', label: 'Flottante' },
+                    ]}
+                    onChange={(v) => setTweak('ftBarStyle', v)} />
         <TweakSection label="Diagnostics" />
         <TweakRadio label="Style de région"
                     value={t.diagStyle || 'numbered'}
@@ -388,7 +469,7 @@ function App() {
 
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<AppErrorBoundary><App /></AppErrorBoundary>);
 </script>
 
 </body>

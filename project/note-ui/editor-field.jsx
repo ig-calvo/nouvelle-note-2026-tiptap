@@ -43,7 +43,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function openSlashMenu() {
     const editor = editorRef.current; if (!editor) return;
     if (slashRef.current) { setSlash(null); return; }
-    editor.chain().focus().insertContent('/').run();
+    // Le plugin Suggestion n'active « / » que précédé d'un espace ou en début
+    // de ligne — insérer '/' seul en plein milieu d'un mot n'ouvre rien et
+    // laisse un caractère parasite (voir le bouton « + »).
+    const { from } = editor.state.selection;
+    const before = from > 0 ? editor.state.doc.textBetween(from - 1, from, '\n') : '';
+    const needsSpace = from > 0 && before !== ' ' && before !== '\n';
+    editor.chain().focus().insertContent(needsSpace ? ' /' : '/').run();
   }
 
   // Sélection d'un item du menu générique (clic ou clavier) — délègue au
@@ -186,13 +192,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // tapé tel quel (voir onKeyDown) — les autres modes démarrent sur le 1er item.
     function initialIndex(mode) { return mode === 'dx' ? -1 : 0; }
 
-    // Heuristique menu générique uniquement (voir risque « allowSpaces » du
-    // plan) : une requête avec espace et 0 résultat redevient une frappe
-    // normale. Les modes ordre/dx ne « renoncent » jamais — RxMenu/
-    // DiagnosticDropdown affichent leur propre message « rien trouvé ».
-    function shouldShowMenu(query) {
-      return !(/\s/.test(query || '') && currentItems.length === 0);
-    }
+    // Menu générique : même une requête avec espace et 0 résultat reste
+    // affichée (message « aucun résultat » + indice Échap) — plus de
+    // fermeture silencieuse qui laissait la requête devenir du texte libre
+    // sans que l'utilisateur comprenne pourquoi. Les modes ordre/dx ne
+    // « renoncent » jamais non plus — RxMenu/DiagnosticDropdown affichent
+    // leur propre message « rien trouvé ».
     function publish(query) {
       const parsed = parseSlashQuery(query);
       if (parsed.mode === 'order') {
@@ -205,7 +210,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         setSlash({ mode: 'dx', query: term, suggestions: window.searchCIM10(term), activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
         return;
       }
-      if (!shouldShowMenu(query)) { setSlash(null); return; }
       setSlash({ mode: 'menu', items: currentItems, activeIndex: selectedIndex, query: query, rect: currentClientRect ? currentClientRect() : null });
     }
     const api = {
@@ -222,9 +226,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         publish(props.query);
       },
       onKeyDown(props) {
-        const parsed = parseSlashQuery(lastQuery);
-        if (parsed.mode === 'menu' && !shouldShowMenu(lastQuery)) return false;
         if (props.event.key === 'Escape') { setSlash(null); return true; }
+        const parsed = parseSlashQuery(lastQuery);
+        // Menu générique sans aucun résultat : on n'intercepte plus les
+        // flèches/Entrée (rien à sélectionner) — la frappe continue
+        // normalement, le message « aucun résultat » reste affiché via publish().
+        if (parsed.mode === 'menu' && currentItems.length === 0) return false;
         if (props.event.key === 'ArrowDown') {
           selectedIndex = parsed.mode === 'dx'
             ? Math.min(currentItems.length - 1, (selectedIndex >= 0 ? selectedIndex : -1) + 1)
@@ -492,7 +499,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         </button>
         <div ref={hostRef} className="note-field" style={{ minHeight: "96px" }} />
         <button
-          type="button" className="nf-tt" title="Format du texte (bientôt disponible)"
+          type="button" className="nf-tt" title="Afficher la barre de mise en forme"
           onMouseDown={(e) => {
             e.preventDefault();
             const editor = editorRef.current;
@@ -513,6 +520,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const left = Math.max(8, Math.min(r.left, window.innerWidth - 260));
         const _ent = editorRef.current ? window.getChipEntity(editorRef.current, chipMenu.cid) : null;
         const _isRx = !_ent || _ent.type === 'prescription';
+        const _isCeased = !!(_ent && _ent.rx && _ent.rx.ceased);
         return (
           <div
             style={Object.assign({ position: 'fixed', top: top, left: left, zIndex: 200 }, cmS.bar)}
@@ -529,6 +537,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               <span className="material-icons-outlined" style={{ fontSize: 20 }}>edit</span>
               Modifier
             </button>
+            {!_isCeased &&
             <button
               style={cmS.segMid}
               onMouseDown={(e) => e.preventDefault()}
@@ -541,7 +550,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 ? <span style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: 18, lineHeight: 1 }}>℞</span>
                 : <span className="material-icons-outlined" style={{ fontSize: 20 }}>send</span>}
               {_isRx ? 'Prescrire' : 'Transmettre'}
-            </button>
+            </button>}
             <button
               style={cmS.segEnd}
               title="Plus d'options"
@@ -607,7 +616,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 Convertir en texte
               </button>
               <button style={Object.assign({}, item, { color: '#ba1a1a' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                onClick={() => { deleteChipFromMenu(chipMore.cid); setChipMore(null); }}>
+                onClick={() => { setChipDelete({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: '#ba1a1a' }}>delete</span>
                 Supprimer
               </button>

@@ -1,3 +1,4 @@
+/* global React */
 // =========================================================
 // editor-schema.jsx — Tiptap schema + doc helpers (Tiptap natif : un seul
 // document par note, JSON Tiptap = source de vérité). Voir le plan de
@@ -145,7 +146,7 @@ function buildChipDom(data, existingEl) {
 // ChipNode — inline atom node. Les attrs SONT l'entité complète (plus de
 // map `chips` séparée) : {cid, type, label, icon, text, rx, details}.
 // ---------------------------------------------------------
-const ChipNode = window.Tiptap.Node.create({
+function makeChipNode() { return window.Tiptap.Node.create({
   name: 'chip',
   group: 'inline',
   inline: true,
@@ -206,13 +207,13 @@ const ChipNode = window.Tiptap.Node.create({
       };
     };
   }
-});
+}); }
 
 // ---------------------------------------------------------
 // ReferenceNode — passage cité depuis une note antérieure complétée. Bloc
 // atomique non-éditable, insertion en un geste (jamais édité en place).
 // ---------------------------------------------------------
-const ReferenceNode = window.Tiptap.Node.create({
+function makeReferenceNode() { return window.Tiptap.Node.create({
   name: 'reference',
   group: 'block',
   atom: true,
@@ -271,7 +272,7 @@ const ReferenceNode = window.Tiptap.Node.create({
       };
     };
   }
-});
+}); }
 
 // ---------------------------------------------------------
 // DiagnosticRegionNode — callout façon Notion, node bloc IMBRIQUÉ natif
@@ -280,7 +281,7 @@ const ReferenceNode = window.Tiptap.Node.create({
 // (contentDOM, éditable) → texte. L'en-tête (nom + bouton promouvoir) est
 // géré par un mousedown délégué sur editor.view.dom, voir editor-field.jsx.
 // ---------------------------------------------------------
-const DiagnosticRegionNode = window.Tiptap.Node.create({
+function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRegion',
   group: 'block',
   content: 'paragraph+',
@@ -387,20 +388,191 @@ const DiagnosticRegionNode = window.Tiptap.Node.create({
       }
     };
   }
-});
+}); }
 
+// ---------------------------------------------------------
+// ClinicalToolNode — outil clinique inséré dans le flux du texte (node bloc
+// atomique, comme ReferenceNode/DiagnosticRegionNode). Le formulaire lui-même
+// (ClinicalTool / ClinicalToolExamCourt — voir ClinicalTool.jsx) est du React
+// « ordinaire » à base de champs contrôlés, jamais du contenu ProseMirror : le
+// NodeView monte donc un root React directement dans son DOM plutôt que de
+// construire un NodeView à la main comme pour les chips. Toutes les données
+// saisies (fields), la section repliée/dépliée et les sections d'accordéon
+// vivent dans les attrs du node — donc dans le JSON Tiptap, sauvegardées et
+// restaurées comme n'importe quel autre contenu de la note.
+// ---------------------------------------------------------
+let _ctSeq = 1;
+function newToolInstanceId() { return 'ct' + _ctSeq++; }
+
+// Valeurs par défaut à la création — un outil est toujours inséré avec la
+// date du jour et (pour l'ITU) le libellé de traitement déjà rempli, comme
+// avant ce refactor (l'ancien composant les affichait en dur, non persistés).
+const CT_FIELD_DEFAULTS = {
+  itu: { plan_traitement_pharmaco: "Antibiothérapie selon l'OC" },
+  'exam-court': {}
+};
+
+function buildClinicalToolNode(toolId, label) {
+  return {
+    type: 'clinicalTool',
+    attrs: {
+      instanceId: newToolInstanceId(),
+      toolId: toolId,
+      label: label || '',
+      favorite: false,
+      bodyCollapsed: false,
+      collapsedSections: {},
+      fields: Object.assign({ effDate: new Date().toISOString().slice(0, 10) }, CT_FIELD_DEFAULTS[toolId] || {})
+    }
+  };
+}
+
+function makeClinicalToolNode() { return window.Tiptap.Node.create({
+  name: 'clinicalTool',
+  group: 'block',
+  atom: true,
+  selectable: true,
+  draggable: false,
+  addAttributes() {
+    return {
+      instanceId: { default: null },
+      toolId: { default: null },
+      label: { default: '' },
+      favorite: { default: false },
+      bodyCollapsed: { default: false },
+      collapsedSections: { default: {} },
+      fields: { default: {} }
+    };
+  },
+  parseHTML() {
+    return [{
+      tag: 'div.ct-node[data-instance-id]',
+      getAttrs(dom) {
+        let fields = {}, collapsedSections = {};
+        try { fields = JSON.parse(dom.getAttribute('data-fields') || '{}'); } catch (e) {}
+        try { collapsedSections = JSON.parse(dom.getAttribute('data-collapsed-sections') || '{}'); } catch (e) {}
+        return {
+          instanceId: dom.getAttribute('data-instance-id'),
+          toolId: dom.getAttribute('data-tool-id') || null,
+          label: dom.getAttribute('data-label') || '',
+          favorite: dom.getAttribute('data-favorite') === 'true',
+          bodyCollapsed: dom.getAttribute('data-body-collapsed') === 'true',
+          collapsedSections: collapsedSections,
+          fields: fields
+        };
+      }
+    }];
+  },
+  renderHTML({ node }) {
+    return ['div', {
+      class: 'ct-node',
+      'data-instance-id': node.attrs.instanceId,
+      'data-tool-id': node.attrs.toolId || '',
+      'data-label': node.attrs.label || '',
+      'data-favorite': node.attrs.favorite ? 'true' : 'false',
+      'data-body-collapsed': node.attrs.bodyCollapsed ? 'true' : 'false',
+      'data-collapsed-sections': JSON.stringify(node.attrs.collapsedSections || {}),
+      'data-fields': JSON.stringify(node.attrs.fields || {}),
+      contenteditable: 'false'
+    }];
+  },
+  addNodeView() {
+    return (props) => {
+      const dom = document.createElement('div');
+      dom.className = 'ct-node';
+      dom.setAttribute('contenteditable', 'false');
+      const root = window.ReactDOM.createRoot(dom);
+      let currentNode = props.node;
+
+      // Relit le node à jour depuis le doc (plutôt que de fermer sur les
+      // attrs passés à renderReact) : évite d'écraser une modification
+      // concurrente si plusieurs callbacks se déclenchent avant le prochain render.
+      function patchAttrs(patch) {
+        if (typeof props.getPos !== 'function') return;
+        const pos = props.getPos();
+        if (pos == null) return;
+        const view = props.editor.view;
+        const node = view.state.doc.nodeAt(pos);
+        if (!node || node.type.name !== 'clinicalTool') return;
+        view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, patch)));
+      }
+
+      function renderReact(node) {
+        const attrs = node.attrs;
+        const Comp = attrs.toolId === 'exam-court' ? window.ClinicalToolExamCourt : window.ClinicalTool;
+        root.render(React.createElement(Comp, {
+          fields: attrs.fields || {},
+          onFieldChange: function (fieldName, value) {
+            patchAttrs({ fields: Object.assign({}, currentNode.attrs.fields, { [fieldName]: value }) });
+          },
+          collapsedSections: attrs.collapsedSections || {},
+          onToggleSection: function (id) {
+            const cs = Object.assign({}, currentNode.attrs.collapsedSections);
+            cs[id] = !cs[id];
+            patchAttrs({ collapsedSections: cs });
+          },
+          favorite: attrs.favorite,
+          onToggleFavorite: function () { patchAttrs({ favorite: !currentNode.attrs.favorite }); },
+          bodyCollapsed: attrs.bodyCollapsed,
+          onBodyCollapseChange: function (v) {
+            patchAttrs({ bodyCollapsed: typeof v === 'function' ? v(currentNode.attrs.bodyCollapsed) : v });
+          },
+          onClose: function () {
+            if (typeof props.getPos !== 'function') return;
+            const pos = props.getPos();
+            if (pos == null) return;
+            props.editor.chain().deleteRange({ from: pos, to: pos + currentNode.nodeSize }).run();
+          }
+        }));
+      }
+
+      renderReact(props.node);
+
+      return {
+        dom,
+        ignoreMutation: () => true,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'clinicalTool') return false;
+          currentNode = updatedNode;
+          renderReact(updatedNode);
+          return true;
+        },
+        destroy() { root.unmount(); }
+      };
+    };
+  }
+}); }
+
+// buildEditorExtensions() n'est appelée qu'à la construction réelle de
+// l'éditeur (effet de montage de NoteBody — voir editor-field.jsx), jamais
+// au chargement du script : les node.create() ci-dessus dépendent tous de
+// window.Tiptap, chargé de façon async (import() dynamique dans Note
+// Clinique.html). Les construire ici, à l'exécution plutôt qu'au parse du
+// script, laisse le temps à ce chargement de se terminer — les construire en
+// haut de fichier (au parse, avant que window.Tiptap existe forcément)
+// faisait planter silencieusement TOUT le schéma custom (chips, régions
+// diagnostic, outils cliniques) selon l'ordre de course entre ce script
+// synchrone et l'import async, sans jamais se rétablir pour le reste de la
+// vie de la page.
 function buildEditorExtensions(placeholder) {
   const T = window.Tiptap;
   return [
     T.StarterKit.configure({ hardBreak: false, horizontalRule: false, heading: { levels: [1, 2, 3] } }),
-    T.Placeholder.configure({ placeholder: placeholder || '' }),
+    T.Placeholder.configure({ placeholder: placeholder || '', showOnlyCurrent: false }),
     T.Underline,
     T.TextStyle,
     T.Color,
     T.Highlight.configure({ multicolor: true }),
-    ChipNode,
-    ReferenceNode,
-    DiagnosticRegionNode
+    T.Link.configure({
+      openOnClick: false,
+      autolink: true,
+      linkOnPaste: true,
+      HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
+    }),
+    makeChipNode(),
+    makeReferenceNode(),
+    makeDiagnosticRegionNode(),
+    makeClinicalToolNode()
   ];
 }
 
@@ -542,6 +714,20 @@ function endOfFirstSectionPos(doc) {
   return result != null ? result : doc.content.size;
 }
 
+// Position sûre pour insérer un node bloc atomique (outil clinique, région
+// diagnostic…) près d'une position donnée : si cette position tombe DANS un
+// titre de section (Titre 1/2/3), on insère plutôt juste après ce titre —
+// sinon on scinderait le titre en un titre vide + le reste du texte (visible
+// après coup comme une section fantôme sans nom). Cas fréquent : le curseur
+// « au repos » d'une note neuve se trouve au tout début du premier titre.
+function safeBlockInsertPos(doc, pos) {
+  const $pos = doc.resolve(Math.max(0, Math.min(pos, doc.content.size)));
+  for (let d = $pos.depth; d >= 0; d--) {
+    if ($pos.node(d).type.name === 'heading') return $pos.after(d);
+  }
+  return pos;
+}
+
 // Équivalent JSON (doc pas encore monté) — index dans doc.content où insérer.
 function endOfFirstSectionIndexJSON(docJson) {
   const content = docJson.content || [];
@@ -602,10 +788,10 @@ function updateChipEntity(editor, cid, entity) {
 Object.assign(window, {
   newChipId,
   newDiagId,
+  newToolInstanceId,
   searchCIM10,
-  ChipNode,
-  ReferenceNode,
-  DiagnosticRegionNode,
+  CT_FIELD_DEFAULTS,
+  buildClinicalToolNode,
   buildEditorExtensions,
   filterSlashItems,
   parseSlashQuery,
@@ -615,6 +801,7 @@ Object.assign(window, {
   scanDoc,
   docIsBlank,
   endOfFirstSectionPos,
+  safeBlockInsertPos,
   endOfFirstSectionIndexJSON,
   plainToBlocks,
   findChipPos,

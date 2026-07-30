@@ -2,6 +2,7 @@
 
 const CLINICAL_TOOLS = [
   { id: 'itu', label: 'Feuille de route - Symptômes urinaires', hasTool: true },
+  { id: 'exam-court', label: 'Examen physique - Version courte', hasTool: true },
   { id: 'ep-gabarit', label: 'Examen physique complet - Gabarit' },
   { id: 'em-gabarit', label: 'Examen mental complet - Gabarit' },
   { id: 'sommaire', label: 'Saisie rapide du sommaire - Gabarit' },
@@ -155,13 +156,15 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
         {displayed.map(function (tool) {
           const isFav = favorites.includes(tool.id);
           const isHov = hovered === tool.id;
+          const disabled = !tool.hasTool;
           return (
             <div
               key={tool.id}
-              style={Object.assign({}, ctpS.item, isHov ? ctpS.itemHov : {})}
-              onMouseEnter={function () { setHovered(tool.id); }}
+              style={Object.assign({}, ctpS.item, disabled ? ctpS.itemDisabled : (isHov ? ctpS.itemHov : {}))}
+              title={disabled ? 'Bientôt disponible' : undefined}
+              onMouseEnter={function () { if (!disabled) setHovered(tool.id); }}
               onMouseLeave={function () { setHovered(null); }}
-              onClick={function () { onSelect(tool); }}>
+              onClick={function () { if (!disabled) onSelect(tool); }}>
               <button
                 style={ctpS.heartBtn}
                 onMouseDown={function (e) { e.stopPropagation(); }}
@@ -171,7 +174,8 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
                   {isFav ? 'favorite' : 'favorite_border'}
                 </span>
               </button>
-              <span style={ctpS.itemLabel}>{tool.label}</span>
+              <span style={Object.assign({}, ctpS.itemLabel, disabled ? ctpS.itemLabelDisabled : {})}>{tool.label}</span>
+              {disabled && <span style={ctpS.soonBadge}>Bientôt</span>}
             </div>
           );
         })}
@@ -324,6 +328,22 @@ const ctpS = {
   },
   itemHov: {
     background: '#eef1fb',
+  },
+  itemDisabled: {
+    cursor: 'default',
+  },
+  itemLabelDisabled: {
+    color: 'var(--fg-3, rgba(0,0,0,0.4))',
+  },
+  soonBadge: {
+    flexShrink: 0,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: 0.2,
+    color: 'rgba(0,0,0,0.42)',
+    background: 'rgba(0,0,0,0.06)',
+    borderRadius: 20,
+    padding: '3px 9px',
   },
   heartBtn: {
     border: 0,
