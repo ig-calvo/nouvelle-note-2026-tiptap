@@ -174,7 +174,7 @@ function ToolbarLinkBtn({ editor, linkEditor, asRow }) {
   );
 }
 
-function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asRow }) {
+function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asRow, flip }) {
   const [open, setOpen] = React.useState(false);
   const active = !!current;
   const bar = current || defaultBar;
@@ -198,7 +198,7 @@ function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asR
       {open &&
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
-          <div style={asRow ? { ...tbS.colorMenu, left: '100%', top: 0, marginTop: 0, marginLeft: 8 } : tbS.colorMenu}>
+          <div style={asRow ? { ...tbS.colorMenu, left: '100%', top: 0, marginTop: 0, marginLeft: 8 } : menuStyle(tbS.colorMenu, flip)}>
             <button type="button" title="Aucune couleur" style={tbS.swatchBtn}
               onMouseDown={(e) => { e.preventDefault(); onPick(null); setOpen(false); }}>
               <span style={tbS.swatchNone}>
@@ -223,7 +223,18 @@ function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asR
   );
 }
 
-function ToolbarBlockDropdown({ curBlock, onPick, width }) {
+// Ouvre le menu vers le bas (par défaut, `top:100%`) ou vers le haut
+// (`flip`, `bottom:100%`) — la barre flottante bascule ses menus vers le
+// haut quand elle est elle-même ancrée sous la sélection (position "bas"
+// du tweak), pour rester du côté du texte plutôt que de s'éloigner vers le
+// bas de la fenêtre. La barre "Haut de note" (en flux normal) n'utilise
+// jamais flip : elle a toute la place voulue en dessous.
+function menuStyle(base, flip) {
+  if (!flip) return base;
+  return { ...base, top: 'auto', bottom: '100%', marginTop: 0, marginBottom: base.marginTop || 0 };
+}
+
+function ToolbarBlockDropdown({ curBlock, onPick, width, flip }) {
   const [open, setOpen] = React.useState(false);
   return (
     <div style={{ position: 'relative', width: width || CHUNK_DROPDOWN_W, flexShrink: 0 }}>
@@ -234,7 +245,7 @@ function ToolbarBlockDropdown({ curBlock, onPick, width }) {
       {open &&
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
-          <div style={tbS.blockDrop}>
+          <div style={menuStyle(tbS.blockDrop, flip)}>
             {TOOLBAR_BLOCK_TYPES.map((b) => (
               <div key={b.level}
                 style={{ ...tbS.blockItem, ...b.preview, ...(curBlock.level === b.level ? tbS.blockItemActive : {}) }}
@@ -256,7 +267,7 @@ function ToolbarBlockDropdown({ curBlock, onPick, width }) {
 // ---------------------------------------------------------
 const CHUNK_WIDTHS = [4 * CHUNK_BTN_W, CHUNK_BTN_W, CHUNK_BTN_W, 2 * CHUNK_BTN_W, 2 * CHUNK_BTN_W, 2 * CHUNK_BTN_W, CHUNK_BTN_W];
 
-function buildToolbarChunks(editor, linkEditor, run) {
+function buildToolbarChunks(editor, linkEditor, run, flip) {
   const curColor = editor.getAttributes('textStyle').color;
   const curHighlight = editor.getAttributes('highlight').color;
   return [
@@ -274,9 +285,9 @@ function buildToolbarChunks(editor, linkEditor, run) {
     { key: 'link', render: (asRow) => <ToolbarLinkBtn editor={editor} linkEditor={linkEditor} asRow={asRow} /> },
     { key: 'color', render: (asRow) => (
       <>
-        <ToolbarColorBtn asRow={asRow} icon="format_color_text" title="Couleur du texte" current={curColor} colors={TEXT_COLORS}
+        <ToolbarColorBtn asRow={asRow} flip={flip} icon="format_color_text" title="Couleur du texte" current={curColor} colors={TEXT_COLORS}
           defaultBar="#1f1f1f" onPick={(v) => run((c) => v == null ? c.unsetColor() : c.setColor(v))} />
-        <ToolbarColorBtn asRow={asRow} icon="border_color" title="Surlignage" current={curHighlight} colors={HIGHLIGHT_COLORS}
+        <ToolbarColorBtn asRow={asRow} flip={flip} icon="border_color" title="Surlignage" current={curHighlight} colors={HIGHLIGHT_COLORS}
           defaultBar="#ffc01f" onPick={(v) => run((c) => v == null ? c.unsetHighlight() : c.toggleHighlight({ color: v }))} />
       </>
     ) },
@@ -298,7 +309,7 @@ function buildToolbarChunks(editor, linkEditor, run) {
   ];
 }
 
-function ToolbarOverflowMenu({ chunks }) {
+function ToolbarOverflowMenu({ chunks, flip }) {
   const [open, setOpen] = React.useState(false);
   if (!chunks.length) return null;
   return (
@@ -310,7 +321,7 @@ function ToolbarOverflowMenu({ chunks }) {
       {open &&
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
-          <div style={tbS.overflowMenu}>
+          <div style={menuStyle(tbS.overflowMenu, flip)}>
             {chunks.map((chunk) => <div key={chunk.key} style={tbS.overflowRow}>{chunk.render(true)}</div>)}
           </div>
         </>

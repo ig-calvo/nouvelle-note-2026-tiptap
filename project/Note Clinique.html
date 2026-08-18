@@ -121,6 +121,8 @@
   ::-webkit-scrollbar-track { background: transparent; }
   @keyframes snm-fade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes snm-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+  @keyframes sheet-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
 </style>
 </head>
 <body>
@@ -195,7 +197,12 @@
     'note-ui/AIBox.jsx',
     'note-ui/ClinicalTool.jsx',
     'note-ui/ClinicalToolPicker.jsx',
-    'note-ui/CheckoutModal.jsx',
+    'note-ui/DocumentPreview.jsx',
+    'note-ui/PrintDialog.jsx',
+    'note-ui/FaxScreen.jsx',
+    'note-ui/DocumentActionPanel.jsx',
+    'note-ui/TransmissionModal.jsx',
+    'note-ui/QuickSendModal.jsx',
     'note-ui/rich-text-controls.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
@@ -242,8 +249,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showClinicalTools": true,
   "portalActive": true,
   "startPoints": false,
-  "pediatricPatient": false,
-  "ftBarStyle": "flottant"
+  "ftBarStyle": "flottant",
+  "ftBarPosition": "haut"
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -290,6 +297,7 @@ function App() {
   const [chipCounts, setChipCounts] = React.useState({});
   const noteCompleteRef = React.useRef(null);
   const noteSaveDraftRef = React.useRef(null);
+  const noteTransmitRef = React.useRef(null);
 
   React.useEffect(() => {
     function handler(e) { setChipCounts(e.detail || {}); }
@@ -367,8 +375,9 @@ function App() {
               onLinkEpisode={handleLinkEpisode}
               onSmartPick={() => setSmartModal(true)}
               saveDraftRef={noteSaveDraftRef}
-              pediatricPatient={t.pediatricPatient}
-              ftBarStyle={t.ftBarStyle || 'haut'} />
+              transmitRef={noteTransmitRef}
+              ftBarStyle={t.ftBarStyle || 'haut'}
+              ftBarPosition={t.ftBarPosition || 'haut'} />
             <NotesList doctorName={t.doctorName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -419,6 +428,10 @@ function App() {
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
               <button style={{ border: 0, borderRadius: 8, background: '#25245E', padding: '9px 24px', cursor: 'pointer', font: "600 14px 'Inter',sans-serif", color: '#fff' }}
                 onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Compléter</button>
+              <button title="Transmission des documents" style={{ border: '1px solid #d0d0e0', borderRadius: 8, background: '#fff', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#25245E' }}
+                onClick={() => { if (noteTransmitRef.current) noteTransmitRef.current(); }}>
+                <span className="material-icons-outlined" style={{ fontSize: 20 }}>send</span>
+              </button>
             </div>
             }
           </div>
@@ -427,7 +440,7 @@ function App() {
         </div>
       </div>
 
-      {(t.ftBarStyle || 'haut') === 'flottant' && <FloatingToolbar />}
+      {(t.ftBarStyle || 'haut') === 'flottant' && <FloatingToolbar position={t.ftBarPosition || 'haut'} />}
       <ToastHost />
       {smartModal &&
         <SmartNoteModal
@@ -444,8 +457,6 @@ function App() {
                      onChange={(v) => setTweak('portalActive', v)} />
         <TweakToggle label="Points de départ" value={t.startPoints === true}
                      onChange={(v) => setTweak('startPoints', v)} />
-        <TweakToggle label="Patient pédiatrique (poids)" value={t.pediatricPatient === true}
-                     onChange={(v) => setTweak('pediatricPatient', v)} />
         <TweakRadio label="Barre de mise en forme"
                     value={t.ftBarStyle || 'haut'}
                     options={[
@@ -453,6 +464,16 @@ function App() {
                       { value: 'flottant', label: 'Flottante' },
                     ]}
                     onChange={(v) => setTweak('ftBarStyle', v)} />
+        {/* "Haut de note" : bas = après le corps de la note (avant les outils
+            cliniques) plutôt qu'avant. "Flottante" : bas = sous la sélection
+            plutôt qu'au-dessus. */}
+        <TweakRadio label="Position de la barre"
+                    value={t.ftBarPosition || 'haut'}
+                    options={[
+                      { value: 'haut', label: 'Haut' },
+                      { value: 'bas', label: 'Bas' },
+                    ]}
+                    onChange={(v) => setTweak('ftBarPosition', v)} />
         <TweakSection label="Diagnostics" />
         <TweakRadio label="Style de région"
                     value={t.diagStyle || 'numbered'}

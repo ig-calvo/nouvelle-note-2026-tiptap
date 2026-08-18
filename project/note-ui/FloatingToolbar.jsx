@@ -11,6 +11,10 @@
 // (NoteRichTextToolbar), pas une variante de ce composant. Les deux
 // partagent désormais le même jeu de boutons/palettes — voir
 // rich-text-controls.jsx — pour ne plus dériver l'un de l'autre.
+//
+// `position` (tweak "Position de la barre", 'haut'/'bas') place la bulle
+// au-dessus ou en-dessous de la sélection/du bouton « T » — voir
+// anchorFromRect ci-dessous.
 
 function editorFromNode(node) {
   const el = node && (node.nodeType === 1 ? node : node.parentElement);
@@ -18,26 +22,39 @@ function editorFromNode(node) {
   return host ? host.__editor : null;
 }
 
-function selectionState() {
+// `position` === 'bas' ancre sous le rect (top: rect.bottom), sinon
+// au-dessus (bottom: viewportHeight - rect.top) — même rect, deux bords.
+function anchorFromRect(editor, rect, position, pinned) {
+  const left = rect.left + rect.width / 2;
+  return position === 'bas'
+    ? { editor, left, top: rect.bottom + 8, pinned }
+    : { editor, left, bottom: window.innerHeight - rect.top + 8, pinned };
+}
+
+function selectionState(position) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
   const editor = editorFromNode(sel.anchorNode);
   if (!editor) return null;
   const rect = sel.getRangeAt(0).getBoundingClientRect();
   if (!rect || (rect.width === 0 && rect.height === 0)) return null;
-  return { editor, left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, pinned: false };
+  return anchorFromRect(editor, rect, position, false);
 }
 
-function FloatingToolbar() {
-  const [state, setState] = React.useState(null); // { editor, left, bottom, pinned }
+function FloatingToolbar({ position = 'haut' }) {
+  const [state, setState] = React.useState(null); // { editor, left, top|bottom, pinned }
   const [, bump] = React.useState(0);
   const toolbarRef = React.useRef(null);
   const stateRef = React.useRef(null);
   stateRef.current = state;
+  // Lu par les listeners posés une seule fois (effet []) ci-dessous — un
+  // changement de tweak en cours de séance doit s'appliquer sans réabonner.
+  const positionRef = React.useRef(position);
+  positionRef.current = position;
 
   React.useEffect(() => {
     function onSelectionChange() {
-      const next = selectionState();
+      const next = selectionState(positionRef.current);
       if (next) { setState(next); return; }
       // Pas de sélection exploitable : une barre épinglée reste ouverte,
       // une barre suivant la sélection se ferme.
@@ -47,7 +64,7 @@ function FloatingToolbar() {
     }
     function onPin(e) {
       const { editor, rect } = e.detail;
-      setState({ editor, left: rect.left + rect.width / 2, bottom: window.innerHeight - rect.top + 8, pinned: true });
+      setState(anchorFromRect(editor, rect, positionRef.current, true));
     }
     function onKeyDown(e) {
       if (e.key === 'Escape' && stateRef.current) setState(null);
@@ -101,8 +118,13 @@ function FloatingToolbar() {
   // comme `left` ci-dessous.
   const W = Math.max(300, Math.min(620, window.innerWidth - 16));
   const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
+  const anchoredBelow = state.top != null;
+  const vAnchor = anchoredBelow ? { top: state.top } : { bottom: state.bottom };
 
-  const chunks = S.buildToolbarChunks(editor, linkEditor, run);
+  // La bulle ancrée sous la sélection ("bas") ouvre ses menus vers le haut
+  // (flip) pour rester du côté du texte plutôt que de s'éloigner vers le
+  // bas de la fenêtre — voir menuStyle dans rich-text-controls.jsx.
+  const chunks = S.buildToolbarChunks(editor, linkEditor, run, anchoredBelow);
   const visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, W);
   const visibleChunks = chunks.slice(0, visibleCount);
   const hiddenChunks = chunks.slice(visibleCount);
@@ -110,7 +132,7 @@ function FloatingToolbar() {
   return (
     <div
       ref={toolbarRef}
-      style={{ ...ftS.bar, left, bottom: state.bottom, width: W }}
+      style={{ ...ftS.bar, left, ...vAnchor, width: W }}
       onMouseDown={(e) => e.preventDefault()}>
       {linkEditor.editing ? (
         <S.ToolbarLinkEditRow linkEditor={linkEditor} />
@@ -118,6 +140,7 @@ function FloatingToolbar() {
         <>
           <S.ToolbarBlockDropdown
             curBlock={curBlock}
+            flip={anchoredBelow}
             onPick={(b) => run((c) => b.level === 0 ? c.setParagraph() : c.toggleHeading({ level: b.level }))} />
           {visibleChunks.map((chunk) => (
             <React.Fragment key={chunk.key}>
@@ -128,7 +151,7 @@ function FloatingToolbar() {
           {hiddenChunks.length > 0 &&
             <React.Fragment>
               <div style={S.tbS.sep} />
-              <S.ToolbarOverflowMenu chunks={hiddenChunks} />
+              <S.ToolbarOverflowMenu chunks={hiddenChunks} flip={anchoredBelow} />
             </React.Fragment>
           }
         </>

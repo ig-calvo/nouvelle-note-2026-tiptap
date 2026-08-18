@@ -1,18 +1,11 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, pediatricPatient = false, ftBarStyle = 'haut' }) {
+  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut' }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
     window.__SHOW_CLINICAL_TOOLS = showClinicalTools;
   }, [showClinicalTools]);
-
-  // Lu par editor-popover.jsx (ChipPopover) pour calculer une dose pédiatrique
-  // suggérée (mg/kg) sans faire remonter tout le contexte patient jusqu'à la
-  // popover — même pattern que __SHOW_CLINICAL_TOOLS ci-dessus.
-  React.useEffect(function() {
-    window.__PEDIATRIC_WEIGHT = pediatricPatient ? { kg: 18.2, weighedOn: '12 juin 2026' } : null;
-  }, [pediatricPatient]);
 
   // Brouillons sauvegardés (« Continuer la note ») et lien d'épisode de soin
   // (« Depuis la dernière note ») — voir NoteStartCards.jsx pour l'UI et
@@ -38,9 +31,19 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [pickerAnchor, setPickerAnchor] = React.useState(null);
-  const [checkoutOpen, setCheckoutOpen] = React.useState(false);
-  const [checkoutGroups, setCheckoutGroups] = React.useState([]);
-  const [checkoutMode, setCheckoutMode] = React.useState('complete'); // 'complete' | 'chip'
+  // Transmission des documents (checkout) — TransmissionModal (bottom sheet)
+  // est le point d'entrée par défaut : ouvert par « Compléter » (item Note
+  // présélectionné, qui porte faire-suivre + signature) et par l'icône ➤
+  // (aucune présélection). Les actions individuelles sur une chip
+  // (« Prescrire »/« Transmettre ») ouvrent plutôt QuickSendModal, un
+  // dialogue léger pour CE document seulement.
+  // `txState` persiste tant que la note est ouverte : { [docId]: { recipients,
+  // complete, transmitted, comment } }, pour que le bandeau « documents non
+  // transmis » de l'item Note reste exact même après fermeture du sheet.
+  const [transmissionOpen, setTransmissionOpen] = React.useState(false);
+  const [transmissionOnlyId, setTransmissionOnlyId] = React.useState(null);
+  const [txState, setTxState] = React.useState({});
+  const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return new Date().toISOString().slice(0, 10); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
   const [visitType, setVisitType] = React.useState('Visite en clinique');
@@ -382,6 +385,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     setLinkedChipId(null);
     setEpisodeId(null);
     setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
+    setTxState({});
   }
 
   // ----- Points de départ (tweak "Points de départ") -----
@@ -427,16 +431,18 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     if (key === 'intelligente') { if (onSmartPick) onSmartPick(); return; }
   }
 
-  // Build the list of sendable documents (prescriptions, requests, patient
-  // instructions) actually present in the note, grouped by destination.
-  // `onlyCid`, si fourni, restreint le checkout à un seul chip — utilisé par
-  // « Prescrire »/« Transmettre » sur une chip (menu de survol), qui ne doit
-  // envoyer QUE cet item, pas toute la note.
-  function buildCheckoutGroups(onlyCid) {
+  // Construit la liste des documents transmissibles réellement présents dans
+  // la note (prescriptions, requêtes, consignes patient) pour le checkout de
+  // transmission — voir PLAN-transmission-ordonnance.md §5.1. Contrairement à
+  // l'ancien buildCheckoutGroups (qui bundlait tous les chips d'un même type
+  // ensemble), seules les prescriptions sont bundlées en un seul document
+  // « Ordonnance » ; chaque autre chip (labo/imagerie/référence/consignes)
+  // devient son propre document, reflétant le fait que ce sont des requêtes
+  // distinctes dans la vraie vie clinique.
+  function buildTransmissionDocs() {
     var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
-    if (onlyCid) ents = ents.filter(function(e) { return e.cid === onlyCid; });
 
-    function mk(e) {
+    function mkItem(e) {
       var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
       if (t === 'prescription') {
         label = [d.molecule, d.dose ? d.dose + ' ' + (d.unit || '') : ''].filter(Boolean).join(' ').trim()
@@ -455,36 +461,96 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       } else if (t === 'instructions') {
         label = d.title || ent.label || 'Consignes au patient';
       }
-      return { id: e.cid, type: t, label: label, sub: sub };
-    }
-    function byType(tp) {
-      return ents.filter(function(e) { return e.entity.type === tp; }).map(mk);
+      var ceased = !!(ent.rx && ent.rx.ceased);
+      return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased };
     }
 
-    return [
-      { key: 'pharmacie',   types: ['prescription'] },
-      { key: 'laboratoire', types: ['lab'] },
-      { key: 'imagerie',    types: ['imaging'] },
-      { key: 'specialiste', types: ['referral'] },
-      { key: 'patient',     types: ['instructions'] },
-    ].map(function(g) {
-      var items = [];
-      g.types.forEach(function(tp) { items = items.concat(byType(tp)); });
-      return { key: g.key, items: items };
-    }).filter(function(g) { return g.items.length > 0; });
+    // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
+    // nouvel item après avoir déjà été complété/transmis (ex. le médecin
+    // ajoute une prescription après avoir faxé l'ordonnance) : dans ce cas,
+    // le contenu signé/envoyé n'est plus celui qui existe réellement. On
+    // invalide donc complete/transmitted dès que la liste d'items ne
+    // correspond plus à celle capturée au moment de la complétion
+    // (`itemIds`, posé par markDocComplete) — les destinataires déjà
+    // choisis restent, eux, valides et ne sont pas perdus.
+    function withTx(id, kind, title, items) {
+      var st = txState[id] || {};
+      var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
+      var stale = !!st.complete && st.itemIds !== idsKey;
+      return {
+        id: id, kind: kind, title: title, items: items,
+        recipients: st.recipients || [],
+        complete: stale ? false : !!st.complete,
+        transmitted: stale ? false : !!st.transmitted,
+        comment: st.comment || '',
+      };
+    }
+
+    var docs = [];
+    var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
+    if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
+    ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
+      .forEach(function(e) {
+        var item = mkItem(e);
+        docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
+      });
+    return docs;
   }
 
-  // « Compléter » ouvre d'abord la fenêtre d'envoi (checkout) — sur toute la
-  // note. Un « Prescrire »/« Transmettre » ponctuel sur une chip (onlyCid)
-  // ouvre le même modal restreint à cet item ; sa confirmation ne doit donc
-  // PAS compléter/enregistrer la note (voir checkoutMode dans onConfirm ci-dessous).
-  function openCheckout(onlyCid) {
-    setCheckoutGroups(buildCheckoutGroups(onlyCid));
-    setCheckoutMode(onlyCid ? 'chip' : 'complete');
-    setCheckoutOpen(true);
+  // Met à jour l'état de transmission d'un document (recipients/complete/
+  // transmitted/comment) — persiste au niveau de la note tant qu'elle est
+  // ouverte, indépendamment de l'ouverture/fermeture de TransmissionModal.
+  function patchTxState(id, patch) {
+    setTxState(function(prev) {
+      var next = Object.assign({}, prev);
+      next[id] = Object.assign({}, next[id], patch);
+      return next;
+    });
   }
 
-  // Finalisation réelle, déclenchée par la confirmation du checkout :
+  // Marque un document complété en capturant l'empreinte de ses items
+  // actuels (`itemIds`) — voir la note sur `stale` dans buildTransmissionDocs :
+  // si de nouveaux items sont ajoutés après coup, cette empreinte ne
+  // correspondra plus et le document redeviendra « à compléter ».
+  function markDocComplete(id) {
+    var doc = buildTransmissionDocs().find(function(d) { return d.id === id; });
+    if (!doc) return;
+    var idsKey = doc.items.map(function(it) { return it.id; }).sort().join(',');
+    patchTxState(id, { complete: true, itemIds: idsKey });
+  }
+
+  // Retrouve le document de transmission qui contient un chip donné — pour
+  // les prescriptions, plusieurs chips partagent le même document bundlé
+  // (« Ordonnance »), d'où la recherche dans `items` en plus de l'id direct.
+  function findDocByItemId(cid) {
+    var docs = buildTransmissionDocs();
+    return docs.find(function(d) {
+      return d.id === cid || d.items.some(function(it) { return it.id === cid; });
+    }) || null;
+  }
+
+  // Icône ➤ de la barre du bas — ouvre le checkout de transmission (bottom
+  // sheet), sans présélection particulière.
+  function openTransmission(onlyId) {
+    setTransmissionOnlyId(onlyId || null);
+    setTransmissionOpen(true);
+  }
+
+  // Bouton « Compléter » de la barre du bas — ouvre le même checkout de
+  // transmission, avec l'item « Note » présélectionné (faire suivre +
+  // signature), qui est le point d'entrée par défaut pour compléter la note.
+  function openFinalize() {
+    openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  // « Prescrire »/« Transmettre » sur une chip — envoi rapide d'UN document,
+  // sans ouvrir toute la vue de transmission.
+  function openQuickSend(cid) {
+    setQuickSendCid(cid);
+  }
+
+  // Finalisation réelle, déclenchée par la confirmation de l'item Note dans
+  // TransmissionModal (NoteActionPanel) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
     var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
@@ -504,11 +570,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   }
 
   React.useEffect(function() {
-    if (completeRef) completeRef.current = openCheckout;
+    if (completeRef) completeRef.current = openFinalize;
     if (saveDraftRef) saveDraftRef.current = saveDraft;
-    // « Prescrire » / « Transmettre » sur un chip ouvre le flux d'envoi (checkout),
-    // restreint à ce chip (voir checkoutMode).
-    function onOpenCheckout(e) { openCheckout(e && e.detail && e.detail.cid); }
+    if (transmitRef) transmitRef.current = function() { openTransmission(); };
+    // « Prescrire » / « Transmettre » sur un chip ouvre l'envoi rapide,
+    // restreint à ce document (voir QuickSendModal).
+    function onOpenCheckout(e) { openQuickSend(e && e.detail && e.detail.cid); }
     window.addEventListener('note:open-checkout', onOpenCheckout);
     return function() { window.removeEventListener('note:open-checkout', onOpenCheckout); };
   });
@@ -577,7 +644,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       {isOpen &&
         <div style={{ marginTop: 20, animation: 'note-expand 300ms ease-in-out' }}>
 
-          {ftBarStyle === 'haut' && <NoteRichTextToolbar editor={editorInstance} />}
+          {/* Position de la barre (tweak "Position de la barre") : "haut" la
+              place avant le cadre de la note (comportement d'origine), "bas"
+              la déplace après — le cadre (noteDiv) continue d'entourer
+              uniquement le corps éditable dans les deux cas. */}
+          {ftBarStyle === 'haut' && ftBarPosition !== 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
 
           <div style={neStyles.noteDiv} />
 
@@ -590,6 +661,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
             linkedChipId={linkedChipId} />
 
           <div style={neStyles.noteDiv} />
+
+          {ftBarStyle === 'haut' && ftBarPosition === 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
 
           <div className="ct-default-zone">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -640,18 +713,35 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           onSelect={handleToolSelect} />
       }
 
-      {/* Checkout / envoi modal */}
-      {checkoutOpen &&
-        <CheckoutModal
-          groups={checkoutGroups}
+      {/* Transmission des documents (checkout) — bottom sheet, point d'entrée
+          par défaut de « Compléter » (item Note présélectionné). */}
+      {transmissionOpen &&
+        <TransmissionModal
+          docs={buildTransmissionDocs()}
+          onPatch={patchTxState}
+          onComplete={markDocComplete}
           doctorName={doctorName}
           institution={institution}
-          note={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
-          onCancel={function() { setCheckoutOpen(false); }}
-          onConfirm={function() {
-            setCheckoutOpen(false);
-            if (checkoutMode === 'complete') finalizeComplete();
-            else if (window.toast) window.toast('Envoyé', { icon: 'check_circle' });
+          initialSelectedId={transmissionOnlyId}
+          noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
+          onFinalizeNote={function() { finalizeComplete(); }}
+          onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
+      }
+
+      {/* Envoi rapide d'un document individuel (« Prescrire »/« Transmettre »
+          sur une chip) — dialogue léger, voir QuickSendModal.jsx. */}
+      {quickSendCid &&
+        <QuickSendModal
+          doc={findDocByItemId(quickSendCid)}
+          doctorName={doctorName}
+          institution={institution}
+          onPatch={patchTxState}
+          onComplete={markDocComplete}
+          onCancel={function() { setQuickSendCid(null); }}
+          onOpenFull={function() {
+            var d = findDocByItemId(quickSendCid);
+            setQuickSendCid(null);
+            openTransmission(d ? d.id : null);
           }} />
       }
 
