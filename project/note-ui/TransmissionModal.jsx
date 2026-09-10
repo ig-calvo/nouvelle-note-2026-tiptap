@@ -6,10 +6,11 @@
 // aussi la finalisation de la note (faire suivre + signature)
 // comme un item de la liste, au même titre que l'ordonnance et
 // les outils cliniques. Les actions individuelles sur une chip
-// (« Prescrire »/« Transmettre ») utilisent plutôt le petit
-// dialogue QuickSendModal.jsx, qui réutilise le composant
-// DocumentActionPanel.jsx partagé par les deux.
-// Voir PLAN-transmission-ordonnance.md §2, §5, §6.
+// (« Prescrire »/« Transmettre ») ouvrent plutôt l'Envoi rapide
+// (QuickSendModal.jsx), qui a son propre contenu depuis V7 —
+// DocumentActionPanel.jsx n'est plus partagé, ce fichier en est
+// le seul appelant.
+// Voir PLAN-checkout-v7.md §A, §B ; PLAN-transmission-ordonnance.md §5, §6.
 // =========================================================
 
 // Métadonnées de présentation par type de document (icône, couleur,
@@ -19,38 +20,64 @@
 const TX_META = {
   prescription: {
     icon: 'medication', accent: '#1975d1', nounPhrase: "l'ordonnance",
+    attachments: ['Liste de médicaments active', 'Note clinique'],
+    attachmentsOn: ['Liste de médicaments active'],
+    noteLabel: 'Note pour le pharmacien',
     suggestions: [
-      { name: 'PJC Jean-Coutu — Centre-ville', phone: '819 565-9595', fax: '819 565-9673', favorite: true },
-      { name: 'Pharmacie Brunet — Wellington Sud', phone: '819 566-2223', fax: '819 566-0363', favorite: true },
-      { name: 'Uniprix — King Ouest', phone: '819 823-2222', fax: '819 823-7204', favorite: false },
+      { name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true },
+      { name: 'Pharmacie Brunet — Wellington Sud', address: '560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3', phone: '819 566-2223', fax: '819 566-0363', favorite: true },
+      { name: 'Uniprix — King Ouest', address: '2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8', phone: '819 823-2222', fax: '819 823-7204', favorite: false },
     ],
   },
   lab: {
     icon: 'science', accent: '#2e9b7a', nounPhrase: 'la requête de laboratoire',
+    attachments: ['Note clinique', 'Résultats antérieurs'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le laboratoire',
     suggestions: [
-      { name: 'CIUSSS de l’Estrie — CHUS', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
-      { name: 'Biron Groupe Santé', phone: '819 562-8000', fax: '819 562-8001', favorite: false },
-      { name: 'Dynacare', phone: '819 566-3000', fax: '819 566-3001', favorite: false },
+      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: 'Biron Groupe Santé', address: '1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1', phone: '819 562-8000', fax: '819 562-8001', favorite: false },
+      { name: 'Dynacare', address: '375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1', phone: '819 566-3000', fax: '819 566-3001', favorite: false },
     ],
   },
   imaging: {
     icon: 'radiology', accent: '#7a5cc0', nounPhrase: "la requête d'imagerie",
+    attachments: ['Note clinique', 'Résultats antérieurs'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le service d’imagerie',
     suggestions: [
-      { name: 'Radiologie CHUS — Hôpital Fleurimont', phone: '819 346-1110', fax: '819 346-1112', favorite: true },
-      { name: 'Clinique de radiologie de Sherbrooke', phone: '819 562-3131', fax: '819 562-3132', favorite: false },
+      { name: 'Radiologie CHUS — Hôpital Fleurimont', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1112', favorite: true },
+      { name: 'Clinique de radiologie de Sherbrooke', address: '1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1', phone: '819 562-3131', fax: '819 562-3132', favorite: false },
     ],
   },
   referral: {
     icon: 'person_add', accent: '#c0693c', nounPhrase: 'la référence',
+    attachments: ['Note clinique', 'Liste de médicaments active'],
+    attachmentsOn: ['Note clinique'],
+    noteLabel: 'Note pour le spécialiste',
     suggestions: [
-      { name: 'CRDS Estrie — Centre de répartition des demandes de service', phone: '819 780-2220', fax: '819 780-2221', favorite: true },
-      { name: 'Cardiologie — CHUS', phone: '819 346-1110', fax: '819 346-1113', favorite: false },
+      { name: 'CRDS Estrie — Centre de répartition des demandes de service', address: '300 rue King Est, Sherbrooke (Québec) J1G 1B1', phone: '819 780-2220', fax: '819 780-2221', favorite: true },
+      { name: 'Cardiologie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1113', favorite: false },
+    ],
+  },
+  clinicalTool: {
+    icon: 'handyman', accent: '#5b54b8', nounPhrase: 'le formulaire',
+    titlePrefix: 'Outil clinique',
+    attachments: ['Note clinique'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le destinataire',
+    suggestions: [
+      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: 'GMF Sherbrooke-Est', address: '1200 rue King Est, Sherbrooke (Québec) J1G 1E5', phone: '819 565-1200', fax: '819 565-1201', favorite: false },
     ],
   },
   instructions: {
     icon: 'menu_book', accent: '#1975d1', nounPhrase: 'le document',
+    attachments: ['Note clinique'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le patient',
     suggestions: [
-      { name: 'Portail patient sécurisé', phone: '', fax: '', favorite: true },
+      { name: 'Portail patient sécurisé', address: '', phone: '', fax: '', favorite: true },
     ],
   },
 };
@@ -175,7 +202,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, noteInfo, onFinalizeNote, onClose }) {
+function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, noteInfo, onFinalizeNote, onClose }) {
   const [selectedId, setSelectedId] = React.useState(initialSelectedId || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
   const [screen, setScreen] = React.useState('review'); // 'review' | 'print' | 'fax'
   const [faxPrefill, setFaxPrefill] = React.useState(null);
@@ -320,7 +347,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
 
             {rxDocs.length > 0 &&
               <div style={tx.sideGroup}>
-                <div style={tx.sideGroupTitle}>ORDONNANCE</div>
+                <div style={tx.sideGroupTitle}>ORDONNANCE {rxDocs.length}</div>
                 {rxDocs.map(function (d) { return renderSideRow(d); })}
               </div>
             }
@@ -344,6 +371,8 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               : selected
                 ? <window.DocumentActionPanel
                     doc={selected} meta={meta} doctorName={doctorName} institution={institution}
+                    showSuggestions={showSuggestions}
+                    onPatch={function (p) { patch(selected.id, p); }}
                     onAddRecipient={function (r) { addRecipient(selected, r); }}
                     onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
                     onComplete={function () { markComplete(selected); }}
@@ -384,20 +413,30 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     </div>
   );
 
+  // Ligne.document du Figma (plan V7 §G) : titre, sous-titre, ligne
+  // destinataire — « Aucun destinataire » en ambre quand il en manque un,
+  // pour que le blocage de la transmission se lise depuis la liste sans
+  // avoir à ouvrir chaque document. L'état sélectionné pose une barre bleue
+  // à gauche et passe le titre en bleu.
   function renderSideRow(d) {
     const st = txStatus(d);
     const m = TX_META[d.kind];
+    const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
       ? d.items.length + ' prescription' + (d.items.length > 1 ? 's' : '')
-      : (d.recipients[0] ? d.recipients[0].name : (d.items[0] && d.items[0].sub) || '');
+      : (d.subtitle || (d.items[0] && d.items[0].sub) || '');
+    const dest = d.recipients.length
+      ? d.recipients.map(function (r) { return r.name; }).join(', ')
+      : null;
     return (
       <button key={d.id}
-        style={Object.assign({}, tx.sideRow, d.id === selectedId ? tx.sideRowSel : {})}
+        style={Object.assign({}, tx.sideRow, sel ? tx.sideRowSel : {})}
         onClick={function () { setSelectedId(d.id); }}>
         <span className="material-icons-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={tx.sideRowTitle}>{d.title}</div>
+          <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
+          <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || 'Aucun destinataire'}</div>
         </div>
         <span className="material-icons" style={{ fontSize: 17, color: TX_STATUS_COLOR[st], flexShrink: 0 }} title={TX_STATUS_LABEL[st]}>
           {TX_STATUS_ICON[st]}
@@ -443,12 +482,16 @@ const tx = {
   sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
   sideRow: {
     display: 'flex', alignItems: 'flex-start', gap: 9, width: '100%',
-    border: 0, background: 'transparent', borderRadius: 10, padding: '9px 8px',
+    border: 0, borderLeft: '3px solid transparent', background: 'transparent',
+    borderRadius: 10, padding: '9px 8px 9px 6px',
     cursor: 'pointer', textAlign: 'left',
   },
-  sideRowSel: { background: '#eef1fb' },
+  sideRowSel: { background: '#eef1fb', borderLeft: '3px solid #25245E' },
   sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)' },
+  sideRowTitleSel: { color: '#25245E' },
   sideRowSub: { fontSize: 12, color: 'rgba(0,0,0,0.5)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDest: { fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDestNone: { fontSize: 12, color: '#a15c00', marginTop: 1 },
   addDocBtn: {
     display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed #cfcfe0', borderRadius: 9,
     background: 'transparent', color: 'rgba(0,0,0,0.5)', font: "500 13px 'Inter',sans-serif",

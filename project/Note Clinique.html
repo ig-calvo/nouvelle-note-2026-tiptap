@@ -123,6 +123,7 @@
   @keyframes snm-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
   @keyframes sheet-scrim-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes docviewer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
 </style>
 </head>
 <body>
@@ -147,8 +148,9 @@
 <script type="module">
   (async function () {
     try {
-      const [core, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
+      const [core, pmState, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
         import('https://esm.sh/@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/pm@2.11.5/state'),
         import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
         import('https://esm.sh/@tiptap/extension-placeholder@2.11.5'),
         import('https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
@@ -159,10 +161,11 @@
         import('https://esm.sh/@tiptap/extension-link@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
       ]);
       window.Tiptap = {
-        Editor: core.Editor, Node: core.Node, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
+        Editor: core.Editor, Node: core.Node, Mark: core.Mark, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
         StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
         Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
-        Link: link.default
+        Link: link.default,
+        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection }
       };
       window.dispatchEvent(new Event('tiptap:ready'));
     } catch (err) {
@@ -193,6 +196,8 @@
     'note-ui/editor-data.jsx',
     'note-ui/editor-popover.jsx',
     'note-ui/editor-schema.jsx',
+    'note-ui/review-mode.jsx',
+    'note-ui/DocumentViewerModal.jsx',
     'note-ui/editor-field.jsx',
     'note-ui/AIBox.jsx',
     'note-ui/ClinicalTool.jsx',
@@ -250,7 +255,10 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "portalActive": true,
   "startPoints": false,
   "ftBarStyle": "flottant",
-  "ftBarPosition": "haut"
+  "ftBarPosition": "haut",
+  "reviewingMode": false,
+  "reviewAuthor": "me",
+  "checkoutSuggestions": false
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -377,7 +385,10 @@ function App() {
               saveDraftRef={noteSaveDraftRef}
               transmitRef={noteTransmitRef}
               ftBarStyle={t.ftBarStyle || 'haut'}
-              ftBarPosition={t.ftBarPosition || 'haut'} />
+              ftBarPosition={t.ftBarPosition || 'haut'}
+              reviewingMode={t.reviewingMode === true}
+              reviewAuthor={t.reviewAuthor || 'me'}
+              checkoutSuggestions={t.checkoutSuggestions === true} />
             <NotesList doctorName={t.doctorName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -474,6 +485,16 @@ function App() {
                       { value: 'bas', label: 'Bas' },
                     ]}
                     onChange={(v) => setTweak('ftBarPosition', v)} />
+        <TweakSection label="Checkout" />
+        <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
+                     onChange={(v) => setTweak('checkoutSuggestions', v)} />
+        <TweakSection label="Mode révision" />
+        <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
+                     onChange={(v) => setTweak('reviewingMode', v)} />
+        <TweakSelect label="Écrire en tant que…"
+                    value={t.reviewAuthor || 'me'}
+                    options={(window.reviewHumanAuthors ? window.reviewHumanAuthors(t.doctorName) : []).map((a) => ({ value: a.id, label: a.name }))}
+                    onChange={(v) => setTweak('reviewAuthor', v)} />
         <TweakSection label="Diagnostics" />
         <TweakRadio label="Style de région"
                     value={t.diagStyle || 'numbered'}

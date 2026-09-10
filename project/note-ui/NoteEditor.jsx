@@ -1,11 +1,31 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut' }) {
+  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
     window.__SHOW_CLINICAL_TOOLS = showClinicalTools;
   }, [showClinicalTools]);
+
+  // Mode révision — reviewActive suit le toggle d'en-tête ET l'activation
+  // auto par l'IA (voir AIBox onAddToNote plus bas) ; il vit ici (pas dans
+  // NoteBody) pour survivre au démontage/remontage de l'éditeur Tiptap à
+  // chaque ouverture de note. reviewingMode (tweak) coupe tout quand off :
+  // pas de bouton, pas d'auto-activation.
+  const [reviewActive, setReviewActive] = React.useState(false);
+  const [reviewChanges, setReviewChanges] = React.useState([]);
+  const [reviewPopover, setReviewPopover] = React.useState(null); // { change, anchorRect }
+  const [reviewGate, setReviewGate] = React.useState(false);
+  const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
+
+  // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
+  // que window.__SHOW_CLINICAL_TOOLS ci-dessus. Le tracker le relit à
+  // chaque appendTransaction : pas besoin de reconfigurer l'éditeur quand
+  // l'auteur ou l'activation changent.
+  React.useEffect(function() {
+    window.__REVIEW_STATE = { active: reviewingMode && reviewActive, author: currentReviewAuthor };
+  }, [reviewingMode, reviewActive, reviewAuthor, doctorName]);
 
   // Brouillons sauvegardés (« Continuer la note ») et lien d'épisode de soin
   // (« Depuis la dernière note ») — voir NoteStartCards.jsx pour l'UI et
@@ -26,6 +46,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   const [editorInstance, setEditorInstance] = React.useState(null);
 
   const [popover, setPopover] = React.useState(null);
+  const [filePreview, setFilePreview] = React.useState(null); // { name, url, kind } — chip type "file"
   const [inlineEdit, setInlineEdit] = React.useState(null); // { chipId, field, fieldRect }
   const [linkedChipId, setLinkedChipId] = React.useState(null);
 
@@ -65,6 +86,28 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
   }
 
+  // Mode révision — recalcule le compteur/liste de changements à chaque
+  // update (pas `transaction`, qui feu aussi sur les changements de simple
+  // sélection) et ouvre le popover ✓/✗ au clic sur une marque insertion/
+  // suppression (délégué sur editor.view.dom, comme les chips ailleurs).
+  React.useEffect(function() {
+    if (!editorInstance) return undefined;
+    function onUpdate() { setReviewChanges(window.scanReviewChanges(editorInstance.state.doc)); }
+    function onClick(e) {
+      var mark = e.target.closest('.rvw-ins, .rvw-del');
+      if (!mark) return;
+      var change = window.findChangeAtDom(editorInstance, mark);
+      if (change) setReviewPopover({ change: change, anchorRect: mark.getBoundingClientRect() });
+    }
+    onUpdate();
+    editorInstance.on('update', onUpdate);
+    editorInstance.view.dom.addEventListener('click', onClick);
+    return function() {
+      editorInstance.off('update', onUpdate);
+      editorInstance.view.dom.removeEventListener('click', onClick);
+    };
+  }, [editorInstance]);
+
   // Insère des blocs (paragraphes, node reference, node chip…) à la fin de
   // la première section — que l'éditeur soit déjà monté (commande live) ou
   // pas encore (contenu amorcé pour le prochain montage). Utilisé par la
@@ -72,7 +115,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function appendToFirstSection(blocks) {
     if (editorRef.current) {
       const pos = window.endOfFirstSectionPos(editorRef.current.state.doc);
-      editorRef.current.chain().insertContentAt(pos, blocks).run();
+      // meta 'reviewAction' : les insertions programmatiques (IA, référence,
+      // gabarit, drop du Sommaire) ne doivent jamais être auto-marquées par
+      // le reviewTracker — seule la frappe au clavier l'est. Le contenu de
+      // l'IA porte déjà ses propres marks insertion (voir markBlocksAsInsertion,
+      // câblage AIBox plus bas) quand le mode révision est actif.
+      editorRef.current.chain()
+        .command(function(props) { props.tr.setMeta('reviewAction', true); return true; })
+        .insertContentAt(pos, blocks)
+        .run();
     } else {
       const doc = initialDocRef.current || window.DEFAULT_DOC();
       const idx = window.endOfFirstSectionIndexJSON(doc);
@@ -172,8 +223,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   function onChipClick(chipId, rect, extra) {
     var entity = editorRef.current ? window.getChipEntity(editorRef.current, chipId) : null;
-    if (entity && entity.type === 'file' && entity.url) {
-      window.open(entity.url, '_blank');
+    // Fichier joint (PDF/PNG/JPG) : panneau de prévisualisation dédié,
+    // jamais le ChipPopover générique (son corps était vide pour ce type —
+    // rien à y "modifier en détails structurés").
+    if (entity && entity.type === 'file') {
+      var url = entity.details && entity.details.url;
+      if (url) setFilePreview({ name: entity.label || entity.text || 'Document', url: url, kind: window.fileKindFromName(entity.label || entity.text || '') });
       return;
     }
     // Edit button (···) → open full modal
@@ -386,6 +441,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     setEpisodeId(null);
     setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
     setTxState({});
+    setReviewActive(false);
+    setReviewChanges([]);
+    setReviewPopover(null);
+    setReviewGate(false);
   }
 
   // ----- Points de départ (tweak "Points de départ") -----
@@ -461,8 +520,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       } else if (t === 'instructions') {
         label = d.title || ent.label || 'Consignes au patient';
       }
-      var ceased = !!(ent.rx && ent.rx.ceased);
-      return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased };
+      var rx = ent.rx || {};
+      var ceased = !!rx.ceased;
+      // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
+      // nouvelle, renouvellement (médication déjà au dossier), cessation.
+      var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
+      return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant };
     }
 
     // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
@@ -483,7 +546,26 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         complete: stale ? false : !!st.complete,
         transmitted: stale ? false : !!st.transmitted,
         comment: st.comment || '',
+        // Pièces jointes et mot libre au destinataire (Envoi rapide, §C du
+        // plan V7). `attachments` reste à null tant que l'utilisateur n'y a
+        // pas touché : c'est ce qui permet à l'Envoi rapide d'appliquer les
+        // cases cochées par défaut du type de document (TX_META.attachmentsOn)
+        // sans confondre « pas encore ouvert » et « tout décoché ».
+        attachments: st.attachments || null,
+        note: st.note || '',
       };
+    }
+
+    // Sous-titre d'un outil clinique : la première valeur de champ non vide
+    // du formulaire (« Prostate » pour un examen physique, p. ex.). Rien de
+    // figé — comme tout le reste du checkout, ça vient de la note.
+    function toolSub(fields) {
+      var keys = Object.keys(fields || {});
+      for (var i = 0; i < keys.length; i++) {
+        var v = fields[keys[i]];
+        if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 60);
+      }
+      return '';
     }
 
     var docs = [];
@@ -494,6 +576,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         var item = mkItem(e);
         docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
       });
+    // Outils cliniques (plan V7 §D) : un document par formulaire présent dans
+    // la note, et RIEN si la note n'en contient aucun — la catégorie
+    // « Outils cliniques » de la sidebar disparaît alors d'elle-même, sans
+    // titre ni compteur à zéro.
+    (docStats.tools || []).forEach(function(t) {
+      if (!t.id) return;
+      var d = withTx(t.id, 'clinicalTool', t.label || 'Outil clinique', []);
+      d.subtitle = toolSub(t.fields);
+      docs.push(d);
+    });
     return docs;
   }
 
@@ -539,8 +631,32 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   // Bouton « Compléter » de la barre du bas — ouvre le même checkout de
   // transmission, avec l'item « Note » présélectionné (faire suivre +
   // signature), qui est le point d'entrée par défaut pour compléter la note.
+  // Mode révision : des modifications en attente bloquent la complétion —
+  // dialogue « Tout accepter et compléter / Réviser / Annuler » plutôt que
+  // de laisser un contenu ambigu (non relu) partir au dossier.
   function openFinalize() {
+    if (reviewingMode && reviewChanges.length > 0) {
+      setReviewGate(true);
+      return;
+    }
     openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  function reviewGateAcceptAllAndComplete() {
+    if (editorRef.current) window.acceptAllChanges(editorRef.current);
+    setReviewGate(false);
+    openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  function reviewGateReview() {
+    setReviewGate(false);
+    var editor = editorRef.current;
+    if (!editor) return;
+    var first = window.scanReviewChanges(editor.state.doc)[0];
+    if (first) {
+      editor.chain().focus().setTextSelection(first.from).run();
+      try { editor.view.dom.querySelector('.rvw-ins, .rvw-del').scrollIntoView({ block: 'center' }); } catch (e) {}
+    }
   }
 
   // « Prescrire »/« Transmettre » sur une chip — envoi rapide d'UN document,
@@ -591,6 +707,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           </div>
         </div>
         <div style={{ flex: 1 }} />
+        {reviewingMode &&
+          <window.ReviewHeaderControls
+            active={reviewActive}
+            onToggle={function() { setReviewActive(function(v) { return !v; }); }}
+            count={reviewChanges.length}
+            onAcceptAll={function() { if (editorRef.current) window.acceptAllChanges(editorRef.current); }}
+            onRejectAll={function() { if (editorRef.current) window.rejectAllChanges(editorRef.current); }} />}
         {smartActive
           ? (
             <div style={neStyles.assistRow}>
@@ -635,9 +758,18 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
       {/* Assistant IA */}
       <AIBox onAddToNote={function(text) {
-        appendToFirstSection((text || '').split('\n').map(function(line) {
+        var blocks = (text || '').split('\n').map(function(line) {
           return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
-        }));
+        });
+        // Mode révision : le texte IA arrive marqué "Assistant IA" et
+        // active le mode (s'il ne l'était pas déjà) — tout ce qui suit,
+        // y compris les retouches du médecin, reste tracké jusqu'à
+        // désactivation ou résolution complète (exigence produit).
+        if (reviewingMode) {
+          setReviewActive(true);
+          blocks = window.markBlocksAsInsertion(blocks, window.REVIEW_AI_AUTHOR);
+        }
+        appendToFirstSection(blocks);
       }} />
 
       {/* Expanding content */}
@@ -723,6 +855,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           doctorName={doctorName}
           institution={institution}
           initialSelectedId={transmissionOnlyId}
+          showSuggestions={checkoutSuggestions}
           noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
@@ -735,6 +868,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           doc={findDocByItemId(quickSendCid)}
           doctorName={doctorName}
           institution={institution}
+          showSuggestions={checkoutSuggestions}
           onPatch={patchTxState}
           onComplete={markDocComplete}
           onCancel={function() { setQuickSendCid(null); }}
@@ -743,6 +877,30 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
             setQuickSendCid(null);
             openTransmission(d ? d.id : null);
           }} />
+      }
+
+      {/* Aperçu d'un fichier joint (PDF/PNG/JPG) — side sheet dédié */}
+      {filePreview &&
+        <window.DocumentViewerModal file={filePreview} onClose={function () { setFilePreview(null); }} />
+      }
+
+      {/* Dialogue bloquant — changements en attente à la complétion */}
+      {reviewGate &&
+        <window.ReviewCompleteDialog
+          count={reviewChanges.length}
+          onAcceptAllAndComplete={reviewGateAcceptAllAndComplete}
+          onReview={reviewGateReview}
+          onCancel={function() { setReviewGate(false); }} />
+      }
+
+      {/* Popover de changement (mode révision) */}
+      {reviewPopover &&
+        <window.ReviewChangePopover
+          change={reviewPopover.change}
+          anchorRect={reviewPopover.anchorRect}
+          onClose={function() { setReviewPopover(null); }}
+          onAccept={function(c) { if (editorRef.current) window.acceptChange(editorRef.current, c); }}
+          onReject={function(c) { if (editorRef.current) window.rejectChange(editorRef.current, c); }} />
       }
 
       {/* Chip popover */}

@@ -28,6 +28,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const addBtnRef = useRefE(null);
   const fileInputRef = useRefE(null);
   const [diagRename, setDiagRename] = useStateE(null); // { pos, value, rect } — renommage d'une région diagnostic
+  const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
 
   const onChipClickRef = useRefE(null); onChipClickRef.current = onChipClick;
 
@@ -82,9 +83,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const label = (item.name + ' ' + (item.dose || '')).trim();
     const isCeasing = action === 'cesser' && kind === 'rx';
     const itemDetails = isCeasing ? {} : (item.details || {});
+    // `renewal` distingue le renouvellement d'une médication déjà au dossier
+    // d'une nouvelle prescription : les deux produisent le même chip, mais le
+    // checkout les affiche avec une icône différente (plan V7 §G).
     const rx = isCeasing
       ? { name: item.name, dose: item.dose || '', sig: 'Cessé', kind: kind, ceased: true }
-      : { name: item.name, dose: item.dose || '', sig: item.chipSig || item.sig, kind: kind };
+      : { name: item.name, dose: item.dose || '', sig: item.chipSig || item.sig, kind: kind,
+          renewal: action === 'renouveler' };
     const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (item.chipSig || item.sig);
     editor.chain().focus().insertContentAt(range, [
       { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails } },
@@ -139,8 +144,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       return;
     }
     if (it.fileAction) {
+      // Choix de la source (ordinateur/cellulaire/patient) avant d'ouvrir
+      // quoi que ce soit — voir <AddFileSourceMenu> plus bas.
+      const coords = editor.view.coordsAtPos(range.from);
+      const rect = { left: coords.left, right: coords.left, top: coords.top, bottom: coords.bottom, width: 0, height: coords.bottom - coords.top, x: coords.left, y: coords.top };
       editor.chain().focus().deleteRange(range).run();
-      if (fileInputRef.current) fileInputRef.current.click();
+      setAddFileMenu({ rect });
       return;
     }
     if (it.textRapides) {
@@ -271,19 +280,49 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     return api;
   }
 
-  function handleFileChange(e) {
+  // Insère un chip fichier puis ouvre son aperçu automatiquement — même
+  // geste que si on venait de cliquer dessus (onChipClickRef), pour que
+  // « à l'ouverture, afficher un loader » s'applique aussi juste après
+  // l'ajout, pas seulement au clic ultérieur sur le chip.
+  function insertFileChip(name, url) {
     const editor = editorRef.current; if (!editor) return;
-    const files = Array.from(e.target.files || []);
-    files.forEach(function (file) {
-      const url = URL.createObjectURL(file);
-      const chipId = window.newChipId();
-      const pos = editor.state.selection.from;
-      editor.chain().focus().insertContentAt(pos, [
-        { type: 'chip', attrs: { cid: chipId, type: 'file', label: file.name, icon: 'attach_file', text: file.name, rx: null, details: { url: url } } },
-        { type: 'text', text: ' ' }
-      ]).run();
+    const kind = window.fileKindFromName(name);
+    const icon = window.fileIconForKind(kind);
+    const chipId = window.newChipId();
+    const pos = editor.state.selection.from;
+    editor.chain().focus().insertContentAt(pos, [
+      { type: 'chip', attrs: { cid: chipId, type: 'file', label: name, icon: icon, text: name, rx: null, details: { url: url } } },
+      { type: 'text', text: ' ' }
+    ]).run();
+    requestAnimationFrame(function () {
+      const node = editor.view.dom.querySelector('[data-cid="' + chipId + '"]');
+      if (node && onChipClickRef.current) onChipClickRef.current(chipId, node.getBoundingClientRect(), null);
     });
+  }
+
+  function handleFileChange(e) {
+    const files = Array.from(e.target.files || []);
+    files.forEach(function (file) { insertFileChip(file.name, URL.createObjectURL(file)); });
     e.target.value = '';
+  }
+
+  // « Votre cellulaire » / « Le patient » — pas de vrai appairage
+  // d'appareil dans ce prototype : on simule l'attente d'un envoi (toast)
+  // puis on insère une photo factice, sur le même principe que l'Assistant
+  // IA qui simule sa génération après un délai (voir AIBox.jsx).
+  var MOCK_PHOTO_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200">' +
+    '<rect width="900" height="1200" fill="#eef0f6"/>' +
+    '<rect x="60" y="60" width="780" height="1080" fill="#fff" stroke="#c9c9d6" stroke-width="2"/>' +
+    '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">Photo reçue</text>' +
+    '</svg>'
+  );
+  function requestMobileFile(source) {
+    const label = source === 'patient' ? 'le téléphone du patient' : 'votre cellulaire';
+    if (window.toast) window.toast('En attente d’une photo depuis ' + label + '…', { icon: 'smartphone', duration: 2200 });
+    setTimeout(function () {
+      insertFileChip((source === 'patient' ? 'Photo — patient' : 'Photo — cellulaire') + '.jpg', MOCK_PHOTO_URL);
+    }, 1800);
   }
 
   // Position (avant-nœud) de la région diagnostic la plus proche englobant
@@ -671,10 +710,25 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onCancel={() => setDiagRename(null)} />
       }
 
+      {/* Choix de la source du fichier — sous-menu de « Ajouter des
+          fichiers » (slash/+), même patron que ClinicalToolPicker : en-tête
+          avec retour vers le menu d'ajout + liste d'options. */}
+      {addFileMenu &&
+        <AddFileSourceMenu
+          anchorRect={addFileMenu.rect}
+          onClose={() => setAddFileMenu(null)}
+          onBack={() => { setAddFileMenu(null); openSlashMenu(); }}
+          onSelect={function (key) {
+            setAddFileMenu(null);
+            if (key === 'computer') { if (fileInputRef.current) fileInputRef.current.click(); }
+            else requestMobileFile(key);
+          }} />
+      }
+
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.png"
+        accept=".pdf,.png,.jpg,.jpeg"
         multiple
         style={{ display: 'none' }}
         onChange={handleFileChange} />
@@ -764,5 +818,88 @@ function DiagRenamePopover({ pos, value, onCommit, onCancel }) {
     </div>
   );
 }
+
+// ---------------------------------------------------------
+// AddFileSourceMenu — sous-menu de « Ajouter des fichiers » (choix de la
+// source), même patron que ClinicalToolPicker.jsx : en-tête retour/titre/
+// fermer, liste d'options en dessous. « Retour » rouvre le menu d'ajout
+// générique (onBack), pas seulement ce sous-menu.
+// ---------------------------------------------------------
+const ADD_FILE_SOURCES = [
+  { key: 'computer', icon: 'computer', label: 'Votre ordinateur' },
+  { key: 'mobile', icon: 'smartphone', label: 'Votre cellulaire' },
+  { key: 'patient', icon: 'person', label: 'Le patient' }
+];
+
+function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
+  const panelRef = useRefE(null);
+
+  useEffectE(function () {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    window.addEventListener('keydown', onKey);
+    // Différé d'un tick : l'item du menu slash qui ouvre ce sous-menu
+    // déclenche sur mousedown — sans le délai, ce même mousedown le
+    // refermerait aussitôt (voir ClinicalToolPicker, même piège).
+    const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    return function () {
+      clearTimeout(t);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDoc);
+    };
+  }, [onClose]);
+
+  const panelW = 300;
+  const MARGIN = 16;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={afmS.header}>
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+        </button>
+        <span style={afmS.title}>Ajouter des fichiers</span>
+        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
+        </button>
+      </div>
+      <div style={afmS.list}>
+        {ADD_FILE_SOURCES.map(function (opt) {
+          return (
+            <div key={opt.key} style={afmS.item}
+              onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+              onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
+              onClick={function () { onSelect(opt.key); }}>
+              <span className="material-icons-outlined" style={afmS.itemIcon}>{opt.icon}</span>
+              <span style={afmS.itemLabel}>{opt.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const afmS = {
+  panel: {
+    position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
+    borderRadius: 12, boxShadow: '0 14px 40px rgba(37,36,94,0.20)',
+    display: 'flex', flexDirection: 'column', overflow: 'hidden',
+    fontFamily: "var(--font-body, 'Inter', sans-serif)",
+    animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
+  },
+  header: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #f0f0f6', flexShrink: 0 },
+  iconBtn: { width: 32, height: 32, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(0,0,0,0.45)' },
+  title: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 600, color: 'var(--fg-1, rgba(0,0,0,0.82))', fontFamily: "var(--font-head, 'Poppins', sans-serif)" },
+  list: { padding: '6px 0' },
+  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
+  itemIcon: { fontSize: 20, color: 'rgba(0,0,0,0.5)', flexShrink: 0 },
+  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))' }
+};
 
 window.NoteBody = NoteBody;

@@ -573,7 +573,7 @@ function buildEditorExtensions(placeholder) {
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
     makeClinicalToolNode()
-  ];
+  ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : []);
 }
 
 // ---------------------------------------------------------
@@ -662,6 +662,11 @@ function DEFAULT_DOC() {
 function scanDoc(docJson) {
   const chips = [];
   const diagNames = [];
+  // Formulaires d'outils cliniques présents dans la note. Depuis V7 ils sont
+  // transmissibles au même titre qu'une requête (plan V7 §D) — le checkout
+  // s'en sert pour construire un document par formulaire. Liste séparée des
+  // chips : ce sont des nodes atomiques de bloc, pas des entités inline.
+  const tools = [];
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
@@ -671,6 +676,11 @@ function scanDoc(docJson) {
       } });
     } else if (node.type === 'diagnosticRegion') {
       diagNames.push(node.attrs.name);
+    } else if (node.type === 'clinicalTool') {
+      tools.push({
+        id: node.attrs.instanceId, toolId: node.attrs.toolId,
+        label: node.attrs.label || '', fields: node.attrs.fields || {}
+      });
     }
     (node.content || []).forEach(walk);
   }
@@ -680,7 +690,7 @@ function scanDoc(docJson) {
   if (diagNames.length) counts.diagnostic = diagNames.length;
   const items = chips.map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
   diagNames.forEach(function (nm, i) { items.push({ id: 'dx-' + i, type: 'diagnostic', label: nm }); });
-  return { chips: chips, counts: counts, items: items, diagNames: diagNames };
+  return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
 }
 
 // true si le document ne contient aucun texte, chip ou node atome — les
