@@ -1,5 +1,5 @@
 /* global React */
-function PatientBanner({ forceCollapsed, portalActive = true }) {
+function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clinique du Centre-ville' }) {
   const [phase, setPhase] = React.useState('expanded');
   const phaseRef = React.useRef(phase);
   phaseRef.current = phase;
@@ -136,7 +136,7 @@ function PatientBanner({ forceCollapsed, portalActive = true }) {
         <div style={pbStyles.contactRow}>
           <span className="material-icons-outlined" style={pbStyles.contactIcon}>medical_services</span>
           <div>
-            <div style={pbStyles.clinicName}>Clinique du Centre-ville</div>
+            <div style={pbStyles.clinicName}>{clinicName}</div>
             <div style={pbStyles.muted}>Inscription de groupe</div>
           </div>
         </div>

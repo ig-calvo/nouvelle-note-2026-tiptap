@@ -250,6 +250,7 @@
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
+  "clinicName": "Clinique du Centre-ville",
   "diagStyle": "carte",
   "showClinicalTools": true,
   "portalActive": true,
@@ -343,7 +344,7 @@ function App() {
     const newNote = {
       date: dateLabel.trim(),
       author: t.doctorName,
-      clinic: 'Clinique du Centre-ville',
+      clinic: t.clinicName,
       role: 'Médecin de famille',
       mode: data.visitType === 'Appel téléphonique' ? 'APPEL' : 'PRÉSENTIEL',
       title: data.raison || 'Note clinique',
@@ -365,12 +366,12 @@ function App() {
   }
   return (
     <div className={"app diag-style-" + (t.diagStyle || 'numbered')}>
-      <TopBar user={t.doctorName} onMenuClick={() => setNavCollapsed((v) => !v)} />
+      <TopBar user={t.doctorName} clinic={t.clinicName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
         <SideNav collapsed={navCollapsed} />
         <div className="content">
           <div className="center-wrap">
-          <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} />
+          <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} clinicName={t.clinicName} />
           <div className="center-col" style={{ padding: "0px" }}>
             <NoteEditor
               isOpen={noteOpen}
@@ -378,7 +379,7 @@ function App() {
               onComplete={handleNoteComplete}
               completeRef={noteCompleteRef}
               doctorName={t.doctorName}
-              institution="Clinique du Centre-ville"
+              institution={t.clinicName}
               smartActive={smartActive}
               showClinicalTools={t.showClinicalTools}
               startPoints={t.startPoints}
@@ -392,7 +393,7 @@ function App() {
               reviewingMode={t.reviewingMode === true}
               reviewAuthor={t.reviewAuthor || 'me'}
               checkoutSuggestions={t.checkoutSuggestions === true} />
-            <NotesList doctorName={t.doctorName} extraNotes={completedNotes} />
+            <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
               {/* Prescription counter */}
@@ -462,8 +463,9 @@ function App() {
           onConfirm={() => { setSmartModal(false); setSmartActive(true); handleNoteOpen(); }} />
       }
       <TweaksPanel title="Tweaks">
-        <TweakSection label="Médecin" />
-        <TweakText label="Nom du médecin" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
+        <TweakSection label="Identité" />
+        <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
+        <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général" />
         <TweakToggle label="Outils cliniques" value={t.showClinicalTools !== false}
                      onChange={(v) => setTweak('showClinicalTools', v)} />

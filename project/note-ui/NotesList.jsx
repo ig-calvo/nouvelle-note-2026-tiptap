@@ -3,7 +3,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "2 JUILLET 2026 13:45",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Retour post-imagerie — douleur au flanc",
@@ -29,7 +29,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "2 JUILLET 2026 09:10",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Douleur au flanc droit",
@@ -53,7 +53,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "8 DÉCEMBRE 2025 09:15",
     author: "Dr Marc Lefebvre",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecine d'urgence",
     mode: "PRÉSENTIEL",
     title: "Infection urinaire",
@@ -69,7 +69,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "5 JUIN 2025 10:30",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Examen annuel",
@@ -203,10 +203,14 @@ function DocView({ doc }) {
   return <React.Fragment>{blocks}</React.Fragment>;
 }
 
-function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
+function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique du Centre-ville", extraNotes = [] }) {
   const NOTE_ITEMS = [
     ...extraNotes,
-    ...NOTE_ITEMS_TEMPLATE.map(n => ({ ...n, author: n.author === "%%DOCTOR%%" ? doctorName : n.author })),
+    ...NOTE_ITEMS_TEMPLATE.map(n => ({
+      ...n,
+      author: n.author === "%%DOCTOR%%" ? doctorName : n.author,
+      clinic: n.clinic === "%%CLINIC%%" ? clinicName : n.clinic,
+    })),
   ];
   const [openNotes, setOpenNotes] = React.useState({});
   // Note dont on regarde le checkout (lecture seule) — bouton « Checkout ».

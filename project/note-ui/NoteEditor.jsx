@@ -619,7 +619,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     <div ref={noteCardRef} className="note-card" style={neStyles.card}>
       <div style={neStyles.topRow}>
         <div>
-          <div style={neStyles.overline}>CLINIQUE DU CENTRE VILLE</div>
+          <div style={neStyles.overline}>{(institution || 'Clinique du Centre-ville').toUpperCase()}</div>
           <div style={neStyles.titleRow}>
             <span style={neStyles.title}>Note Clinique</span>
             {smartActive && <span style={neStyles.statusBadge}>En cours</span>}

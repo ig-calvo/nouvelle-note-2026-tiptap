@@ -460,7 +460,7 @@ const tx = {
     animation: 'sheet-scrim-in 200ms ease-out',
   },
   shell: {
-    position: 'relative', width: '100%', maxWidth: 1180, height: '92vh', maxHeight: 'calc(100vh - 20px)',
+    position: 'relative', width: '100%', maxWidth: 1440, height: '95vh', maxHeight: 'calc(100vh - 12px)',
     background: '#fff', zIndex: 4000, borderRadius: '20px 20px 0 0',
     boxShadow: '0 -12px 40px rgba(20,20,50,0.28)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
