@@ -46,7 +46,7 @@ function DapSection({ label, count, open, onToggle, onAdd, children }) {
 // éditer ou retirer une prescription depuis le checkout reviendrait à
 // modifier la note elle-même, ce qui sort du périmètre (cf. la même
 // décision pour « + Ajouter » dans PLAN-transmission-ordonnance.md §4.3).
-function DapContentRow({ it, meta }) {
+function DapContentRow({ it, meta, readOnly }) {
   const [hover, setHover] = React.useState(false);
   const vis = DAP_VARIANT[it.variant] || { icon: meta.icon, color: meta.accent };
   return (
@@ -59,7 +59,7 @@ function DapContentRow({ it, meta }) {
         <div style={Object.assign({}, dap.contentItemLabel, it.ceased ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.4)' } : {})}>{it.label}</div>
         {it.sub ? <div style={dap.contentItemSub}>{it.sub}</div> : null}
       </div>
-      {hover &&
+      {hover && !readOnly &&
         <div style={dap.rowActions}>
           <span style={dap.rowActionBtn} title="Modifier">
             <span className="material-icons-outlined" style={{ fontSize: 17 }}>edit</span>
@@ -74,14 +74,17 @@ function DapContentRow({ it, meta }) {
 
 // Carte destinataire : favori, adresse, coordonnées, choix du canal
 // (fax/courriel) et retrait au survol (plan V7 §F).
-function DapRecipientCard({ r, onRemove, onChannel }) {
+function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
   const [hover, setHover] = React.useState(false);
   const channel = r.channel || 'fax';
   function channelBtn(key, cls, icon, title) {
     const on = channel === key;
     return (
-      <button style={Object.assign({}, dap.channelBtn, on ? dap.channelBtnOn : {})}
-        title={title} aria-pressed={on} onClick={function () { onChannel(key); }}>
+      <button style={Object.assign({}, dap.channelBtn, on ? dap.channelBtnOn : {},
+          readOnly ? { cursor: 'default' } : {})}
+        title={readOnly ? (on ? title.replace('Transmettre', 'Transmis') : '') : title}
+        aria-pressed={on} disabled={readOnly}
+        onClick={function () { if (!readOnly) onChannel(key); }}>
         <span className={cls} style={{ fontSize: 18 }}>{icon}</span>
       </button>
     );
@@ -109,10 +112,10 @@ function DapRecipientCard({ r, onRemove, onChannel }) {
         </div>
       </div>
       <div style={dap.channelGroup}>
-        {r.fax ? channelBtn('fax', 'material-symbols-outlined', 'fax', 'Transmettre par fax') : null}
-        {channelBtn('email', 'material-icons-outlined', 'mail', 'Transmettre par courriel')}
+        {(r.fax && (!readOnly || channel === 'fax')) ? channelBtn('fax', 'material-symbols-outlined', 'fax', 'Transmettre par fax') : null}
+        {(!readOnly || channel === 'email') ? channelBtn('email', 'material-icons-outlined', 'mail', 'Transmettre par courriel') : null}
       </div>
-      {hover &&
+      {hover && !readOnly &&
         <button style={dap.removeBadge} onClick={onRemove} title="Retirer ce destinataire">
           <span className="material-icons" style={{ fontSize: 15 }}>close</span>
         </button>}
@@ -120,7 +123,7 @@ function DapRecipientCard({ r, onRemove, onChannel }) {
   );
 }
 
-function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, showSuggestions,
+function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, showSuggestions, readOnly,
   onAddRecipient, onRemoveRecipient, onComplete, onCompleteAndPrint, onCompleteAndFax,
   onQuickPrint, onQuickSend }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -178,6 +181,8 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
           {doc.transmitted ? 'Transmise' : 'Non transmise'}
         </span>
         <div style={{ flex: 1 }} />
+        {!readOnly &&
+        <React.Fragment>
         <button
           title={doc.complete ? 'Imprimer' : 'Compléter le document avant impression'}
           style={Object.assign({}, dap.iconBtn, !doc.complete ? dap.btnDisabled : {})}
@@ -213,6 +218,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
           onClick={onQuickSend}>
           Transmettre {meta.nounPhrase}
         </button>
+        </React.Fragment>}
       </div>
 
       <div style={hasContent ? dap.cols : dap.colsTwo}>
@@ -229,7 +235,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
             onToggle={function () { setOpenContent(!openContent); }}>
             <div style={dap.contentList}>
               {doc.items.map(function (it, i) {
-                return <DapContentRow key={it.id || i} it={it} meta={meta} />;
+                return <DapContentRow key={it.id || i} it={it} meta={meta} readOnly={readOnly} />;
               })}
             </div>
           </DapSection>
@@ -239,7 +245,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
             count={attachments.length}
             open={openAttach}
             onToggle={function () { setOpenAttach(!openAttach); }}
-            onAdd={attachRemaining.length ? function () { setAttachPickerOpen(!attachPickerOpen); } : null}>
+            onAdd={(!readOnly && attachRemaining.length) ? function () { setAttachPickerOpen(!attachPickerOpen); } : null}>
             {attachments.length === 0
               ? <div style={dap.attachEmpty}>Aucune pièce jointe.</div>
               : <div style={dap.attachRow}>
@@ -247,10 +253,11 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
                     return (
                       <span key={name} style={dap.attachChip}>
                         {name}
-                        <button style={dap.attachChipX} title="Retirer"
-                          onClick={function () { setAttachments(attachments.filter(function (a) { return a !== name; })); }}>
-                          <span className="material-icons" style={{ fontSize: 15 }}>close</span>
-                        </button>
+                        {!readOnly &&
+                          <button style={dap.attachChipX} title="Retirer"
+                            onClick={function () { setAttachments(attachments.filter(function (a) { return a !== name; })); }}>
+                            <span className="material-icons" style={{ fontSize: 15 }}>close</span>
+                          </button>}
                       </span>
                     );
                   })}
@@ -277,13 +284,18 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         {/* Colonne 2 — destinataires (plan V7 §F) */}
         <div style={dap.col}>
           <div style={dap.colLabel}>DESTINATAIRE ({doc.recipients.length})
-            <button style={dap.addRecipientBtn} title="Ajouter un destinataire"
-              onClick={function () { setRecipientPickerOpen(!recipientPickerOpen); }}>
-              <span className="material-icons" style={{ fontSize: 18 }}>add</span>
-            </button>
+            {!readOnly &&
+              <button style={dap.addRecipientBtn} title="Ajouter un destinataire"
+                onClick={function () { setRecipientPickerOpen(!recipientPickerOpen); }}>
+                <span className="material-icons" style={{ fontSize: 18 }}>add</span>
+              </button>}
           </div>
 
-          {doc.recipients.length === 0 &&
+          {doc.recipients.length === 0 && readOnly &&
+            <div style={dap.emptyReadonly}>Aucun destinataire n'a été choisi pour ce document.</div>
+          }
+
+          {doc.recipients.length === 0 && !readOnly &&
             <div style={dap.emptyBox}>
               <span className="material-icons-outlined" style={{ fontSize: 22, color: '#a15c00' }}>warning</span>
               <div style={dap.emptyTitle}>Aucun destinataire</div>
@@ -298,7 +310,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 
           {doc.recipients.map(function (r) {
             return (
-              <DapRecipientCard key={r.id} r={r}
+              <DapRecipientCard key={r.id} r={r} readOnly={readOnly}
                 onRemove={function () { onRemoveRecipient(r.id); }}
                 onChannel={function (ch) { setChannel(r.id, ch); }} />
             );
@@ -454,6 +466,7 @@ const dap = {
     display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4,
     border: '1px solid #f3ddb0', background: '#fdf6e6', borderRadius: 10, padding: '16px 14px', marginBottom: 10,
   },
+  emptyReadonly: { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', lineHeight: 1.45, marginBottom: 10 },
   emptyTitle: { font: "600 13.5px 'Inter',sans-serif", color: '#7a5200' },
   emptyText: { fontSize: 12.5, color: '#7a5200', lineHeight: 1.45, maxWidth: 260 },
   emptyLink: {

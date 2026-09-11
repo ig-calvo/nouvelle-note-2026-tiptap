@@ -202,8 +202,8 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, noteInfo, onFinalizeNote, onClose }) {
-  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
+function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onClose }) {
+  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (readOnly ? (docs[0] && docs[0].id) : null) || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
   const [screen, setScreen] = React.useState('review'); // 'review' | 'print' | 'fax'
   const [faxPrefill, setFaxPrefill] = React.useState(null);
 
@@ -219,7 +219,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return function () { document.removeEventListener('keydown', onKey); };
   }, [screen, onClose]);
 
-  const isNoteSelected = selectedId === NOTE_ITEM_ID;
+  const isNoteSelected = !readOnly && selectedId === NOTE_ITEM_ID;
   const selected = isNoteSelected ? null : (docs.find(function (d) { return d.id === selectedId; }) || null);
   const meta = selected ? TX_META[selected.kind] : null;
 
@@ -320,7 +320,11 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       <div style={tx.shell} onMouseDown={function (e) { e.stopPropagation(); }}>
         <div style={tx.dragHandle} />
         <div style={tx.head}>
-          <div style={tx.headTitle}>Transmission des documents</div>
+          <div style={tx.headTitle}>
+            {readOnly ? 'Documents de la note' : 'Transmission des documents'}
+            {readOnly && noteInfo && noteInfo.title
+              ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
+          </div>
           <div style={tx.headCounts}>
             {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: '#fdf1de' })}>{counts.todo} À compléter</span>}
             {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: '#e9f2fc' })}>{counts.ready} Prêt</span>}
@@ -333,6 +337,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
 
         <div style={tx.bodyRow}>
           <div style={tx.sidebar}>
+            {!readOnly &&
             <div style={tx.sideGroup}>
               <button
                 style={Object.assign({}, tx.sideRow, isNoteSelected ? tx.sideRowSel : {})}
@@ -343,7 +348,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                   <div style={tx.sideRowSub}>Faire suivre et signer</div>
                 </div>
               </button>
-            </div>
+            </div>}
 
             {rxDocs.length > 0 &&
               <div style={tx.sideGroup}>
@@ -357,12 +362,13 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 {toolDocs.map(function (d) { return renderSideRow(d); })}
               </div>
             }
-            <button style={tx.addDocBtn} onClick={function () {
-              if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });
-            }}>
-              <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
-              Ajouter un document
-            </button>
+            {!readOnly &&
+              <button style={tx.addDocBtn} onClick={function () {
+                if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });
+              }}>
+                <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
+                Ajouter un document
+              </button>}
           </div>
 
           <div style={tx.panel}>
@@ -372,6 +378,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 ? <window.DocumentActionPanel
                     doc={selected} meta={meta} doctorName={doctorName} institution={institution}
                     showSuggestions={showSuggestions}
+                    readOnly={readOnly}
                     onPatch={function (p) { patch(selected.id, p); }}
                     onAddRecipient={function (r) { addRecipient(selected, r); }}
                     onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
@@ -385,7 +392,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
           </div>
         </div>
 
-        {!isNoteSelected &&
+        {!isNoteSelected && !readOnly &&
           <div style={tx.footer}>
             <div style={tx.footerSummary}>
               {readyCount > 0 &&
@@ -467,6 +474,7 @@ const tx = {
     display: 'flex', alignItems: 'center', gap: 16,
     padding: '12px 26px 16px', borderBottom: '1px solid #ececf2', flexShrink: 0,
   },
+  headNote: { fontWeight: 400, color: 'rgba(0,0,0,0.5)' },
   headTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'rgba(0,0,0,0.88)' },
   headCounts: { display: 'flex', gap: 8, flex: 1 },
   pill: { fontSize: 12.5, fontWeight: 700, borderRadius: 20, padding: '5px 12px' },

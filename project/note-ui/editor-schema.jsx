@@ -693,6 +693,109 @@ function scanDoc(docJson) {
   return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
 }
 
+
+// ---------------------------------------------------------
+// buildTransmissionDocs — documents transmissibles d'une note, à partir du
+// résultat de scanDoc et de l'état de transmission. Vit ici plutôt que dans
+// NoteEditor parce que deux appelants en ont besoin : l'éditeur pour la note
+// en cours, et NotesList pour rouvrir le checkout d'une note DÉJÀ complétée
+// (en lecture seule) — voir PLAN-transmission-ordonnance.md §5.1.
+//
+// `txState` est l'état par document ({recipients, complete, transmitted…}) ;
+// passer {} donne des documents vierges.
+// ---------------------------------------------------------
+function buildTransmissionDocs(docStats, txState) {
+  var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
+
+  function mkItem(e) {
+    var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
+    if (t === 'prescription') {
+      label = [d.molecule, d.dose ? d.dose + ' ' + (d.unit || '') : ''].filter(Boolean).join(' ').trim()
+        || (ent.rx && ent.rx.name) || ent.label;
+      sub = (ent.rx && ent.rx.sig)
+        || [d.route, d.frequency, d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : ''].filter(Boolean).join(' ');
+    } else if (t === 'lab') {
+      label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || 'Demande de laboratoire');
+      sub = [d.priority, d.fasting ? 'à jeun' : ''].filter(Boolean).join(' · ');
+    } else if (t === 'imaging') {
+      label = [d.modality, d.region].filter(Boolean).join(' ') || ent.label;
+      sub = [d.views, d.priority, (d.contrast && d.contrast !== 'Sans') ? 'avec contraste' : ''].filter(Boolean).join(' · ');
+    } else if (t === 'referral') {
+      label = d.specialty || ent.label;
+      sub = [d.priority, d.question].filter(Boolean).join(' · ');
+    } else if (t === 'instructions') {
+      label = d.title || ent.label || 'Consignes au patient';
+    }
+    var rx = ent.rx || {};
+    var ceased = !!rx.ceased;
+    // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
+    // nouvelle, renouvellement (médication déjà au dossier), cessation.
+    var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
+    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant };
+  }
+
+  // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
+  // nouvel item après avoir déjà été complété/transmis (ex. le médecin
+  // ajoute une prescription après avoir faxé l'ordonnance) : dans ce cas,
+  // le contenu signé/envoyé n'est plus celui qui existe réellement. On
+  // invalide donc complete/transmitted dès que la liste d'items ne
+  // correspond plus à celle capturée au moment de la complétion
+  // (`itemIds`, posé par markDocComplete) — les destinataires déjà
+  // choisis restent, eux, valides et ne sont pas perdus.
+  function withTx(id, kind, title, items) {
+    var st = txState[id] || {};
+    var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
+    var stale = !!st.complete && st.itemIds !== idsKey;
+    return {
+      id: id, kind: kind, title: title, items: items,
+      recipients: st.recipients || [],
+      complete: stale ? false : !!st.complete,
+      transmitted: stale ? false : !!st.transmitted,
+      comment: st.comment || '',
+      // Pièces jointes et mot libre au destinataire (Envoi rapide, §C du
+      // plan V7). `attachments` reste à null tant que l'utilisateur n'y a
+      // pas touché : c'est ce qui permet à l'Envoi rapide d'appliquer les
+      // cases cochées par défaut du type de document (TX_META.attachmentsOn)
+      // sans confondre « pas encore ouvert » et « tout décoché ».
+      attachments: st.attachments || null,
+      note: st.note || '',
+    };
+  }
+
+  // Sous-titre d'un outil clinique : la première valeur de champ non vide
+  // du formulaire (« Prostate » pour un examen physique, p. ex.). Rien de
+  // figé — comme tout le reste du checkout, ça vient de la note.
+  function toolSub(fields) {
+    var keys = Object.keys(fields || {});
+    for (var i = 0; i < keys.length; i++) {
+      var v = fields[keys[i]];
+      if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 60);
+    }
+    return '';
+  }
+
+  var docs = [];
+  var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
+  if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
+  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
+    .forEach(function(e) {
+      var item = mkItem(e);
+      docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
+    });
+  // Outils cliniques (plan V7 §D) : un document par formulaire présent dans
+  // la note, et RIEN si la note n'en contient aucun — la catégorie
+  // « Outils cliniques » de la sidebar disparaît alors d'elle-même, sans
+  // titre ni compteur à zéro.
+  (docStats.tools || []).forEach(function(t) {
+    if (!t.id) return;
+    var d = withTx(t.id, 'clinicalTool', t.label || 'Outil clinique', []);
+    d.subtitle = toolSub(t.fields);
+    docs.push(d);
+  });
+  return docs;
+}
+
+
 // true si le document ne contient aucun texte, chip ou node atome — les
 // titres de section par défaut ne comptent pas comme contenu.
 function docIsBlank(docJson) {
@@ -809,6 +912,7 @@ Object.assign(window, {
   buildSlashExtension,
   DEFAULT_DOC,
   scanDoc,
+  buildTransmissionDocs,
   docIsBlank,
   endOfFirstSectionPos,
   safeBlockInsertPos,

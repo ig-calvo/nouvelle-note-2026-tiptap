@@ -354,6 +354,9 @@ function App() {
       files: [],
       doc: data.doc || window.DEFAULT_DOC(),
       episodeId: data.episodeId || null,
+      // Statuts et destinataires de transmission figés à la complétion —
+      // relus par le bouton « Checkout » du Journal (NotesList).
+      txState: data.txState || {},
     };
     setCompletedNotes(prev => [newNote, ...prev]);
     setNoteOpen(false);
