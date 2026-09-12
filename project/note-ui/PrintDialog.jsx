@@ -1,8 +1,7 @@
 /* global React */
 // =========================================================
 // PrintDialog — faux dialogue d'impression de navigateur,
-// superposé à l'aperçu du document (voir
-// PLAN-transmission-ordonnance.md §2.5). Purement simulé : ne
+// superposé à l'aperçu du document. Purement simulé : ne
 // déclenche pas window.print(), le contenu étant généré
 // dynamiquement par DocumentPreview.
 // =========================================================

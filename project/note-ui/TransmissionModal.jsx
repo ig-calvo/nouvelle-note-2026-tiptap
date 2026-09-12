@@ -10,7 +10,7 @@
 // (QuickSendModal.jsx), qui a son propre contenu depuis V7 —
 // DocumentActionPanel.jsx n'est plus partagé, ce fichier en est
 // le seul appelant.
-// Voir PLAN-checkout-v7.md §A, §B ; PLAN-transmission-ordonnance.md §5, §6.
+// Voir PLAN-checkout-v7.md §A, §B.
 // =========================================================
 
 // Métadonnées de présentation par type de document (icône, couleur,

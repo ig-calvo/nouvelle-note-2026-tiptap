@@ -2,7 +2,7 @@
 
 Source design : [Figma — Checkout · Vision, section **V7**](https://www.figma.com/design/F3Nia0ctWn4PD7DuW9ZMMI/Checkout---Vision?node-id=17337-189501) (`fileKey` `F3Nia0ctWn4PD7DuW9ZMMI`, node `17337:189501`).
 
-Ce document remplace [PLAN-transmission-ordonnance.md](PLAN-transmission-ordonnance.md) comme référence pour le checkout. L'ancien plan reste valable pour l'historique des décisions (§1), la barre du bas de la note (§2.1) et les écrans fax/impression (§2.5), qui n'ont pas changé.
+Ce document est la référence pour le checkout. Il remplace l'ancien plan de transmission d'ordonnance, retiré du dépôt — celui-ci reste consultable dans l'historique git (`git show 8a3f881:PLAN-transmission-ordonnance.md`) pour l'historique des décisions (§1), la barre du bas de la note (§2.1) et les écrans fax/impression (§2.5), qui n'ont pas changé.
 
 **Principe directeur : l'affichage est arrêté.** Les variantes de mise en page construites pendant l'exploration disparaissent (§A) — mais l'animation d'entrée reste (§A.1).
 
@@ -146,7 +146,7 @@ Le lien « Voir tous les documents de la note » (prop `onOpenFull`) n'apparaît
 
 ## D. Outils cliniques transmissibles — seulement s'il y en a dans la note
 
-[PLAN-transmission-ordonnance.md §4.4](PLAN-transmission-ordonnance.md) excluait **explicitement** les formulaires `clinicalTool` du checkout, faute de modèle de destination. V7 les montre comme documents à part entière (« Examen physique simple / Prostate »).
+L'ancien plan de transmission (§4.4) excluait **explicitement** les formulaires `clinicalTool` du checkout, faute de modèle de destination. V7 les montre comme documents à part entière (« Examen physique simple / Prostate »).
 
 **Règle de visibilité : la section « Outils cliniques » n'existe que si la note en contient.** Note sans outil clinique → pas de catégorie dans la sidebar, pas de compteur à zéro, pas d'état vide. C'est cohérent avec le principe « 100 % dynamique » de l'ancien plan : le checkout ne montre que ce qui existe réellement dans la note.
 

@@ -699,7 +699,7 @@ function scanDoc(docJson) {
 // résultat de scanDoc et de l'état de transmission. Vit ici plutôt que dans
 // NoteEditor parce que deux appelants en ont besoin : l'éditeur pour la note
 // en cours, et NotesList pour rouvrir le checkout d'une note DÉJÀ complétée
-// (en lecture seule) — voir PLAN-transmission-ordonnance.md §5.1.
+// (en lecture seule).
 //
 // `txState` est l'état par document ({recipients, complete, transmitted…}) ;
 // passer {} donne des documents vierges.

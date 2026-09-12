@@ -492,7 +492,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   // Construit la liste des documents transmissibles réellement présents dans
   // la note (prescriptions, requêtes, consignes patient) pour le checkout de
-  // transmission — voir PLAN-transmission-ordonnance.md §5.1. Contrairement à
+  // transmission. Contrairement à
   // l'ancien buildCheckoutGroups (qui bundlait tous les chips d'un même type
   // ensemble), seules les prescriptions sont bundlées en un seul document
   // « Ordonnance » ; chaque autre chip (labo/imagerie/référence/consignes)

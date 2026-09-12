@@ -3,7 +3,7 @@
 // DocumentActionPanel — contenu/destinataire/aperçu + barre de
 // statut et bouton split « Compléter » pour UN document
 // transmissible. Composant partagé par les deux points d'entrée
-// de la transmission (voir PLAN-transmission-ordonnance.md) :
+// de la transmission.
 // Une seule mise en page depuis le plan V7 (§A) : 3 colonnes
 // contenu / destinataire / aperçu. Le mode `compact` a disparu avec
 // la réécriture de l'Envoi rapide, qui a maintenant son propre
@@ -45,7 +45,7 @@ function DapSection({ label, count, open, onToggle, onAdd, children }) {
 // visuelles conformes au Figma mais NON câblées dans cette itération :
 // éditer ou retirer une prescription depuis le checkout reviendrait à
 // modifier la note elle-même, ce qui sort du périmètre (cf. la même
-// décision pour « + Ajouter » dans PLAN-transmission-ordonnance.md §4.3).
+// décision pour « + Ajouter »).
 function DapContentRow({ it, meta, readOnly }) {
   const [hover, setHover] = React.useState(false);
   const vis = DAP_VARIANT[it.variant] || { icon: meta.icon, color: meta.accent };
