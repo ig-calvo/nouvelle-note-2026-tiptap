@@ -143,12 +143,19 @@
    du même nom n'y ajoute que la numérotation.
    ============================================================ */
 
-/* --- Actuel : le style de base (accent gauche) + numérotation ---
+/* --- Actuel : le style de base + numérotation, sans barre d'accent ---
    Même compteur que la variante « Numéroté », posé sur .app pour traverser
    toute la note. Le numéro REMPLACE l'icône de la région (un seul marqueur
-   en tête de ligne, pas deux) et prend la forme d'une pastille ronde. */
+   en tête de ligne, pas deux) et prend la forme d'une pastille noire. La
+   barre d'accent gauche du style de base (border-left) est retirée : avec
+   la pastille en tête et la flèche du corps (ci-dessous), une troisième
+   marque verticale faisait doublon. */
 .diag-style-actuel {
   counter-reset: omd-diag-counter;
+}
+.diag-style-actuel .note-field .ql-editor .dxr-head,
+.diag-style-actuel .note-field .ql-editor .dxr-body {
+  border-left: none;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-head {
   counter-increment: omd-diag-counter;
@@ -164,8 +171,8 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: rgba(127, 168, 216, 0.2);
-  color: #4a6f94;
+  background: #000;
+  color: #fff;
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 11px;
@@ -174,11 +181,14 @@
   user-select: none;
 }
 
-/* Corps de la région : une flèche « ↳ » sur le rail, pour dire que les
-   lignes qui suivent appartiennent au diagnostic au-dessus. Le rail seul
-   groupait déjà visuellement, mais rien ne nommait le lien. Le glyphe passe
-   par la ligature Material Icons — d'où font-feature-settings, que la
-   feuille de Google ne pose que sur .material-icons, pas sur un ::before. */
+/* Corps de la région : une flèche « ↳ » qui groupe les lignes sous le
+   diagnostic — seule marque de liaison restante depuis le retrait de la
+   barre d'accent ci-dessus. Alignée sur le CENTRE de la pastille : même
+   largeur (18px) et même décalage gauche que le padding-left du head, pour
+   que les deux marqueurs tombent sur le même axe vertical malgré leurs
+   conteneurs différents (dxr-head en flex, dxr-body en absolu). Le glyphe
+   passe par la ligature Material Icons — d'où font-feature-settings, que
+   la feuille de Google ne pose que sur .material-icons, pas sur un ::before. */
 .diag-style-actuel .note-field .ql-editor .dxr-body {
   position: relative;
   padding-left: 28px;
@@ -193,7 +203,10 @@
   font-variant-ligatures: common-ligatures;
   color: #9dbbd6;
   position: absolute;
-  left: 7px;
+  left: 12px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
   top: 4px;
   user-select: none;
   pointer-events: none;
