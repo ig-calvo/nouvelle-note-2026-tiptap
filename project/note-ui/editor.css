@@ -145,25 +145,35 @@
 
 /* --- Actuel : le style de base (accent gauche) + numérotation ---
    Même compteur que la variante « Numéroté », posé sur .app pour traverser
-   toute la note. La différence : ici le numéro s'AJOUTE au marqueur existant
-   au lieu de le remplacer — l'icône reste l'ancre visuelle de la région, le
-   numéro qualifie le nom. D'où les `order` : icône, numéro, nom, bouton. */
+   toute la note. Le numéro REMPLACE l'icône de la région (un seul marqueur
+   en tête de ligne, pas deux) et prend la forme d'une pastille ronde. */
 .diag-style-actuel {
   counter-reset: omd-diag-counter;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-head {
   counter-increment: omd-diag-counter;
 }
+.diag-style-actuel .note-field .ql-editor .dxr-ic {
+  display: none;
+}
 .diag-style-actuel .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter) '.';
-  order: 1;
+  content: counter(omd-diag-counter);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(127, 168, 216, 0.2);
+  color: #4a6f94;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: #4a6f94;
+  font-size: 11px;
+  line-height: 1;
   flex-shrink: 0;
+  user-select: none;
 }
+
 /* Corps de la région : une flèche « ↳ » sur le rail, pour dire que les
    lignes qui suivent appartiennent au diagnostic au-dessus. Le rail seul
    groupait déjà visuellement, mais rien ne nommait le lien. Le glyphe passe
@@ -188,10 +198,6 @@
   user-select: none;
   pointer-events: none;
 }
-
-.diag-style-actuel .note-field .ql-editor .dxr-ic { order: 0; }
-.diag-style-actuel .note-field .ql-editor .dxr-name { order: 2; }
-.diag-style-actuel .note-field .ql-editor .dxr-promote { order: 3; }
 
 /* --- Carte : callout plein, coins arrondis, sans accent gauche --- */
 .diag-style-carte .note-field .ql-editor .dxr-head {
