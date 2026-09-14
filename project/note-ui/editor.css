@@ -139,8 +139,59 @@
 
 /* ============================================================
    Diagnostic region — variantes (tweak "Style de région").
-   Le style par défaut ci-dessus reste "actuel" (accent gauche).
+   Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
+   du même nom n'y ajoute que la numérotation.
    ============================================================ */
+
+/* --- Actuel : le style de base (accent gauche) + numérotation ---
+   Même compteur que la variante « Numéroté », posé sur .app pour traverser
+   toute la note. La différence : ici le numéro s'AJOUTE au marqueur existant
+   au lieu de le remplacer — l'icône reste l'ancre visuelle de la région, le
+   numéro qualifie le nom. D'où les `order` : icône, numéro, nom, bouton. */
+.diag-style-actuel {
+  counter-reset: omd-diag-counter;
+}
+.diag-style-actuel .note-field .ql-editor .dxr-head {
+  counter-increment: omd-diag-counter;
+}
+.diag-style-actuel .note-field .ql-editor .dxr-head::before {
+  content: counter(omd-diag-counter) '.';
+  order: 1;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: #4a6f94;
+  flex-shrink: 0;
+}
+/* Corps de la région : une flèche « ↳ » sur le rail, pour dire que les
+   lignes qui suivent appartiennent au diagnostic au-dessus. Le rail seul
+   groupait déjà visuellement, mais rien ne nommait le lien. Le glyphe passe
+   par la ligature Material Icons — d'où font-feature-settings, que la
+   feuille de Google ne pose que sur .material-icons, pas sur un ::before. */
+.diag-style-actuel .note-field .ql-editor .dxr-body {
+  position: relative;
+  padding-left: 28px;
+}
+.diag-style-actuel .note-field .ql-editor .dxr-body::before {
+  content: 'subdirectory_arrow_right';
+  font-family: 'Material Icons Outlined';
+  font-size: 15px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures;
+  color: #9dbbd6;
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.diag-style-actuel .note-field .ql-editor .dxr-ic { order: 0; }
+.diag-style-actuel .note-field .ql-editor .dxr-name { order: 2; }
+.diag-style-actuel .note-field .ql-editor .dxr-promote { order: 3; }
 
 /* --- Carte : callout plein, coins arrondis, sans accent gauche --- */
 .diag-style-carte .note-field .ql-editor .dxr-head {

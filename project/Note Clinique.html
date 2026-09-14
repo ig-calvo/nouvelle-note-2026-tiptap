@@ -251,7 +251,7 @@
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
   "clinicName": "Clinique du Centre-ville",
-  "diagStyle": "carte",
+  "diagStyle": "actuel",
   "showClinicalTools": true,
   "portalActive": true,
   "startPoints": false,
@@ -365,7 +365,7 @@ function App() {
     setBannerCollapsed(false);
   }
   return (
-    <div className={"app diag-style-" + (t.diagStyle || 'numbered')}>
+    <div className={"app diag-style-" + (t.diagStyle || 'actuel')}>
       <TopBar user={t.doctorName} clinic={t.clinicName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
         <SideNav collapsed={navCollapsed} />
@@ -502,7 +502,7 @@ function App() {
                     onChange={(v) => setTweak('reviewAuthor', v)} />
         <TweakSection label="Diagnostics" />
         <TweakRadio label="Style de région"
-                    value={t.diagStyle || 'numbered'}
+                    value={t.diagStyle || 'actuel'}
                     options={[
                       { value: 'numbered', label: 'Numéroté' },
                       { value: 'actuel', label: 'Actuel' },
