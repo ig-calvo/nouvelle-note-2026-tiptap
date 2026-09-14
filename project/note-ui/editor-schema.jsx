@@ -558,7 +558,7 @@ function buildEditorExtensions(placeholder) {
   const T = window.Tiptap;
   return [
     T.StarterKit.configure({ hardBreak: false, horizontalRule: false, heading: { levels: [1, 2, 3] } }),
-    T.Placeholder.configure({ placeholder: placeholder || '', showOnlyCurrent: false }),
+    T.Placeholder.configure({ placeholder: placeholder || '', showOnlyCurrent: true }),
     T.Underline,
     T.TextStyle,
     T.Color,
