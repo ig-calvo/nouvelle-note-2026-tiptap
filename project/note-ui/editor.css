@@ -140,7 +140,11 @@
 /* ============================================================
    Diagnostic region — variantes (tweak "Style de région").
    Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
-   du même nom n'y ajoute que la numérotation.
+   du même nom retire cet accent et ajoute pastille numérotée + flèche de
+   liaison par ligne. Carte/Étiquette/Rail reprennent ce même mécanisme
+   (icône masquée, pastille noire, flèche par <p>) par-dessus leur propre
+   habillage (boîte, pilule, bandeau). Numéroté garde son propre repère
+   "1." (pas de pastille) mais gagne lui aussi la flèche par ligne.
    ============================================================ */
 
 /* --- Actuel : le style de base + numérotation, sans barre d'accent ---
@@ -215,19 +219,39 @@
   pointer-events: none;
 }
 
-/* --- Carte : callout plein, coins arrondis, sans accent gauche --- */
+/* --- Carte : callout plein, coins arrondis, sans accent gauche ---
+   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
+   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
+   .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
+.diag-style-carte {
+  counter-reset: omd-diag-counter;
+}
 .diag-style-carte .note-field .ql-editor .dxr-head {
   background: #ECF3F7;
   border-left: none;
   border-radius: 10px 10px 0 0;
   padding: 8px 14px 5px 12px;
+  counter-increment: omd-diag-counter;
 }
 .diag-style-carte .note-field .ql-editor .dxr-ic {
-  background: rgba(25, 117, 209, 0.14);
-  color: #1975d1;
+  display: none;
+}
+.diag-style-carte .note-field .ql-editor .dxr-head::before {
+  content: counter(omd-diag-counter);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  padding: 3px;
-  font-size: 13px !important;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
 .diag-style-carte .note-field .ql-editor .dxr-name {
   font-weight: 500;
@@ -241,9 +265,38 @@
   border-left: none;
   border-radius: 0 0 10px 10px;
   padding: 4px 14px 10px;
+  padding-left: 28px;
+}
+.diag-style-carte .note-field .ql-editor .dxr-body p {
+  position: relative;
+}
+.diag-style-carte .note-field .ql-editor .dxr-body p::before {
+  content: 'subdirectory_arrow_right';
+  font-family: 'Material Icons Outlined';
+  font-size: 15px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures;
+  color: #9dbbd6;
+  position: absolute;
+  left: -16px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  top: 4px;
+  user-select: none;
+  pointer-events: none;
 }
 
-/* --- Étiquette : pill compacte flottante + corps flush indenté --- */
+/* --- Étiquette : pill compacte flottante + corps flush indenté ---
+   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
+   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
+   .dxr-head, gouttière de 24px dans .dxr-body pour la flèche de chaque <p>
+   (padding-left du head = 8px ici, d'où le -16px qui reste identique). */
+.diag-style-etiquette {
+  counter-reset: omd-diag-counter;
+}
 .diag-style-etiquette .note-field .ql-editor .dxr-head {
   display: inline-flex;
   background: var(--brand-primary-container, #e5e2f3);
@@ -251,10 +304,27 @@
   border-radius: 999px;
   padding: 3px 12px 3px 8px;
   margin-bottom: 3px;
+  counter-increment: omd-diag-counter;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-ic {
-  font-size: 13px !important;
-  color: var(--brand-primary, rgb(46, 56, 166));
+  display: none;
+}
+.diag-style-etiquette .note-field .ql-editor .dxr-head::before {
+  content: counter(omd-diag-counter);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-name {
   font-weight: 500;
@@ -266,19 +336,64 @@
 .diag-style-etiquette .note-field .ql-editor .dxr-body {
   border-left: none;
   padding: 1px 12px 9px 20px;
+  padding-left: 24px;
   border-bottom: 1px solid rgba(46, 56, 166, 0.12);
 }
+.diag-style-etiquette .note-field .ql-editor .dxr-body p {
+  position: relative;
+}
+.diag-style-etiquette .note-field .ql-editor .dxr-body p::before {
+  content: 'subdirectory_arrow_right';
+  font-family: 'Material Icons Outlined';
+  font-size: 15px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures;
+  color: #9dbbd6;
+  position: absolute;
+  left: -16px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  top: 4px;
+  user-select: none;
+  pointer-events: none;
+}
 
-/* --- Rail : bandeau plein largeur + corps indenté + trait de fermeture --- */
+/* --- Rail : bandeau plein largeur + corps indenté + trait de fermeture ---
+   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
+   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
+   .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
+.diag-style-rail {
+  counter-reset: omd-diag-counter;
+}
 .diag-style-rail .note-field .ql-editor .dxr-head {
   background: #eef1f6;
   border-left: none;
   border-radius: 6px 6px 0 0;
   padding: 6px 12px;
+  counter-increment: omd-diag-counter;
 }
 .diag-style-rail .note-field .ql-editor .dxr-ic {
-  font-size: 14px !important;
-  color: #3d5a80;
+  display: none;
+}
+.diag-style-rail .note-field .ql-editor .dxr-head::before {
+  content: counter(omd-diag-counter);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
 }
 .diag-style-rail .note-field .ql-editor .dxr-name {
   font-weight: 500;
@@ -290,7 +405,29 @@
 .diag-style-rail .note-field .ql-editor .dxr-body {
   border-left: none;
   padding: 1px 12px 9px 18px;
+  padding-left: 28px;
   border-bottom: 1px solid #dde2ea;
+}
+.diag-style-rail .note-field .ql-editor .dxr-body p {
+  position: relative;
+}
+.diag-style-rail .note-field .ql-editor .dxr-body p::before {
+  content: 'subdirectory_arrow_right';
+  font-family: 'Material Icons Outlined';
+  font-size: 15px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures;
+  color: #9dbbd6;
+  position: absolute;
+  left: -16px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  top: 4px;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* --- Numéroté : titre + bullet numéroté selon la position dans la note ---
@@ -331,6 +468,31 @@
 .diag-style-numbered .note-field .ql-editor .dxr-body {
   border-left: none;
   padding: 1px 0 8px 23px;
+}
+.diag-style-numbered .note-field .ql-editor .dxr-body p {
+  position: relative;
+}
+/* Flèche de liaison par ligne, même mécanisme que « actuel » (voir plus
+   haut) — mais ce style garde son propre repère « 1. » (pas de pastille
+   noire), d'où un alignement à gauche (-23px = padding-left du corps) plutôt
+   qu'au centre d'une pastille de largeur fixe. */
+.diag-style-numbered .note-field .ql-editor .dxr-body p::before {
+  content: 'subdirectory_arrow_right';
+  font-family: 'Material Icons Outlined';
+  font-size: 15px;
+  line-height: 1;
+  font-feature-settings: 'liga';
+  -webkit-font-feature-settings: 'liga';
+  font-variant-ligatures: common-ligatures;
+  color: #9dbbd6;
+  position: absolute;
+  left: -23px;
+  width: 18px;
+  display: flex;
+  justify-content: center;
+  top: 4px;
+  user-select: none;
+  pointer-events: none;
 }
 
 /* ============================================================
