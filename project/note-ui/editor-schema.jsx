@@ -568,10 +568,14 @@ function makeSectionSplitNode() {
         down.setAttribute('aria-label', 'Descendre la ligne d’un bloc');
         down.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">keyboard_arrow_down</span>';
 
-        bar.appendChild(grip);
+        // Libellé aligné à gauche, au même niveau que les autres titres de
+        // section (ex. « Détails de la consultation ») — la poignée n'est
+        // donc plus en tête, elle rejoint à droite les flèches haut/bas,
+        // l'autre façon de déplacer la ligne.
         bar.appendChild(label);
         bar.appendChild(count);
         bar.appendChild(spacer);
+        bar.appendChild(grip);
         bar.appendChild(up);
         bar.appendChild(down);
 
