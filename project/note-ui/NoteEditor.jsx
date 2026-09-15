@@ -82,9 +82,29 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
     setDocStats(stats);
-    window.dispatchEvent(new CustomEvent('note:chips-change', { detail: stats.counts }));
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
   }
+
+  // Pied de note (barre du bas, voir Note Clinique.html) : un résumé
+  // « complété/total » par nature de document transmissible, plutôt que le
+  // simple compte de chips d'avant — remplace note:chips-change. Recalculé
+  // aussi bien à chaque changement de contenu (docStats) qu'à chaque
+  // complétion/transmission dans le checkout (txState), les deux faisant
+  // varier complete/transmitted dans buildTransmissionDocs().
+  const DOC_KIND_ORDER = ['prescription', 'clinicalTool', 'lab', 'imaging', 'referral', 'instructions'];
+  React.useEffect(function() {
+    var byKind = {};
+    buildTransmissionDocs().forEach(function(d) {
+      if (!byKind[d.kind]) byKind[d.kind] = { total: 0, done: 0 };
+      byKind[d.kind].total++;
+      if (d.complete && d.transmitted) byKind[d.kind].done++;
+    });
+    var summary = DOC_KIND_ORDER.filter(function(k) { return byKind[k]; }).map(function(k) {
+      var meta = window.TX_META[k] || {};
+      return { kind: k, icon: meta.icon || 'description', done: byKind[k].done, total: byKind[k].total };
+    });
+    window.dispatchEvent(new CustomEvent('note:doc-status-change', { detail: summary }));
+  }, [docStats, txState]); // eslint-disable-line
 
   // Mode révision — recalcule le compteur/liste de changements à chaque
   // update (pas `transaction`, qui feu aussi sur les changements de simple

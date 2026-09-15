@@ -276,3 +276,36 @@ Effet de bord bienvenu : `reviewingMode` et `reviewAuthor` (mode révision) devi
 ## L. Contexte de branche
 
 Ce plan est écrit depuis `feat/mode-revision`, qui porte du travail **non commité** sans rapport avec le checkout : le mode révision ([review-mode.jsx](project/note-ui/review-mode.jsx)) et la prévisualisation de fichiers joints ([DocumentViewerModal.jsx](project/note-ui/DocumentViewerModal.jsx)). Commiter ou isoler ce travail avant d'attaquer le checkout.
+
+---
+
+## M. Proposition revue — nœud `17744:261398` (« la dernière version »)
+
+Source : section **« Proposition revue »**, même fichier Figma, node `17744:261398` (et le pied de note isolé `17782:31054`). Six écrans vérifiés à cette date : `17744:261425`/`273483`/`266931`/`271266` (Ordonnance, 4 états), `17744:265214` (Note, avec le nouveau pied), `17744:269391` (Avant sélection, un outil clinique/imagerie).
+
+C'est un écart **beaucoup plus large** que V7 : deux sous-systèmes entiers qui n'existent pas dans le code, et un changement d'architecture (panneau plein écran vs. bottom-sheet actuel). Avant de coder quoi que ce soit ici, il faut trancher le scope (§M.3) — cette section documente l'écart, elle ne lance pas l'implémentation.
+
+### M.1 — Écart incrémental (même portée fonctionnelle, habillage différent)
+
+- **Pied de la note** (`17744:265214`, `17782:31054`) : remplace les compteurs bruts par type de chip (Rx/labo/imagerie/référence/diagnostic/fichier — [Note Clinique.html:416-468](project/Note%20Clinique.html#L416-L468)) par 3 pastilles **fraction complété/total** — « Documents » (bundle Rx + outils cliniques, ex. `℞ 1/5` `🔧 2/2`), « Portail Patient » (ex. `2`), « Pré-facturation » (montant, ex. `231,75$`). Une pastille à `total` atteint passe grisée (satisfaite) plutôt que colorée.
+- **Statuts d'en-tête** : texte souligné + point coloré (« 2 à compléter · 2 Prêt · 0 transmis ») au lieu des pastilles pleines actuelles ([TransmissionModal.jsx](project/note-ui/TransmissionModal.jsx) `tx.pill`).
+- **Regroupement sidebar** : catégories nommées et comptées — MÉDICATION 1 / LABORATOIRE 1 / IMAGERIE 2 / CONSULTATION 0 / EXAMENS DIAGNOSTIQUES 0 — plutôt que ORDONNANCE / OUTILS CLINIQUES actuels.
+- **Destinataire** : liste triée par distance (« 1,2 km »), favoris (♥), et une carte géographique qui s'affiche au focus du champ de recherche (`273483`). Le bottin actuel (`DocumentActionPanel`/`renderSideRow`) n'a ni distance, ni carte, ni favoris.
+- **Icônes par ligne de prescription** (nouvelle/renouvellement/cessation) : déjà amorcé côté code (`variant` dans `NoteEditor.jsx`/`DAP_VARIANT` dans `DocumentActionPanel.jsx`) — à revérifier contre le mapping exact d'icônes des mockups plutôt qu'à reconstruire.
+- **« Renseignements cliniques »** avec compteur de suggestions ✨ et champ « Rechercher au dossier » : proche de ce qui existe déjà derrière le tweak `checkoutSuggestions` (§B4/§I) — à vérifier si c'est bien le même bloc ou un nouveau.
+
+### M.2 — Entièrement nouveau (hors scope actuel)
+
+- **Onglet « Portail patient »** (partage de documents au patient, « 0 élément partagé ») : aucune trace dans le code existant.
+- **Onglet « Pré-facturation »** (services facturables + montant) : idem, rien d'existant.
+- **Carte interactive** pour le choix du destinataire : aucune lib de carte dans le projet actuellement.
+
+*Tranché : ça reste un bottom-sheet (même mécanique que `TransmissionModal` actuel, animation d'entrée gardée) — pas de migration vers un panneau plein écran. Les captures qui semblaient montrer un panneau remplaçant le `Sommaire` sont trompeuses (le bottom-sheet actuel couvre déjà quasi tout le viewport à 95vh).*
+
+### M.3 — Questions à trancher avant de coder
+
+1. **Scope** : construit-on Portail patient et Pré-facturation maintenant (deux sous-systèmes complets), ou seulement leur pastille de pied de note à titre décoratif/désactivé pour l'instant ?
+2. **Carte** : vraie intégration cartographique (nouvelle dépendance) ou simple illustration statique façon maquette ?
+3. **Pied de note** : si le reste est différé, applique-t-on déjà le nouveau design de pastilles (Documents/Portail Patient/Pré-facturation) au pied actuel, avec Portail Patient/Pré-facturation à 0 en dur ?
+
+**Première étape retenue (voir §M.4 ci-dessous) : le pied de note seul**, le reste (sidebar par catégorie, destinataire distance/favoris/carte, onglets Portail patient/Pré-facturation) reste en attente.

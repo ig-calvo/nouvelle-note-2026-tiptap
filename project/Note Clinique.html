@@ -286,6 +286,22 @@ class AppErrorBoundary extends React.Component {
   }
 }
 
+// Libellés (tooltip) + style des pastilles du pied de note — voir le
+// `note-footer` dans App, PLAN-checkout-v7.md §M.
+const DOC_KIND_LABEL = {
+  prescription: 'Ordonnance', clinicalTool: 'Outils cliniques', lab: 'Laboratoire',
+  imaging: 'Imagerie', referral: 'Référence', instructions: 'Consignes au patient',
+};
+function docPillStyle(done) {
+  return {
+    display: 'flex', alignItems: 'center', gap: 5,
+    padding: '5px 11px', borderRadius: 20,
+    background: done ? '#f0f0f5' : '#e9f2fc',
+    color: done ? 'rgba(0,0,0,0.45)' : '#1975d1',
+    fontWeight: 700, fontSize: 13, fontFamily: "'Inter',sans-serif",
+  };
+}
+
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [navCollapsed, setNavCollapsed] = React.useState(function () {
@@ -304,15 +320,15 @@ function App() {
   const [smartModal, setSmartModal] = React.useState(false);
   const [smartActive, setSmartActive] = React.useState(false);
   const [completedNotes, setCompletedNotes] = React.useState([]);
-  const [chipCounts, setChipCounts] = React.useState({});
+  const [docStatusSummary, setDocStatusSummary] = React.useState([]);
   const noteCompleteRef = React.useRef(null);
   const noteSaveDraftRef = React.useRef(null);
   const noteTransmitRef = React.useRef(null);
 
   React.useEffect(() => {
-    function handler(e) { setChipCounts(e.detail || {}); }
-    window.addEventListener('note:chips-change', handler);
-    return () => window.removeEventListener('note:chips-change', handler);
+    function handler(e) { setDocStatusSummary(e.detail || []); }
+    window.addEventListener('note:doc-status-change', handler);
+    return () => window.removeEventListener('note:doc-status-change', handler);
   }, []);
 
   // Notifie l'entrée au dossier quand le portail patient est actif — le
@@ -414,48 +430,26 @@ function App() {
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
-              {/* Prescription counter */}
-              {(chipCounts.prescription > 0) && (
-                <div title="Prescriptions" style={{ position: 'relative', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
-                  <button style={{ background: 'none', border: 0, cursor: 'default', fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 16, color: '#25245E', padding: '4px 2px', letterSpacing: -0.5 }}>Rᴘ</button>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.prescription}</span>
-                </div>
-              )}
-              {/* Lab counter */}
-              {(chipCounts.lab > 0) && (
-                <div title="Laboratoire" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>science</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.lab}</span>
-                </div>
-              )}
-              {/* Imaging counter */}
-              {(chipCounts.imaging > 0) && (
-                <div title="Imagerie" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>radiology</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.imaging}</span>
-                </div>
-              )}
-              {/* Referral counter */}
-              {(chipCounts.referral > 0) && (
-                <div title="Références" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>person_add</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.referral}</span>
-                </div>
-              )}
-              {/* Diagnostic counter */}
-              {(chipCounts.diagnostic > 0) && (
-                <div title="Diagnostics" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 22, color: '#25245E' }}>local_hospital</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.diagnostic}</span>
-                </div>
-              )}
-              {/* File counter */}
-              {(chipCounts.file > 0) && (
-                <div title="Fichiers" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 22, color: '#25245E' }}>attach_file</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.file}</span>
-                </div>
-              )}
+              {/* Pastilles complété/total par nature de document transmissible
+                  (voir PLAN-checkout-v7.md §M) — remplace les anciens compteurs
+                  bruts par type de chip. Grisées une fois done === total. */}
+              {docStatusSummary.map((s) => {
+                const done = s.total > 0 && s.done === s.total;
+                return (
+                  <div key={s.kind} title={DOC_KIND_LABEL[s.kind] || s.kind} style={docPillStyle(done)}>
+                    <span className="material-icons-outlined" style={{ fontSize: 17 }}>{s.icon}</span>
+                    {s.done}/{s.total}
+                  </div>
+                );
+              })}
+              {/* Portail patient : pastille figée à 0, en attente de la
+                  fonctionnalité de partage (PLAN §M.2/M.3) — pas de
+                  pastille pré-facturation tant qu'aucune donnée de
+                  facturation n'existe dans le prototype. */}
+              <div title="Portail patient" style={docPillStyle(true)}>
+                <span className="material-icons-outlined" style={{ fontSize: 17 }}>verified_user</span>
+                0
+              </div>
               <div style={{ flex: 1 }} />
               <button style={{ border: '1px solid #d0d0e0', borderRadius: 8, background: '#eeeef8', padding: '9px 22px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: '#25245E' }}
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
