@@ -125,7 +125,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
         .insertContentAt(pos, blocks)
         .run();
     } else {
-      const doc = initialDocRef.current || window.DEFAULT_DOC();
+      const doc = window.ensureSplit(initialDocRef.current || window.DEFAULT_DOC());
       const idx = window.endOfFirstSectionIndexJSON(doc);
       doc.content.splice.apply(doc.content, [idx, 0].concat(blocks));
       initialDocRef.current = doc;
@@ -176,10 +176,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
-        if (blank) editorRef.current.commands.setContent({ type: 'doc', content: blocks }, true);
-        else editorRef.current.chain().insertContentAt(editorRef.current.state.doc.content.size, blocks).run();
+        // Note vierge : ensureSplit transforme le Titre 2 « Conclusion » du
+        // gabarit en ligne de séparation, à sa place exacte — le contenu du
+        // gabarit est inchangé, seule sa conclusion devient déplaçable.
+        // Note déjà amorcée : on ajoute AU-DESSUS de la ligne existante (fin
+        // des détails) plutôt qu'à la fin du document, qui serait sous la
+        // ligne, donc dans la conclusion.
+        if (blank) editorRef.current.commands.setContent(window.ensureSplit({ type: 'doc', content: blocks }), true);
+        else editorRef.current.chain().insertContentAt(window.splitPosPM(editorRef.current.state.doc), blocks).run();
       } else {
-        initialDocRef.current = { type: 'doc', content: blocks };
+        initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
       if (onOpen) onOpen();
@@ -464,7 +470,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function saveDraft() {
     var id = 'draft-' + Date.now();
     var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
-    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
+    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags }].concat(prev);
@@ -583,7 +589,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   // TransmissionModal (NoteActionPanel) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
-    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
+    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     var stats = window.scanDoc(doc);
     var data = {
       raison: raison,

@@ -156,9 +156,21 @@ function DocInline({ node, keyProp }) {
 // Rendu read-only d'un document Tiptap complet (note complétée) : titres,
 // paragraphes, chips, blocs de référence. Remplace l'ancien rendu à
 // marqueurs {{CHIP}}/{{DIAG}}/{{REF}} — le doc JSON est déjà structuré.
-function DocView({ doc }) {
-  if (!doc || !doc.content) return null;
-  var blocks = doc.content.map(function(node, bi) {
+function DocView({ doc, blocks }) {
+  var source = blocks || (doc && doc.content);
+  if (!source) return null;
+  var out = source.map(function(node, bi) {
+    // Ligne de séparation Détails / Conclusion — même repère qu'en édition
+    // (libellé au-dessus du trait), mais figé : une note complétée est signée,
+    // sa conclusion ne se redécoupe plus.
+    if (node.type === 'sectionSplit') {
+      return (
+        <div key={'ss-' + bi} style={nlStyles.roSplit}>
+          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || 'Conclusion'}</div>
+          <div style={nlStyles.roSplitRule} />
+        </div>
+      );
+    }
     if (node.type === 'heading') {
       var level = (node.attrs && node.attrs.level) || 2;
       var Tag = 'h' + Math.min(3, Math.max(1, level));
@@ -200,7 +212,7 @@ function DocView({ doc }) {
     }
     return null;
   });
-  return <React.Fragment>{blocks}</React.Fragment>;
+  return <React.Fragment>{out}</React.Fragment>;
 }
 
 function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique du Centre-ville", extraNotes = [] }) {
@@ -243,6 +255,37 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     window.dispatchEvent(new CustomEvent('note:add-reference', { detail: { text: refButton.text, source: refButton.source } }));
     setRefButton(null);
     window.getSelection().removeAllRanges();
+  }
+
+  // Aperçu d'une note repliée : la CONCLUSION de la note, telle que
+  // délimitée par la ligne de séparation de l'éditeur. Toutes les notes de
+  // cette liste sont complétées (signées) — les brouillons, eux, ne sortent
+  // pas de l'éditeur (voir NoteStartCards) et ne sont donc pas concernés.
+  //   - note rédigée dans l'éditeur (n.doc) : les blocs sous la ligne ;
+  //   - note de démonstration (pas de doc Tiptap) : son champ `conclusion` ;
+  //   - rien sous la ligne : état vide explicite, jamais un aperçu muet qui
+  //     laisserait croire à un bug d'affichage.
+  function ConclusionPreview({ note }) {
+    if (note.doc && window.conclusionBlocks) {
+      var blocks = window.conclusionBlocks(note.doc);
+      if (!window.conclusionIsEmpty(note.doc)) {
+        return <div style={nlStyles.conclPreviewText}><DocView blocks={blocks} /></div>;
+      }
+    } else if (note.conclusion && note.conclusion.trim()) {
+      return (
+        <div style={nlStyles.conclPreviewText}>
+          {note.conclusion.split("\n").map(function(line, j) {
+            return <p key={j} style={{ margin: "0 0 4px 0" }}>{line}</p>;
+          })}
+        </div>
+      );
+    }
+    return (
+      <div style={nlStyles.conclEmpty}>
+        <span className="material-icons-outlined" style={nlStyles.conclEmptyIcon}>remove</span>
+        Aucune conclusion à cette note
+      </div>
+    );
   }
 
   // Documents transmissibles d'une note déjà complétée, reconstruits depuis son
@@ -387,6 +430,17 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                   </div>
                 </div>
               ) : null}
+
+              {/* Note repliée : la conclusion sert d'aperçu (c'est elle qui
+                  porte l'impression et le plan, donc ce qu'on cherche en
+                  survolant le journal). Dépliée, elle réapparaît à sa place
+                  dans le document, on ne la montre pas deux fois. */}
+              {!isOpen && (
+                <div style={nlStyles.conclPreview}>
+                  <div style={nlStyles.conclLabel}>Conclusion</div>
+                  <ConclusionPreview note={n} />
+                </div>
+              )}
 
               {/* Diagnostics — always visible (collapsed only shows these) */}
               {n.diagnostics && n.diagnostics.length > 0 && (
@@ -597,6 +651,25 @@ const nlStyles = {
   roRefIcon: { fontSize: 15, color: '#8a7f68' },
   roRefSource: { fontSize: 12, fontWeight: 500, color: '#756b56', letterSpacing: '0.02em' },
   roRefBody: { fontSize: 14, fontStyle: 'italic', color: 'rgba(0,0,0,0.68)', lineHeight: 1.5 },
+  roSplit: { margin: '14px 0 6px' },
+  roSplitLabel: {
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)", marginBottom: 3,
+  },
+  roSplitRule: { height: 0, borderTop: '1px solid var(--brand-primary, rgb(46,56,166))', opacity: 0.35 },
+  conclPreview: { marginBottom: 8 },
+  // Aperçu borné à 3 lignes : c'est un résumé de journal, pas la note.
+  // Déplier la note reste le geste pour tout lire.
+  conclPreviewText: {
+    fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25,
+    display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+  },
+  conclEmpty: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    fontSize: 13, fontStyle: 'italic', color: "rgba(0,0,0,0.45)",
+  },
+  conclEmptyIcon: { fontSize: 16, color: "rgba(0,0,0,0.35)" },
   conclLabelWrap: { marginTop: 4, marginBottom: 4 },
   conclLabel: {
     fontSize: 12, fontWeight: 500, letterSpacing: 0.4,

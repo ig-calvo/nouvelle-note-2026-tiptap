@@ -396,7 +396,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const editor = new window.Tiptap.Editor({
       element: hostRef.current,
       extensions: window.buildEditorExtensions(placeholder).concat([slashExtension]),
-      content: initialDoc || window.DEFAULT_DOC(),
+      // ensureSplit : tout document venu d'ailleurs (brouillon repris, dernière
+      // note, gabarit, note d'avant cette fonctionnalité) reçoit sa ligne de
+      // séparation — à la place de son ancien Titre 2 « Conclusion » quand il
+      // en avait un, sinon à la fin. Un seul point de passage pour tous les
+      // chemins de montage.
+      content: window.ensureSplit(initialDoc || window.DEFAULT_DOC()),
       editorProps: {
         attributes: { class: 'ql-editor ProseMirror' }
       },

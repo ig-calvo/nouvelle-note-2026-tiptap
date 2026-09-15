@@ -536,3 +536,123 @@
 .btn-t:hover { background: var(--bg-subtle); color: var(--fg-1); }
 .btn .material-symbols-outlined { font-size: 16px; }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ============================================================
+   Ligne de séparation Détails / Conclusion — node bloc atomique
+   (.nsx > .nsx-bar + .nsx-rule), voir SectionSplitNode dans
+   editor-schema.jsx.
+
+   Le libellé « Conclusion » est AU-DESSUS du trait et reste visible en
+   permanence : la ligne n'est pas un simple filet décoratif, c'est le
+   repère qui dit où commence la conclusion de la note.
+   ============================================================ */
+.note-field .ql-editor .nsx {
+  margin: 18px 0 10px;
+  user-select: none;
+}
+.note-field .ql-editor .nsx-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 2px;
+  border-radius: 6px;
+  cursor: grab;
+  outline: none;
+  transition: background 120ms var(--motion-ease, ease);
+}
+.note-field .ql-editor .nsx-bar:hover {
+  background: rgba(46, 56, 166, 0.06);
+}
+/* Anneau de focus visible (WCAG 2.4.7) — double trait pour rester lisible
+   quel que soit le contenu qui passe dessous. */
+.note-field .ql-editor .nsx-bar:focus-visible {
+  background: rgba(46, 56, 166, 0.08);
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--brand-primary, rgb(46, 56, 166));
+}
+.note-field .ql-editor .nsx--dragging .nsx-bar {
+  cursor: grabbing;
+  background: rgba(46, 56, 166, 0.1);
+}
+.note-field .ql-editor .nsx-grip {
+  font-size: 18px !important;
+  color: var(--fg-4, rgb(107, 107, 107));
+  flex-shrink: 0;
+  cursor: inherit;
+}
+/* Même traitement typographique que .ql-editor h2 — la conclusion garde
+   l'apparence d'un titre de section, elle en a juste gagné la mobilité. */
+.note-field .ql-editor .nsx-label {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+  color: var(--fg-3, rgb(74, 73, 80));
+}
+.note-field .ql-editor .nsx-count {
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--fg-4, rgb(107, 107, 107));
+}
+.note-field .ql-editor .nsx-spacer { flex: 1; }
+.note-field .ql-editor .nsx-nudge {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--fg-3, rgb(74, 73, 80));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms var(--motion-ease, ease), background 120ms;
+}
+.note-field .ql-editor .nsx-bar:hover .nsx-nudge,
+.note-field .ql-editor .nsx-bar:focus-visible .nsx-nudge,
+.note-field .ql-editor .nsx-nudge:focus-visible {
+  opacity: 1;
+}
+.note-field .ql-editor .nsx-nudge:hover { background: rgba(46, 56, 166, 0.12); }
+.note-field .ql-editor .nsx-nudge:disabled { opacity: 0.25; cursor: default; background: transparent; }
+.note-field .ql-editor .nsx-bar:hover .nsx-nudge:disabled { opacity: 0.25; }
+.note-field .ql-editor .nsx-nudge .material-icons-outlined { font-size: 18px; }
+.note-field .ql-editor .nsx-rule {
+  height: 0;
+  border-top: 1px solid var(--brand-primary, rgb(46, 56, 166));
+  opacity: 0.35;
+}
+.note-field .ql-editor .nsx--dragging .nsx-rule { opacity: 0.6; }
+
+/* Indicateur de dépôt pendant le glisser — la ligne s'ancre à la frontière
+   d'un bloc, jamais au pixel : le trait montre exactement où elle se posera.
+   Posé en position fixe SUR LE BODY (voir showDropLine) : ProseMirror annule
+   toute classe ou style ajouté aux blocs qu'il gère. */
+.nsx-drop-line {
+  position: fixed;
+  z-index: 60;
+  height: 0;
+  border-top: 2px solid var(--brand-primary, rgb(46, 56, 166));
+  pointer-events: none;
+}
+.nsx-drop-line::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-primary, rgb(46, 56, 166));
+}
+body.nsx-dragging-body { cursor: grabbing; }
+body.nsx-dragging-body * { cursor: grabbing !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .note-field .ql-editor .nsx-bar,
+  .note-field .ql-editor .nsx-nudge { transition: none; }
+}
