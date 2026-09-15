@@ -710,6 +710,12 @@
    ============================================================ */
 .note-field .ql-editor .nsx {
   margin: 18px 0 10px;
+  /* Déborde à droite jusque sous le bouton « Tt » (bascule de la barre de
+     mise en forme), qui flotte hors de .ql-editor dans .note-field-shell :
+     4px de padding-right du .ql-editor + 8px de gap du shell + 30px de
+     largeur du bouton. Sans ce débord, la barre et le trait s'arrêtaient
+     avant, en retrait par rapport aux autres titres de section. */
+  margin-right: -42px;
   user-select: none;
 }
 .note-field .ql-editor .nsx-bar {
