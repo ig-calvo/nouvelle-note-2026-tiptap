@@ -338,6 +338,22 @@ function App() {
       return prev.map((n, i) => i === 0 ? { ...n, episodeId: epId } : n);
     });
   }
+  // Complète une note archive un instantané figé (txState) — mais le
+  // checkout peut continuer sur ses documents restants (ex. l'ordonnance)
+  // après cet instant (voir finalizeNote/frozenDocs dans TransmissionModal) :
+  // sans ce rappel, ce travail ultérieur ne serait jamais reflété dans le
+  // Journal, qui montrerait pour toujours « non complétée / non transmise ».
+  // Sûr de ne cibler que la note qu'on vient d'archiver : le flux de
+  // transmission bloque l'interface tant qu'il est ouvert, donc aucune autre
+  // note ne peut se glisser devant elle dans la liste entre-temps.
+  function patchLastCompletedTx(docId, patch) {
+    setCompletedNotes(prev => {
+      if (!prev.length) return prev;
+      const first = prev[0];
+      const nextTxState = { ...first.txState, [docId]: { ...(first.txState && first.txState[docId]), ...patch } };
+      return [{ ...first, txState: nextTxState }, ...prev.slice(1)];
+    });
+  }
   function handleNoteComplete(data) {
     const months = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
     const d = new Date(data.date + 'T' + (data.time || '00:00'));
@@ -378,6 +394,7 @@ function App() {
               isOpen={noteOpen}
               onOpen={handleNoteOpen}
               onComplete={handleNoteComplete}
+              onPatchArchivedTx={patchLastCompletedTx}
               completeRef={noteCompleteRef}
               doctorName={t.doctorName}
               institution={t.clinicName}

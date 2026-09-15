@@ -202,16 +202,24 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onClose }) {
+function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onPatchArchivedNote, onClose }) {
   const [selectedId, setSelectedId] = React.useState(initialSelectedId || (readOnly ? (docs[0] && docs[0].id) : null) || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
   const [screen, setScreen] = React.useState('review'); // 'review' | 'print' | 'fax'
   const [faxPrefill, setFaxPrefill] = React.useState(null);
+  // Finaliser la note (voir finalizeNote) réinitialise l'éditeur en amont
+  // (docStats/txState remis à vide pour une nouvelle note) — si des documents
+  // restent à transmettre, ce modal doit continuer à fonctionner dessus
+  // indépendamment de cette remise à zéro : on en fige alors un instantané
+  // local, et toute la suite (sélection, compteurs, patch) l'utilise à la
+  // place de la prop `docs` tant qu'il existe.
+  const [frozenDocs, setFrozenDocs] = React.useState(null);
+  const effectiveDocs = frozenDocs || docs;
 
   React.useEffect(function () {
-    if (selectedId !== NOTE_ITEM_ID && docs.length && !docs.some(function (d) { return d.id === selectedId; })) {
-      setSelectedId(docs[0].id);
+    if (selectedId !== NOTE_ITEM_ID && effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
+      setSelectedId(effectiveDocs[0].id);
     }
-  }, [docs]); // eslint-disable-line
+  }, [effectiveDocs]); // eslint-disable-line
 
   React.useEffect(function () {
     function onKey(e) { if (e.key === 'Escape' && screen === 'review') onClose(); }
@@ -220,17 +228,38 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   }, [screen, onClose]);
 
   const isNoteSelected = !readOnly && selectedId === NOTE_ITEM_ID;
-  const selected = isNoteSelected ? null : (docs.find(function (d) { return d.id === selectedId; }) || null);
+  const selected = isNoteSelected ? null : (effectiveDocs.find(function (d) { return d.id === selectedId; }) || null);
   const meta = selected ? TX_META[selected.kind] : null;
 
   const counts = { todo: 0, ready: 0, done: 0 };
-  docs.forEach(function (d) { counts[txStatus(d)]++; });
+  effectiveDocs.forEach(function (d) { counts[txStatus(d)]++; });
 
-  const rxDocs = docs.filter(function (d) { return d.kind === 'prescription'; });
-  const toolDocs = docs.filter(function (d) { return d.kind !== 'prescription'; });
-  const pendingDocs = docs.filter(function (d) { return !(d.complete && d.transmitted); });
+  const rxDocs = effectiveDocs.filter(function (d) { return d.kind === 'prescription'; });
+  const toolDocs = effectiveDocs.filter(function (d) { return d.kind !== 'prescription'; });
+  const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
 
-  function patch(id, p) { if (onPatch) onPatch(id, p); }
+  // Identité patient — même source unique que PatientBanner (window.NOTE_DATA.PATIENT) :
+  // le flux de transmission peut s'ouvrir en lecture seule depuis le journal
+  // d'une autre note, il faut donc rappeler de qui il s'agit.
+  const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
+  const patientName = P.name || 'Geneviève Tremblay';
+  const patientSub = (P.sex === 'M' ? 'Homme né le' : 'Femme née le') + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
+  const patientRamq = P.ramq || 'TREG 8705 0301';
+
+  // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
+  // plus remonter au txState vivant de l'éditeur (déjà réinitialisé pour une
+  // nouvelle note) : il modifie l'instantané local ET la note déjà archivée
+  // dans le Journal (onPatchArchivedNote), sans quoi la suite de la
+  // transmission (destinataire ajouté, document complété/transmis) ne
+  // survivrait pas à la fermeture de ce modal.
+  function patch(id, p) {
+    if (frozenDocs) {
+      setFrozenDocs(function (prev) { return prev.map(function (d) { return d.id === id ? Object.assign({}, d, p) : d; }); });
+      if (onPatchArchivedNote) onPatchArchivedNote(id, p);
+      return;
+    }
+    if (onPatch) onPatch(id, p);
+  }
 
   function addRecipient(doc, r) {
     if (doc.recipients.some(function (x) { return x.name === r.name; })) return;
@@ -245,13 +274,21 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // documents non transmis, on revient à l'écran de revue ; sinon on ferme
   // tout le flux (règle sticky Figma, voir PLAN §2.6).
   function afterTransmit(thisId) {
-    var remaining = docs.filter(function (d) { return d.id !== thisId && !(d.complete && d.transmitted); }).length;
+    var remaining = effectiveDocs.filter(function (d) { return d.id !== thisId && !(d.complete && d.transmitted); }).length;
     setScreen('review');
     setFaxPrefill(null);
     if (remaining === 0) onClose();
   }
 
-  function markComplete(doc) { if (onComplete) onComplete(doc.id); }
+  function markComplete(doc) {
+    if (frozenDocs) {
+      var idsKey = doc.items.map(function (it) { return it.id; }).sort().join(',');
+      setFrozenDocs(function (prev) { return prev.map(function (d) { return d.id === doc.id ? Object.assign({}, d, { complete: true }) : d; }); });
+      if (onPatchArchivedNote) onPatchArchivedNote(doc.id, { complete: true, itemIds: idsKey });
+      return;
+    }
+    if (onComplete) onComplete(doc.id);
+  }
   function doCompleteAndPrint(doc) { markComplete(doc); setScreen('print'); }
   function doCompleteAndFax(doc, prefill) {
     markComplete(doc);
@@ -270,17 +307,25 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     quickSend(selected);
   }
   function transmitAll() {
-    var ids = docs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
+    var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
     if (window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
 
+  // Finaliser la note ne ferme le flux que s'il ne reste aucun document en
+  // attente (même règle que afterTransmit ci-dessus) — sinon on enchaîne sur
+  // le premier document restant (ex. l'ordonnance) plutôt que de fermer.
   function finalizeNote(meta) {
     if (onFinalizeNote) onFinalizeNote(meta);
     if (window.toast) window.toast('Note complétée', { icon: 'check_circle' });
-    onClose();
+    if (pendingDocs.length === 0) { onClose(); return; }
+    // onFinalizeNote archive la note et réinitialise l'éditeur : figer les
+    // documents restants MAINTENANT (avant que la prop `docs` ne s'effondre
+    // au prochain rendu) pour pouvoir continuer à les transmettre.
+    setFrozenDocs(effectiveDocs);
+    setSelectedId(pendingDocs[0].id);
   }
 
   function onFaxSent(recipient) {
@@ -294,7 +339,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     if (selected) afterTransmit(selected.id);
   }
 
-  const readyCount = docs.filter(function (d) { return d.complete && !d.transmitted; }).length;
+  const readyCount = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).length;
 
   if (screen === 'print' && selected) {
     return (
@@ -333,6 +378,14 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
           <button style={tx.closeBtn} onClick={onClose} aria-label="Fermer">
             <span className="material-icons" style={{ fontSize: 24, color: 'rgba(0,0,0,0.55)' }}>close</span>
           </button>
+        </div>
+
+        <div style={tx.patientRow}>
+          <span style={tx.patientAvatar}>
+            <span className="material-icons" style={{ color: '#8a5cb8', fontSize: 16 }}>person</span>
+          </span>
+          <span style={tx.patientName}>{patientName}</span>
+          <span style={tx.patientMeta}>{[patientSub, patientRamq].join(' · ')}</span>
         </div>
 
         <div style={tx.bodyRow}>
@@ -479,6 +532,18 @@ const tx = {
   headCounts: { display: 'flex', gap: 8, flex: 1 },
   pill: { fontSize: 12.5, fontWeight: 700, borderRadius: 20, padding: '5px 12px' },
   closeBtn: { border: 0, background: 'transparent', cursor: 'pointer', padding: 2, display: 'inline-flex' },
+
+  patientRow: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '9px 26px', borderBottom: '1px solid #ececf2', flexShrink: 0,
+    background: '#faf9fc',
+  },
+  patientAvatar: {
+    width: 26, height: 26, borderRadius: '50%', background: '#ece3f5',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  patientName: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(0,0,0,0.85)' },
+  patientMeta: { fontSize: 13, color: 'rgba(0,0,0,0.55)' },
 
   bodyRow: { flex: 1, display: 'flex', overflow: 'hidden' },
 

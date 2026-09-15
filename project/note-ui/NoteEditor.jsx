@@ -1,5 +1,5 @@
 /* global React */
-function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
+function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
@@ -783,6 +783,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           showSuggestions={checkoutSuggestions}
           noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
+          onPatchArchivedNote={onPatchArchivedTx}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
       }
 
