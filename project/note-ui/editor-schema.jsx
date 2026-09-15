@@ -570,14 +570,14 @@ function makeSectionSplitNode() {
 
         // Libellé aligné à gauche, au même niveau que les autres titres de
         // section (ex. « Détails de la consultation ») — la poignée n'est
-        // donc plus en tête, elle rejoint à droite les flèches haut/bas,
-        // l'autre façon de déplacer la ligne.
+        // donc plus en tête, elle est tout au bout de la ligne, après les
+        // flèches haut/bas, l'autre façon de déplacer la ligne.
         bar.appendChild(label);
         bar.appendChild(count);
         bar.appendChild(spacer);
-        bar.appendChild(grip);
         bar.appendChild(up);
         bar.appendChild(down);
+        bar.appendChild(grip);
 
         const rule = document.createElement('div');
         rule.className = 'nsx-rule';
