@@ -181,19 +181,22 @@
   user-select: none;
 }
 
-/* Corps de la région : une flèche « ↳ » qui groupe les lignes sous le
-   diagnostic — seule marque de liaison restante depuis le retrait de la
-   barre d'accent ci-dessus. Alignée sur le CENTRE de la pastille : même
-   largeur (18px) et même décalage gauche que le padding-left du head, pour
-   que les deux marqueurs tombent sur le même axe vertical malgré leurs
-   conteneurs différents (dxr-head en flex, dxr-body en absolu). Le glyphe
+/* Corps de la région : une flèche « ↳ » sur CHAQUE ligne du corps — elles
+   groupent visuellement toutes les lignes sous le diagnostic, pas seulement
+   la première. Chaque <p> devient son propre repère de positionnement pour
+   sa flèche, alignée sur le CENTRE de la pastille : même largeur (18px) et
+   même décalage gauche que le padding-left du head, pour que tous les
+   marqueurs tombent sur le même axe vertical malgré leurs conteneurs
+   différents (dxr-head en flex, chaque <p> du corps en absolu). Le glyphe
    passe par la ligature Material Icons — d'où font-feature-settings, que
    la feuille de Google ne pose que sur .material-icons, pas sur un ::before. */
 .diag-style-actuel .note-field .ql-editor .dxr-body {
-  position: relative;
   padding-left: 28px;
 }
-.diag-style-actuel .note-field .ql-editor .dxr-body::before {
+.diag-style-actuel .note-field .ql-editor .dxr-body p {
+  position: relative;
+}
+.diag-style-actuel .note-field .ql-editor .dxr-body p::before {
   content: 'subdirectory_arrow_right';
   font-family: 'Material Icons Outlined';
   font-size: 15px;
@@ -203,7 +206,7 @@
   font-variant-ligatures: common-ligatures;
   color: #9dbbd6;
   position: absolute;
-  left: 12px;
+  left: -16px;
   width: 18px;
   display: flex;
   justify-content: center;

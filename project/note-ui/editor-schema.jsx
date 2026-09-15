@@ -370,8 +370,27 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (regionDepth < 0 || $from.node(regionDepth).type.name !== 'diagnosticRegion') return false;
         const region = $from.node(regionDepth);
         if ($from.index(regionDepth) !== region.childCount - 1) return false;
-        const afterRegionPos = $from.after(regionDepth);
-        return editor.chain().insertContentAt(afterRegionPos, { type: 'paragraph' }).setTextSelection(afterRegionPos + 1).run();
+        // Le paragraphe vide qui déclenche la sortie ne doit pas rester dans la
+        // région (sinon une ligne fantôme y reste) : on le retire — ou, s'il est
+        // seul, on retire toute la région — avant de placer le curseur dans un
+        // nouveau paragraphe après.
+        if (region.childCount === 1) {
+          const regionStart = $from.before(regionDepth);
+          const regionEnd = $from.after(regionDepth);
+          return editor.chain()
+            .deleteRange({ from: regionStart, to: regionEnd })
+            .insertContentAt(regionStart, { type: 'paragraph' })
+            .setTextSelection(regionStart + 1)
+            .run();
+        }
+        const paraStart = $from.before($from.depth);
+        const paraEnd = $from.after($from.depth);
+        const afterRegionPos = paraStart + 1;
+        return editor.chain()
+          .deleteRange({ from: paraStart, to: paraEnd })
+          .insertContentAt(afterRegionPos, { type: 'paragraph' })
+          .setTextSelection(afterRegionPos + 1)
+          .run();
       },
       Backspace: () => {
         const editor = this.editor;
