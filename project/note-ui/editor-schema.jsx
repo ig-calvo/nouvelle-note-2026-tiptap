@@ -370,8 +370,27 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (regionDepth < 0 || $from.node(regionDepth).type.name !== 'diagnosticRegion') return false;
         const region = $from.node(regionDepth);
         if ($from.index(regionDepth) !== region.childCount - 1) return false;
-        const afterRegionPos = $from.after(regionDepth);
-        return editor.chain().insertContentAt(afterRegionPos, { type: 'paragraph' }).setTextSelection(afterRegionPos + 1).run();
+        // Le paragraphe vide qui déclenche la sortie ne doit pas rester dans la
+        // région (sinon une ligne fantôme y reste) : on le retire — ou, s'il est
+        // seul, on retire toute la région — avant de placer le curseur dans un
+        // nouveau paragraphe après.
+        if (region.childCount === 1) {
+          const regionStart = $from.before(regionDepth);
+          const regionEnd = $from.after(regionDepth);
+          return editor.chain()
+            .deleteRange({ from: regionStart, to: regionEnd })
+            .insertContentAt(regionStart, { type: 'paragraph' })
+            .setTextSelection(regionStart + 1)
+            .run();
+        }
+        const paraStart = $from.before($from.depth);
+        const paraEnd = $from.after($from.depth);
+        const afterRegionPos = paraStart + 1;
+        return editor.chain()
+          .deleteRange({ from: paraStart, to: paraEnd })
+          .insertContentAt(afterRegionPos, { type: 'paragraph' })
+          .setTextSelection(afterRegionPos + 1)
+          .run();
       },
       Backspace: () => {
         const editor = this.editor;
@@ -389,6 +408,421 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
     };
   }
 }); }
+
+// ---------------------------------------------------------
+// SectionSplitNode — la ligne de séparation « Détails de la consultation »
+// (au-dessus) / « Conclusion » (en dessous).
+//
+// C'est un node bloc atomique du document, pas un réglage à part : sa
+// position vit dans le JSON Tiptap, donc elle est propre à chaque note et
+// suit la note partout (brouillon sauvegardé, note complétée, reprise de la
+// dernière note) sans stockage parallèle. La logique pure de découpage vit
+// dans note-sections.jsx ; ici il n'y a que le node, son rendu et ses
+// interactions (glisser à la souris, flèches au clavier).
+//
+// Le node ne porte AUCUN attribut : sa seule donnée est sa position dans
+// doc.content. Déplacer la ligne = déplacer le node.
+// ---------------------------------------------------------
+
+// Blocs de premier niveau du document, séparateur EXCLU, avec leur position
+// ProseMirror et leur élément DOM — base commune du drag (rectangles) et du
+// déplacement (positions).
+function topLevelBlocks(editor) {
+  const out = [];
+  let splitPos = -1;
+  editor.state.doc.forEach(function (node, offset) {
+    if (node.type.name === window.SECTION_SPLIT) { splitPos = offset; return; }
+    let dom = null;
+    try { dom = editor.view.nodeDOM(offset); } catch (e) {}
+    out.push({ node: node, pos: offset, dom: dom && dom.nodeType === 1 ? dom : null });
+  });
+  return { blocks: out, splitPos: splitPos };
+}
+
+// Slot courant de la ligne = nombre de blocs de contenu au-dessus d'elle.
+function currentSplitSlot(editor) {
+  let slot = 0, found = -1;
+  editor.state.doc.forEach(function (node) {
+    if (found >= 0) return;
+    if (node.type.name === window.SECTION_SPLIT) { found = slot; return; }
+    slot++;
+  });
+  return found;
+}
+
+// Déplace la ligne au slot demandé, en UNE transaction (suppression +
+// réinsertion) : l'historique l'annule d'un seul Ctrl+Z, et le garde
+// anti-suppression ci-dessous ne voit jamais de document sans séparateur.
+function moveSplitToSlot(editor, slot, refocus) {
+  const info = topLevelBlocks(editor);
+  if (info.splitPos < 0) return false;
+  const blocks = info.blocks;
+  const target = Math.max(0, Math.min(slot, blocks.length));
+  const from = currentSplitSlot(editor);
+  if (target === from) return false;
+
+  const doc = editor.state.doc;
+  const splitNode = doc.nodeAt(info.splitPos);
+  if (!splitNode) return false;
+  const plan = window.splitMovePlan({
+    blockPositions: blocks.map(function (b) { return b.pos; }),
+    splitPos: info.splitPos,
+    splitSize: splitNode.nodeSize,
+    docSize: doc.content.size,
+    currentSlot: from,
+    targetSlot: target
+  });
+  if (!plan) return false;
+
+  const tr = editor.state.tr;
+  tr.delete(plan.from, plan.to);
+  tr.insert(tr.mapping.map(plan.insertAt), splitNode);
+  editor.view.dispatch(tr);
+
+  if (refocus) {
+    // Un déplacement sur une longue distance fait recréer le NodeView par
+    // ProseMirror : la poignée qui avait le focus disparaît et le focus retombe
+    // sur <body>. Sans ce rattrapage, un utilisateur au clavier perd la ligne
+    // dès la première touche et ne peut plus la déplacer.
+    // Deux passes volontairement : tout de suite (le nouveau DOM existe déjà,
+    // la transaction est appliquée de façon synchrone) pour que la touche
+    // suivante arrive au bon endroit, puis à la frame suivante pour repasser
+    // après les corrections de focus que le navigateur applique à la fin de la
+    // distribution de l'évènement clavier.
+    refocusSplitBar(editor);
+    requestAnimationFrame(function () { refocusSplitBar(editor); });
+  }
+  return true;
+}
+
+function refocusSplitBar(editor) {
+  const bar = editor.view.dom.querySelector('.nsx-bar');
+  if (bar && document.activeElement !== bar) bar.focus({ preventScroll: true });
+}
+
+function makeSectionSplitNode() {
+  const T = window.Tiptap;
+  return T.Node.create({
+    name: window.SECTION_SPLIT,
+    group: 'block',
+    atom: true,
+    // Ni sélectionnable ni déplaçable par le drag natif de ProseMirror : la
+    // ligne ne doit pas pouvoir être sélectionnée puis effacée par mégarde, et
+    // son déplacement passe par la poignée (ancré aux frontières de blocs),
+    // jamais par un glisser-déposer libre.
+    selectable: false,
+    draggable: false,
+    parseHTML() { return [{ tag: 'div[data-section-split]' }]; },
+    renderHTML() { return ['div', { 'data-section-split': '', class: 'nsx' }]; },
+
+    addNodeView() {
+      return function (props) {
+        const editor = props.editor;
+
+        const dom = document.createElement('div');
+        dom.className = 'nsx';
+        dom.setAttribute('data-section-split', '');
+        dom.setAttribute('contenteditable', 'false');
+
+        // La barre entière est le contrôle : grande cible de pointage, et un
+        // seul élément focusable qui porte le rôle ARIA « separator ».
+        const bar = document.createElement('div');
+        bar.className = 'nsx-bar';
+        bar.setAttribute('role', 'separator');
+        bar.setAttribute('aria-orientation', 'horizontal');
+        bar.setAttribute('tabindex', '0');
+        bar.setAttribute('aria-label', 'Début de la conclusion — flèches haut et bas pour déplacer');
+
+        const grip = document.createElement('span');
+        grip.className = 'material-icons-outlined nsx-grip';
+        grip.textContent = 'drag_indicator';
+        grip.setAttribute('aria-hidden', 'true');
+
+        const label = document.createElement('span');
+        label.className = 'nsx-label';
+        label.textContent = window.CONCLUSION_LABEL;
+
+        const count = document.createElement('span');
+        count.className = 'nsx-count';
+
+        const spacer = document.createElement('span');
+        spacer.className = 'nsx-spacer';
+
+        // Alternative au glisser pour les utilisateurs de pointeur qui ne
+        // peuvent pas maintenir-et-déplacer (WCAG 2.5.7). tabindex=-1 : au
+        // clavier, les flèches sur la barre focalisée font déjà le travail, on
+        // n'ajoute pas deux tabulations de plus par note.
+        const up = document.createElement('button');
+        up.type = 'button';
+        up.className = 'nsx-nudge';
+        up.tabIndex = -1;
+        up.title = 'Monter la ligne d’un bloc';
+        up.setAttribute('aria-label', 'Monter la ligne d’un bloc');
+        up.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">keyboard_arrow_up</span>';
+
+        const down = document.createElement('button');
+        down.type = 'button';
+        down.className = 'nsx-nudge';
+        down.tabIndex = -1;
+        down.title = 'Descendre la ligne d’un bloc';
+        down.setAttribute('aria-label', 'Descendre la ligne d’un bloc');
+        down.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">keyboard_arrow_down</span>';
+
+        // Libellé aligné à gauche, au même niveau que les autres titres de
+        // section (ex. « Détails de la consultation ») — la poignée n'est
+        // donc plus en tête, elle est tout au bout de la ligne, après les
+        // flèches haut/bas, l'autre façon de déplacer la ligne.
+        bar.appendChild(label);
+        bar.appendChild(count);
+        bar.appendChild(spacer);
+        bar.appendChild(up);
+        bar.appendChild(down);
+        bar.appendChild(grip);
+
+        const rule = document.createElement('div');
+        rule.className = 'nsx-rule';
+
+        dom.appendChild(bar);
+        dom.appendChild(rule);
+
+        // --- état ARIA + compteur, resynchronisés à chaque changement du doc
+        // (ajouter une ligne change le maximum atteignable, pas seulement la
+        // position de la ligne — le node lui-même, lui, ne change jamais, donc
+        // update() du NodeView ne suffirait pas).
+        function sync() {
+          const json = editor.getJSON();
+          const slot = window.splitSlot(json);
+          const max = window.splitMaxSlot(json);
+          const n = window.conclusionLineCount(json);
+          bar.setAttribute('aria-valuemin', '0');
+          bar.setAttribute('aria-valuemax', String(max));
+          bar.setAttribute('aria-valuenow', String(slot < 0 ? max : slot));
+          bar.setAttribute('aria-valuetext', window.splitAriaValueText(json));
+          count.textContent = n === 0 ? 'vide' : n + (n > 1 ? ' lignes' : ' ligne');
+          up.disabled = slot <= 0;
+          down.disabled = slot >= max;
+        }
+        sync();
+        editor.on('update', sync);
+
+        // --- déplacement au clavier (WCAG 2.1.1 / OMNI31) : la barre a le
+        // rôle « separator » focusable, les flèches la déplacent d'un bloc,
+        // Origine/Fin l'envoient aux extrémités.
+        function onKeyDown(e) {
+          let handled = true;
+          const cur = currentSplitSlot(editor);
+          if (cur < 0) return;
+          if (e.key === 'ArrowUp') moveSplitToSlot(editor, cur - 1, true);
+          else if (e.key === 'ArrowDown') moveSplitToSlot(editor, cur + 1, true);
+          else if (e.key === 'Home') moveSplitToSlot(editor, 0, true);
+          else if (e.key === 'End') moveSplitToSlot(editor, window.splitMaxSlot(editor.getJSON()), true);
+          else handled = false;
+          if (handled) { e.preventDefault(); e.stopPropagation(); }
+        }
+        bar.addEventListener('keydown', onKeyDown);
+
+        up.addEventListener('click', function (e) {
+          e.preventDefault();
+          moveSplitToSlot(editor, currentSplitSlot(editor) - 1, true);
+        });
+        down.addEventListener('click', function (e) {
+          e.preventDefault();
+          moveSplitToSlot(editor, currentSplitSlot(editor) + 1, true);
+        });
+        // Les boutons sont dans la barre focusable : sans ça, leurs flèches
+        // remonteraient au gestionnaire de la barre et déplaceraient deux fois.
+        [up, down].forEach(function (b) {
+          b.addEventListener('keydown', function (e) { e.stopPropagation(); });
+        });
+
+        // --- glisser à la souris, ancré aux frontières de blocs
+        let drag = null;
+        let dropLine = null;
+
+        // L'indicateur de dépôt est posé SUR LE BODY, en position fixe, jamais
+        // sur les blocs eux-mêmes : ProseMirror observe les mutations du DOM
+        // qu'il gère et annule à la frame suivante toute classe ou tout style
+        // qu'on y ajoute — un marqueur posé sur un paragraphe disparaissait
+        // donc aussitôt, et le glisser se faisait à l'aveugle.
+        function showDropLine(slot) {
+          if (!drag) return;
+          if (!dropLine) {
+            dropLine = document.createElement('div');
+            dropLine.className = 'nsx-drop-line';
+            document.body.appendChild(dropLine);
+          }
+          const y = window.boundaryY(drag.rects, slot);
+          const host = editor.view.dom.getBoundingClientRect();
+          dropLine.style.top = y + 'px';
+          dropLine.style.left = host.left + 'px';
+          dropLine.style.width = host.width + 'px';
+        }
+
+        function hideDropLine() {
+          if (dropLine && dropLine.parentNode) dropLine.parentNode.removeChild(dropLine);
+          dropLine = null;
+        }
+
+        function onMouseMove(e) {
+          if (!drag) return;
+          const slot = window.boundarySlotFromY(drag.rects, e.clientY);
+          if (slot !== drag.slot) {
+            drag.slot = slot;
+            showDropLine(slot);
+          }
+        }
+
+        function onMouseUp() {
+          if (!drag) return;
+          const slot = drag.slot;
+          const started = drag.startSlot;
+          endDrag();
+          if (slot !== started) moveSplitToSlot(editor, slot, false);
+        }
+
+        function endDrag() {
+          drag = null;
+          dom.classList.remove('nsx--dragging');
+          document.body.classList.remove('nsx-dragging-body');
+          hideDropLine();
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          document.removeEventListener('keydown', onDragKey, true);
+        }
+
+        function onDragKey(e) {
+          if (e.key === 'Escape') { e.preventDefault(); endDrag(); }
+        }
+
+        function onMouseDown(e) {
+          if (e.button !== 0) return;
+          if (e.target.closest('.nsx-nudge')) return;
+          // preventDefault : sans ça, ProseMirror place une sélection dans le
+          // document au mousedown et le glisser sélectionne du texte.
+          e.preventDefault();
+          const info = topLevelBlocks(editor);
+          const blocks = info.blocks.filter(function (b) { return b.dom; });
+          if (!blocks.length) return;
+          const rects = blocks.map(function (b) {
+            const r = b.dom.getBoundingClientRect();
+            return { top: r.top, bottom: r.bottom };
+          });
+          const startSlot = currentSplitSlot(editor);
+          drag = { blocks: blocks, rects: rects, slot: startSlot, startSlot: startSlot };
+          dom.classList.add('nsx--dragging');
+          document.body.classList.add('nsx-dragging-body');
+          showDropLine(startSlot);
+          bar.focus({ preventScroll: true });
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+          document.addEventListener('keydown', onDragKey, true);
+        }
+        bar.addEventListener('mousedown', onMouseDown);
+
+        return {
+          dom: dom,
+          // Aucun contentDOM : node atomique. ignoreMutation empêche
+          // ProseMirror de re-parser l'intérieur de la barre quand on y change
+          // les attributs ARIA ou le compteur.
+          ignoreMutation() { return true; },
+          stopEvent() { return true; },
+          update(updatedNode) { return updatedNode.type.name === window.SECTION_SPLIT; },
+          destroy() {
+            editor.off('update', sync);
+            bar.removeEventListener('keydown', onKeyDown);
+            bar.removeEventListener('mousedown', onMouseDown);
+            if (drag) endDrag();
+          }
+        };
+      };
+    },
+
+    addProseMirrorPlugins() {
+      const PM = window.Tiptap.pm;
+      function countSplits(doc) {
+        let n = 0;
+        doc.forEach(function (node) { if (node.type.name === window.SECTION_SPLIT) n++; });
+        return n;
+      }
+      function splitOffset(doc) {
+        let at = null;
+        doc.forEach(function (node, offset) {
+          if (at == null && node.type.name === window.SECTION_SPLIT) at = offset;
+        });
+        return at;
+      }
+      // Frontières de blocs de premier niveau — seules positions où un node
+      // bloc peut être réinséré.
+      function topLevelBounds(doc) {
+        const bounds = [0];
+        let acc = 0;
+        doc.forEach(function (node) { acc += node.nodeSize; bounds.push(acc); });
+        return bounds;
+      }
+      return [
+        new PM.Plugin({
+          key: new PM.PluginKey('sectionSplitGuard'),
+          // Une note garde toujours exactement une ligne de séparation.
+          //
+          // Elle peut la perdre par une suppression large (Ctrl+A puis
+          // Supprimer, ou une sélection à cheval sur les deux zones) : on
+          // laisse alors la suppression se faire — la refuser en bloc rendrait
+          // « tout sélectionner puis supprimer » sans effet, ce qui donne
+          // l'impression d'un éditeur cassé — et on repose la ligne là où elle
+          // se trouvait, ramenée à la frontière de bloc la plus proche.
+          // L'undo natif annule les deux d'un coup (même groupe d'historique).
+          //
+          // Elle peut aussi être dupliquée par un copier-coller d'une sélection
+          // qui la contenait : on ne garde alors que la première.
+          appendTransaction(trs, oldState, newState) {
+            if (!trs.some(function (t) { return t.docChanged; })) return null;
+            const after = countSplits(newState.doc);
+
+            if (after === 0) {
+              if (countSplits(oldState.doc) === 0) return null;
+              let at;
+              if (window.docIsBlank(newState.doc.toJSON())) {
+                // Note vidée : on repart de l'agencement par défaut, ligne en
+                // bas. La reposer à la position mappée (donc en tête d'un
+                // document vide) mettrait le seul paragraphe restant dans la
+                // conclusion, et la frappe suivante y tomberait — alors que par
+                // défaut on écrit dans les détails de la consultation.
+                at = newState.doc.content.size;
+              } else {
+                let pos = splitOffset(oldState.doc);
+                trs.forEach(function (t) { pos = t.mapping.map(pos, -1); });
+                at = window.nearestBoundary(topLevelBounds(newState.doc), pos);
+              }
+              return newState.tr.insert(at, newState.schema.nodes[window.SECTION_SPLIT].create());
+            }
+
+            if (after < 2) return null;
+            const extra = [];
+            let seen = false;
+            newState.doc.forEach(function (node, offset) {
+              if (node.type.name !== window.SECTION_SPLIT) return;
+              if (!seen) { seen = true; return; }
+              extra.push({ from: offset, to: offset + node.nodeSize });
+            });
+            const tr = newState.tr;
+            extra.reverse().forEach(function (r) { tr.delete(r.from, r.to); });
+            return tr;
+          }
+        })
+      ];
+    }
+  });
+}
+
+// Position ProseMirror de la ligne de séparation, ou la fin du document si la
+// note n'en a pas — point d'insertion « tout en bas des détails ».
+function splitPosPM(doc) {
+  let found = null;
+  doc.forEach(function (node, offset) {
+    if (found == null && node.type.name === window.SECTION_SPLIT) found = offset;
+  });
+  return found == null ? doc.content.size : found;
+}
 
 // ---------------------------------------------------------
 // ClinicalToolNode — outil clinique inséré dans le flux du texte (node bloc
@@ -558,7 +992,7 @@ function buildEditorExtensions(placeholder) {
   const T = window.Tiptap;
   return [
     T.StarterKit.configure({ hardBreak: false, horizontalRule: false, heading: { levels: [1, 2, 3] } }),
-    T.Placeholder.configure({ placeholder: placeholder || '', showOnlyCurrent: false }),
+    T.Placeholder.configure({ placeholder: placeholder || '', showOnlyCurrent: true }),
     T.Underline,
     T.TextStyle,
     T.Color,
@@ -572,8 +1006,9 @@ function buildEditorExtensions(placeholder) {
     makeChipNode(),
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
+    makeSectionSplitNode(),
     makeClinicalToolNode()
-  ];
+  ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : []);
 }
 
 // ---------------------------------------------------------
@@ -638,7 +1073,10 @@ function buildSlashExtension(handlers) {
 }
 
 // ---------------------------------------------------------
-// Document par défaut — 2 sections (Titre 2 + paragraphe vide).
+// Document par défaut — les détails de la consultation (Titre 2 + paragraphe),
+// puis la ligne de séparation qui ouvre la conclusion. La ligne REMPLACE
+// l'ancien Titre 2 « Conclusion » : elle porte le même libellé en permanence,
+// mais elle est déplaçable (voir SectionSplitNode).
 // Factory (pas une constante partagée) pour ne jamais muter un objet réutilisé.
 // ---------------------------------------------------------
 function DEFAULT_DOC() {
@@ -647,7 +1085,7 @@ function DEFAULT_DOC() {
     content: [
       { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Détails de la consultation' }] },
       { type: 'paragraph' },
-      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Conclusion' }] },
+      { type: 'sectionSplit' },
       { type: 'paragraph' }
     ]
   };
@@ -662,6 +1100,11 @@ function DEFAULT_DOC() {
 function scanDoc(docJson) {
   const chips = [];
   const diagNames = [];
+  // Formulaires d'outils cliniques présents dans la note. Depuis V7 ils sont
+  // transmissibles au même titre qu'une requête (plan V7 §D) — le checkout
+  // s'en sert pour construire un document par formulaire. Liste séparée des
+  // chips : ce sont des nodes atomiques de bloc, pas des entités inline.
+  const tools = [];
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
@@ -671,6 +1114,11 @@ function scanDoc(docJson) {
       } });
     } else if (node.type === 'diagnosticRegion') {
       diagNames.push(node.attrs.name);
+    } else if (node.type === 'clinicalTool') {
+      tools.push({
+        id: node.attrs.instanceId, toolId: node.attrs.toolId,
+        label: node.attrs.label || '', fields: node.attrs.fields || {}
+      });
     }
     (node.content || []).forEach(walk);
   }
@@ -680,8 +1128,111 @@ function scanDoc(docJson) {
   if (diagNames.length) counts.diagnostic = diagNames.length;
   const items = chips.map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
   diagNames.forEach(function (nm, i) { items.push({ id: 'dx-' + i, type: 'diagnostic', label: nm }); });
-  return { chips: chips, counts: counts, items: items, diagNames: diagNames };
+  return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
 }
+
+
+// ---------------------------------------------------------
+// buildTransmissionDocs — documents transmissibles d'une note, à partir du
+// résultat de scanDoc et de l'état de transmission. Vit ici plutôt que dans
+// NoteEditor parce que deux appelants en ont besoin : l'éditeur pour la note
+// en cours, et NotesList pour rouvrir le checkout d'une note DÉJÀ complétée
+// (en lecture seule).
+//
+// `txState` est l'état par document ({recipients, complete, transmitted…}) ;
+// passer {} donne des documents vierges.
+// ---------------------------------------------------------
+function buildTransmissionDocs(docStats, txState) {
+  var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
+
+  function mkItem(e) {
+    var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
+    if (t === 'prescription') {
+      label = [d.molecule, d.dose ? d.dose + ' ' + (d.unit || '') : ''].filter(Boolean).join(' ').trim()
+        || (ent.rx && ent.rx.name) || ent.label;
+      sub = (ent.rx && ent.rx.sig)
+        || [d.route, d.frequency, d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : ''].filter(Boolean).join(' ');
+    } else if (t === 'lab') {
+      label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || 'Demande de laboratoire');
+      sub = [d.priority, d.fasting ? 'à jeun' : ''].filter(Boolean).join(' · ');
+    } else if (t === 'imaging') {
+      label = [d.modality, d.region].filter(Boolean).join(' ') || ent.label;
+      sub = [d.views, d.priority, (d.contrast && d.contrast !== 'Sans') ? 'avec contraste' : ''].filter(Boolean).join(' · ');
+    } else if (t === 'referral') {
+      label = d.specialty || ent.label;
+      sub = [d.priority, d.question].filter(Boolean).join(' · ');
+    } else if (t === 'instructions') {
+      label = d.title || ent.label || 'Consignes au patient';
+    }
+    var rx = ent.rx || {};
+    var ceased = !!rx.ceased;
+    // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
+    // nouvelle, renouvellement (médication déjà au dossier), cessation.
+    var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
+    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant };
+  }
+
+  // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
+  // nouvel item après avoir déjà été complété/transmis (ex. le médecin
+  // ajoute une prescription après avoir faxé l'ordonnance) : dans ce cas,
+  // le contenu signé/envoyé n'est plus celui qui existe réellement. On
+  // invalide donc complete/transmitted dès que la liste d'items ne
+  // correspond plus à celle capturée au moment de la complétion
+  // (`itemIds`, posé par markDocComplete) — les destinataires déjà
+  // choisis restent, eux, valides et ne sont pas perdus.
+  function withTx(id, kind, title, items) {
+    var st = txState[id] || {};
+    var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
+    var stale = !!st.complete && st.itemIds !== idsKey;
+    return {
+      id: id, kind: kind, title: title, items: items,
+      recipients: st.recipients || [],
+      complete: stale ? false : !!st.complete,
+      transmitted: stale ? false : !!st.transmitted,
+      comment: st.comment || '',
+      // Pièces jointes et mot libre au destinataire (Envoi rapide, §C du
+      // plan V7). `attachments` reste à null tant que l'utilisateur n'y a
+      // pas touché : c'est ce qui permet à l'Envoi rapide d'appliquer les
+      // cases cochées par défaut du type de document (TX_META.attachmentsOn)
+      // sans confondre « pas encore ouvert » et « tout décoché ».
+      attachments: st.attachments || null,
+      note: st.note || '',
+    };
+  }
+
+  // Sous-titre d'un outil clinique : la première valeur de champ non vide
+  // du formulaire (« Prostate » pour un examen physique, p. ex.). Rien de
+  // figé — comme tout le reste du checkout, ça vient de la note.
+  function toolSub(fields) {
+    var keys = Object.keys(fields || {});
+    for (var i = 0; i < keys.length; i++) {
+      var v = fields[keys[i]];
+      if (typeof v === 'string' && v.trim()) return v.trim().slice(0, 60);
+    }
+    return '';
+  }
+
+  var docs = [];
+  var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
+  if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
+  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
+    .forEach(function(e) {
+      var item = mkItem(e);
+      docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
+    });
+  // Outils cliniques (plan V7 §D) : un document par formulaire présent dans
+  // la note, et RIEN si la note n'en contient aucun — la catégorie
+  // « Outils cliniques » de la sidebar disparaît alors d'elle-même, sans
+  // titre ni compteur à zéro.
+  (docStats.tools || []).forEach(function(t) {
+    if (!t.id) return;
+    var d = withTx(t.id, 'clinicalTool', t.label || 'Outil clinique', []);
+    d.subtitle = toolSub(t.fields);
+    docs.push(d);
+  });
+  return docs;
+}
+
 
 // true si le document ne contient aucun texte, chip ou node atome — les
 // titres de section par défaut ne comptent pas comme contenu.
@@ -700,12 +1251,18 @@ function docIsBlank(docJson) {
   return blank;
 }
 
-// Position (ProseMirror) juste avant le 2e Titre-2 de premier niveau, sinon
-// la fin du document — « fin de la première section ».
+// Position (ProseMirror) juste avant le 2e Titre-2 de premier niveau ou la
+// ligne de séparation (le premier des deux), sinon la fin du document —
+// « fin de la première section ».
+// La ligne de séparation est une borne au même titre qu'un titre : tout ce
+// qui est inséré par programme (Assistant IA, référence de passage, dépôt
+// depuis le Sommaire) reste ainsi dans les détails de la consultation et ne
+// tombe jamais dans la conclusion, même après un déplacement manuel.
 function endOfFirstSectionPos(doc) {
   let sawFirstH2 = false, result = null;
   doc.forEach(function (node, offset) {
     if (result != null) return;
+    if (node.type.name === window.SECTION_SPLIT) { result = offset; return; }
     if (node.type.name === 'heading' && node.attrs.level === 2) {
       if (sawFirstH2) { result = offset; return; }
       sawFirstH2 = true;
@@ -734,6 +1291,7 @@ function endOfFirstSectionIndexJSON(docJson) {
   let sawFirstH2 = false;
   for (let i = 0; i < content.length; i++) {
     const n = content[i];
+    if (n.type === window.SECTION_SPLIT) return i;
     if (n.type === 'heading' && n.attrs && n.attrs.level === 2) {
       if (sawFirstH2) return i;
       sawFirstH2 = true;
@@ -786,6 +1344,10 @@ function updateChipEntity(editor, cid, entity) {
 }
 
 Object.assign(window, {
+  makeSectionSplitNode,
+  moveSplitToSlot,
+  currentSplitSlot,
+  splitPosPM,
   newChipId,
   newDiagId,
   newToolInstanceId,
@@ -799,6 +1361,7 @@ Object.assign(window, {
   buildSlashExtension,
   DEFAULT_DOC,
   scanDoc,
+  buildTransmissionDocs,
   docIsBlank,
   endOfFirstSectionPos,
   safeBlockInsertPos,

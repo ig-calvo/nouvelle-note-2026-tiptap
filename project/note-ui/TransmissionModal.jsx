@@ -6,10 +6,11 @@
 // aussi la finalisation de la note (faire suivre + signature)
 // comme un item de la liste, au même titre que l'ordonnance et
 // les outils cliniques. Les actions individuelles sur une chip
-// (« Prescrire »/« Transmettre ») utilisent plutôt le petit
-// dialogue QuickSendModal.jsx, qui réutilise le composant
-// DocumentActionPanel.jsx partagé par les deux.
-// Voir PLAN-transmission-ordonnance.md §2, §5, §6.
+// (« Prescrire »/« Transmettre ») ouvrent plutôt l'Envoi rapide
+// (QuickSendModal.jsx), qui a son propre contenu depuis V7 —
+// DocumentActionPanel.jsx n'est plus partagé, ce fichier en est
+// le seul appelant.
+// Voir PLAN-checkout-v7.md §A, §B.
 // =========================================================
 
 // Métadonnées de présentation par type de document (icône, couleur,
@@ -19,38 +20,64 @@
 const TX_META = {
   prescription: {
     icon: 'medication', accent: '#1975d1', nounPhrase: "l'ordonnance",
+    attachments: ['Liste de médicaments active', 'Note clinique'],
+    attachmentsOn: ['Liste de médicaments active'],
+    noteLabel: 'Note pour le pharmacien',
     suggestions: [
-      { name: 'PJC Jean-Coutu — Centre-ville', phone: '819 565-9595', fax: '819 565-9673', favorite: true },
-      { name: 'Pharmacie Brunet — Wellington Sud', phone: '819 566-2223', fax: '819 566-0363', favorite: true },
-      { name: 'Uniprix — King Ouest', phone: '819 823-2222', fax: '819 823-7204', favorite: false },
+      { name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true },
+      { name: 'Pharmacie Brunet — Wellington Sud', address: '560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3', phone: '819 566-2223', fax: '819 566-0363', favorite: true },
+      { name: 'Uniprix — King Ouest', address: '2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8', phone: '819 823-2222', fax: '819 823-7204', favorite: false },
     ],
   },
   lab: {
     icon: 'science', accent: '#2e9b7a', nounPhrase: 'la requête de laboratoire',
+    attachments: ['Note clinique', 'Résultats antérieurs'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le laboratoire',
     suggestions: [
-      { name: 'CIUSSS de l’Estrie — CHUS', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
-      { name: 'Biron Groupe Santé', phone: '819 562-8000', fax: '819 562-8001', favorite: false },
-      { name: 'Dynacare', phone: '819 566-3000', fax: '819 566-3001', favorite: false },
+      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: 'Biron Groupe Santé', address: '1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1', phone: '819 562-8000', fax: '819 562-8001', favorite: false },
+      { name: 'Dynacare', address: '375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1', phone: '819 566-3000', fax: '819 566-3001', favorite: false },
     ],
   },
   imaging: {
     icon: 'radiology', accent: '#7a5cc0', nounPhrase: "la requête d'imagerie",
+    attachments: ['Note clinique', 'Résultats antérieurs'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le service d’imagerie',
     suggestions: [
-      { name: 'Radiologie CHUS — Hôpital Fleurimont', phone: '819 346-1110', fax: '819 346-1112', favorite: true },
-      { name: 'Clinique de radiologie de Sherbrooke', phone: '819 562-3131', fax: '819 562-3132', favorite: false },
+      { name: 'Radiologie CHUS — Hôpital Fleurimont', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1112', favorite: true },
+      { name: 'Clinique de radiologie de Sherbrooke', address: '1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1', phone: '819 562-3131', fax: '819 562-3132', favorite: false },
     ],
   },
   referral: {
     icon: 'person_add', accent: '#c0693c', nounPhrase: 'la référence',
+    attachments: ['Note clinique', 'Liste de médicaments active'],
+    attachmentsOn: ['Note clinique'],
+    noteLabel: 'Note pour le spécialiste',
     suggestions: [
-      { name: 'CRDS Estrie — Centre de répartition des demandes de service', phone: '819 780-2220', fax: '819 780-2221', favorite: true },
-      { name: 'Cardiologie — CHUS', phone: '819 346-1110', fax: '819 346-1113', favorite: false },
+      { name: 'CRDS Estrie — Centre de répartition des demandes de service', address: '300 rue King Est, Sherbrooke (Québec) J1G 1B1', phone: '819 780-2220', fax: '819 780-2221', favorite: true },
+      { name: 'Cardiologie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1113', favorite: false },
+    ],
+  },
+  clinicalTool: {
+    icon: 'handyman', accent: '#5b54b8', nounPhrase: 'le formulaire',
+    titlePrefix: 'Outil clinique',
+    attachments: ['Note clinique'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le destinataire',
+    suggestions: [
+      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: 'GMF Sherbrooke-Est', address: '1200 rue King Est, Sherbrooke (Québec) J1G 1E5', phone: '819 565-1200', fax: '819 565-1201', favorite: false },
     ],
   },
   instructions: {
     icon: 'menu_book', accent: '#1975d1', nounPhrase: 'le document',
+    attachments: ['Note clinique'],
+    attachmentsOn: [],
+    noteLabel: 'Note pour le patient',
     suggestions: [
-      { name: 'Portail patient sécurisé', phone: '', fax: '', favorite: true },
+      { name: 'Portail patient sécurisé', address: '', phone: '', fax: '', favorite: true },
     ],
   },
 };
@@ -175,16 +202,24 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, noteInfo, onFinalizeNote, onClose }) {
-  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
+function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onPatchArchivedNote, onClose }) {
+  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (readOnly ? (docs[0] && docs[0].id) : null) || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
   const [screen, setScreen] = React.useState('review'); // 'review' | 'print' | 'fax'
   const [faxPrefill, setFaxPrefill] = React.useState(null);
+  // Finaliser la note (voir finalizeNote) réinitialise l'éditeur en amont
+  // (docStats/txState remis à vide pour une nouvelle note) — si des documents
+  // restent à transmettre, ce modal doit continuer à fonctionner dessus
+  // indépendamment de cette remise à zéro : on en fige alors un instantané
+  // local, et toute la suite (sélection, compteurs, patch) l'utilise à la
+  // place de la prop `docs` tant qu'il existe.
+  const [frozenDocs, setFrozenDocs] = React.useState(null);
+  const effectiveDocs = frozenDocs || docs;
 
   React.useEffect(function () {
-    if (selectedId !== NOTE_ITEM_ID && docs.length && !docs.some(function (d) { return d.id === selectedId; })) {
-      setSelectedId(docs[0].id);
+    if (selectedId !== NOTE_ITEM_ID && effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
+      setSelectedId(effectiveDocs[0].id);
     }
-  }, [docs]); // eslint-disable-line
+  }, [effectiveDocs]); // eslint-disable-line
 
   React.useEffect(function () {
     function onKey(e) { if (e.key === 'Escape' && screen === 'review') onClose(); }
@@ -192,18 +227,39 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return function () { document.removeEventListener('keydown', onKey); };
   }, [screen, onClose]);
 
-  const isNoteSelected = selectedId === NOTE_ITEM_ID;
-  const selected = isNoteSelected ? null : (docs.find(function (d) { return d.id === selectedId; }) || null);
+  const isNoteSelected = !readOnly && selectedId === NOTE_ITEM_ID;
+  const selected = isNoteSelected ? null : (effectiveDocs.find(function (d) { return d.id === selectedId; }) || null);
   const meta = selected ? TX_META[selected.kind] : null;
 
   const counts = { todo: 0, ready: 0, done: 0 };
-  docs.forEach(function (d) { counts[txStatus(d)]++; });
+  effectiveDocs.forEach(function (d) { counts[txStatus(d)]++; });
 
-  const rxDocs = docs.filter(function (d) { return d.kind === 'prescription'; });
-  const toolDocs = docs.filter(function (d) { return d.kind !== 'prescription'; });
-  const pendingDocs = docs.filter(function (d) { return !(d.complete && d.transmitted); });
+  const rxDocs = effectiveDocs.filter(function (d) { return d.kind === 'prescription'; });
+  const toolDocs = effectiveDocs.filter(function (d) { return d.kind !== 'prescription'; });
+  const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
 
-  function patch(id, p) { if (onPatch) onPatch(id, p); }
+  // Identité patient — même source unique que PatientBanner (window.NOTE_DATA.PATIENT) :
+  // le flux de transmission peut s'ouvrir en lecture seule depuis le journal
+  // d'une autre note, il faut donc rappeler de qui il s'agit.
+  const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
+  const patientName = P.name || 'Geneviève Tremblay';
+  const patientSub = (P.sex === 'M' ? 'Homme né le' : 'Femme née le') + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
+  const patientRamq = P.ramq || 'TREG 8705 0301';
+
+  // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
+  // plus remonter au txState vivant de l'éditeur (déjà réinitialisé pour une
+  // nouvelle note) : il modifie l'instantané local ET la note déjà archivée
+  // dans le Journal (onPatchArchivedNote), sans quoi la suite de la
+  // transmission (destinataire ajouté, document complété/transmis) ne
+  // survivrait pas à la fermeture de ce modal.
+  function patch(id, p) {
+    if (frozenDocs) {
+      setFrozenDocs(function (prev) { return prev.map(function (d) { return d.id === id ? Object.assign({}, d, p) : d; }); });
+      if (onPatchArchivedNote) onPatchArchivedNote(id, p);
+      return;
+    }
+    if (onPatch) onPatch(id, p);
+  }
 
   function addRecipient(doc, r) {
     if (doc.recipients.some(function (x) { return x.name === r.name; })) return;
@@ -218,13 +274,21 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // documents non transmis, on revient à l'écran de revue ; sinon on ferme
   // tout le flux (règle sticky Figma, voir PLAN §2.6).
   function afterTransmit(thisId) {
-    var remaining = docs.filter(function (d) { return d.id !== thisId && !(d.complete && d.transmitted); }).length;
+    var remaining = effectiveDocs.filter(function (d) { return d.id !== thisId && !(d.complete && d.transmitted); }).length;
     setScreen('review');
     setFaxPrefill(null);
     if (remaining === 0) onClose();
   }
 
-  function markComplete(doc) { if (onComplete) onComplete(doc.id); }
+  function markComplete(doc) {
+    if (frozenDocs) {
+      var idsKey = doc.items.map(function (it) { return it.id; }).sort().join(',');
+      setFrozenDocs(function (prev) { return prev.map(function (d) { return d.id === doc.id ? Object.assign({}, d, { complete: true }) : d; }); });
+      if (onPatchArchivedNote) onPatchArchivedNote(doc.id, { complete: true, itemIds: idsKey });
+      return;
+    }
+    if (onComplete) onComplete(doc.id);
+  }
   function doCompleteAndPrint(doc) { markComplete(doc); setScreen('print'); }
   function doCompleteAndFax(doc, prefill) {
     markComplete(doc);
@@ -243,17 +307,25 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     quickSend(selected);
   }
   function transmitAll() {
-    var ids = docs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
+    var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
     if (window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
 
+  // Finaliser la note ne ferme le flux que s'il ne reste aucun document en
+  // attente (même règle que afterTransmit ci-dessus) — sinon on enchaîne sur
+  // le premier document restant (ex. l'ordonnance) plutôt que de fermer.
   function finalizeNote(meta) {
     if (onFinalizeNote) onFinalizeNote(meta);
     if (window.toast) window.toast('Note complétée', { icon: 'check_circle' });
-    onClose();
+    if (pendingDocs.length === 0) { onClose(); return; }
+    // onFinalizeNote archive la note et réinitialise l'éditeur : figer les
+    // documents restants MAINTENANT (avant que la prop `docs` ne s'effondre
+    // au prochain rendu) pour pouvoir continuer à les transmettre.
+    setFrozenDocs(effectiveDocs);
+    setSelectedId(pendingDocs[0].id);
   }
 
   function onFaxSent(recipient) {
@@ -267,7 +339,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     if (selected) afterTransmit(selected.id);
   }
 
-  const readyCount = docs.filter(function (d) { return d.complete && !d.transmitted; }).length;
+  const readyCount = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).length;
 
   if (screen === 'print' && selected) {
     return (
@@ -293,7 +365,11 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       <div style={tx.shell} onMouseDown={function (e) { e.stopPropagation(); }}>
         <div style={tx.dragHandle} />
         <div style={tx.head}>
-          <div style={tx.headTitle}>Transmission des documents</div>
+          <div style={tx.headTitle}>
+            {readOnly ? 'Documents de la note' : 'Transmission des documents'}
+            {readOnly && noteInfo && noteInfo.title
+              ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
+          </div>
           <div style={tx.headCounts}>
             {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: '#fdf1de' })}>{counts.todo} À compléter</span>}
             {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: '#e9f2fc' })}>{counts.ready} Prêt</span>}
@@ -304,8 +380,17 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
           </button>
         </div>
 
+        <div style={tx.patientRow}>
+          <span style={tx.patientAvatar}>
+            <span className="material-icons" style={{ color: '#8a5cb8', fontSize: 16 }}>person</span>
+          </span>
+          <span style={tx.patientName}>{patientName}</span>
+          <span style={tx.patientMeta}>{[patientSub, patientRamq].join(' · ')}</span>
+        </div>
+
         <div style={tx.bodyRow}>
           <div style={tx.sidebar}>
+            {!readOnly &&
             <div style={tx.sideGroup}>
               <button
                 style={Object.assign({}, tx.sideRow, isNoteSelected ? tx.sideRowSel : {})}
@@ -316,11 +401,11 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                   <div style={tx.sideRowSub}>Faire suivre et signer</div>
                 </div>
               </button>
-            </div>
+            </div>}
 
             {rxDocs.length > 0 &&
               <div style={tx.sideGroup}>
-                <div style={tx.sideGroupTitle}>ORDONNANCE</div>
+                <div style={tx.sideGroupTitle}>ORDONNANCE {rxDocs.length}</div>
                 {rxDocs.map(function (d) { return renderSideRow(d); })}
               </div>
             }
@@ -330,12 +415,13 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 {toolDocs.map(function (d) { return renderSideRow(d); })}
               </div>
             }
-            <button style={tx.addDocBtn} onClick={function () {
-              if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });
-            }}>
-              <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
-              Ajouter un document
-            </button>
+            {!readOnly &&
+              <button style={tx.addDocBtn} onClick={function () {
+                if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });
+              }}>
+                <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
+                Ajouter un document
+              </button>}
           </div>
 
           <div style={tx.panel}>
@@ -344,6 +430,9 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               : selected
                 ? <window.DocumentActionPanel
                     doc={selected} meta={meta} doctorName={doctorName} institution={institution}
+                    showSuggestions={showSuggestions}
+                    readOnly={readOnly}
+                    onPatch={function (p) { patch(selected.id, p); }}
                     onAddRecipient={function (r) { addRecipient(selected, r); }}
                     onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
                     onComplete={function () { markComplete(selected); }}
@@ -356,7 +445,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
           </div>
         </div>
 
-        {!isNoteSelected &&
+        {!isNoteSelected && !readOnly &&
           <div style={tx.footer}>
             <div style={tx.footerSummary}>
               {readyCount > 0 &&
@@ -384,20 +473,30 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     </div>
   );
 
+  // Ligne.document du Figma (plan V7 §G) : titre, sous-titre, ligne
+  // destinataire — « Aucun destinataire » en ambre quand il en manque un,
+  // pour que le blocage de la transmission se lise depuis la liste sans
+  // avoir à ouvrir chaque document. L'état sélectionné pose une barre bleue
+  // à gauche et passe le titre en bleu.
   function renderSideRow(d) {
     const st = txStatus(d);
     const m = TX_META[d.kind];
+    const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
       ? d.items.length + ' prescription' + (d.items.length > 1 ? 's' : '')
-      : (d.recipients[0] ? d.recipients[0].name : (d.items[0] && d.items[0].sub) || '');
+      : (d.subtitle || (d.items[0] && d.items[0].sub) || '');
+    const dest = d.recipients.length
+      ? d.recipients.map(function (r) { return r.name; }).join(', ')
+      : null;
     return (
       <button key={d.id}
-        style={Object.assign({}, tx.sideRow, d.id === selectedId ? tx.sideRowSel : {})}
+        style={Object.assign({}, tx.sideRow, sel ? tx.sideRowSel : {})}
         onClick={function () { setSelectedId(d.id); }}>
         <span className="material-icons-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={tx.sideRowTitle}>{d.title}</div>
+          <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
+          <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || 'Aucun destinataire'}</div>
         </div>
         <span className="material-icons" style={{ fontSize: 17, color: TX_STATUS_COLOR[st], flexShrink: 0 }} title={TX_STATUS_LABEL[st]}>
           {TX_STATUS_ICON[st]}
@@ -414,7 +513,7 @@ const tx = {
     animation: 'sheet-scrim-in 200ms ease-out',
   },
   shell: {
-    position: 'relative', width: '100%', maxWidth: 1180, height: '92vh', maxHeight: 'calc(100vh - 20px)',
+    position: 'relative', width: '100%', maxWidth: 1440, height: '95vh', maxHeight: 'calc(100vh - 12px)',
     background: '#fff', zIndex: 4000, borderRadius: '20px 20px 0 0',
     boxShadow: '0 -12px 40px rgba(20,20,50,0.28)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
@@ -428,10 +527,23 @@ const tx = {
     display: 'flex', alignItems: 'center', gap: 16,
     padding: '12px 26px 16px', borderBottom: '1px solid #ececf2', flexShrink: 0,
   },
+  headNote: { fontWeight: 400, color: 'rgba(0,0,0,0.5)' },
   headTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'rgba(0,0,0,0.88)' },
   headCounts: { display: 'flex', gap: 8, flex: 1 },
   pill: { fontSize: 12.5, fontWeight: 700, borderRadius: 20, padding: '5px 12px' },
   closeBtn: { border: 0, background: 'transparent', cursor: 'pointer', padding: 2, display: 'inline-flex' },
+
+  patientRow: {
+    display: 'flex', alignItems: 'center', gap: 10,
+    padding: '9px 26px', borderBottom: '1px solid #ececf2', flexShrink: 0,
+    background: '#faf9fc',
+  },
+  patientAvatar: {
+    width: 26, height: 26, borderRadius: '50%', background: '#ece3f5',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  },
+  patientName: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(0,0,0,0.85)' },
+  patientMeta: { fontSize: 13, color: 'rgba(0,0,0,0.55)' },
 
   bodyRow: { flex: 1, display: 'flex', overflow: 'hidden' },
 
@@ -443,12 +555,16 @@ const tx = {
   sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
   sideRow: {
     display: 'flex', alignItems: 'flex-start', gap: 9, width: '100%',
-    border: 0, background: 'transparent', borderRadius: 10, padding: '9px 8px',
+    border: 0, borderLeft: '3px solid transparent', background: 'transparent',
+    borderRadius: 10, padding: '9px 8px 9px 6px',
     cursor: 'pointer', textAlign: 'left',
   },
-  sideRowSel: { background: '#eef1fb' },
+  sideRowSel: { background: '#eef1fb', borderLeft: '3px solid #25245E' },
   sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)' },
+  sideRowTitleSel: { color: '#25245E' },
   sideRowSub: { fontSize: 12, color: 'rgba(0,0,0,0.5)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDest: { fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDestNone: { fontSize: 12, color: '#a15c00', marginTop: 1 },
   addDocBtn: {
     display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed #cfcfe0', borderRadius: 9,
     background: 'transparent', color: 'rgba(0,0,0,0.5)', font: "500 13px 'Inter',sans-serif",

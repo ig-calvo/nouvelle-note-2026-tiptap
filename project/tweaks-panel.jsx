@@ -81,6 +81,15 @@ const __TWEAKS_STYLE = `
     border:2px solid transparent;background-clip:content-box}
   .twk-body::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.25);
     border:2px solid transparent;background-clip:content-box}
+  .twk-ft{display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:8px 14px 10px;border-top:.5px solid rgba(0,0,0,.08);
+    color:rgba(41,38,27,.5);font-size:10.5px}
+  .twk-ft-reset{appearance:none;border:.5px solid rgba(0,0,0,.12);border-radius:7px;
+    background:rgba(255,255,255,.6);color:rgba(41,38,27,.75);font:inherit;font-weight:500;
+    padding:4px 9px;cursor:default}
+  .twk-ft-reset:hover:not(:disabled){background:rgba(255,255,255,.9);color:#29261b}
+  .twk-ft-reset:disabled{opacity:.4}
+
   .twk-row{display:flex;flex-direction:column;gap:5px}
   .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
   .twk-lbl{display:flex;justify-content:space-between;align-items:baseline;
@@ -167,23 +176,96 @@ const __TWEAKS_STYLE = `
     filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
 `;
 
+// ── Persistance locale ──────────────────────────────────────────────────────
+// Le protocole __edit_mode_set_keys ne persiste que si un HÔTE d'édition
+// écoute et réécrit le bloc EDITMODE sur disque. Servi par .claude/serve.py
+// (séance de test), il n'y a pas d'hôte : sans la couche localStorage
+// ci-dessous, chaque rechargement repartait des valeurs du fichier.
+//
+// Deux règles importantes :
+//  - la clé est par PAGE (ce fichier est chargé par Note Clinique.html,
+//    Header patient.html et le snapshot v1 — sinon leurs réglages se
+//    mélangeraient) ;
+//  - on ne stocke QUE les écarts aux défauts du fichier. Stocker l'objet
+//    complet figerait le prototype : modifier TWEAK_DEFAULTS dans le HTML
+//    n'aurait plus aucun effet, la valeur mémorisée dans le navigateur
+//    masquant le fichier pour toujours.
+const __TWK_KEY = 'omd-tweaks:' + (typeof location !== 'undefined' ? location.pathname : '');
+
+// localStorage lève en navigation privée / données de site bloquées : chaque
+// accès est protégé pour que le prototype démarre normalement sans stockage.
+function readTweakOverrides() {
+  try { return JSON.parse(localStorage.getItem(__TWK_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+function writeTweakOverrides(overrides) {
+  try {
+    if (Object.keys(overrides).length) localStorage.setItem(__TWK_KEY, JSON.stringify(overrides));
+    else localStorage.removeItem(__TWK_KEY);
+  } catch (e) { /* stockage indisponible — la session reste utilisable, sans mémoire */ }
+}
+function countTweakOverrides() { return Object.keys(readTweakOverrides()).length; }
+
 // ── useTweaks ───────────────────────────────────────────────────────────────
-// Single source of truth for tweak values. setTweak persists via the host
-// (__edit_mode_set_keys → host rewrites the EDITMODE block on disk).
+// Single source of truth for tweak values. setTweak persiste deux fois :
+// localement (localStorage, voir ci-dessus) et via l'hôte quand il est là
+// (__edit_mode_set_keys → l'hôte réécrit le bloc EDITMODE sur disque).
 function useTweaks(defaults) {
-  const [values, setValues] = React.useState(defaults);
+  // TWEAK_DEFAULTS est une constante de module côté page : la référence est
+  // stable, on la fige pour que le calcul des écarts ne dérive jamais.
+  const defaultsRef = React.useRef(defaults);
+  const [values, setValues] = React.useState(function () {
+    return Object.assign({}, defaults, readTweakOverrides());
+  });
+  // Miroir des valeurs courantes. L'écriture dans localStorage doit être
+  // SYNCHRONE et terminée avant que 'tweakchange' parte, sinon les auditeurs
+  // (le compteur du pied de panneau) relisent le stockage d'avant l'édition et
+  // affichent un cran de retard. Le miroir évite aussi de mettre un effet de
+  // bord dans l'updater de setValues, que React peut appeler deux fois.
+  const valuesRef = React.useRef(values);
+  valuesRef.current = values;
+
   // Accepts either setTweak('key', value) or setTweak({ key: value, ... }) so a
   // useState-style call doesn't write a "[object Object]" key into the persisted
   // JSON block.
   const setTweak = React.useCallback((keyOrEdits, val) => {
     const edits = typeof keyOrEdits === 'object' && keyOrEdits !== null
       ? keyOrEdits : { [keyOrEdits]: val };
-    setValues((prev) => ({ ...prev, ...edits }));
+    const base = defaultsRef.current;
+    // Le miroir est avancé tout de suite : deux setTweak dans le même tick
+    // (ex. deux bascules cliquées coup sur coup) partent chacun de l'état
+    // réellement à jour, pas du dernier rendu.
+    const next = { ...valuesRef.current, ...edits };
+    valuesRef.current = next;
+    const overrides = {};
+    Object.keys(next).forEach(function (k) {
+      // JSON.stringify plutôt que !== : certaines valeurs de tweak sont des
+      // tableaux/objets, une comparaison de référence les marquerait toutes
+      // comme modifiées.
+      if (JSON.stringify(next[k]) !== JSON.stringify(base[k])) overrides[k] = next[k];
+    });
+    writeTweakOverrides(overrides);
+    setValues(next);
     window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
     // Same-window signal so in-page listeners (deck-stage rail thumbnails)
     // can react — the parent message only reaches the host, not peers.
     window.dispatchEvent(new CustomEvent('tweakchange', { detail: edits }));
   }, []);
+
+  // Le bouton « Réinitialiser » vit dans TweaksPanel, qui ne connaît pas les
+  // valeurs : il émet un événement, symétrique de 'tweakchange' ci-dessus.
+  React.useEffect(function () {
+    function onReset() {
+      const base = defaultsRef.current;
+      writeTweakOverrides({});
+      valuesRef.current = base;
+      setValues(base);
+      window.dispatchEvent(new CustomEvent('tweakchange', { detail: base }));
+    }
+    window.addEventListener('tweakreset', onReset);
+    return function () { window.removeEventListener('tweakreset', onReset); };
+  }, []);
+
   return [values, setTweak];
 }
 
@@ -196,6 +278,9 @@ function useTweaks(defaults) {
 // is what actually hides the panel.
 function TweaksPanel({ title = 'Tweaks', children }) {
   const [open, setOpen] = React.useState(false);
+  // Nombre de réglages qui s'écartent des défauts du fichier — recalculé sur
+  // 'tweakchange', émis aussi bien par setTweak que par la réinitialisation.
+  const [overrideCount, setOverrideCount] = React.useState(countTweakOverrides);
   const dragRef = React.useRef(null);
   const offsetRef = React.useRef({ x: 16, y: 16 });
   const PAD = 16;
@@ -264,6 +349,12 @@ function TweaksPanel({ title = 'Tweaks', children }) {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  React.useEffect(() => {
+    const onChange = () => setOverrideCount(countTweakOverrides());
+    window.addEventListener('tweakchange', onChange);
+    return () => window.removeEventListener('tweakchange', onChange);
+  }, []);
+
   const dismiss = () => {
     setOpen(false);
     window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*');
@@ -326,6 +417,15 @@ function TweaksPanel({ title = 'Tweaks', children }) {
         </div>
         <div className="twk-body">
           {children}
+        </div>
+        <div className="twk-ft">
+          <span>{overrideCount ? overrideCount + ' réglage' + (overrideCount > 1 ? 's' : '') + ' mémorisé' + (overrideCount > 1 ? 's' : '') : 'Aucun réglage mémorisé'}</span>
+          <button type="button" className="twk-ft-reset" disabled={!overrideCount}
+                  title="Oublier les réglages mémorisés et revenir aux valeurs du fichier"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={() => window.dispatchEvent(new CustomEvent('tweakreset'))}>
+            Réinitialiser
+          </button>
         </div>
       </div>
     </>

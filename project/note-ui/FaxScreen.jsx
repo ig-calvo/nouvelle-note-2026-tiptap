@@ -1,10 +1,9 @@
 /* global React */
 // =========================================================
-// FaxScreen — écran « Faxer un document » (voir
-// PLAN-transmission-ordonnance.md §2.5). Répertoire filtrable +
+// FaxScreen — écran « Faxer un document ». Répertoire filtrable +
 // champ destinataire/numéro de fax + aperçu. Le destinataire
 // choisi ici est propagé au document du checkout (onSent), pour
-// respecter la règle sticky Figma (§2.6).
+// respecter la règle sticky des maquettes Figma.
 // =========================================================
 
 // Quelques contacts génériques additionnels pour que la recherche du

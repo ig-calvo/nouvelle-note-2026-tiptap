@@ -123,6 +123,7 @@
   @keyframes snm-pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
   @keyframes sheet-scrim-in { from { opacity: 0; } to { opacity: 1; } }
   @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes docviewer-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
 </style>
 </head>
 <body>
@@ -147,8 +148,9 @@
 <script type="module">
   (async function () {
     try {
-      const [core, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
+      const [core, pmState, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
         import('https://esm.sh/@tiptap/core@2.11.5'),
+        import('https://esm.sh/@tiptap/pm@2.11.5/state'),
         import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
         import('https://esm.sh/@tiptap/extension-placeholder@2.11.5'),
         import('https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
@@ -159,10 +161,11 @@
         import('https://esm.sh/@tiptap/extension-link@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
       ]);
       window.Tiptap = {
-        Editor: core.Editor, Node: core.Node, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
+        Editor: core.Editor, Node: core.Node, Mark: core.Mark, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
         StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
         Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
-        Link: link.default
+        Link: link.default,
+        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection }
       };
       window.dispatchEvent(new Event('tiptap:ready'));
     } catch (err) {
@@ -192,7 +195,10 @@
     'note-ui/PatientBanner.jsx',
     'note-ui/editor-data.jsx',
     'note-ui/editor-popover.jsx',
+    'note-ui/note-sections.jsx',
     'note-ui/editor-schema.jsx',
+    'note-ui/review-mode.jsx',
+    'note-ui/DocumentViewerModal.jsx',
     'note-ui/editor-field.jsx',
     'note-ui/AIBox.jsx',
     'note-ui/ClinicalTool.jsx',
@@ -245,12 +251,16 @@
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
-  "diagStyle": "carte",
+  "clinicName": "Clinique du Centre-ville",
+  "diagStyle": "actuel",
   "showClinicalTools": true,
   "portalActive": true,
   "startPoints": false,
   "ftBarStyle": "flottant",
-  "ftBarPosition": "haut"
+  "ftBarPosition": "haut",
+  "reviewingMode": false,
+  "reviewAuthor": "me",
+  "checkoutSuggestions": false
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -276,6 +286,22 @@ class AppErrorBoundary extends React.Component {
   }
 }
 
+// Libellés (tooltip) + style des pastilles du pied de note — voir le
+// `note-footer` dans App, PLAN-checkout-v7.md §M.
+const DOC_KIND_LABEL = {
+  prescription: 'Ordonnance', clinicalTool: 'Outils cliniques', lab: 'Laboratoire',
+  imaging: 'Imagerie', referral: 'Référence', instructions: 'Consignes au patient',
+};
+function docPillStyle(done) {
+  return {
+    display: 'flex', alignItems: 'center', gap: 5,
+    padding: '5px 11px', borderRadius: 20,
+    background: done ? '#f0f0f5' : '#e9f2fc',
+    color: done ? 'rgba(0,0,0,0.45)' : '#1975d1',
+    fontWeight: 700, fontSize: 13, fontFamily: "'Inter',sans-serif",
+  };
+}
+
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [navCollapsed, setNavCollapsed] = React.useState(function () {
@@ -294,15 +320,15 @@ function App() {
   const [smartModal, setSmartModal] = React.useState(false);
   const [smartActive, setSmartActive] = React.useState(false);
   const [completedNotes, setCompletedNotes] = React.useState([]);
-  const [chipCounts, setChipCounts] = React.useState({});
+  const [docStatusSummary, setDocStatusSummary] = React.useState([]);
   const noteCompleteRef = React.useRef(null);
   const noteSaveDraftRef = React.useRef(null);
   const noteTransmitRef = React.useRef(null);
 
   React.useEffect(() => {
-    function handler(e) { setChipCounts(e.detail || {}); }
-    window.addEventListener('note:chips-change', handler);
-    return () => window.removeEventListener('note:chips-change', handler);
+    function handler(e) { setDocStatusSummary(e.detail || []); }
+    window.addEventListener('note:doc-status-change', handler);
+    return () => window.removeEventListener('note:doc-status-change', handler);
   }, []);
 
   // Notifie l'entrée au dossier quand le portail patient est actif — le
@@ -328,6 +354,22 @@ function App() {
       return prev.map((n, i) => i === 0 ? { ...n, episodeId: epId } : n);
     });
   }
+  // Complète une note archive un instantané figé (txState) — mais le
+  // checkout peut continuer sur ses documents restants (ex. l'ordonnance)
+  // après cet instant (voir finalizeNote/frozenDocs dans TransmissionModal) :
+  // sans ce rappel, ce travail ultérieur ne serait jamais reflété dans le
+  // Journal, qui montrerait pour toujours « non complétée / non transmise ».
+  // Sûr de ne cibler que la note qu'on vient d'archiver : le flux de
+  // transmission bloque l'interface tant qu'il est ouvert, donc aucune autre
+  // note ne peut se glisser devant elle dans la liste entre-temps.
+  function patchLastCompletedTx(docId, patch) {
+    setCompletedNotes(prev => {
+      if (!prev.length) return prev;
+      const first = prev[0];
+      const nextTxState = { ...first.txState, [docId]: { ...(first.txState && first.txState[docId]), ...patch } };
+      return [{ ...first, txState: nextTxState }, ...prev.slice(1)];
+    });
+  }
   function handleNoteComplete(data) {
     const months = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
     const d = new Date(data.date + 'T' + (data.time || '00:00'));
@@ -335,7 +377,7 @@ function App() {
     const newNote = {
       date: dateLabel.trim(),
       author: t.doctorName,
-      clinic: 'Clinique du Centre-ville',
+      clinic: t.clinicName,
       role: 'Médecin de famille',
       mode: data.visitType === 'Appel téléphonique' ? 'APPEL' : 'PRÉSENTIEL',
       title: data.raison || 'Note clinique',
@@ -346,6 +388,9 @@ function App() {
       files: [],
       doc: data.doc || window.DEFAULT_DOC(),
       episodeId: data.episodeId || null,
+      // Statuts et destinataires de transmission figés à la complétion —
+      // relus par le bouton « Checkout » du Journal (NotesList).
+      txState: data.txState || {},
     };
     setCompletedNotes(prev => [newNote, ...prev]);
     setNoteOpen(false);
@@ -353,21 +398,22 @@ function App() {
     setBannerCollapsed(false);
   }
   return (
-    <div className={"app diag-style-" + (t.diagStyle || 'numbered')}>
-      <TopBar user={t.doctorName} onMenuClick={() => setNavCollapsed((v) => !v)} />
+    <div className={"app diag-style-" + (t.diagStyle || 'actuel')}>
+      <TopBar user={t.doctorName} clinic={t.clinicName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
         <SideNav collapsed={navCollapsed} />
         <div className="content">
           <div className="center-wrap">
-          <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} />
+          <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} clinicName={t.clinicName} />
           <div className="center-col" style={{ padding: "0px" }}>
             <NoteEditor
               isOpen={noteOpen}
               onOpen={handleNoteOpen}
               onComplete={handleNoteComplete}
+              onPatchArchivedTx={patchLastCompletedTx}
               completeRef={noteCompleteRef}
               doctorName={t.doctorName}
-              institution="Clinique du Centre-ville"
+              institution={t.clinicName}
               smartActive={smartActive}
               showClinicalTools={t.showClinicalTools}
               startPoints={t.startPoints}
@@ -377,52 +423,33 @@ function App() {
               saveDraftRef={noteSaveDraftRef}
               transmitRef={noteTransmitRef}
               ftBarStyle={t.ftBarStyle || 'haut'}
-              ftBarPosition={t.ftBarPosition || 'haut'} />
-            <NotesList doctorName={t.doctorName} extraNotes={completedNotes} />
+              ftBarPosition={t.ftBarPosition || 'haut'}
+              reviewingMode={t.reviewingMode === true}
+              reviewAuthor={t.reviewAuthor || 'me'}
+              checkoutSuggestions={t.checkoutSuggestions === true} />
+            <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
-              {/* Prescription counter */}
-              {(chipCounts.prescription > 0) && (
-                <div title="Prescriptions" style={{ position: 'relative', marginLeft: 4, display: 'flex', alignItems: 'center' }}>
-                  <button style={{ background: 'none', border: 0, cursor: 'default', fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 16, color: '#25245E', padding: '4px 2px', letterSpacing: -0.5 }}>Rᴘ</button>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.prescription}</span>
-                </div>
-              )}
-              {/* Lab counter */}
-              {(chipCounts.lab > 0) && (
-                <div title="Laboratoire" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>science</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.lab}</span>
-                </div>
-              )}
-              {/* Imaging counter */}
-              {(chipCounts.imaging > 0) && (
-                <div title="Imagerie" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>radiology</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.imaging}</span>
-                </div>
-              )}
-              {/* Referral counter */}
-              {(chipCounts.referral > 0) && (
-                <div title="Références" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: 22, color: '#25245E' }}>person_add</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.referral}</span>
-                </div>
-              )}
-              {/* Diagnostic counter */}
-              {(chipCounts.diagnostic > 0) && (
-                <div title="Diagnostics" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 22, color: '#25245E' }}>local_hospital</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.diagnostic}</span>
-                </div>
-              )}
-              {/* File counter */}
-              {(chipCounts.file > 0) && (
-                <div title="Fichiers" style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: 4 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 22, color: '#25245E' }}>attach_file</span>
-                  <span style={{ position: 'absolute', top: -2, right: -10, minWidth: 18, height: 18, background: '#1975d1', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: '#fff', fontWeight: 700, padding: '0 3px' }}>{chipCounts.file}</span>
-                </div>
-              )}
+              {/* Pastilles complété/total par nature de document transmissible
+                  (voir PLAN-checkout-v7.md §M) — remplace les anciens compteurs
+                  bruts par type de chip. Grisées une fois done === total. */}
+              {docStatusSummary.map((s) => {
+                const done = s.total > 0 && s.done === s.total;
+                return (
+                  <div key={s.kind} title={DOC_KIND_LABEL[s.kind] || s.kind} style={docPillStyle(done)}>
+                    <span className="material-icons-outlined" style={{ fontSize: 17 }}>{s.icon}</span>
+                    {s.done}/{s.total}
+                  </div>
+                );
+              })}
+              {/* Portail patient : pastille figée à 0, en attente de la
+                  fonctionnalité de partage (PLAN §M.2/M.3) — pas de
+                  pastille pré-facturation tant qu'aucune donnée de
+                  facturation n'existe dans le prototype. */}
+              <div title="Portail patient" style={docPillStyle(true)}>
+                <span className="material-icons-outlined" style={{ fontSize: 17 }}>verified_user</span>
+                0
+              </div>
               <div style={{ flex: 1 }} />
               <button style={{ border: '1px solid #d0d0e0', borderRadius: 8, background: '#eeeef8', padding: '9px 22px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: '#25245E' }}
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
@@ -448,8 +475,9 @@ function App() {
           onConfirm={() => { setSmartModal(false); setSmartActive(true); handleNoteOpen(); }} />
       }
       <TweaksPanel title="Tweaks">
-        <TweakSection label="Médecin" />
-        <TweakText label="Nom du médecin" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
+        <TweakSection label="Identité" />
+        <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
+        <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général" />
         <TweakToggle label="Outils cliniques" value={t.showClinicalTools !== false}
                      onChange={(v) => setTweak('showClinicalTools', v)} />
@@ -474,9 +502,19 @@ function App() {
                       { value: 'bas', label: 'Bas' },
                     ]}
                     onChange={(v) => setTweak('ftBarPosition', v)} />
+        <TweakSection label="Checkout" />
+        <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
+                     onChange={(v) => setTweak('checkoutSuggestions', v)} />
+        <TweakSection label="Mode révision" />
+        <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
+                     onChange={(v) => setTweak('reviewingMode', v)} />
+        <TweakSelect label="Écrire en tant que…"
+                    value={t.reviewAuthor || 'me'}
+                    options={(window.reviewHumanAuthors ? window.reviewHumanAuthors(t.doctorName) : []).map((a) => ({ value: a.id, label: a.name }))}
+                    onChange={(v) => setTweak('reviewAuthor', v)} />
         <TweakSection label="Diagnostics" />
         <TweakRadio label="Style de région"
-                    value={t.diagStyle || 'numbered'}
+                    value={t.diagStyle || 'actuel'}
                     options={[
                       { value: 'numbered', label: 'Numéroté' },
                       { value: 'actuel', label: 'Actuel' },

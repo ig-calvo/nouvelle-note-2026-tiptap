@@ -1,11 +1,31 @@
 /* global React */
-function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut' }) {
+function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
+  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
     window.__SHOW_CLINICAL_TOOLS = showClinicalTools;
   }, [showClinicalTools]);
+
+  // Mode révision — reviewActive suit le toggle d'en-tête ET l'activation
+  // auto par l'IA (voir AIBox onAddToNote plus bas) ; il vit ici (pas dans
+  // NoteBody) pour survivre au démontage/remontage de l'éditeur Tiptap à
+  // chaque ouverture de note. reviewingMode (tweak) coupe tout quand off :
+  // pas de bouton, pas d'auto-activation.
+  const [reviewActive, setReviewActive] = React.useState(false);
+  const [reviewChanges, setReviewChanges] = React.useState([]);
+  const [reviewPopover, setReviewPopover] = React.useState(null); // { change, anchorRect }
+  const [reviewGate, setReviewGate] = React.useState(false);
+  const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
+
+  // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
+  // que window.__SHOW_CLINICAL_TOOLS ci-dessus. Le tracker le relit à
+  // chaque appendTransaction : pas besoin de reconfigurer l'éditeur quand
+  // l'auteur ou l'activation changent.
+  React.useEffect(function() {
+    window.__REVIEW_STATE = { active: reviewingMode && reviewActive, author: currentReviewAuthor };
+  }, [reviewingMode, reviewActive, reviewAuthor, doctorName]);
 
   // Brouillons sauvegardés (« Continuer la note ») et lien d'épisode de soin
   // (« Depuis la dernière note ») — voir NoteStartCards.jsx pour l'UI et
@@ -26,6 +46,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   const [editorInstance, setEditorInstance] = React.useState(null);
 
   const [popover, setPopover] = React.useState(null);
+  const [filePreview, setFilePreview] = React.useState(null); // { name, url, kind } — chip type "file"
   const [inlineEdit, setInlineEdit] = React.useState(null); // { chipId, field, fieldRect }
   const [linkedChipId, setLinkedChipId] = React.useState(null);
 
@@ -61,9 +82,51 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
     setDocStats(stats);
-    window.dispatchEvent(new CustomEvent('note:chips-change', { detail: stats.counts }));
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
   }
+
+  // Pied de note (barre du bas, voir Note Clinique.html) : un résumé
+  // « complété/total » par nature de document transmissible, plutôt que le
+  // simple compte de chips d'avant — remplace note:chips-change. Recalculé
+  // aussi bien à chaque changement de contenu (docStats) qu'à chaque
+  // complétion/transmission dans le checkout (txState), les deux faisant
+  // varier complete/transmitted dans buildTransmissionDocs().
+  const DOC_KIND_ORDER = ['prescription', 'clinicalTool', 'lab', 'imaging', 'referral', 'instructions'];
+  React.useEffect(function() {
+    var byKind = {};
+    buildTransmissionDocs().forEach(function(d) {
+      if (!byKind[d.kind]) byKind[d.kind] = { total: 0, done: 0 };
+      byKind[d.kind].total++;
+      if (d.complete && d.transmitted) byKind[d.kind].done++;
+    });
+    var summary = DOC_KIND_ORDER.filter(function(k) { return byKind[k]; }).map(function(k) {
+      var meta = window.TX_META[k] || {};
+      return { kind: k, icon: meta.icon || 'description', done: byKind[k].done, total: byKind[k].total };
+    });
+    window.dispatchEvent(new CustomEvent('note:doc-status-change', { detail: summary }));
+  }, [docStats, txState]); // eslint-disable-line
+
+  // Mode révision — recalcule le compteur/liste de changements à chaque
+  // update (pas `transaction`, qui feu aussi sur les changements de simple
+  // sélection) et ouvre le popover ✓/✗ au clic sur une marque insertion/
+  // suppression (délégué sur editor.view.dom, comme les chips ailleurs).
+  React.useEffect(function() {
+    if (!editorInstance) return undefined;
+    function onUpdate() { setReviewChanges(window.scanReviewChanges(editorInstance.state.doc)); }
+    function onClick(e) {
+      var mark = e.target.closest('.rvw-ins, .rvw-del');
+      if (!mark) return;
+      var change = window.findChangeAtDom(editorInstance, mark);
+      if (change) setReviewPopover({ change: change, anchorRect: mark.getBoundingClientRect() });
+    }
+    onUpdate();
+    editorInstance.on('update', onUpdate);
+    editorInstance.view.dom.addEventListener('click', onClick);
+    return function() {
+      editorInstance.off('update', onUpdate);
+      editorInstance.view.dom.removeEventListener('click', onClick);
+    };
+  }, [editorInstance]);
 
   // Insère des blocs (paragraphes, node reference, node chip…) à la fin de
   // la première section — que l'éditeur soit déjà monté (commande live) ou
@@ -72,9 +135,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function appendToFirstSection(blocks) {
     if (editorRef.current) {
       const pos = window.endOfFirstSectionPos(editorRef.current.state.doc);
-      editorRef.current.chain().insertContentAt(pos, blocks).run();
+      // meta 'reviewAction' : les insertions programmatiques (IA, référence,
+      // gabarit, drop du Sommaire) ne doivent jamais être auto-marquées par
+      // le reviewTracker — seule la frappe au clavier l'est. Le contenu de
+      // l'IA porte déjà ses propres marks insertion (voir markBlocksAsInsertion,
+      // câblage AIBox plus bas) quand le mode révision est actif.
+      editorRef.current.chain()
+        .command(function(props) { props.tr.setMeta('reviewAction', true); return true; })
+        .insertContentAt(pos, blocks)
+        .run();
     } else {
-      const doc = initialDocRef.current || window.DEFAULT_DOC();
+      const doc = window.ensureSplit(initialDocRef.current || window.DEFAULT_DOC());
       const idx = window.endOfFirstSectionIndexJSON(doc);
       doc.content.splice.apply(doc.content, [idx, 0].concat(blocks));
       initialDocRef.current = doc;
@@ -125,10 +196,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
-        if (blank) editorRef.current.commands.setContent({ type: 'doc', content: blocks }, true);
-        else editorRef.current.chain().insertContentAt(editorRef.current.state.doc.content.size, blocks).run();
+        // Note vierge : ensureSplit transforme le Titre 2 « Conclusion » du
+        // gabarit en ligne de séparation, à sa place exacte — le contenu du
+        // gabarit est inchangé, seule sa conclusion devient déplaçable.
+        // Note déjà amorcée : on ajoute AU-DESSUS de la ligne existante (fin
+        // des détails) plutôt qu'à la fin du document, qui serait sous la
+        // ligne, donc dans la conclusion.
+        if (blank) editorRef.current.commands.setContent(window.ensureSplit({ type: 'doc', content: blocks }), true);
+        else editorRef.current.chain().insertContentAt(window.splitPosPM(editorRef.current.state.doc), blocks).run();
       } else {
-        initialDocRef.current = { type: 'doc', content: blocks };
+        initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
       if (onOpen) onOpen();
@@ -172,8 +249,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   function onChipClick(chipId, rect, extra) {
     var entity = editorRef.current ? window.getChipEntity(editorRef.current, chipId) : null;
-    if (entity && entity.type === 'file' && entity.url) {
-      window.open(entity.url, '_blank');
+    // Fichier joint (PDF/PNG/JPG) : panneau de prévisualisation dédié,
+    // jamais le ChipPopover générique (son corps était vide pour ce type —
+    // rien à y "modifier en détails structurés").
+    if (entity && entity.type === 'file') {
+      var url = entity.details && entity.details.url;
+      if (url) setFilePreview({ name: entity.label || entity.text || 'Document', url: url, kind: window.fileKindFromName(entity.label || entity.text || '') });
       return;
     }
     // Edit button (···) → open full modal
@@ -386,6 +467,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     setEpisodeId(null);
     setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
     setTxState({});
+    setReviewActive(false);
+    setReviewChanges([]);
+    setReviewPopover(null);
+    setReviewGate(false);
   }
 
   // ----- Points de départ (tweak "Points de départ") -----
@@ -405,7 +490,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   function saveDraft() {
     var id = 'draft-' + Date.now();
     var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
-    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
+    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags }].concat(prev);
@@ -433,70 +518,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
   // Construit la liste des documents transmissibles réellement présents dans
   // la note (prescriptions, requêtes, consignes patient) pour le checkout de
-  // transmission — voir PLAN-transmission-ordonnance.md §5.1. Contrairement à
+  // transmission. Contrairement à
   // l'ancien buildCheckoutGroups (qui bundlait tous les chips d'un même type
   // ensemble), seules les prescriptions sont bundlées en un seul document
   // « Ordonnance » ; chaque autre chip (labo/imagerie/référence/consignes)
   // devient son propre document, reflétant le fait que ce sont des requêtes
   // distinctes dans la vraie vie clinique.
+  // Documents transmissibles de la note en cours — la logique est partagée
+  // avec NotesList (checkout d'une note complétée), voir editor-schema.jsx.
   function buildTransmissionDocs() {
-    var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
-
-    function mkItem(e) {
-      var ent = e.entity, d = ent.details || {}, t = ent.type, label = ent.label, sub = '';
-      if (t === 'prescription') {
-        label = [d.molecule, d.dose ? d.dose + ' ' + (d.unit || '') : ''].filter(Boolean).join(' ').trim()
-          || (ent.rx && ent.rx.name) || ent.label;
-        sub = (ent.rx && ent.rx.sig)
-          || [d.route, d.frequency, d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : ''].filter(Boolean).join(' ');
-      } else if (t === 'lab') {
-        label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || 'Demande de laboratoire');
-        sub = [d.priority, d.fasting ? 'à jeun' : ''].filter(Boolean).join(' · ');
-      } else if (t === 'imaging') {
-        label = [d.modality, d.region].filter(Boolean).join(' ') || ent.label;
-        sub = [d.views, d.priority, (d.contrast && d.contrast !== 'Sans') ? 'avec contraste' : ''].filter(Boolean).join(' · ');
-      } else if (t === 'referral') {
-        label = d.specialty || ent.label;
-        sub = [d.priority, d.question].filter(Boolean).join(' · ');
-      } else if (t === 'instructions') {
-        label = d.title || ent.label || 'Consignes au patient';
-      }
-      var ceased = !!(ent.rx && ent.rx.ceased);
-      return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased };
-    }
-
-    // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
-    // nouvel item après avoir déjà été complété/transmis (ex. le médecin
-    // ajoute une prescription après avoir faxé l'ordonnance) : dans ce cas,
-    // le contenu signé/envoyé n'est plus celui qui existe réellement. On
-    // invalide donc complete/transmitted dès que la liste d'items ne
-    // correspond plus à celle capturée au moment de la complétion
-    // (`itemIds`, posé par markDocComplete) — les destinataires déjà
-    // choisis restent, eux, valides et ne sont pas perdus.
-    function withTx(id, kind, title, items) {
-      var st = txState[id] || {};
-      var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
-      var stale = !!st.complete && st.itemIds !== idsKey;
-      return {
-        id: id, kind: kind, title: title, items: items,
-        recipients: st.recipients || [],
-        complete: stale ? false : !!st.complete,
-        transmitted: stale ? false : !!st.transmitted,
-        comment: st.comment || '',
-      };
-    }
-
-    var docs = [];
-    var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
-    if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
-    ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
-      .forEach(function(e) {
-        var item = mkItem(e);
-        docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
-      });
-    return docs;
+    return window.buildTransmissionDocs(docStats, txState);
   }
-
   // Met à jour l'état de transmission d'un document (recipients/complete/
   // transmitted/comment) — persiste au niveau de la note tant qu'elle est
   // ouverte, indépendamment de l'ouverture/fermeture de TransmissionModal.
@@ -539,8 +571,32 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   // Bouton « Compléter » de la barre du bas — ouvre le même checkout de
   // transmission, avec l'item « Note » présélectionné (faire suivre +
   // signature), qui est le point d'entrée par défaut pour compléter la note.
+  // Mode révision : des modifications en attente bloquent la complétion —
+  // dialogue « Tout accepter et compléter / Réviser / Annuler » plutôt que
+  // de laisser un contenu ambigu (non relu) partir au dossier.
   function openFinalize() {
+    if (reviewingMode && reviewChanges.length > 0) {
+      setReviewGate(true);
+      return;
+    }
     openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  function reviewGateAcceptAllAndComplete() {
+    if (editorRef.current) window.acceptAllChanges(editorRef.current);
+    setReviewGate(false);
+    openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  function reviewGateReview() {
+    setReviewGate(false);
+    var editor = editorRef.current;
+    if (!editor) return;
+    var first = window.scanReviewChanges(editor.state.doc)[0];
+    if (first) {
+      editor.chain().focus().setTextSelection(first.from).run();
+      try { editor.view.dom.querySelector('.rvw-ins, .rvw-del').scrollIntoView({ block: 'center' }); } catch (e) {}
+    }
   }
 
   // « Prescrire »/« Transmettre » sur une chip — envoi rapide d'UN document,
@@ -553,7 +609,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
   // TransmissionModal (NoteActionPanel) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
-    var doc = editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC());
+    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     var stats = window.scanDoc(doc);
     var data = {
       raison: raison,
@@ -564,6 +620,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
       diagnostics: stats.diagNames,
       doc: doc,
       episodeId: episodeId,
+      // État de transmission au moment de la complétion : c'est lui qui permet
+      // de rouvrir le checkout d'une note passée depuis le Journal (bouton
+      // « Checkout » de NotesList) avec ses destinataires et ses statuts, au
+      // lieu d'un checkout vierge reconstruit depuis le seul contenu.
+      txState: txState,
     };
     resetNote();
     if (onComplete) onComplete(data);
@@ -584,13 +645,20 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
     <div ref={noteCardRef} className="note-card" style={neStyles.card}>
       <div style={neStyles.topRow}>
         <div>
-          <div style={neStyles.overline}>CLINIQUE DU CENTRE VILLE</div>
+          <div style={neStyles.overline}>{(institution || 'Clinique du Centre-ville').toUpperCase()}</div>
           <div style={neStyles.titleRow}>
             <span style={neStyles.title}>Note Clinique</span>
             {smartActive && <span style={neStyles.statusBadge}>En cours</span>}
           </div>
         </div>
         <div style={{ flex: 1 }} />
+        {reviewingMode &&
+          <window.ReviewHeaderControls
+            active={reviewActive}
+            onToggle={function() { setReviewActive(function(v) { return !v; }); }}
+            count={reviewChanges.length}
+            onAcceptAll={function() { if (editorRef.current) window.acceptAllChanges(editorRef.current); }}
+            onRejectAll={function() { if (editorRef.current) window.rejectAllChanges(editorRef.current); }} />}
         {smartActive
           ? (
             <div style={neStyles.assistRow}>
@@ -635,9 +703,18 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
 
       {/* Assistant IA */}
       <AIBox onAddToNote={function(text) {
-        appendToFirstSection((text || '').split('\n').map(function(line) {
+        var blocks = (text || '').split('\n').map(function(line) {
           return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
-        }));
+        });
+        // Mode révision : le texte IA arrive marqué "Assistant IA" et
+        // active le mode (s'il ne l'était pas déjà) — tout ce qui suit,
+        // y compris les retouches du médecin, reste tracké jusqu'à
+        // désactivation ou résolution complète (exigence produit).
+        if (reviewingMode) {
+          setReviewActive(true);
+          blocks = window.markBlocksAsInsertion(blocks, window.REVIEW_AI_AUTHOR);
+        }
+        appendToFirstSection(blocks);
       }} />
 
       {/* Expanding content */}
@@ -723,8 +800,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           doctorName={doctorName}
           institution={institution}
           initialSelectedId={transmissionOnlyId}
+          showSuggestions={checkoutSuggestions}
           noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
+          onPatchArchivedNote={onPatchArchivedTx}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
       }
 
@@ -735,6 +814,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
           doc={findDocByItemId(quickSendCid)}
           doctorName={doctorName}
           institution={institution}
+          showSuggestions={checkoutSuggestions}
           onPatch={patchTxState}
           onComplete={markDocComplete}
           onCancel={function() { setQuickSendCid(null); }}
@@ -743,6 +823,30 @@ function NoteEditor({ isOpen, onOpen, onComplete, completeRef, smartActive, doct
             setQuickSendCid(null);
             openTransmission(d ? d.id : null);
           }} />
+      }
+
+      {/* Aperçu d'un fichier joint (PDF/PNG/JPG) — side sheet dédié */}
+      {filePreview &&
+        <window.DocumentViewerModal file={filePreview} onClose={function () { setFilePreview(null); }} />
+      }
+
+      {/* Dialogue bloquant — changements en attente à la complétion */}
+      {reviewGate &&
+        <window.ReviewCompleteDialog
+          count={reviewChanges.length}
+          onAcceptAllAndComplete={reviewGateAcceptAllAndComplete}
+          onReview={reviewGateReview}
+          onCancel={function() { setReviewGate(false); }} />
+      }
+
+      {/* Popover de changement (mode révision) */}
+      {reviewPopover &&
+        <window.ReviewChangePopover
+          change={reviewPopover.change}
+          anchorRect={reviewPopover.anchorRect}
+          onClose={function() { setReviewPopover(null); }}
+          onAccept={function(c) { if (editorRef.current) window.acceptChange(editorRef.current, c); }}
+          onReject={function(c) { if (editorRef.current) window.rejectChange(editorRef.current, c); }} />
       }
 
       {/* Chip popover */}

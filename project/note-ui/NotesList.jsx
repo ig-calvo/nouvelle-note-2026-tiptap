@@ -3,7 +3,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "2 JUILLET 2026 13:45",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Retour post-imagerie — douleur au flanc",
@@ -13,11 +13,23 @@ const NOTE_ITEMS_TEMPLATE = [
     details: "Patient de retour suite à la TDM. Douleur en nette amélioration depuis l'analgésie.\nTDM : Calcul urétéral droit de 4 mm, sans dilatation significative.",
     conclusion: "Impression : Colique néphrétique confirmée, calcul de 4 mm.\nPlan : Poursuite de l'analgésie et hydratation. Filtration des urines. Retour si fièvre, douleur non contrôlée ou absence de progression dans 2 semaines.",
     files: [{ name: "TDM abdomino-pelvien.pdf", size: "1.4MB" }],
+    // Documents transmis lors de cette visite. Les notes de démonstration
+    // n'ont pas de contenu Tiptap : sans ces documents figés, leur bouton
+    // « Checkout » n'aurait rien à montrer (voir noteDocs plus bas).
+    txDocs: [
+      { id: 'demo-rx-2', kind: 'prescription', title: 'Ordonnance',
+        items: [
+          { id: 'i1', label: 'Naproxen 500 mg', sub: '1 co PO BID avec nourriture, 30 co, 15 jours', variant: 'renouvellement' },
+          { id: 'i2', label: 'Tamsulosine 0,4 mg', sub: '1 caps PO DIE au coucher, 30 caps, 30 jours', variant: 'nouvelle' },
+        ],
+        recipients: [{ id: 'r-demo-pjc', name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: ['Liste de médicaments active'], note: '' },
+    ],
   },
   {
     date: "2 JUILLET 2026 09:10",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Douleur au flanc droit",
@@ -27,11 +39,21 @@ const NOTE_ITEMS_TEMPLATE = [
     details: "Motif : Douleur au flanc droit depuis 2 jours, irradiant vers l'aine. Pas d'hématurie visible. Pas de fièvre.\nObjectif : Punch rénal droit positif. Abdomen souple. Bandelette urinaire : Sang traces, Leuco négatif.",
     conclusion: "Impression : Suspicion de colique néphrétique.\nPlan : Requête d'imagerie (TDM abdomino-pelvien sans contraste) envoyée. Analgésie prescrite. Patient dirigé vers l'imagerie, retour prévu avec les résultats.",
     files: [],
+    txDocs: [
+      { id: 'demo-img-1', kind: 'imaging', title: 'TDM abdomino-pelvien',
+        items: [{ id: 'i1', label: 'TDM abdomino-pelvien', sub: 'Sans contraste · Urgent · Suspicion de lithiase urinaire' }],
+        recipients: [{ id: 'r-demo-chus', name: 'Radiologie CHUS — Hôpital Fleurimont', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1112', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: ['Note clinique'], note: '' },
+      { id: 'demo-rx-1', kind: 'prescription', title: 'Ordonnance',
+        items: [{ id: 'i1', label: 'Naproxen 500 mg', sub: '1 co PO BID avec nourriture, 20 co, 10 jours', variant: 'nouvelle' }],
+        recipients: [{ id: 'r-demo-pjc', name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: ['Liste de médicaments active'], note: '' },
+    ],
   },
   {
     date: "8 DÉCEMBRE 2025 09:15",
     author: "Dr Marc Lefebvre",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecine d'urgence",
     mode: "PRÉSENTIEL",
     title: "Infection urinaire",
@@ -47,7 +69,7 @@ const NOTE_ITEMS_TEMPLATE = [
   {
     date: "5 JUIN 2025 10:30",
     author: "%%DOCTOR%%",
-    clinic: "Clinique du Centre-ville",
+    clinic: "%%CLINIC%%",
     role: "Médecin de famille",
     mode: "PRÉSENTIEL",
     title: "Examen annuel",
@@ -134,9 +156,21 @@ function DocInline({ node, keyProp }) {
 // Rendu read-only d'un document Tiptap complet (note complétée) : titres,
 // paragraphes, chips, blocs de référence. Remplace l'ancien rendu à
 // marqueurs {{CHIP}}/{{DIAG}}/{{REF}} — le doc JSON est déjà structuré.
-function DocView({ doc }) {
-  if (!doc || !doc.content) return null;
-  var blocks = doc.content.map(function(node, bi) {
+function DocView({ doc, blocks }) {
+  var source = blocks || (doc && doc.content);
+  if (!source) return null;
+  var out = source.map(function(node, bi) {
+    // Ligne de séparation Détails / Conclusion — même repère qu'en édition
+    // (libellé au-dessus du trait), mais figé : une note complétée est signée,
+    // sa conclusion ne se redécoupe plus.
+    if (node.type === 'sectionSplit') {
+      return (
+        <div key={'ss-' + bi} style={nlStyles.roSplit}>
+          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || 'Conclusion'}</div>
+          <div style={nlStyles.roSplitRule} />
+        </div>
+      );
+    }
     if (node.type === 'heading') {
       var level = (node.attrs && node.attrs.level) || 2;
       var Tag = 'h' + Math.min(3, Math.max(1, level));
@@ -178,15 +212,21 @@ function DocView({ doc }) {
     }
     return null;
   });
-  return <React.Fragment>{blocks}</React.Fragment>;
+  return <React.Fragment>{out}</React.Fragment>;
 }
 
-function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
+function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique du Centre-ville", extraNotes = [] }) {
   const NOTE_ITEMS = [
     ...extraNotes,
-    ...NOTE_ITEMS_TEMPLATE.map(n => ({ ...n, author: n.author === "%%DOCTOR%%" ? doctorName : n.author })),
+    ...NOTE_ITEMS_TEMPLATE.map(n => ({
+      ...n,
+      author: n.author === "%%DOCTOR%%" ? doctorName : n.author,
+      clinic: n.clinic === "%%CLINIC%%" ? clinicName : n.clinic,
+    })),
   ];
   const [openNotes, setOpenNotes] = React.useState({});
+  // Note dont on regarde le checkout (lecture seule) — bouton « Checkout ».
+  const [checkoutNote, setCheckoutNote] = React.useState(null);
   const [activeFilters, setActiveFilters] = React.useState(new Set());
   const [refButton, setRefButton] = React.useState(null);
 
@@ -215,6 +255,52 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
     window.dispatchEvent(new CustomEvent('note:add-reference', { detail: { text: refButton.text, source: refButton.source } }));
     setRefButton(null);
     window.getSelection().removeAllRanges();
+  }
+
+  // Aperçu d'une note repliée : la CONCLUSION de la note, telle que
+  // délimitée par la ligne de séparation de l'éditeur. Toutes les notes de
+  // cette liste sont complétées (signées) — les brouillons, eux, ne sortent
+  // pas de l'éditeur (voir NoteStartCards) et ne sont donc pas concernés.
+  //   - note rédigée dans l'éditeur (n.doc) : les blocs sous la ligne ;
+  //   - note de démonstration (pas de doc Tiptap) : son champ `conclusion` ;
+  //   - rien sous la ligne : état vide explicite, jamais un aperçu muet qui
+  //     laisserait croire à un bug d'affichage.
+  function ConclusionPreview({ note }) {
+    if (note.doc && window.conclusionBlocks) {
+      var blocks = window.conclusionBlocks(note.doc);
+      if (!window.conclusionIsEmpty(note.doc)) {
+        return <div style={nlStyles.conclPreviewText}><DocView blocks={blocks} /></div>;
+      }
+    } else if (note.conclusion && note.conclusion.trim()) {
+      return (
+        <div style={nlStyles.conclPreviewText}>
+          {note.conclusion.split("\n").map(function(line, j) {
+            return <p key={j} style={{ margin: "0 0 4px 0" }}>{line}</p>;
+          })}
+        </div>
+      );
+    }
+    return (
+      <div style={nlStyles.conclEmpty}>
+        <span className="material-icons-outlined" style={nlStyles.conclEmptyIcon}>remove</span>
+        Aucune conclusion à cette note
+      </div>
+    );
+  }
+
+  // Documents transmissibles d'une note déjà complétée, reconstruits depuis son
+  // contenu Tiptap + l'état de transmission figé à la complétion (`txState`).
+  // Même fonction que l'éditeur (editor-schema.jsx), donc même regroupement et
+  // mêmes statuts — le checkout d'une note passée n'est pas une vue à part,
+  // c'est le même checkout en lecture seule.
+  // Les notes de démonstration (NOTE_ITEMS_TEMPLATE) n'ont pas de `doc` : elles
+  // ne retournent rien et n'affichent donc pas le bouton.
+  function noteDocs(n) {
+    // Notes de démonstration : documents figés dans le gabarit (txDocs).
+    if (n.txDocs) return n.txDocs;
+    if (!n.doc || !window.scanDoc || !window.buildTransmissionDocs) return [];
+    try { return window.buildTransmissionDocs(window.scanDoc(n.doc), n.txState || {}); }
+    catch (e) { return []; }
   }
 
   // Épisode de soin : notes distinctes (chacune garde son propre timestamp)
@@ -312,7 +398,12 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
                   </span>}
                 <div style={{ flex: 1 }} />
                 <div style={nlStyles.actionIcons}>
-                  <button style={nlStyles.checkoutBtn}>Checkout</button>
+                  {noteDocs(n).length > 0 &&
+                    <button style={nlStyles.checkoutBtn}
+                      title="Voir les documents transmis pour cette note"
+                      onClick={() => setCheckoutNote(n)}>
+                      Checkout
+                    </button>}
                   <button style={nlStyles.caretBtn} onClick={() => toggle(i)} aria-label={isOpen ? "Fermer" : "Ouvrir"}>
                     {isOpen
                       ? <span className="material-icons" style={nlStyles.caretIcon}>unfold_less</span>
@@ -339,6 +430,17 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
                   </div>
                 </div>
               ) : null}
+
+              {/* Note repliée : la conclusion sert d'aperçu (c'est elle qui
+                  porte l'impression et le plan, donc ce qu'on cherche en
+                  survolant le journal). Dépliée, elle réapparaît à sa place
+                  dans le document, on ne la montre pas deux fois. */}
+              {!isOpen && (
+                <div style={nlStyles.conclPreview}>
+                  <div style={nlStyles.conclLabel}>Conclusion</div>
+                  <ConclusionPreview note={n} />
+                </div>
+              )}
 
               {/* Diagnostics — always visible (collapsed only shows these) */}
               {n.diagnostics && n.diagnostics.length > 0 && (
@@ -391,6 +493,18 @@ function NotesList({ doctorName = "Véronique Charland", extraNotes = [] }) {
           <span className="material-icons-outlined" style={{ fontSize: 16 }}>format_quote</span>
           Référencer dans la note
         </button>}
+
+      {/* Checkout d'une note déjà complétée : même vue que pendant la
+          rédaction, mais figée — pas d'action de transmission, pas d'item
+          « Note » (elle est déjà signée), pas de pied de page. */}
+      {checkoutNote &&
+        <window.TransmissionModal
+          readOnly
+          docs={noteDocs(checkoutNote)}
+          doctorName={checkoutNote.author}
+          institution={checkoutNote.clinic}
+          noteInfo={{ title: checkoutNote.title, date: checkoutNote.date }}
+          onClose={() => setCheckoutNote(null)} />}
     </div>
   );
 }
@@ -537,6 +651,25 @@ const nlStyles = {
   roRefIcon: { fontSize: 15, color: '#8a7f68' },
   roRefSource: { fontSize: 12, fontWeight: 500, color: '#756b56', letterSpacing: '0.02em' },
   roRefBody: { fontSize: 14, fontStyle: 'italic', color: 'rgba(0,0,0,0.68)', lineHeight: 1.5 },
+  roSplit: { margin: '14px 0 6px' },
+  roSplitLabel: {
+    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
+    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    color: "rgba(0,0,0,0.54)", marginBottom: 3,
+  },
+  roSplitRule: { height: 0, borderTop: '1px solid var(--brand-primary, rgb(46,56,166))', opacity: 0.35 },
+  conclPreview: { marginBottom: 8 },
+  // Aperçu borné à 3 lignes : c'est un résumé de journal, pas la note.
+  // Déplier la note reste le geste pour tout lire.
+  conclPreviewText: {
+    fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25,
+    display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+  },
+  conclEmpty: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    fontSize: 13, fontStyle: 'italic', color: "rgba(0,0,0,0.45)",
+  },
+  conclEmptyIcon: { fontSize: 16, color: "rgba(0,0,0,0.35)" },
   conclLabelWrap: { marginTop: 4, marginBottom: 4 },
   conclLabel: {
     fontSize: 12, fontWeight: 500, letterSpacing: 0.4,

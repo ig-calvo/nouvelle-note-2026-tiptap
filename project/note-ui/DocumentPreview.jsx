@@ -3,7 +3,7 @@
 // DocumentPreview — rendu façon PDF d'un document transmissible
 // (ordonnance ou requête). Gabarit HTML/CSS partagé par la
 // colonne Aperçu du checkout, le faux dialogue d'impression et
-// l'écran de fax (voir PLAN-transmission-ordonnance.md §5.4).
+// l'écran de fax.
 // =========================================================
 
 // Coordonnées fictives de la clinique — cohérentes avec le thème
