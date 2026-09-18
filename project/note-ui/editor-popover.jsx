@@ -408,9 +408,21 @@ function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickS
           <div style={{ height: 1, background: '#e8ecf5', margin: '0 12px' }} />
           <div style={{ padding: '4px 0 6px' }}>
             {suggestions.map((s, i) => {
-              const showDivider = i > 0 && suggestions[i - 1].generic && !s.generic;
+              const showChartHeader = s.fromChart && (i === 0 || !suggestions[i - 1].fromChart);
+              const showCodeHeader = !s.fromChart && i > 0 && suggestions[i - 1].fromChart;
+              const showDivider = !s.fromChart && i > 0 && suggestions[i - 1].generic && !s.generic;
               return (
-                <React.Fragment key={s.code + '-' + i}>
+                <React.Fragment key={(s.key || s.code || 'x') + '-' + i}>
+                  {showChartHeader && (
+                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
+                      Problèmes au dossier
+                    </div>
+                  )}
+                  {showCodeHeader && (
+                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
+                      Codes CIM-10
+                    </div>
+                  )}
                   {showDivider && (
                     <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
                       Codes précis
@@ -425,10 +437,15 @@ function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickS
                     }}
                   >
                     <span style={{
+                      display: 'inline-flex', alignItems: 'center', justifyContent: s.fromChart ? 'center' : 'flex-start',
                       fontSize: 11, fontWeight: 600, minWidth: 44, flexShrink: 0,
-                      color: s.generic ? '#6967d1' : '#1a5fd4', fontVariantNumeric: 'tabular-nums'
-                    }}>{s.generic ? 'Général' : s.code}</span>
-                    <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.82)', fontWeight: s.generic ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.libelle}</span>
+                      color: s.fromChart ? '#2e7d32' : (s.generic ? '#6967d1' : '#1a5fd4'), fontVariantNumeric: 'tabular-nums'
+                    }}>
+                      {s.fromChart
+                        ? <span className="material-icons-outlined" style={{ fontSize: 15 }} title="Au dossier">inventory_2</span>
+                        : (s.generic ? 'Général' : s.code)}
+                    </span>
+                    <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.82)', fontWeight: (s.generic || s.fromChart) ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.libelle}</span>
                     {i === activeIndex && <kbd style={{ background: '#f0f0f8', border: '1px solid #d0d0e0', borderRadius: 3, padding: '1px 5px', fontSize: 11, color: '#888', flexShrink: 0 }}>↵</kbd>}
                   </div>
                 </React.Fragment>

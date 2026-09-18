@@ -31,9 +31,20 @@ function anchorFromRect(editor, rect, position, pinned) {
     : { editor, left, bottom: window.innerHeight - rect.top + 8, pinned };
 }
 
+// Titres de section verrouillés (attrs.locked, voir LockedHeadingExtension
+// dans editor-schema.jsx) : sélectionner leur texte ne doit pas faire
+// apparaître la barre de mise en forme — aucun de ses boutons n'aurait
+// d'effet (l'édition y est refusée au niveau du document), l'afficher
+// donnerait l'impression trompeuse que ce titre s'édite comme le reste.
+function isInLockedHeading(node) {
+  const el = node && (node.nodeType === 1 ? node : node.parentElement);
+  return !!(el && el.closest && el.closest('[data-locked="true"]'));
+}
+
 function selectionState(position) {
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  if (isInLockedHeading(sel.anchorNode) || isInLockedHeading(sel.focusNode)) return null;
   const editor = editorFromNode(sel.anchorNode);
   if (!editor) return null;
   const rect = sel.getRangeAt(0).getBoundingClientRect();

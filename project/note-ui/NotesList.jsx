@@ -396,6 +396,14 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                     <span className="material-icons-outlined" style={nlStyles.episodeIcon}>link</span>
                     Épisode de soin · visite {epVisitNum}/{epTotal}
                   </span>}
+                {/* Champ confidentiel — visible seulement par l'auteur, même
+                    ici où toutes les notes du dossier sont listées (voir
+                    l'exception d'accès, filtre par consentement actif). */}
+                {n.confidential && n.author === doctorName &&
+                  <span className="confidential-lock--badge"
+                    title="Contient un champ confidentiel">
+                    <span className="material-icons-outlined">lock</span>
+                  </span>}
                 <div style={{ flex: 1 }} />
                 <div style={nlStyles.actionIcons}>
                   {noteDocs(n).length > 0 &&

@@ -4,9 +4,17 @@
 <meta charset="utf-8">
 <title>Omnimed — Note clinique</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
-<link rel="stylesheet" href="note-ui/editor.css">
-<link rel="stylesheet" href="note-ui/clinical-tool.css">
-<link rel="stylesheet" href="colors_and_type.css">
+<!-- Anti-cache comme le chargeur JSX plus bas : sans horodatage, un navigateur
+     qui a déjà mis ces .css en cache HTTP ne revoit jamais leurs modifications
+     tant que l'URL ne change pas (même après un rechargement complet de la page). -->
+<script>
+(function () {
+  var v = Date.now();
+  document.write('<link rel="stylesheet" href="note-ui/editor.css?v=' + v + '">');
+  document.write('<link rel="stylesheet" href="note-ui/clinical-tool.css?v=' + v + '">');
+  document.write('<link rel="stylesheet" href="colors_and_type.css?v=' + v + '">');
+})();
+</script>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 <style>
   /* DS3 token bridge — needed by editor components */
@@ -210,6 +218,7 @@
     'note-ui/TransmissionModal.jsx',
     'note-ui/QuickSendModal.jsx',
     'note-ui/rich-text-controls.jsx',
+    'note-ui/ActionLog.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
     'note-ui/SmartNoteModal.jsx',
@@ -388,6 +397,9 @@ function App() {
       files: [],
       doc: data.doc || window.DEFAULT_DOC(),
       episodeId: data.episodeId || null,
+      // Jamais lu par un rendu « autre intervenant » (ex. NotesList pour les
+      // notes d'un autre auteur) : seul l'auteur (author, ci-dessus) y a accès.
+      confidential: data.confidential || null,
       // Statuts et destinataires de transmission figés à la complétion —
       // relus par le bouton « Checkout » du Journal (NotesList).
       txState: data.txState || {},

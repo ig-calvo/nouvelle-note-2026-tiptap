@@ -658,6 +658,10 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true,
     template: { type: 'problem', label: 'Problème', text: 'Problème',
       details: { name: '', severity: 'Modéré', since: "Aujourd'hui", notes: '' } } },
+  // ── CONFIDENTIEL — section à part (une seule instance par note, cf.
+  // confidentialField ci-dessous et NoteEditor.jsx) ─────────
+  { key: 'confidential-field', section: 'Confidentiel', icon: 'lock', title: 'Champ confidentiel', desc: 'Visible seulement par vous', kbd: '',
+    noKbd: true, confidentialField: true },
 ];
 
 // ── GABARITS DE NOTE ─────────────────────────────────────────
@@ -716,6 +720,19 @@ const PROBLEMS = [
   { id: 'pb3', ttl: 'Grossesse', meta: '22 sem · suivi GARE', sev: '', sevLbl: 'Actif' },
 ];
 
+// Problemes au dossier - memes donnees que le sommaire (liste ci-dessus).
+// Affiches en tete du menu /dx (voir searchDx dans editor-schema.jsx), meme
+// principe que PATIENT_MEDS pour /rx : sans terme tape, on retrouve tout le
+// dossier ; avec un terme, on filtre. Forme alignee sur searchCIM10 (libelle,
+// generic) pour pouvoir fusionner les deux listes dans une seule navigation
+// clavier - `fromChart` distingue un probleme du dossier d'un code CIM-10.
+function searchProblems(query) {
+  const q = _norm((query || '').trim());
+  return PROBLEMS
+    .filter(function (p) { return !q || _norm(p.ttl).includes(q); })
+    .map(function (p) { return { key: p.id, libelle: p.ttl, generic: false, fromChart: true }; });
+}
+
 const VITALS = [
   { ic: 'thermostat',    lbl: 'Température', val: '38,1 °C' },
   { ic: 'favorite',      lbl: 'FC',            val: '84 bpm' },
@@ -755,4 +772,4 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PROBLEMS, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };
+  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, searchProblems };

@@ -8,6 +8,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.__SHOW_CLINICAL_TOOLS = showClinicalTools;
   }, [showClinicalTools]);
 
+  // Même pont que ci-dessus : lu à la création/édition d'un chip, d'un outil
+  // clinique ou à la promotion d'un diagnostic (editor-field.jsx,
+  // editor-schema.jsx) pour horodater l'auteur au moment de l'action, sans
+  // faire remonter ces fonctions profondément imbriquées jusqu'ici par props.
+  React.useEffect(function() {
+    window.__CURRENT_AUTHOR = doctorName;
+  }, [doctorName]);
+
   // Mode révision — reviewActive suit le toggle d'en-tête ET l'activation
   // auto par l'IA (voir AIBox onAddToNote plus bas) ; il vit ici (pas dans
   // NoteBody) pour survivre au démontage/remontage de l'éditeur Tiptap à
@@ -41,6 +49,32 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const editorRef = React.useRef(null);
   const initialDocRef = React.useRef(null);
   const [docStats, setDocStats] = React.useState({ counts: {}, items: [], diagNames: [], chips: [] });
+  // Doc JSON brut (docStats n'en garde qu'un résumé) — nécessaire au Journal
+  // des actions (buildActionLog a besoin des attrs savedAt/author de chaque
+  // node, pas seulement des compteurs).
+  const [docJson, setDocJson] = React.useState(null);
+  // Champ confidentiel — hors du document Tiptap (comme raison/date/heure) :
+  // jamais sérialisé dans le doc, donc jamais capturé par une impression ou
+  // un export qui ne lit que le doc. Créé via l'item « Champ confidentiel »
+  // du menu « + » (voir note:confidential-field-request, editor-field.jsx) ;
+  // une fois `confidentialAdded`, il n'y a plus de repli/dépli — seule la
+  // suppression (avec confirmation) le retire.
+  const [confidentialContent, setConfidentialContent] = React.useState('');
+  const [confidentialAdded, setConfidentialAdded] = React.useState(false);
+  const [confidentialWarningOpen, setConfidentialWarningOpen] = React.useState(false);
+  const [confidentialDeleteOpen, setConfidentialDeleteOpen] = React.useState(false);
+  // Pont lu par filterSlashItems (editor-schema.jsx) pour retirer l'item du
+  // menu « + » une fois le champ créé — une seule instance par note.
+  React.useEffect(function() {
+    window.__CONFIDENTIAL_FIELD_ADDED = confidentialAdded;
+  }, [confidentialAdded]);
+  // Déclenché par l'item « Champ confidentiel » du menu « + » (NoteBody vit
+  // dans un composant distinct, voir ct-picker-open pour le même pont).
+  React.useEffect(function() {
+    function onRequest() { setConfidentialWarningOpen(true); }
+    window.addEventListener('note:confidential-field-request', onRequest);
+    return function() { window.removeEventListener('note:confidential-field-request', onRequest); };
+  }, []);
   // État (pas seulement une ref) pour que NoteRichTextToolbar — rendu en flux
   // normal, voir plus bas — se (re)monte quand l'éditeur apparaît/disparaît.
   const [editorInstance, setEditorInstance] = React.useState(null);
@@ -82,6 +116,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
     setDocStats(stats);
+    setDocJson(docJson);
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
   }
 
@@ -466,6 +501,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setLinkedChipId(null);
     setEpisodeId(null);
     setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
+    setDocJson(null);
+    setConfidentialContent('');
+    setConfidentialAdded(false);
+    setConfidentialWarningOpen(false);
+    setConfidentialDeleteOpen(false);
     setTxState({});
     setReviewActive(false);
     setReviewChanges([]);
@@ -493,7 +533,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
-        date: noteDate, time: noteTime, visitType: visitType, tags: tags }].concat(prev);
+        date: noteDate, time: noteTime, visitType: visitType, tags: tags,
+        confidential: confidentialContent || null }].concat(prev);
     });
     if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
   }
@@ -506,6 +547,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setRaison(draft.raison || '');
     setTags(draft.tags || []);
     if (draft.visitType) setVisitType(draft.visitType);
+    if (draft.confidential) { setConfidentialContent(draft.confidential); setConfidentialAdded(true); }
     if (onOpen) onOpen();
   }
 
@@ -620,6 +662,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       diagnostics: stats.diagNames,
       doc: doc,
       episodeId: episodeId,
+      // Hors du doc Tiptap par conception (voir déclaration de l'état plus
+      // haut) — persisté séparément pour que la note complétée garde le
+      // champ, mais jamais lu par PrintDialog ni par un rendu « autre
+      // intervenant » qui ne reçoit que `doc`.
+      confidential: confidentialContent || null,
       // État de transmission au moment de la complétion : c'est lui qui permet
       // de rouvrir le checkout d'une note passée depuis le Journal (bouton
       // « Checkout » de NotesList) avec ses destinataires et ses statuts, au
@@ -773,6 +820,86 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                   );
                 })}
               </div>
+            </div>
+          </div>
+
+          {/* Créé via l'item « Champ confidentiel » du menu « + » (voir
+              note:confidential-field-request) — une fois ajouté, reste
+              affiché tant qu'il n'est pas supprimé (icône corbeille
+              ci-dessous), pas de repli/dépli. */}
+          {confidentialAdded &&
+            <div className="confidential-field">
+              <div className="confidential-field__head">
+                <span className="material-icons-outlined">lock</span>
+                <span className="confidential-field__label">Champs confidentiel</span>
+                <button type="button" className="confidential-field__delete-btn"
+                  title="Supprimer le champ confidentiel"
+                  onClick={function () { setConfidentialDeleteOpen(true); }}>
+                  <span className="material-icons-outlined">delete</span>
+                </button>
+              </div>
+              <textarea
+                className="confidential-field__input"
+                autoFocus
+                placeholder="Documenter le champ confidentiel"
+                value={confidentialContent}
+                onChange={function (e) { setConfidentialContent(e.target.value); }} />
+            </div>
+          }
+
+          <ActionLog docJson={docJson} editor={editorInstance} />
+        </div>
+      }
+
+      {/* Avertissement à la création du champ confidentiel — un seul palier,
+          jamais réaffiché ensuite (il n'y en a qu'un par note). */}
+      {confidentialWarningOpen &&
+        <div className="confidential-modal-backdrop" onMouseDown={function () { setConfidentialWarningOpen(false); }}>
+          <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
+            <div className="confidential-modal__title">
+              <span className="material-icons-outlined">lock</span>
+              <span className="confidential-modal__title-text">Note confidentielle</span>
+              <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialWarningOpen(false); }}>
+                <span className="material-icons-outlined">close</span>
+              </button>
+            </div>
+            <div className="confidential-modal__body">
+              <p className="confidential-modal__headline">Voulez-vraiment écrire une note confidentielle?</p>
+              <p>Le contenu du champs de note confidentielle sera uniquement visible par son auteur. Les informations ajoutées ne devraient pas entraver une décision clinique ou un diagnostique par un.e autre praticien.ne concernant ce patient.</p>
+            </div>
+            <div className="confidential-modal__actions">
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialWarningOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-primary" onClick={function () {
+                setConfidentialAdded(true);
+                setConfidentialWarningOpen(false);
+              }}>Écrire</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      {/* Suppression du champ confidentiel — irréversible (contenu perdu),
+          donc confirmation dédiée plutôt qu'un simple clic sur la corbeille. */}
+      {confidentialDeleteOpen &&
+        <div className="confidential-modal-backdrop" onMouseDown={function () { setConfidentialDeleteOpen(false); }}>
+          <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
+            <div className="confidential-modal__title">
+              <span className="material-icons-outlined">lock</span>
+              <span className="confidential-modal__title-text">Supprimer le champ confidentiel?</span>
+              <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialDeleteOpen(false); }}>
+                <span className="material-icons-outlined">close</span>
+              </button>
+            </div>
+            <div className="confidential-modal__body">
+              <p>Le contenu rédigé sera définitivement perdu.</p>
+            </div>
+            <div className="confidential-modal__actions">
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialDeleteOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-danger" onClick={function () {
+                setConfidentialContent('');
+                setConfidentialAdded(false);
+                setConfidentialDeleteOpen(false);
+              }}>Supprimer</button>
             </div>
           </div>
         </div>

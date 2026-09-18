@@ -227,3 +227,125 @@
 }
 .ct-toolsbtn:hover { background: var(--brand-primary-container); }
 .ct-toolsbtn .material-icons-outlined { font-size: 18px; }
+
+/* ============================================================
+   Champ confidentiel (voir NoteEditor.jsx) — d'après la maquette Figma
+   « Note - DEV » (node 7757:34560) : créé via l'item « Champ confidentiel »
+   du menu « + », pas d'icône séparée au repos. Carte plate (bordure fine,
+   pas de fond teinté) pour rester dans le langage visuel des autres champs
+   de la note — la distinction avec le reste vient de l'en-tête (cadenas +
+   libellé + corbeille), pas d'une carte colorée.
+   ============================================================ */
+.confidential-field {
+  margin-top: 8px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  background: #fff; padding: 16px 12px 10px;
+}
+.confidential-field__head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.confidential-field__head > .material-icons-outlined { font-size: 16px; color: var(--fg-2); }
+.confidential-field__label { font: 600 13px var(--font-body); color: var(--fg-1); flex: 1; }
+.confidential-field__delete-btn {
+  border: 0; background: transparent; cursor: pointer; color: var(--fg-4);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: var(--radius-sm); transition: background 120ms, color 120ms;
+}
+.confidential-field__delete-btn:hover { background: var(--bg-subtle); color: var(--fg-1); }
+.confidential-field__delete-btn .material-icons-outlined { font-size: 17px; }
+.confidential-field__input {
+  display: block; width: 100%; min-height: 40px; resize: vertical;
+  border: 1px solid var(--border-default); border-radius: var(--radius-sm);
+  background: #fff; padding: 8px 10px;
+  font: 400 14px/1.5 var(--font-body); color: var(--fg-1); outline: none;
+}
+.confidential-field__input:focus { border-color: var(--brand-primary); }
+
+/* Variante badge (liste de notes, jamais montrée dans la maquette mais
+   nécessaire pour distinguer vide/rempli sur une note fermée) — plein
+   quand la note a un champ confidentiel, miniature et non interactive. */
+.confidential-lock--badge {
+  width: 20px; height: 20px; flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+  border-radius: 50%; background: var(--brand-primary); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.confidential-lock--badge .material-icons-outlined { font-size: 12px; }
+
+/* Modales — avertissement à la création, confirmation à la suppression.
+   Même structure (barre de titre + corps + actions) que les autres
+   modales DS3 de la maquette ; seule la couleur du bouton principal change. */
+.confidential-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(20,20,30,0.32);
+  display: flex; align-items: center; justify-content: center; z-index: 300;
+}
+.confidential-modal {
+  width: 480px; max-width: calc(100vw - 32px); background: #fff;
+  border-radius: var(--radius-md); box-shadow: var(--elev-4); overflow: hidden;
+}
+.confidential-modal__title {
+  display: flex; align-items: center; gap: 8px; padding: 10px 8px 10px 16px;
+  color: var(--fg-2);
+}
+.confidential-modal__title-text { flex: 1; font: 600 18px var(--font-display); color: rgba(0,0,0,0.9); }
+.confidential-modal__close {
+  border: 0; background: transparent; cursor: pointer; color: var(--fg-2);
+  width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+}
+.confidential-modal__close:hover { background: var(--bg-subtle); }
+.confidential-modal__body { padding: 0 16px 16px; font: 400 14px/1.5 var(--font-body); color: var(--fg-1); }
+.confidential-modal__headline { font-weight: 600; margin: 0 0 4px; }
+.confidential-modal__body p { margin: 0 0 4px; }
+.confidential-modal__actions { display: flex; justify-content: flex-end; gap: 8px; padding: 16px; }
+.confidential-modal__btn-text {
+  border: 0; background: transparent; cursor: pointer; padding: 8px 12px;
+  font: 600 14px var(--font-display); color: var(--brand-primary); border-radius: var(--radius-lg);
+}
+.confidential-modal__btn-text:hover { background: var(--bg-subtle); }
+.confidential-modal__btn-primary, .confidential-modal__btn-danger {
+  border: 0; cursor: pointer; padding: 8px 16px; border-radius: var(--radius-lg);
+  font: 600 14px var(--font-display); color: #fff;
+}
+.confidential-modal__btn-primary { background: var(--brand-primary); }
+.confidential-modal__btn-primary:hover { background: var(--brand-primary-hover); }
+.confidential-modal__btn-danger { background: #b3261e; }
+.confidential-modal__btn-danger:hover { background: #94190f; }
+
+/* ============================================================
+   Journal des actions — « Contenu de la note » (voir ActionLog.jsx). Liste
+   à plat, sans carte ni fond — à dessein très différent du champ
+   confidentiel ci-dessus.
+   ============================================================ */
+.action-log { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--divider); }
+.action-log__header {
+  display: flex; align-items: center; justify-content: space-between; width: 100%;
+  border: 0; background: transparent; cursor: pointer; padding: 2px 4px 2px 0;
+  border-radius: var(--radius-sm); margin-bottom: 2px;
+}
+.action-log__header:hover { background: var(--bg-subtle); }
+.action-log__chevron { font-size: 18px; color: var(--fg-4); }
+.action-log__title { font: 600 11px var(--font-body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-4); }
+.action-log__row {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%;
+  border: 0; background: transparent; padding: 7px 4px; cursor: pointer;
+  border-radius: var(--radius-sm); text-align: left; transition: background 120ms;
+}
+.action-log__row:hover { background: var(--bg-subtle); }
+/* Boîte fixe (comme les icônes de chip dans la note, voir .chip-rx-icon/
+   .chip-rx-glyph dans editor.css) : le ℞ (police texte) et les glyphes
+   d'icône (police symboles) n'ont pas la même métrique naturelle à taille
+   égale, sans quoi la ligne d'une prescription (icône manquante côté
+   police, en plus) désaligne son titre par rapport aux autres lignes. */
+.action-log__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; font-size: 17px; color: var(--fg-4); flex-shrink: 0; margin-top: 1px;
+}
+.action-log__icon--rx { font-family: var(--font-display); font-weight: 500; font-size: 16px; line-height: 1; color: #25245E; }
+.action-log__icon--lab { color: #1975d1; }
+.action-log__icon--img { color: #7a3ec2; }
+.action-log__icon--ref { color: #2e7d32; }
+.action-log__icon--consignes { color: #2e38a6; }
+.action-log__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.action-log__row-title { font: 500 13px var(--font-body); color: var(--fg-1); }
+.action-log__meta { font: 400 12px var(--font-body); color: var(--fg-4); }
+.action-log-flash { animation: action-log-flash-kf 900ms var(--motion-ease); }
+@keyframes action-log-flash-kf {
+  0%, 100% { background-color: transparent; }
+  25% { background-color: var(--brand-primary-container); }
+}
