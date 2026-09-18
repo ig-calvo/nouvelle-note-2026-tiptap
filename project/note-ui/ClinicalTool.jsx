@@ -115,9 +115,19 @@ function ClinicalTool({ fields, onFieldChange, collapsedSections, onToggleSectio
 
   // Liaisons locales (name → fields/onFieldChange déjà fermés) — évite de
   // répéter fields={fields} onFieldChange={onFieldChange} à chaque champ.
-  function F(props) { return <CTField {...props} fields={fields} onFieldChange={onFieldChange} />; }
-  function Chk(props) { return <CTCheck {...props} fields={fields} onFieldChange={onFieldChange} />; }
-  function YN(props) { return <CTYesNo {...props} fields={fields} onFieldChange={onFieldChange} />; }
+  // F/Chk/YN DOIVENT rester une référence stable (useCallback, deps [])
+  // plutôt qu'une fonction redéfinie à chaque rendu : ClinicalTool se
+  // rerend via root.render() à chaque frappe (voir editor-schema.jsx), et un
+  // composant redéfini dans le corps d'un composant change de type à
+  // chaque rendu — React démonte/remonte alors tout ce qu'il produit,
+  // <input> compris, ce qui fait perdre le focus après chaque caractère.
+  // Les refs exposent toujours la valeur courante de fields/onFieldChange
+  // malgré la référence figée.
+  const fieldsRef = React.useRef(fields); fieldsRef.current = fields;
+  const onFieldChangeRef = React.useRef(onFieldChange); onFieldChangeRef.current = onFieldChange;
+  const F = React.useCallback(function F(props) { return <CTField {...props} fields={fieldsRef.current} onFieldChange={onFieldChangeRef.current} />; }, []);
+  const Chk = React.useCallback(function Chk(props) { return <CTCheck {...props} fields={fieldsRef.current} onFieldChange={onFieldChangeRef.current} />; }, []);
+  const YN = React.useCallback(function YN(props) { return <CTYesNo {...props} fields={fieldsRef.current} onFieldChange={onFieldChangeRef.current} />; }, []);
   function bind(name) { return { value: fields[name] || null, onChange: function (v) { onFieldChange(name, v); } }; }
 
   // Résumé affiché quand l'outil est replié — lit l'état réel du DOM.
@@ -432,7 +442,11 @@ function CTBhcg({ name, fields, onFieldChange }) {
 function ClinicalToolExamCourt({ fields, onFieldChange, collapsedSections, onToggleSection, favorite, onToggleFavorite, bodyCollapsed, onBodyCollapseChange, onClose }) {
   function isCol(id) { return !!(collapsedSections && collapsedSections[id]); }
   function toggle(id) { onToggleSection(id); }
-  function F(props) { return <CTField {...props} fields={fields} onFieldChange={onFieldChange} />; }
+  // F doit rester stable (useCallback, deps []) — voir le commentaire dans
+  // ClinicalTool ci-dessus pour la perte de focus que ça évite.
+  const fieldsRef = React.useRef(fields); fieldsRef.current = fields;
+  const onFieldChangeRef = React.useRef(onFieldChange); onFieldChangeRef.current = onFieldChange;
+  const F = React.useCallback(function F(props) { return <CTField {...props} fields={fieldsRef.current} onFieldChange={onFieldChangeRef.current} />; }, []);
 
   const bodyRef = React.useRef(null);
   const [summary, setSummary] = React.useState('');
