@@ -356,7 +356,7 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
                   <div className="ttl">{it.title}</div>
                   <div className="desc">{it.desc}</div>
                 </div>
-                {it.ctPicker
+                {it.ctPicker || it.notePicker || it.diagRefPicker
                   ? <span className="material-icons-outlined" style={{fontSize:16,color:'rgba(0,0,0,0.35)',marginLeft:'auto'}}>chevron_right</span>
                   : !it.noKbd && <span className="kbd">{it.kbdNoSlash ? it.kbd : '/' + it.kbd}</span>
                 }

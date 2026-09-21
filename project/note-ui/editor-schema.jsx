@@ -434,6 +434,65 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   }
 }); }
 
+// Liste les régions diagnostic du document dans l'ordre où elles y
+// apparaissent — c'est cet ordre (identique à l'ordre DOM des .dxr, donc au
+// compteur CSS omd-diag-counter qui numérote leur en-tête) qui définit le
+// numéro « officiel » de chaque diagnostic. Utilisé pour peupler le picker
+// « Renvoi à un diagnostic » (editor-field.jsx) et pour tenir à jour les
+// puces déjà insérées (voir diagnosticRef ci-dessous).
+function listDiagnostics(doc) {
+  const list = [];
+  doc.descendants(function (node) {
+    if (node.type.name === 'diagnosticRegion') list.push({ id: node.attrs.id, name: node.attrs.name });
+  });
+  return list;
+}
+
+// ---------------------------------------------------------
+// DiagnosticRefNode — puce inline « (N) » renvoyant au Nᵉ diagnostic du
+// document (voir listDiagnostics ci-dessus). Ne stocke QUE l'id du
+// diagnostic visé : le numéro affiché n'est pas un attribut à lui, il
+// dépend de la position de TOUS les diagnostics du document et ne peut
+// donc pas se recalculer depuis le seul update() de ce node — il est
+// recalculé à chaque transaction par syncDiagnosticRefs (editor-field.jsx),
+// comme updateLineBtnPos pour la même raison (état dérivé du doc entier).
+// ---------------------------------------------------------
+function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
+  name: 'diagnosticRef',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  selectable: true,
+  draggable: false,
+  addAttributes() {
+    return { diagId: { default: null } };
+  },
+  parseHTML() {
+    return [{ tag: 'span.dxref[data-diag-id]', getAttrs(dom) { return { diagId: dom.getAttribute('data-diag-id') }; } }];
+  },
+  renderHTML({ node }) {
+    return ['span', { class: 'dxref', 'data-diag-id': node.attrs.diagId, contenteditable: 'false' }, '(?)'];
+  },
+  addNodeView() {
+    return (props) => {
+      const dom = document.createElement('span');
+      dom.className = 'dxref';
+      dom.setAttribute('contenteditable', 'false');
+      dom.setAttribute('data-diag-id', props.node.attrs.diagId || '');
+      dom.textContent = '(?)';
+      return {
+        dom,
+        ignoreMutation: () => true,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'diagnosticRef') return false;
+          dom.setAttribute('data-diag-id', updatedNode.attrs.diagId || '');
+          return true;
+        }
+      };
+    };
+  }
+}); }
+
 // ---------------------------------------------------------
 // SectionSplitNode — la ligne de séparation « Détails de la consultation »
 // (au-dessus) / « Conclusion » (en dessous).
@@ -1105,6 +1164,7 @@ function buildEditorExtensions(placeholder) {
     makeChipNode(),
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
+    makeDiagnosticRefNode(),
     makeSectionSplitNode(),
     makeClinicalToolNode()
   ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : []);
@@ -1122,6 +1182,10 @@ function filterSlashItems(query) {
   // Une seule instance de champ confidentiel par note — le retirer du menu
   // une fois créé (voir window.__CONFIDENTIAL_FIELD_ADDED, posé par NoteEditor.jsx).
   if (window.__CONFIDENTIAL_FIELD_ADDED) items = items.filter(function (it) { return !it.confidentialField; });
+  // Renvoi à un diagnostic : rien à renvoyer tant qu'aucun diagnostic
+  // n'existe (voir window.__HAS_DIAGNOSTICS, posé par syncDiagnosticRefs
+  // dans editor-field.jsx à chaque transaction).
+  if (!window.__HAS_DIAGNOSTICS) items = items.filter(function (it) { return !it.diagRefPicker; });
   if (!t) return items.filter(function (it) { return !it.hideWhenEmpty; });
   return items.filter(function (it) { return it.title.toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
 }
@@ -1578,5 +1642,6 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
-  updateChipEntity
+  updateChipEntity,
+  listDiagnostics
 });

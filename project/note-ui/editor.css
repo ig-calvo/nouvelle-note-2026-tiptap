@@ -136,6 +136,48 @@
   margin: 0 0 1px;
 }
 
+/* Bref flash au clic sur une puce .dxref (renvoi) qui saute jusqu'à son
+   diagnostic — confirme visuellement QUEL diagnostic vient d'être ciblé,
+   pas seulement le scroll. Indépendant des variantes diag-style-*. */
+@keyframes dxr-flash-kf { from { background: rgba(122, 168, 216, 0.35); } to { background: transparent; } }
+.note-field .ql-editor .dxr.dxr-flash { animation: dxr-flash-kf 900ms ease-out; border-radius: 6px; }
+
+/* Puce « renvoi à un diagnostic » (.dxref, node diagnosticRef) — insérée
+   dans la Conclusion (ou ailleurs) via le picker du même nom. Son numéro
+   n'est pas posé en CSS : il est recalculé en JS à chaque transaction (voir
+   syncDiagnosticRefs, editor-field.jsx) car il dépend de la position d'UN
+   AUTRE node dans le doc, ce qu'un compteur CSS ne peut pas exprimer. */
+.note-field .ql-editor .dxref {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 5px;
+  margin: 0 1px;
+  border-radius: 9px;
+  background: var(--brand-primary-container, #e3ecfa);
+  color: var(--brand-primary, #1a5fd4);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  vertical-align: 1px;
+}
+.note-field .ql-editor .dxref:hover {
+  background: var(--brand-primary, #1a5fd4);
+  color: #fff;
+}
+/* Diagnostic visé supprimé depuis — puce non cliquable, distincte visuellement
+   plutôt que silencieusement fausse (voir syncDiagnosticRefs). */
+.note-field .ql-editor .dxref.dxref-broken {
+  background: var(--bg-subtle);
+  color: var(--fg-3);
+  cursor: default;
+}
+
 /* ============================================================
    Diagnostic region — variantes (tweak "Style de région").
    Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
@@ -642,7 +684,7 @@
 @keyframes medmenu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
 /* Slash menu */
-.slash-menu { position: fixed; width: 320px; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--elev-3); z-index: 60; overflow: hidden; }
+.slash-menu { position: fixed; width: 320px; max-height: 600px; overflow-y: auto; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); box-shadow: var(--elev-3); z-index: 60; }
 .sm-section { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--fg-3); padding: 10px 12px 4px; }
 .sm-item { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 8px 12px; cursor: pointer; }
 .sm-item:hover, .sm-item.active { background: var(--brand-primary-container); }

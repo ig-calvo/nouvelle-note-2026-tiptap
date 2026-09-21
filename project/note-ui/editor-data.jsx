@@ -620,15 +620,19 @@ const SLASH_ITEMS = [
     addSection: true },
   { key: 'outils-cliniques', section: 'Structure', icon: 'handyman', title: 'Outils cliniques', desc: 'Score, calculatrice, outil clinique…', kbd: '',
     ctPicker: true, noKbd: true },
+  { key: 'note-templates', section: 'Structure', icon: 'post_add', title: 'Gabarits de note', desc: 'Syndrome viral, infection urinaire, examen périodique…', kbd: '',
+    notePicker: true, noKbd: true },
   // ── GABARITS DE NOTE ─────────────────────────────────────
   // Un niveau au-dessus des gabarits de section / outil clinique : règle
-  // structure + sections + outil clinique associé en un seul geste.
+  // structure + sections + outil clinique associé en un seul geste. Masqués
+  // du menu par défaut (hideWhenEmpty) — atteints via l'item « Gabarits de
+  // note » ci-dessus (NoteTemplateMenu) ou directement au clavier (/virus…).
   { key: 'tpl-virus', section: 'Gabarits de note', icon: 'coronavirus', title: 'Syndrome viral / IVRS', desc: 'Histoire, examen, conclusion', kbd: 'virus',
-    noteTemplate: 'virus' },
+    hideWhenEmpty: true, noteTemplate: 'virus' },
   { key: 'tpl-itu', section: 'Gabarits de note', icon: 'medical_information', title: 'Infection urinaire', desc: 'Structure + outil clinique ITU', kbd: 'itu',
-    noteTemplate: 'itu' },
+    hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
-    noteTemplate: 'periodique' },
+    hideWhenEmpty: true, noteTemplate: 'periodique' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -639,6 +643,10 @@ const SLASH_ITEMS = [
     noKbd: true, textRapides: true },
   { key: 'diagnostic', section: 'Fonctions', icon: 'local_hospital', title: 'Diagnostic', desc: 'Créer une section diagnostic', kbd: 'dx',
     diagnosticEntry: true },
+  // N'apparaît que si la note contient déjà au moins un diagnostic — voir
+  // window.__HAS_DIAGNOSTICS dans filterSlashItems (editor-schema.jsx).
+  { key: 'diagnostic-ref', section: 'Fonctions', icon: 'tag', title: 'Renvoi à un diagnostic', desc: 'Insère le numéro d’un diagnostic déjà ajouté', kbd: '',
+    noKbd: true, diagRefPicker: true },
   { key: 'prescription', section: 'Fonctions', icon: 'prescriptions', title: 'Prescriptions', desc: 'Rechercher et prescrire un médicament', kbd: 'rx',
     rxSearch: true },
   { key: 'lab', section: 'Fonctions', icon: 'science', title: 'Laboratoire', desc: 'FSC, TSH, bilan…', kbd: 'lab',
