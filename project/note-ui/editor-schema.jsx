@@ -29,6 +29,15 @@ function searchCIM10(query) {
   return generic.concat(specific).slice(0, 8);
 }
 
+// searchDx - liste unique (dossier + CIM-10) pour le menu /dx, meme principe
+// que flattenRxResults pour /rx : une seule liste a plat pour la navigation
+// clavier (Suggestion.items()) et le rendu (DiagnosticDropdown), les
+// problemes au dossier en tete.
+function searchDx(query) {
+  const term = (query || '').trim();
+  return window.NOTE_DATA.searchProblems(term).concat(searchCIM10(term));
+}
+
 // ---------------------------------------------------------
 // DOM builder for a chip — même rendu que l'ancien ChipBlot Quill.
 // Réutilisé à la fois par la création du NodeView et par sa mise à jour
@@ -118,11 +127,14 @@ function buildChipDom(data, existingEl) {
       nm.className = 'chip-rx-name';
       nm.textContent = data.rx.name || '';
       node.appendChild(nm);
+      const poso = document.createElement('span');
+      poso.className = 'chip-rx-poso';
       const pr = document.createElement('span');
-      pr.className = 'chip-rx-badge';
+      pr.className = 'chip-rx-priority';
       pr.setAttribute('data-field', 'priority');
       pr.textContent = d.priority || 'Routine';
-      node.appendChild(pr);
+      poso.appendChild(pr);
+      node.appendChild(poso);
       if (kind === 'lab' && d.fasting) {
         const ft = document.createElement('span');
         ft.className = 'chip-rx-sig';
@@ -161,7 +173,13 @@ function makeChipNode() { return window.Tiptap.Node.create({
       icon: { default: 'bookmark' },
       text: { default: '' },
       rx: { default: null },
-      details: { default: null }
+      details: { default: null },
+      // Horodatage/auteur de la dernière sauvegarde de ce chip — alimente le
+      // Journal des actions (voir buildActionLog plus bas). Pas de round-trip
+      // HTML (parseHTML) : les chips de ce prototype ne sont jamais recréés
+      // depuis du HTML collé, seulement depuis du JSON.
+      savedAt: { default: null },
+      author: { default: null }
     };
   },
   parseHTML() {
@@ -288,7 +306,13 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   isolating: true,
   defining: true,
   addAttributes() {
-    return { id: { default: null }, name: { default: 'Diagnostic' } };
+    return {
+      id: { default: null }, name: { default: 'Diagnostic' },
+      // Posés au clic sur « Promouvoir en problème » (editor-field.jsx) — un
+      // diagnostic non promu n'alimente ni le Sommaire (Summary.jsx) ni le
+      // Journal des actions ; voir buildActionLog plus bas.
+      promotedAt: { default: null }, promotedBy: { default: null }
+    };
   },
   parseHTML() {
     return [{
@@ -338,6 +362,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         dom.setAttribute('data-diag-id', attrs.id || '');
         nameEl.setAttribute('data-diag-id', attrs.id || '');
         nameEl.textContent = attrs.name || 'Diagnostic';
+        promoteBtn.classList.toggle('dxr-promoted', !!attrs.promotedAt);
       }
       render(props.node.attrs);
 
@@ -405,6 +430,65 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         const regionPos = $from.before(regionDepth);
         return editor.chain().deleteRange({ from: regionPos, to: regionPos + region.nodeSize }).run();
       }
+    };
+  }
+}); }
+
+// Liste les régions diagnostic du document dans l'ordre où elles y
+// apparaissent — c'est cet ordre (identique à l'ordre DOM des .dxr, donc au
+// compteur CSS omd-diag-counter qui numérote leur en-tête) qui définit le
+// numéro « officiel » de chaque diagnostic. Utilisé pour peupler le picker
+// « Renvoi à un diagnostic » (editor-field.jsx) et pour tenir à jour les
+// puces déjà insérées (voir diagnosticRef ci-dessous).
+function listDiagnostics(doc) {
+  const list = [];
+  doc.descendants(function (node) {
+    if (node.type.name === 'diagnosticRegion') list.push({ id: node.attrs.id, name: node.attrs.name });
+  });
+  return list;
+}
+
+// ---------------------------------------------------------
+// DiagnosticRefNode — puce inline « (N) » renvoyant au Nᵉ diagnostic du
+// document (voir listDiagnostics ci-dessus). Ne stocke QUE l'id du
+// diagnostic visé : le numéro affiché n'est pas un attribut à lui, il
+// dépend de la position de TOUS les diagnostics du document et ne peut
+// donc pas se recalculer depuis le seul update() de ce node — il est
+// recalculé à chaque transaction par syncDiagnosticRefs (editor-field.jsx),
+// comme updateLineBtnPos pour la même raison (état dérivé du doc entier).
+// ---------------------------------------------------------
+function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
+  name: 'diagnosticRef',
+  group: 'inline',
+  inline: true,
+  atom: true,
+  selectable: true,
+  draggable: false,
+  addAttributes() {
+    return { diagId: { default: null } };
+  },
+  parseHTML() {
+    return [{ tag: 'span.dxref[data-diag-id]', getAttrs(dom) { return { diagId: dom.getAttribute('data-diag-id') }; } }];
+  },
+  renderHTML({ node }) {
+    return ['span', { class: 'dxref', 'data-diag-id': node.attrs.diagId, contenteditable: 'false' }, '(?)'];
+  },
+  addNodeView() {
+    return (props) => {
+      const dom = document.createElement('span');
+      dom.className = 'dxref';
+      dom.setAttribute('contenteditable', 'false');
+      dom.setAttribute('data-diag-id', props.node.attrs.diagId || '');
+      dom.textContent = '(?)';
+      return {
+        dom,
+        ignoreMutation: () => true,
+        update(updatedNode) {
+          if (updatedNode.type.name !== 'diagnosticRef') return false;
+          dom.setAttribute('data-diag-id', updatedNode.attrs.diagId || '');
+          return true;
+        }
+      };
     };
   }
 }); }
@@ -542,9 +626,6 @@ function makeSectionSplitNode() {
         label.className = 'nsx-label';
         label.textContent = window.CONCLUSION_LABEL;
 
-        const count = document.createElement('span');
-        count.className = 'nsx-count';
-
         const spacer = document.createElement('span');
         spacer.className = 'nsx-spacer';
 
@@ -573,7 +654,6 @@ function makeSectionSplitNode() {
         // donc plus en tête, elle est tout au bout de la ligne, après les
         // flèches haut/bas, l'autre façon de déplacer la ligne.
         bar.appendChild(label);
-        bar.appendChild(count);
         bar.appendChild(spacer);
         bar.appendChild(up);
         bar.appendChild(down);
@@ -598,7 +678,6 @@ function makeSectionSplitNode() {
           bar.setAttribute('aria-valuemax', String(max));
           bar.setAttribute('aria-valuenow', String(slot < 0 ? max : slot));
           bar.setAttribute('aria-valuetext', window.splitAriaValueText(json));
-          count.textContent = n === 0 ? 'vide' : n + (n > 1 ? ' lignes' : ' ligne');
           up.disabled = slot <= 0;
           down.disabled = slot >= max;
         }
@@ -856,7 +935,8 @@ function buildClinicalToolNode(toolId, label) {
       favorite: false,
       bodyCollapsed: false,
       collapsedSections: {},
-      fields: Object.assign({ effDate: new Date().toISOString().slice(0, 10) }, CT_FIELD_DEFAULTS[toolId] || {})
+      fields: Object.assign({ effDate: new Date().toISOString().slice(0, 10) }, CT_FIELD_DEFAULTS[toolId] || {}),
+      savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
     }
   };
 }
@@ -875,7 +955,12 @@ function makeClinicalToolNode() { return window.Tiptap.Node.create({
       favorite: { default: false },
       bodyCollapsed: { default: false },
       collapsedSections: { default: {} },
-      fields: { default: {} }
+      fields: { default: {} },
+      // Horodatage/auteur de la dernière sauvegarde — même rôle que sur
+      // chip, voir buildActionLog. Rafraîchi à chaque patchAttrs (tout champ
+      // modifié compte comme une sauvegarde de l'outil).
+      savedAt: { default: null },
+      author: { default: null }
     };
   },
   parseHTML() {
@@ -928,7 +1013,10 @@ function makeClinicalToolNode() { return window.Tiptap.Node.create({
         const view = props.editor.view;
         const node = view.state.doc.nodeAt(pos);
         if (!node || node.type.name !== 'clinicalTool') return;
-        view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, patch)));
+        // Toute modification (champ, case, favori, repli…) compte comme une
+        // sauvegarde de l'outil pour le Journal des actions.
+        const stamped = Object.assign({ savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null }, patch);
+        view.dispatch(view.state.tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, stamped)));
       }
 
       function renderReact(node) {
@@ -965,6 +1053,13 @@ function makeClinicalToolNode() { return window.Tiptap.Node.create({
       return {
         dom,
         ignoreMutation: () => true,
+        // Sans ça, le mousedown sur un champ du formulaire (input/checkbox…)
+        // est intercepté par ProseMirror, qui pose une NodeSelection sur tout
+        // l'outil (atom + selectable) au lieu de laisser le focus natif
+        // atteindre le champ — la frappe suivante remplace alors le node
+        // sélectionné (l'outil complet) par le texte tapé. Même pattern que
+        // SectionSplitNode : la NodeView gère seule ses événements internes.
+        stopEvent() { return true; },
         update(updatedNode) {
           if (updatedNode.type.name !== 'clinicalTool') return false;
           currentNode = updatedNode;
@@ -976,6 +1071,68 @@ function makeClinicalToolNode() { return window.Tiptap.Node.create({
     };
   }
 }); }
+
+// ---------------------------------------------------------
+// LockedHeadingExtension — verrouille l'édition des titres de section fixes
+// (posés par DEFAULT_DOC/plainToBlocks, ex. « Détails de la consultation ») :
+// des repères structurels au même titre que la barre Conclusion, pas du texte
+// que l'utilisateur est censé modifier. `locked` est un attribut global posé
+// sur le node heading standard (pas un node custom) pour ne pas avoir à
+// importer @tiptap/extension-heading séparément — StarterKit ne l'expose pas
+// sur window.Tiptap. Les sections ajoutées à la main (« Nouvelle section »,
+// voir editor-field.jsx) n'ont pas cet attribut et restent éditables/
+// renommables.
+// ---------------------------------------------------------
+function makeLockedHeadingExtension() {
+  const T = window.Tiptap;
+  return T.Extension.create({
+    name: 'lockedHeading',
+    addGlobalAttributes() {
+      return [{
+        types: ['heading'],
+        attributes: {
+          locked: {
+            default: false,
+            parseHTML: (el) => el.getAttribute('data-locked') === 'true',
+            renderHTML: (attrs) => attrs.locked ? { 'data-locked': 'true' } : {}
+          }
+        }
+      }];
+    },
+    addProseMirrorPlugins() {
+      const PM = window.Tiptap.pm;
+      function touchesLockedHeading(doc, pos) {
+        const $pos = doc.resolve(Math.max(0, Math.min(pos, doc.content.size)));
+        for (let d = $pos.depth; d >= 0; d--) {
+          if ($pos.node(d).type.name === 'heading' && $pos.node(d).attrs.locked) return true;
+        }
+        return false;
+      }
+      return [
+        new PM.Plugin({
+          key: new PM.PluginKey('lockedHeadingGuard'),
+          // Refuse toute transaction dont un step touche l'intérieur d'un
+          // heading verrouillé — frappe, collage, changement de niveau via la
+          // barre de mise en forme flottante. Contrairement au garde de la
+          // ligne de séparation (sectionSplitGuard), on bloque plutôt que
+          // laisser faire puis réparer : il n'y a pas de texte « par défaut »
+          // à restaurer après coup.
+          filterTransaction(tr) {
+            if (!tr.docChanged) return true;
+            for (let i = 0; i < tr.steps.length; i++) {
+              const step = tr.steps[i];
+              if (step.from == null) continue;
+              const before = tr.docs[i];
+              if (touchesLockedHeading(before, step.from)) return false;
+              if (step.to != null && touchesLockedHeading(before, step.to)) return false;
+            }
+            return true;
+          }
+        })
+      ];
+    }
+  });
+}
 
 // buildEditorExtensions() n'est appelée qu'à la construction réelle de
 // l'éditeur (effet de montage de NoteBody — voir editor-field.jsx), jamais
@@ -1003,9 +1160,11 @@ function buildEditorExtensions(placeholder) {
       linkOnPaste: true,
       HTMLAttributes: { rel: 'noopener noreferrer', target: '_blank' }
     }),
+    makeLockedHeadingExtension(),
     makeChipNode(),
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
+    makeDiagnosticRefNode(),
     makeSectionSplitNode(),
     makeClinicalToolNode()
   ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : []);
@@ -1019,7 +1178,14 @@ function buildEditorExtensions(placeholder) {
 function filterSlashItems(query) {
   const t = (query || '').toLowerCase().trim();
   const all = window.NOTE_DATA.SLASH_ITEMS || [];
-  const items = window.__SHOW_CLINICAL_TOOLS === false ? all.filter(function (it) { return !it.ctPicker; }) : all;
+  let items = window.__SHOW_CLINICAL_TOOLS === false ? all.filter(function (it) { return !it.ctPicker; }) : all;
+  // Une seule instance de champ confidentiel par note — le retirer du menu
+  // une fois créé (voir window.__CONFIDENTIAL_FIELD_ADDED, posé par NoteEditor.jsx).
+  if (window.__CONFIDENTIAL_FIELD_ADDED) items = items.filter(function (it) { return !it.confidentialField; });
+  // Renvoi à un diagnostic : rien à renvoyer tant qu'aucun diagnostic
+  // n'existe (voir window.__HAS_DIAGNOSTICS, posé par syncDiagnosticRefs
+  // dans editor-field.jsx à chaque transaction).
+  if (!window.__HAS_DIAGNOSTICS) items = items.filter(function (it) { return !it.diagRefPicker; });
   if (!t) return items.filter(function (it) { return !it.hideWhenEmpty; });
   return items.filter(function (it) { return it.title.toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
 }
@@ -1061,7 +1227,7 @@ function buildSlashExtension(handlers) {
           items: function (props) {
             const parsed = parseSlashQuery(props.query);
             if (parsed.mode === 'order') return flattenRxResults(window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim()));
-            if (parsed.mode === 'dx') return searchCIM10((parsed.term || '').trim());
+            if (parsed.mode === 'dx') return searchDx(parsed.term || '');
             return filterSlashItems(props.query);
           },
           command: handlers.onCommand,
@@ -1083,7 +1249,7 @@ function DEFAULT_DOC() {
   return {
     type: 'doc',
     content: [
-      { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Détails de la consultation' }] },
+      { type: 'heading', attrs: { level: 2, locked: true }, content: [{ type: 'text', text: 'Détails de la consultation' }] },
       { type: 'paragraph' },
       { type: 'sectionSplit' },
       { type: 'paragraph' }
@@ -1131,6 +1297,106 @@ function scanDoc(docJson) {
   return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
 }
 
+
+// ---------------------------------------------------------
+// Journal des actions — « Contenu de la note » (vue en direct, voir
+// ActionLog.jsx). Types et ordre d'affichage fixes (spec omnimed) ; seuls
+// les types que ce prototype peut réellement produire sont alimentés — les
+// autres restent dans la liste pour la place qu'ils occuperaient, mais ne
+// produisent jamais d'entrée tant qu'aucun flux ne les crée. Une activité
+// modifiée plusieurs fois n'a qu'une entrée : le doc ne garde que le
+// dernier état de chaque node, il n'y a pas de dédoublonnage à faire.
+// attrs.savedAt/author sont posés à la création/édition (chip,
+// clinicalTool) ou à la promotion (diagnosticRegion → Problèmes, voir
+// editor-field.jsx) — un diagnostic non promu n'apparaît pas ici, comme
+// dans le Sommaire.
+// ---------------------------------------------------------
+const ACTION_LOG_TYPES = [
+  'taches', 'outilsCliniques', 'signesVitaux', 'habitudesDeVie', 'programme',
+  'visiteDeProgramme', 'allergies', 'prescriptions', 'inscriptionMedication',
+  'resultats', 'requetes', 'consignes', 'immunisation', 'problemes', 'antecedents',
+  'antecedentsFamiliaux', 'fichier', 'transmissionCourriel', 'transmissionFax',
+  'impression'
+];
+// Labels seulement — l'icône de chaque entrée vient de son node source
+// (chipLogIcon plus bas), jamais d'une icône choisie indépendamment ici :
+// c'est ce qui garde le Journal visuellement cohérent avec la note.
+const ACTION_LOG_META = {
+  outilsCliniques: { label: 'Outils cliniques' },
+  prescriptions: { label: 'Prescriptions' },
+  requetes: { label: 'Requêtes' },
+  consignes: { label: 'Consignes' },
+  problemes: { label: 'Problèmes' },
+  fichier: { label: 'Fichier' }
+};
+// chip.attrs.type → clé du journal — seuls les types réellement produits par
+// un chip dans ce prototype sont mappés ('problem' n'a pas de flux de
+// création dédié, il reste hors journal pour l'instant).
+const CHIP_TYPE_TO_LOG = { prescription: 'prescriptions', lab: 'requetes', imaging: 'requetes', referral: 'requetes', instructions: 'consignes', file: 'fichier' };
+
+// Reprend exactement l'icône (et sa couleur, voir chip--rx/lab/img/ref et
+// .chip .chip-icon dans editor.css) que ce chip affiche déjà dans le corps
+// de la note — voir buildChipDom plus haut dans ce fichier, la même logique
+// kind → glyphe. Une prescription n'a pas d'icône de police (glyphe ℞, texte
+// pas symbole).
+function chipLogIcon(node) {
+  if (node.attrs.rx) {
+    const kind = node.attrs.rx.kind || 'rx';
+    if (kind === 'rx') return { isRx: true };
+    return {
+      icon: kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark',
+      colorClass: 'action-log__icon--' + kind
+    };
+  }
+  if (node.attrs.type === 'instructions') {
+    return { icon: node.attrs.icon || 'menu_book', colorClass: 'action-log__icon--consignes' };
+  }
+  return { icon: node.attrs.icon || 'bookmark' };
+}
+
+function buildActionLog(docJson) {
+  const order = {};
+  ACTION_LOG_TYPES.forEach(function (key, i) { order[key] = i; });
+  const entries = [];
+  function walk(node) {
+    if (!node) return;
+    if (node.type === 'chip') {
+      const logType = CHIP_TYPE_TO_LOG[node.attrs.type];
+      if (logType) {
+        entries.push(Object.assign({
+          key: 'chip-' + node.attrs.cid, logType: logType,
+          title: node.attrs.text || node.attrs.label || '',
+          author: node.attrs.author, savedAt: node.attrs.savedAt,
+          sourceType: 'chip', sourceId: node.attrs.cid
+        }, chipLogIcon(node)));
+      }
+    } else if (node.type === 'clinicalTool') {
+      // Même icône que la barre de l'outil dans la note (ct-bar__wrench).
+      entries.push({
+        key: 'tool-' + node.attrs.instanceId, logType: 'outilsCliniques',
+        title: node.attrs.label || 'Outil clinique', icon: 'link',
+        author: node.attrs.author, savedAt: node.attrs.savedAt,
+        sourceType: 'clinicalTool', sourceId: node.attrs.instanceId
+      });
+    } else if (node.type === 'diagnosticRegion' && node.attrs.promotedAt) {
+      // Même icône que l'en-tête de la région diagnostic (dxr-ic).
+      entries.push({
+        key: 'dx-' + node.attrs.id, logType: 'problemes',
+        title: node.attrs.name || 'Diagnostic', icon: 'local_hospital',
+        author: node.attrs.promotedBy, savedAt: node.attrs.promotedAt,
+        sourceType: 'diagnosticRegion', sourceId: node.attrs.id
+      });
+    }
+    (node.content || []).forEach(walk);
+  }
+  walk(docJson);
+  // Ordre fixe par type, puis dernière sauvegarde d'abord au sein d'un type.
+  entries.sort(function (a, b) {
+    if (order[a.logType] !== order[b.logType]) return order[a.logType] - order[b.logType];
+    return (b.savedAt || '').localeCompare(a.savedAt || '');
+  });
+  return entries.map(function (e) { return Object.assign({}, e, ACTION_LOG_META[e.logType]); });
+}
 
 // ---------------------------------------------------------
 // buildTransmissionDocs — documents transmissibles d'une note, à partir du
@@ -1301,8 +1567,12 @@ function endOfFirstSectionIndexJSON(docJson) {
 }
 
 // Gabarit {title, content:'ligne1\nligne2'} → [Titre2, paragraphes...] JSON.
+// Titre verrouillé (attrs.locked) : ces sections viennent du gabarit, pas
+// d'une saisie — même traitement que le titre par défaut de DEFAULT_DOC.
+// Si le titre est « Conclusion », ensureSplit le remplacera de toute façon
+// par la ligne de séparation avant tout affichage (voir note-sections.jsx).
 function plainToBlocks(title, content) {
-  const blocks = [{ type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: title }] }];
+  const blocks = [{ type: 'heading', attrs: { level: 2, locked: true }, content: [{ type: 'text', text: title }] }];
   (content || '').split('\n').forEach(function (line) {
     blocks.push(line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' });
   });
@@ -1337,7 +1607,8 @@ function updateChipEntity(editor, cid, entity) {
   editor.chain().command(function (props) {
     props.tr.setNodeMarkup(pos, undefined, Object.assign({}, props.tr.doc.nodeAt(pos).attrs, {
       type: entity.type, label: entity.label, icon: entity.icon, text: entity.text,
-      rx: entity.rx || null, details: entity.details || null
+      rx: entity.rx || null, details: entity.details || null,
+      savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
     }));
     return true;
   }).run();
@@ -1352,6 +1623,7 @@ Object.assign(window, {
   newDiagId,
   newToolInstanceId,
   searchCIM10,
+  searchDx,
   CT_FIELD_DEFAULTS,
   buildClinicalToolNode,
   buildEditorExtensions,
@@ -1361,6 +1633,7 @@ Object.assign(window, {
   buildSlashExtension,
   DEFAULT_DOC,
   scanDoc,
+  buildActionLog,
   buildTransmissionDocs,
   docIsBlank,
   endOfFirstSectionPos,
@@ -1369,5 +1642,6 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
-  updateChipEntity
+  updateChipEntity,
+  listDiagnostics
 });

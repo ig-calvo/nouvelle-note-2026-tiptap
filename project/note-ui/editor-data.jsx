@@ -620,15 +620,19 @@ const SLASH_ITEMS = [
     addSection: true },
   { key: 'outils-cliniques', section: 'Structure', icon: 'handyman', title: 'Outils cliniques', desc: 'Score, calculatrice, outil clinique…', kbd: '',
     ctPicker: true, noKbd: true },
+  { key: 'note-templates', section: 'Structure', icon: 'post_add', title: 'Gabarits de note', desc: 'Syndrome viral, infection urinaire, examen périodique…', kbd: '',
+    notePicker: true, noKbd: true },
   // ── GABARITS DE NOTE ─────────────────────────────────────
   // Un niveau au-dessus des gabarits de section / outil clinique : règle
-  // structure + sections + outil clinique associé en un seul geste.
+  // structure + sections + outil clinique associé en un seul geste. Masqués
+  // du menu par défaut (hideWhenEmpty) — atteints via l'item « Gabarits de
+  // note » ci-dessus (NoteTemplateMenu) ou directement au clavier (/virus…).
   { key: 'tpl-virus', section: 'Gabarits de note', icon: 'coronavirus', title: 'Syndrome viral / IVRS', desc: 'Histoire, examen, conclusion', kbd: 'virus',
-    noteTemplate: 'virus' },
+    hideWhenEmpty: true, noteTemplate: 'virus' },
   { key: 'tpl-itu', section: 'Gabarits de note', icon: 'medical_information', title: 'Infection urinaire', desc: 'Structure + outil clinique ITU', kbd: 'itu',
-    noteTemplate: 'itu' },
+    hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
-    noteTemplate: 'periodique' },
+    hideWhenEmpty: true, noteTemplate: 'periodique' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -639,6 +643,10 @@ const SLASH_ITEMS = [
     noKbd: true, textRapides: true },
   { key: 'diagnostic', section: 'Fonctions', icon: 'local_hospital', title: 'Diagnostic', desc: 'Créer une section diagnostic', kbd: 'dx',
     diagnosticEntry: true },
+  // N'apparaît que si la note contient déjà au moins un diagnostic — voir
+  // window.__HAS_DIAGNOSTICS dans filterSlashItems (editor-schema.jsx).
+  { key: 'diagnostic-ref', section: 'Fonctions', icon: 'tag', title: 'Renvoi à un diagnostic', desc: 'Insère le numéro d’un diagnostic déjà ajouté', kbd: '',
+    noKbd: true, diagRefPicker: true },
   { key: 'prescription', section: 'Fonctions', icon: 'prescriptions', title: 'Prescriptions', desc: 'Rechercher et prescrire un médicament', kbd: 'rx',
     rxSearch: true },
   { key: 'lab', section: 'Fonctions', icon: 'science', title: 'Laboratoire', desc: 'FSC, TSH, bilan…', kbd: 'lab',
@@ -658,6 +666,10 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true,
     template: { type: 'problem', label: 'Problème', text: 'Problème',
       details: { name: '', severity: 'Modéré', since: "Aujourd'hui", notes: '' } } },
+  // ── CONFIDENTIEL — section à part (une seule instance par note, cf.
+  // confidentialField ci-dessous et NoteEditor.jsx) ─────────
+  { key: 'confidential-field', section: 'Confidentiel', icon: 'lock', title: 'Champ confidentiel', desc: 'Visible seulement par vous', kbd: '',
+    noKbd: true, confidentialField: true },
 ];
 
 // ── GABARITS DE NOTE ─────────────────────────────────────────
@@ -716,6 +728,19 @@ const PROBLEMS = [
   { id: 'pb3', ttl: 'Grossesse', meta: '22 sem · suivi GARE', sev: '', sevLbl: 'Actif' },
 ];
 
+// Problemes au dossier - memes donnees que le sommaire (liste ci-dessus).
+// Affiches en tete du menu /dx (voir searchDx dans editor-schema.jsx), meme
+// principe que PATIENT_MEDS pour /rx : sans terme tape, on retrouve tout le
+// dossier ; avec un terme, on filtre. Forme alignee sur searchCIM10 (libelle,
+// generic) pour pouvoir fusionner les deux listes dans une seule navigation
+// clavier - `fromChart` distingue un probleme du dossier d'un code CIM-10.
+function searchProblems(query) {
+  const q = _norm((query || '').trim());
+  return PROBLEMS
+    .filter(function (p) { return !q || _norm(p.ttl).includes(q); })
+    .map(function (p) { return { key: p.id, libelle: p.ttl, generic: false, fromChart: true }; });
+}
+
 const VITALS = [
   { ic: 'thermostat',    lbl: 'Température', val: '38,1 °C' },
   { ic: 'favorite',      lbl: 'FC',            val: '84 bpm' },
@@ -755,4 +780,4 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PROBLEMS, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };
+  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, searchProblems };

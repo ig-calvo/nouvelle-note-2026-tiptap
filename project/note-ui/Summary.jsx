@@ -69,8 +69,11 @@ function Summary() {
 
   // Chaque élément ajouté dans la note clinique apparaît « en attente » dans la
   // section correspondante du Sommaire (mappage type de chip → section).
+  // Un diagnostic n'y figure PAS tant qu'il n'a pas été promu en problème
+  // (bouton dédié dans la note, voir note:add-problem) — contrairement aux
+  // autres types, il n'a pas d'aperçu « en attente ».
   React.useEffect(function() {
-    var MAP = { prescription:'meds', problem:'problems', diagnostic:'problems', lab:'results', imaging:'results' };
+    var MAP = { prescription:'meds', problem:'problems', lab:'results', imaging:'results' };
     function onItems(e) {
       var list = (e.detail && e.detail.items) || [];
       var grouped = {};

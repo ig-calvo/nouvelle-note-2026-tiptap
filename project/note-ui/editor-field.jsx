@@ -20,7 +20,7 @@ const { parseSlashQuery, flattenRxResults } = window;
 function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, linkedChipId }) {
   const hostRef = useRefE(null);
   const editorRef = useRefE(null);
-  const [addBtnOffset, setAddBtnOffset] = useStateE(null); // null = CSS default (unfocused)
+  const [lineBtnOffset, setLineBtnOffset] = useStateE(null); // null = CSS default (unfocused) — partagé par + et Tt, qui suivent tous deux la ligne du curseur
   const [chipMenu, setChipMenu] = useStateE(null); // { cid, rect } — hover menu (Modifier / Prescrire / ⋮) on order chips
   const [chipDelete, setChipDelete] = useStateE(null); // { cid, rect } — delete confirmation popover
   const [chipMore, setChipMore] = useStateE(null); // { cid, rect } — sous-menu « ⋮ » du chip
@@ -29,6 +29,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const fileInputRef = useRefE(null);
   const [diagRename, setDiagRename] = useStateE(null); // { pos, value, rect } — renommage d'une région diagnostic
   const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
+  const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
+  const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
 
   const onChipClickRef = useRefE(null); onChipClickRef.current = onChipClick;
 
@@ -92,7 +94,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           renewal: action === 'renouveler' };
     const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (item.chipSig || item.sig);
     editor.chain().focus().insertContentAt(range, [
-      { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails } },
+      { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
     ]).run();
     if (action === 'ajuster') {
@@ -108,14 +110,22 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function runDiagnosticCommand(editor, range, props) {
     const name = (props.name || '').trim() || 'Diagnostic';
     const diagId = window.newDiagId();
-    editor.chain().focus().insertContentAt(range, {
+    const diagnosticContent = {
       type: 'diagnosticRegion',
       attrs: { id: diagId, name: name },
       content: [{ type: 'paragraph' }]
-    }).run();
-    // La position exacte de la région dépend de la façon dont ProseMirror a
-    // scindé le paragraphe remplacé (un paragraphe vide résiduel peut rester
-    // AVANT la région) — on la retrouve plutôt que de calculer depuis range.from,
+    };
+    // Si « /dx query » occupe tout le paragraphe courant (ligne vide avant
+    // la commande), on remplace ce paragraphe en entier plutôt que la simple
+    // plage de texte : sinon ProseMirror doit scinder le paragraphe pour loger
+    // ce node bloc et laisse une ligne vide résiduelle AVANT la région.
+    const $from = editor.state.doc.resolve(range.from);
+    const insertRange = ($from.parent.type.name === 'paragraph' && $from.start() === range.from && $from.end() === range.to)
+      ? { from: $from.before(), to: $from.after() }
+      : range;
+    editor.chain().focus().insertContentAt(insertRange, diagnosticContent).run();
+    // La position exacte de la région dépend de la façon dont ProseMirror l'a
+    // placée — on la retrouve plutôt que de calculer depuis insertRange.from,
     // pour placer le curseur dans le paragraphe de corps, pas à la frontière de la région.
     let regionPos = null;
     editor.state.doc.descendants(function(node, pos) {
@@ -163,9 +173,35 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       window.dispatchEvent(new CustomEvent('ct-picker-open', { detail: { rect } }));
       return;
     }
+    if (it.notePicker) {
+      const coords = editor.view.coordsAtPos(range.from);
+      const rect = { left: coords.left, right: coords.left, top: coords.top, bottom: coords.bottom, width: 0, height: coords.bottom - coords.top, x: coords.left, y: coords.top };
+      editor.chain().focus().deleteRange(range).run();
+      setTplMenu({ rect });
+      return;
+    }
+    if (it.diagRefPicker) {
+      const coords = editor.view.coordsAtPos(range.from);
+      const rect = { left: coords.left, right: coords.left, top: coords.top, bottom: coords.bottom, width: 0, height: coords.bottom - coords.top, x: coords.left, y: coords.top };
+      // Capturé au moment de l'ouverture, pas relu à la sélection : la liste
+      // ne peut pas changer pendant que ce petit picker est ouvert (l'éditeur
+      // perd le focus), même convention que ClinicalToolPicker/NoteTemplateMenu.
+      const diagnostics = window.listDiagnostics(editor.state.doc);
+      editor.chain().focus().deleteRange(range).run();
+      setDiagRefMenu({ rect, diagnostics });
+      return;
+    }
     if (it.noteTemplate) {
       editor.chain().focus().deleteRange(range).run();
       window.dispatchEvent(new CustomEvent('note:apply-template', { detail: { key: it.noteTemplate } }));
+      return;
+    }
+    if (it.confidentialField) {
+      // Le champ lui-même vit hors du document (voir NoteEditor.jsx) — cet
+      // item ne fait qu'ouvrir l'avertissement, comme ctPicker au-dessus
+      // ouvre un composant qui vit dans NoteEditor plutôt que NoteBody.
+      editor.chain().focus().deleteRange(range).run();
+      window.dispatchEvent(new CustomEvent('note:confidential-field-request'));
       return;
     }
     if (it.addSection) {
@@ -179,7 +215,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const chipId = window.newChipId();
       const meta = window.NOTE_DATA.ENTITY_TYPES[it.template.type] || {};
       editor.chain().focus().insertContentAt(range, [
-        { type: 'chip', attrs: { cid: chipId, type: it.template.type, label: it.template.label, icon: meta.icon || 'bookmark', text: it.template.text || it.template.label, rx: null, details: it.template.details || null } },
+        { type: 'chip', attrs: { cid: chipId, type: it.template.type, label: it.template.label, icon: meta.icon || 'bookmark', text: it.template.text || it.template.label, rx: null, details: it.template.details || null, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
         { type: 'text', text: ' ' }
       ]).run();
       // « openAfter » — ouvre la modale d'édition complète juste après l'insertion.
@@ -216,7 +252,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       }
       if (parsed.mode === 'dx') {
         const term = (parsed.term || '').trim();
-        setSlash({ mode: 'dx', query: term, suggestions: window.searchCIM10(term), activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
+        setSlash({ mode: 'dx', query: term, suggestions: window.searchDx(term), activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
         return;
       }
       setSlash({ mode: 'menu', items: currentItems, activeIndex: selectedIndex, query: query, rect: currentClientRect ? currentClientRect() : null });
@@ -291,7 +327,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const chipId = window.newChipId();
     const pos = editor.state.selection.from;
     editor.chain().focus().insertContentAt(pos, [
-      { type: 'chip', attrs: { cid: chipId, type: 'file', label: name, icon: icon, text: name, rx: null, details: { url: url } } },
+      { type: 'chip', attrs: { cid: chipId, type: 'file', label: name, icon: icon, text: name, rx: null, details: { url: url }, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
     ]).run();
     requestAnimationFrame(function () {
@@ -375,14 +411,32 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     chipMenuTimerRef.current = setTimeout(function () { setChipMenu(null); }, 180);
   }
 
-  function updateAddBtnPos(editor) {
+  function updateLineBtnPos(editor) {
     try {
       const { from } = editor.state.selection;
       const coords = editor.view.coordsAtPos(from);
       const rootRect = editor.view.dom.getBoundingClientRect();
       const mid = coords.top - rootRect.top + (coords.bottom - coords.top) / 2;
-      setAddBtnOffset(Math.max(0, mid - 15));
+      setLineBtnOffset(Math.max(0, mid - 15));
     } catch (e) {}
+  }
+
+  // Numéro affiché par chaque puce « Renvoi à un diagnostic » (.dxref) :
+  // ni un attribut du node ni un compteur CSS ne peuvent le porter, puisqu'il
+  // dépend de la position d'UN AUTRE node (le diagnostic visé) dans le doc.
+  // Recalculé ici à chaque transaction, comme updateLineBtnPos ci-dessus —
+  // et pose window.__HAS_DIAGNOSTICS, lu par filterSlashItems pour n'offrir
+  // le picker que si la note contient déjà au moins un diagnostic.
+  function syncDiagnosticRefs(editor) {
+    const diags = window.listDiagnostics(editor.state.doc);
+    window.__HAS_DIAGNOSTICS = diags.length > 0;
+    const numberById = {};
+    diags.forEach(function (d, i) { numberById[d.id] = i + 1; });
+    editor.view.dom.querySelectorAll('.dxref[data-diag-id]').forEach(function (el) {
+      const num = numberById[el.getAttribute('data-diag-id')];
+      el.textContent = num ? '(' + num + ')' : '(?)';
+      el.classList.toggle('dxref-broken', !num);
+    });
   }
 
   // --- init Tiptap once
@@ -407,23 +461,40 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       },
       onUpdate({ editor }) {
         onDocChange(editor.getJSON());
-        updateAddBtnPos(editor);
+        updateLineBtnPos(editor);
+        syncDiagnosticRefs(editor);
       },
       onSelectionUpdate({ editor }) {
-        updateAddBtnPos(editor);
+        updateLineBtnPos(editor);
       }
     });
     editorRef.current = editor;
     hostRef.current.__editor = editor;
-    updateAddBtnPos(editor);
+    updateLineBtnPos(editor);
     // Le contenu initial (brouillon, dernière note, gabarit) n'émet pas
     // d'update — on amorce nous-mêmes compteurs/Sommaire une seule fois.
     onDocChange(editor.getJSON());
+    syncDiagnosticRefs(editor);
     if (onReady) onReady(editor);
 
     // Diagnostic header — clic sur le nom → renommer ; clic sur le bouton →
     // promouvoir en problème (écouté par Summary.jsx via note:add-problem).
     editor.view.dom.addEventListener('mousedown', (e) => {
+      const refEl = e.target.closest('.dxref');
+      if (refEl) {
+        e.preventDefault();
+        // Puce cassée (diagnostic référencé supprimé depuis) : rien à
+        // ouvrir, voir syncDiagnosticRefs plus bas pour dxref-broken.
+        if (refEl.classList.contains('dxref-broken')) return;
+        const id = refEl.getAttribute('data-diag-id');
+        const target = id && editor.view.dom.querySelector('.dxr[data-diag-id="' + id + '"]');
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          target.classList.add('dxr-flash');
+          setTimeout(() => target.classList.remove('dxr-flash'), 900);
+        }
+        return;
+      }
       const nameEl = e.target.closest('.dxr-name');
       if (nameEl) {
         e.preventDefault();
@@ -441,7 +512,22 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const nmEl = head && head.querySelector('.dxr-name');
         const nm = nmEl ? nmEl.textContent.trim() : '';
         if (nm) window.dispatchEvent(new CustomEvent('note:add-problem', { detail: { name: nm } }));
-        promoteEl.classList.add('dxr-promoted');
+        // Persisté dans le doc (pas seulement une classe CSS transitoire) —
+        // la classe .dxr-promoted suit maintenant attrs.promotedAt via
+        // render() ; c'est aussi ce qui fait entrer le diagnostic dans le
+        // Journal des actions (« Problèmes ») une fois promu.
+        const regionPos = findRegionPosFromDOM(editor, promoteEl);
+        if (regionPos >= 0) {
+          const node = editor.state.doc.nodeAt(regionPos);
+          if (node) {
+            editor.chain().command(function (props) {
+              props.tr.setNodeMarkup(regionPos, undefined, Object.assign({}, node.attrs, {
+                promotedAt: new Date().toISOString(), promotedBy: window.__CURRENT_AUTHOR || null
+              }));
+              return true;
+            }).run();
+          }
+        }
       }
     });
 
@@ -493,7 +579,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const editor = editorRef.current; if (!editor) return '';
     const node = editor.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
     if (!node) return '';
-    const keep = ['chip-rx-name', 'chip-rx-dose', 'chip-rx-form', 'chip-rx-route', 'chip-rx-freq', 'chip-rx-dur', 'chip-rx-badge', 'chip-rx-sig'];
+    const keep = ['chip-rx-name', 'chip-rx-dose', 'chip-rx-form', 'chip-rx-route', 'chip-rx-freq', 'chip-rx-dur', 'chip-rx-priority', 'chip-rx-sig'];
     const parts = [];
     node.querySelectorAll('span').forEach(function (sp) {
       if (keep.some(function (c) { return sp.classList.contains(c); })) {
@@ -536,7 +622,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         <button
           ref={addBtnRef}
           type="button" className="nf-add" title="Insérer une fonction"
-          style={addBtnOffset !== null ? { marginTop: addBtnOffset + 'px' } : undefined}
+          style={lineBtnOffset !== null ? { marginTop: lineBtnOffset + 'px' } : undefined}
           onMouseDown={(e) => e.preventDefault()}
           onClick={openSlashMenu}>
           <span className="material-icons-outlined">add_circle_outline</span>
@@ -544,6 +630,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         <div ref={hostRef} className="note-field" style={{ minHeight: "96px" }} />
         <button
           type="button" className="nf-tt" title="Afficher la barre de mise en forme"
+          style={lineBtnOffset !== null ? { marginTop: lineBtnOffset + 'px' } : undefined}
           onMouseDown={(e) => {
             e.preventDefault();
             const editor = editorRef.current;
@@ -669,16 +756,34 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         );
       })()}
 
-      {/* Menu slash (« / » ou bouton « + ») */}
-      {slash && slash.mode === 'menu' &&
-        <SlashMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - 332)) }}
-          query={slash.query}
-          activeIndex={slash.activeIndex}
-          items={slash.items}
-          onSelect={chooseSlashItem}
-          onClose={() => setSlash(null)} />
-      }
+      {/* Menu slash (« / » ou bouton « + ») — hauteur bornée à l'espace
+          réellement disponible sous le curseur (sinon au-dessus), pour que
+          la liste complète (STRUCTURE + GABARITS + FONCTIONS) reste
+          consultable par défilement au lieu de déborder de l'écran. */}
+      {slash && slash.mode === 'menu' && (() => {
+        const MARGIN = 8;
+        const HEIGHT_CAP = 600;
+        const anchor = slash.rect || { top: 0, bottom: 0, left: 0 };
+        const spaceBelow = window.innerHeight - anchor.bottom - MARGIN - 6;
+        const spaceAbove = anchor.top - MARGIN - 6;
+        let top, maxHeight;
+        if (spaceBelow >= 200 || spaceBelow >= spaceAbove) {
+          top = anchor.bottom + 6;
+          maxHeight = Math.max(120, Math.min(HEIGHT_CAP, spaceBelow));
+        } else {
+          maxHeight = Math.max(120, Math.min(HEIGHT_CAP, spaceAbove));
+          top = Math.max(MARGIN, anchor.top - 6 - maxHeight);
+        }
+        return (
+          <SlashMenu
+            position={{ top: top, left: Math.max(8, Math.min(anchor.left, window.innerWidth - 332)), maxHeight: maxHeight }}
+            query={slash.query}
+            activeIndex={slash.activeIndex}
+            items={slash.items}
+            onSelect={chooseSlashItem}
+            onClose={() => setSlash(null)} />
+        );
+      })()}
 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
@@ -727,6 +832,35 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
             setAddFileMenu(null);
             if (key === 'computer') { if (fileInputRef.current) fileInputRef.current.click(); }
             else requestMobileFile(key);
+          }} />
+      }
+
+      {/* Choix du gabarit — sous-menu de « Gabarits de note » (slash/+),
+          même patron que AddFileSourceMenu/ClinicalToolPicker : en-tête
+          avec retour vers le menu d'ajout + liste d'options. */}
+      {tplMenu &&
+        <NoteTemplateMenu
+          anchorRect={tplMenu.rect}
+          onClose={() => setTplMenu(null)}
+          onBack={() => { setTplMenu(null); openSlashMenu(); }}
+          onSelect={function (key) {
+            setTplMenu(null);
+            window.dispatchEvent(new CustomEvent('note:apply-template', { detail: { key: key } }));
+          }} />
+      }
+
+      {/* Choix du diagnostic visé — sous-menu de « Renvoi à un diagnostic »
+          (slash/+), même patron que NoteTemplateMenu : en-tête avec retour
+          vers le menu d'ajout + liste d'options. */}
+      {diagRefMenu &&
+        <DiagnosticRefMenu
+          anchorRect={diagRefMenu.rect}
+          diagnostics={diagRefMenu.diagnostics}
+          onClose={() => setDiagRefMenu(null)}
+          onBack={() => { setDiagRefMenu(null); openSlashMenu(); }}
+          onSelect={function (diagId) {
+            setDiagRefMenu(null);
+            editorRef.current.chain().focus().insertContent({ type: 'diagnosticRef', attrs: { diagId: diagId } }).run();
           }} />
       }
 
@@ -890,6 +1024,132 @@ function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
   );
 }
 
+// ---------------------------------------------------------
+// NoteTemplateMenu — sous-menu de « Gabarits de note » (structure + sections
+// + outil clinique associé en un seul geste, voir NOTE_TEMPLATES et
+// onApplyTemplate dans NoteEditor.jsx). Même patron que AddFileSourceMenu :
+// en-tête retour/titre/fermer, liste d'options en dessous. Les items
+// viennent de SLASH_ITEMS (noteTemplate) pour garder icône/titre/description
+// synchronisés avec le raccourci clavier (/virus, /itu, /periodique).
+// ---------------------------------------------------------
+function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
+  const panelRef = useRefE(null);
+  const templates = (window.NOTE_DATA.SLASH_ITEMS || []).filter(function (it) { return it.noteTemplate; });
+
+  useEffectE(function () {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    window.addEventListener('keydown', onKey);
+    // Différé d'un tick — même piège que AddFileSourceMenu/ClinicalToolPicker :
+    // le mousedown qui ouvre ce sous-menu le refermerait aussitôt sinon.
+    const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    return function () {
+      clearTimeout(t);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDoc);
+    };
+  }, [onClose]);
+
+  const panelW = 320;
+  const MARGIN = 16;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={afmS.header}>
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+        </button>
+        <span style={afmS.title}>Gabarits de note</span>
+        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
+        </button>
+      </div>
+      <div style={afmS.list}>
+        {templates.map(function (it) {
+          return (
+            <div key={it.key} style={afmS.item}
+              onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+              onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
+              onClick={function () { onSelect(it.noteTemplate); }}>
+              <span className="material-symbols-outlined" style={afmS.itemIcon}>{it.icon}</span>
+              <div>
+                <div style={afmS.itemLabel}>{it.title}</div>
+                <div style={afmS.itemDesc}>{it.desc}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------
+// DiagnosticRefMenu — sous-menu de « Renvoi à un diagnostic » : liste les
+// diagnostics déjà présents dans la note (capturée à l'ouverture, voir
+// runSlashCommand) et insère une puce .dxref pointant sur celui choisi.
+// Le numéro affiché ici (comme celui de la puce une fois insérée) est
+// toujours le même que la pastille de son .dxr-head — les deux comptent les
+// diagnostics dans le même ordre (voir listDiagnostics, editor-schema.jsx).
+// ---------------------------------------------------------
+function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect }) {
+  const panelRef = useRefE(null);
+
+  useEffectE(function () {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    window.addEventListener('keydown', onKey);
+    const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    return function () {
+      clearTimeout(t);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDoc);
+    };
+  }, [onClose]);
+
+  const panelW = 320;
+  const MARGIN = 16;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={afmS.header}>
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+        </button>
+        <span style={afmS.title}>Renvoi à un diagnostic</span>
+        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
+        </button>
+      </div>
+      <div style={afmS.list}>
+        {(diagnostics || []).length === 0
+          ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
+          : diagnostics.map(function (d, i) {
+            return (
+              <div key={d.id} style={afmS.item}
+                onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+                onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
+                onClick={function () { onSelect(d.id); }}>
+                <span style={afmS.dxrefBadge}>{i + 1}</span>
+                <span style={afmS.itemLabel}>{d.name}</span>
+              </div>
+            );
+          })}
+      </div>
+    </div>
+  );
+}
+
 const afmS = {
   panel: {
     position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
@@ -904,7 +1164,14 @@ const afmS = {
   list: { padding: '6px 0' },
   item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
   itemIcon: { fontSize: 20, color: 'rgba(0,0,0,0.5)', flexShrink: 0 },
-  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))' }
+  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))' },
+  itemDesc: { fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', marginTop: 1 },
+  dxrefBadge: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 18, height: 18, borderRadius: '50%', background: '#000', color: '#fff',
+    fontFamily: "var(--font-body, 'Inter', sans-serif)", fontWeight: 600, fontSize: 11,
+    lineHeight: 1, flexShrink: 0
+  }
 };
 
 window.NoteBody = NoteBody;
