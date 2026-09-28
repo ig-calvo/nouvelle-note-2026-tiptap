@@ -264,7 +264,7 @@ const aiS = {
 
   /* Gabarit */
   gabaritWrap: { position: 'relative', flexShrink: 0 },
-  gabaritBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, minWidth: 158, border: '1px solid rgb(200,200,215)', borderRadius: 8, background: '#fff', padding: '7px 8px 7px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap', cursor: 'pointer' },
+  gabaritBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, minWidth: 158, borderWidth: 1, borderStyle: 'solid', borderColor: 'rgb(200,200,215)', borderRadius: 8, background: '#fff', padding: '7px 8px 7px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap', cursor: 'pointer' },
   gabaritBtnOpen: { borderColor: BP, boxShadow: '0 0 0 3px rgba(46,56,166,0.15)' },
   gabaritCaret: { fontSize: 20, color: 'rgba(0,0,0,0.4)' },
   ddBg: { position: 'fixed', inset: 0, zIndex: 199 },
