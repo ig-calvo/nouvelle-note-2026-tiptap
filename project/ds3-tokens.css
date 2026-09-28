@@ -14,6 +14,7 @@
   --mat-sys-surface: light-dark(#f8f7fd, #0e0e0f);
   --mat-sys-surface-container-lowest: light-dark(#ffffff, #09090a);
   --mat-sys-surface-container-low: light-dark(#f2f1f9, #17171a);
+  --mat-sys-surface-container-high: light-dark(#e6e4f1, #2a292e);
   --mat-sys-on-surface: light-dark(#17171a, #e1dfec);
   --mat-sys-on-surface-variant: light-dark(#484c51, #dee5ed);
   --mat-sys-outline: light-dark(#798086, #9299a0);
@@ -118,3 +119,15 @@
 .ds-icon-btn:hover, .ds-pick-item:hover:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
 .ds-icon-btn:active, .ds-pick-item:active:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent); }
 .ds-icon-btn:focus-visible, .ds-pick-item:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+
+/* Barre de mise en forme (aligné sur tiptap-toolbar.component.scss) : fond transparent au repos,
+   survol / appui / focus = state layer surface-container-high plein, focus clavier = anneau 3 px. */
+.ds-tb-btn, .ds-tb-item, .ds-tb-swatch { background: transparent; transition: background-color var(--motion-duration) var(--motion-ease); }
+.ds-tb-btn:hover:not(:disabled), .ds-tb-btn:active:not(:disabled), .ds-tb-item:hover:not(:disabled), .ds-tb-item:active:not(:disabled) { background: var(--mat-sys-surface-container-high); }
+.ds-tb-swatch:hover { outline: 1px solid var(--mat-sys-outline); outline-offset: 0; }
+.ds-tb-btn:focus-visible, .ds-tb-item:focus-visible, .ds-tb-swatch:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 0; z-index: 1; }
+/* Sélectionné = style du bouton tonal (secondary-container / on-secondary-container) : le fond
+   porte l'état, pas seulement la couleur du glyphe (WCAG 1.4.1). Survol : state layer 0,08 par-dessus. */
+.ds-tb-btn.is-active, .ds-tb-item.is-active { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ds-tb-btn.is-active:hover:not(:disabled), .ds-tb-item.is-active:hover:not(:disabled) { background: color-mix(in srgb, var(--mat-sys-on-secondary-container) 8%, var(--mat-sys-secondary-container)); }
+.ds-tb-btn.is-active:active:not(:disabled), .ds-tb-item.is-active:active:not(:disabled) { background: color-mix(in srgb, var(--mat-sys-on-secondary-container) 12%, var(--mat-sys-secondary-container)); }

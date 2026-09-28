@@ -1767,5 +1767,5 @@ function NoteRichTextToolbar({ editor }) {
 }
 
 const rtS = {
-  bar: { display: 'flex', alignItems: 'center', gap: 4, padding: '4px 8px', borderRadius: 8, flexWrap: 'nowrap', marginBottom: 12 }
+  bar: { display: 'flex', alignItems: 'center', gap: 0, padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xs)', borderRadius: 'var(--mat-sys-corner-small)', flexWrap: 'nowrap', marginBottom: 'var(--ds-spacing-12)' }
 };

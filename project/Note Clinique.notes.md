@@ -8,7 +8,7 @@
 - **RA-02** — Aucune couleur en dur là où un rôle `--mat-sys-*` existe (mode sombre, retinte de marque). *Source : README DS3.*
 
 ## Idées et pistes
-- **ID-01** — Remplacer `<input type="date|time">` natifs par `MatDatepicker` / `MatTimepicker` (format FR : 28 sept. 2026, 15:35). *Source : analyse Claude, validée par Ignacio Calvo.* Statut : retenue, **pas encore faite** (point 3 de l'analyse du 2026-09-28, à traiter à part).
+- **ID-01** — Remplacer `<input type="date|time">` natifs par un sélecteur DS3 au format FR (28 sept. 2026, 15:35). *Source : analyse Claude, validée par Ignacio Calvo.* Statut : fait (2026-09-28).
 - **ID-02** — Nommer la pastille bouclier « 0 » (aria-label + infobulle). Statut : en attente.
 - **ID-03** — Retirer ou neutraliser l'icône document décorative en haut à droite. Statut : en attente.
 
@@ -19,3 +19,4 @@
 
 ## Journal des versions
 - **2026-09-28** — Création de `ds3-tokens.css` (rôles `--mat-sys-*`, espacement, typo, coins, ombres) ; refonte des styles de `NoteEditor.jsx` (champs 44 px / coin 8 / contour `outline` / focus 2 px primary, titre `headline-small`, carte `level1`, grille 4 pt) ; boutons de la barre du bas en `ds-btn` (tonal, filled, icône 40 px, focus 3 px `inverse-surface`).
+- **2026-09-28** — Ajout de `DsDateField` / `DsTimeField` (remplacent les input natifs, format FR, saisie et navigation clavier). Barre de mise en forme flottante : largeur ajustée à ses boutons, puis habillage aligné sur `tiptap-toolbar.component.scss` (production) — container-lowest, bordure outline-variant, coin 8, level2, boutons 40 px, séparateurs 4 px, menus 200 px en container-low, palette 15 px, `aria-pressed` sur les boutons.

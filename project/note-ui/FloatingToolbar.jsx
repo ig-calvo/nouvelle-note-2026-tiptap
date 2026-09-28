@@ -139,20 +139,17 @@ function FloatingToolbar({ position = 'haut' }) {
   const visibleChunks = chunks.slice(0, visibleCount);
   const hiddenChunks = chunks.slice(visibleCount);
 
-  // La barre épouse ses boutons (pas de vide à droite du « ⋯ ») ; maxW ne sert
-  // que de budget pour décider de ce qui déborde. Le champ URL, lui, garde
-  // toute la largeur disponible. Largeur exacte : chaque bouton, séparateur et
-  // le menu déroulant est un enfant flex séparé par `gap` (chunkedWidth ne
-  // compte qu'un enfant par groupe, d'où une marge de budget volontaire) ;
-  // + 2 × 10 de padding + 2 de bordures (box-sizing: border-box).
+  // La barre épouse ses boutons (`width: fit-content` en production) ; maxW ne
+  // sert que de budget pour décider de ce qui déborde. Le champ URL, lui, garde
+  // toute la largeur disponible. Largeur exacte : boutons et menu déroulant
+  // sont collés (gap 0), chaque séparateur pèse 1 px + 2 × 4 px d'air, plus
+  // 2 × 8 de padding et 2 de bordures (box-sizing: border-box). chunkedWidth
+  // garde des marges plus larges : c'est un budget, pas une mesure.
+  const sepCount = visibleCount + (hiddenChunks.length > 0 ? 1 : 0);
   let contentW = S.CHUNK_DROPDOWN_W;
-  let childCount = 1;
-  S.CHUNK_WIDTHS.slice(0, visibleCount).forEach((cw) => {
-    contentW += S.CHUNK_DIV_W + cw;
-    childCount += 1 + cw / S.CHUNK_BTN_W;
-  });
-  if (hiddenChunks.length > 0) { contentW += S.CHUNK_DIV_W + S.CHUNK_BTN_W; childCount += 2; }
-  const fitW = contentW + (childCount - 1) * ftS.bar.gap + 2 * 10 + 2;
+  S.CHUNK_WIDTHS.slice(0, visibleCount).forEach((cw) => { contentW += cw; });
+  if (hiddenChunks.length > 0) contentW += S.CHUNK_BTN_W;
+  const fitW = contentW + sepCount * (S.CHUNK_DIV_W + 2 * 4) + 2 * 8 + 2;
   const W = linkEditor.editing ? maxW : Math.min(maxW, fitW);
   const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
 
@@ -188,18 +185,20 @@ function FloatingToolbar({ position = 'haut' }) {
 }
 
 const ftS = {
+  // Habillage de la barre Tiptap de production : container-lowest, bordure
+  // outline-variant, coin 8, élévation 2 (élément flottant), padding 4/8.
   bar: {
     position: 'fixed',
     zIndex: 2000,
-    background: '#fff',
-    border: '1px solid #e0e0eb',
-    borderRadius: 10,
-    boxShadow: '0 4px 20px rgba(37,36,94,0.14)',
+    background: 'var(--mat-sys-surface-container-lowest)',
+    border: '1px solid var(--mat-sys-outline-variant)',
+    borderRadius: 'var(--mat-sys-corner-small)',
+    boxShadow: 'var(--mat-sys-level2)',
     display: 'flex',
     alignItems: 'center',
-    padding: '4px 10px',
-    gap: 2,
-    fontFamily: "'Inter', sans-serif",
+    padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xs)',
+    gap: 0,
+    fontFamily: 'var(--font-mat-sys-plain-family)',
     animation: 'pop-in 140ms cubic-bezier(0.2,0,0,1)'
   }
 };
