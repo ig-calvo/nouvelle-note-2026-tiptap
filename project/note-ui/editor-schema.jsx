@@ -8,8 +8,9 @@
 
 let _chipSeq = 1;
 function newChipId() { return 'c' + _chipSeq++; }
-let _diagSeq = 1;
-function newDiagId() { return 'd' + _diagSeq++; }
+// newDiagId / listDiagnostics vivent maintenant dans diagnostics.jsx (chargé
+// juste avant ce fichier — voir Note Clinique.html), avec le reste du modèle
+// des diagnostics (fils, numéros, Sommaire).
 
 // searchCIM10 — filtre les entrées CIM-10 par requête (insensible aux accents).
 // Catégories génériques (parapluie) d'abord — plus rapides à repérer et
@@ -434,19 +435,10 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   }
 }); }
 
-// Liste les régions diagnostic du document dans l'ordre où elles y
-// apparaissent — c'est cet ordre (identique à l'ordre DOM des .dxr, donc au
-// compteur CSS omd-diag-counter qui numérote leur en-tête) qui définit le
-// numéro « officiel » de chaque diagnostic. Utilisé pour peupler le picker
-// « Renvoi à un diagnostic » (editor-field.jsx) et pour tenir à jour les
-// puces déjà insérées (voir diagnosticRef ci-dessous).
-function listDiagnostics(doc) {
-  const list = [];
-  doc.descendants(function (node) {
-    if (node.type.name === 'diagnosticRegion') list.push({ id: node.attrs.id, name: node.attrs.name });
-  });
-  return list;
-}
+// listDiagnostics (dédoublonnée par fil, avec numéro) vit maintenant dans
+// diagnostics.jsx — utilisée par le picker « Renvoi à un diagnostic »
+// (editor-field.jsx) et pour tenir à jour les puces déjà insérées (voir
+// diagnosticRef ci-dessous).
 
 // ---------------------------------------------------------
 // DiagnosticRefNode — puce inline « (N) » renvoyant au Nᵉ diagnostic du
@@ -1620,7 +1612,6 @@ Object.assign(window, {
   currentSplitSlot,
   splitPosPM,
   newChipId,
-  newDiagId,
   newToolInstanceId,
   searchCIM10,
   searchDx,
@@ -1642,6 +1633,5 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
-  updateChipEntity,
-  listDiagnostics
+  updateChipEntity
 });

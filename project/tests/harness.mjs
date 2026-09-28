@@ -18,7 +18,7 @@ export function readProjectJSON(rel) {
   return JSON.parse(fs.readFileSync(path.join(projectDir, rel), 'utf8'));
 }
 
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/editor-schema.jsx']) {
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx']) {
   const win = {};
   for (const rel of files) {
     const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');

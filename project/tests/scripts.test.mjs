@@ -62,3 +62,11 @@ test('cim10-index.jsx charge avant editor-schema.jsx', () => {
   assert.ok(idx('note-ui/cim10-index.jsx') >= 0, 'note-ui/cim10-index.jsx doit être listé dans srcs');
   assert.ok(idx('note-ui/cim10-index.jsx') < idx('note-ui/editor-schema.jsx'));
 });
+
+test('diagnostics.jsx charge après note-sections.jsx et avant editor-schema.jsx et Summary.jsx', () => {
+  const idx = (rel) => srcs.indexOf(rel);
+  assert.ok(idx('note-ui/diagnostics.jsx') >= 0, 'note-ui/diagnostics.jsx doit être listé dans srcs');
+  assert.ok(idx('note-ui/diagnostics.jsx') > idx('note-ui/note-sections.jsx'));
+  assert.ok(idx('note-ui/diagnostics.jsx') < idx('note-ui/editor-schema.jsx'));
+  assert.ok(idx('note-ui/diagnostics.jsx') < idx('note-ui/Summary.jsx'), 'Summary.jsx appelle sommaireDxSeed() à son chargement');
+});
