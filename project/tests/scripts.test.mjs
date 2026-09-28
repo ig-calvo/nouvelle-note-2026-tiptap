@@ -56,3 +56,9 @@ test('aucun nom de haut niveau (function/class/const/let) n’est déclaré deux
   const dups = [...bindings.entries()].filter(([, arr]) => arr.length > 1);
   assert.deepEqual(dups, [], 'doublons trouvés : ' + JSON.stringify(dups));
 });
+
+test('cim10-index.jsx charge avant editor-schema.jsx', () => {
+  const idx = (rel) => srcs.indexOf(rel);
+  assert.ok(idx('note-ui/cim10-index.jsx') >= 0, 'note-ui/cim10-index.jsx doit être listé dans srcs');
+  assert.ok(idx('note-ui/cim10-index.jsx') < idx('note-ui/editor-schema.jsx'));
+});
