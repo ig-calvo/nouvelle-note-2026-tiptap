@@ -9,14 +9,15 @@
 
 ## Idées et pistes
 - **ID-01** — Remplacer `<input type="date|time">` natifs par un sélecteur DS3 au format FR (28 sept. 2026, 15:35). *Source : analyse Claude, validée par Ignacio Calvo.* Statut : fait (2026-09-28).
-- **ID-02** — Nommer la pastille bouclier « 0 » (aria-label + infobulle). Statut : en attente.
+- **ID-02** — Nommer la pastille bouclier « 0 » (aria-label + infobulle). Statut : fait (2026-09-28) — « Portail patient : 0 élément partagé » ; même traitement pour les pastilles de documents (« Ordonnance : 1 sur 5 complété »).
 - **ID-03** — Retirer ou neutraliser l'icône document décorative en haut à droite. Statut : en attente.
 
 ## Questions ouvertes
-- **Q-01** — Que compte exactement la pastille bouclier « 0 » (titre actuel : « Portail patient ») ? *Déduction Claude — à confirmer.*
+- **Q-01** — ~~Que compte la pastille bouclier « 0 » ?~~ Réponse tirée de `PLAN-checkout-v7.md` §M.1/M.2 : le nombre d'éléments partagés au patient via le portail (« 0 élément partagé »). Figée à 0 en dur, la fonction de partage n'existant pas dans le prototype. *Source : document de plan du dépôt, pas une personne — à confirmer.* Statut : répondue, en attente de confirmation.
 - **Q-02** — Largeur du sélecteur « Type de visite » : à revérifier à ≥ 1285 px avec les libellés FR (+50 %).
 - **Q-03** — Mode sombre : `color-scheme: light` est forcé dans `ds3-tokens.css` ; le reste du prototype n'est pas prêt pour le sombre.
 
 ## Journal des versions
 - **2026-09-28** — Création de `ds3-tokens.css` (rôles `--mat-sys-*`, espacement, typo, coins, ombres) ; refonte des styles de `NoteEditor.jsx` (champs 44 px / coin 8 / contour `outline` / focus 2 px primary, titre `headline-small`, carte `level1`, grille 4 pt) ; boutons de la barre du bas en `ds-btn` (tonal, filled, icône 40 px, focus 3 px `inverse-surface`).
 - **2026-09-28** — Ajout de `DsDateField` / `DsTimeField` (remplacent les input natifs, format FR, saisie et navigation clavier). Barre de mise en forme flottante : largeur ajustée à ses boutons, puis habillage aligné sur `tiptap-toolbar.component.scss` (production) — container-lowest, bordure outline-variant, coin 8, level2, boutons 40 px, séparateurs 4 px, menus 200 px en container-low, palette 15 px, `aria-pressed` sur les boutons.
+- **2026-09-28** — Pastille bouclier et pastilles de documents du pied de note : `role="img"` + `aria-label` (avant : `title` seul), icônes en `aria-hidden`.
