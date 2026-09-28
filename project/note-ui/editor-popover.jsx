@@ -458,99 +458,6 @@ function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickS
   );
 }
 
-// Functions / "Ajouter" menu — opened from the + button
-function AddMenu({ position, tools, orders, onPickTool, onPickOrder, onPickFile, onAddSection, onClose }) {
-  const stop = (e) => e.stopPropagation();
-  const [showFileSub, setShowFileSub] = useStateP(false);
-
-  const instructionsItem = (tools || []).find(function(t) { return t.key === 'instructions'; });
-  const diagnosticItem = (tools || []).find(function(t) { return t.key === 'diagnostic'; });
-
-  return (
-    <>
-      <div className="addmenu-scrim" onMouseDown={(e) => { e.preventDefault(); onClose(); }} />
-      <div className="addmenu" style={position} onMouseDown={stop}>
-
-        <div className="addmenu-sec">RÉDACTION</div>
-        <button className="addmenu-item" style={showFileSub ? { background: '#f5f5fa' } : {}}
-          onMouseDown={(e) => { e.preventDefault(); setShowFileSub(s => !s); }}>
-          <span className="material-icons-outlined ic">upload_file</span>
-          <span className="lbl">Ajouter des fichiers</span>
-          <span className="kbd">Alt+A</span>
-          <span className="material-icons-outlined arr" style={{ transition: 'transform 0.15s', transform: showFileSub ? 'rotate(90deg)' : 'none' }}>chevron_right</span>
-        </button>
-        {showFileSub && (
-          <div style={{ background: '#f8f8fb', borderLeft: '3px solid #dde0f5', margin: '0 0 4px 18px', borderRadius: '0 6px 6px 0' }}>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickFile) onPickFile('computer'); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>laptop</span>
-              <span className="lbl">Depuis mon ordinateur</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(0,0,0,0.35)', fontFamily: "'Inter',sans-serif" }}>PDF · PNG</span>
-            </button>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>smartphone</span>
-              <span className="lbl">Depuis mon téléphone</span>
-            </button>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>person</span>
-              <span className="lbl">Depuis le téléphone du patient</span>
-            </button>
-          </div>
-        )}
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); }}>
-          <span className="material-icons-outlined ic">bolt</span>
-          <span className="lbl">Textes rapides</span>
-          <span className="kbd">Ctrl+R</span>
-        </button>
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onAddSection) onAddSection(); onClose(); }}>
-          <span className="material-icons-outlined ic">add</span>
-          <span className="lbl">Ajouter une section</span>
-          <span className="kbd">/sec</span>
-        </button>
-        {instructionsItem && (
-          <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickTool) onPickTool(instructionsItem); onClose(); }}>
-            <span className="material-symbols-outlined ic">{instructionsItem.icon}</span>
-            <span className="lbl">Instructions patient</span>
-            <span className="kbd">/{instructionsItem.kbd}</span>
-          </button>
-        )}
-
-        <div className="addmenu-div" />
-
-        <div className="addmenu-sec">FONCTIONS</div>
-        {diagnosticItem && (
-          <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickTool) onPickTool(diagnosticItem); onClose(); }}>
-            <span className="material-symbols-outlined ic">{diagnosticItem.icon}</span>
-            <span className="lbl">Diagnostic</span>
-            <span className="kbd">/{diagnosticItem.kbd}</span>
-          </button>
-        )}
-        {(orders || []).map((it) => (
-          <button key={it.key} className="addmenu-item"
-            onMouseDown={(e) => { e.preventDefault(); if (onPickOrder) onPickOrder(it.kbd); onClose(); }}>
-            <span className="material-symbols-outlined ic">{it.icon}</span>
-            <span className="lbl">{it.title}</span>
-            <span className="kbd">/{it.kbd}</span>
-          </button>
-        ))}
-        <button className="addmenu-item" onMouseDown={(e) => {
-          e.preventDefault();
-          onClose();
-          const rect = e.currentTarget.getBoundingClientRect();
-          window.dispatchEvent(new CustomEvent('ct-picker-open', { detail: { rect } }));
-        }}>
-          <span className="material-icons-outlined ic">handyman</span>
-          <span className="lbl">Outils cliniques</span>
-          <span className="material-icons-outlined arr">chevron_right</span>
-        </button>
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onAddSection) onAddSection(); onClose(); }}>
-          <span className="material-icons-outlined ic">lock</span>
-          <span className="lbl">Note confidentielle</span>
-        </button>
-      </div>
-    </>
-  );
-}
-
 // =========================================================
 // RxMenu — dropdown de recherche de médicaments (commande /rx)
 // Sections : Favoris · Traitements fréquemment prescrits · Autres produits trouvés
@@ -684,4 +591,4 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
     </div>);
 }
 
-Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu, DiagnosticDropdown });
+Object.assign(window, { ChipPopover, SlashMenu, RxMenu, DiagnosticDropdown });
