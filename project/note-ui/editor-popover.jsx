@@ -564,10 +564,17 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
   // Note Clinique.html) — whenReady (cim10-index.jsx) appelle son callback
   // tout de suite si déjà prête, une seule fois sinon : un seul re-rendu
   // suffit à faire apparaître enfants/résultats une fois l'index disponible.
+  // `cancelled` évite un setState après une fermeture du popover survenue
+  // avant que cim10:ready n'ait fini de se déclencher (whenReady ne renvoie
+  // rien à désabonner : son propre listener DOM s'enlève tout seul une fois
+  // déclenché, mais sans ce garde son callback tenterait quand même de
+  // rafraîchir un popover déjà démonté).
   useEffectP(() => {
+    let cancelled = false;
     if (window.CIM10 && window.CIM10.whenReady && !window.CIM10.ready()) {
-      window.CIM10.whenReady(function () { bumpCim(function (n) { return n + 1; }); });
+      window.CIM10.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
     }
+    return () => { cancelled = true; };
   }, []);
 
   const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null });
