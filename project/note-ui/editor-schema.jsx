@@ -446,12 +446,20 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
     return [{ tag: 'div.dxr', getAttrs: dxAttrsFromDom, contentElement: '.dxr-body' }];
   },
   renderHTML({ node, HTMLAttributes }) {
-    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr' }, HTMLAttributes, dxDataAttrs(node.attrs)),
-      ['div', { class: 'dxr-head', contenteditable: 'false' },
-        ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
-        ['span', { class: 'dxr-name', 'data-diag-id': node.attrs.id }, node.attrs.name],
-        ['button', { type: 'button', class: 'dxr-promote', title: 'Promouvoir en problème' },
-          ['span', { class: 'material-icons-outlined' }, 'add_task']]],
+    const a = node.attrs;
+    const head = ['div', { class: 'dxr-head', contenteditable: 'false' },
+      ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
+      ['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]];
+    if (a.code) head.push(['span', { class: 'dxr-code' }, a.code]);
+    if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, 'Cessé']);
+    if (a.replaces) head.push(['span', { class: 'dxr-sub' }, 'remplace : ' + a.replaces.name]);
+    const b = window.diagDocButton(window.diagPlacement(a), !!a.sommaireId);
+    head.push(['button', { type: 'button', class: 'dxr-doc dxr-doc--' + b.mod, title: b.title },
+      ['span', { class: 'material-icons-outlined' }, b.icon],
+      ['span', {}, b.label],
+      ['span', { class: 'material-icons-outlined dxr-doc__caret' }, 'arrow_drop_down']]);
+    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr' }, HTMLAttributes, dxDataAttrs(a)),
+      head,
       ['div', { class: 'dxr-body' }, 0]];
   },
   addNodeView() {
@@ -469,12 +477,34 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       const nameEl = document.createElement('span');
       nameEl.className = 'dxr-name';
       head.appendChild(nameEl);
-      const promoteBtn = document.createElement('button');
-      promoteBtn.type = 'button';
-      promoteBtn.className = 'dxr-promote';
-      promoteBtn.title = 'Promouvoir en problème';
-      promoteBtn.innerHTML = '<span class="material-icons-outlined">add_task</span>';
-      head.appendChild(promoteBtn);
+      const codeEl = document.createElement('span');
+      codeEl.className = 'dxr-code';
+      head.appendChild(codeEl);
+      const statusEl = document.createElement('span');
+      statusEl.className = 'dxr-status';
+      statusEl.textContent = 'Cessé';
+      head.appendChild(statusEl);
+      const subEl = document.createElement('span');
+      subEl.className = 'dxr-sub';
+      head.appendChild(subEl);
+      // « Documenter comme » (D1) — remplace l'ancien bouton « Promouvoir en
+      // problème ». Son icône/libellé/couleur suivent diagDocButton
+      // (diagnostics.jsx) : Documenter / Non documenté / Problème / Antécédent
+      // / Antécédent · résolu. Ouvre DiagDocMenu (editor-field.jsx), qui
+      // applique la documentation à TOUT le fil (patchDiagRegions).
+      const docBtn = document.createElement('button');
+      docBtn.type = 'button';
+      docBtn.setAttribute('aria-haspopup', 'menu');
+      const docIcon = document.createElement('span');
+      docIcon.className = 'material-icons-outlined';
+      docBtn.appendChild(docIcon);
+      const docLabel = document.createElement('span');
+      docBtn.appendChild(docLabel);
+      const docCaret = document.createElement('span');
+      docCaret.className = 'material-icons-outlined dxr-doc__caret';
+      docCaret.textContent = 'arrow_drop_down';
+      docBtn.appendChild(docCaret);
+      head.appendChild(docBtn);
 
       const body = document.createElement('div');
       body.className = 'dxr-body';
@@ -483,14 +513,26 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         const a = window.normalizeDiagAttrs(attrs);
         dom.setAttribute('data-diag-id', a.id || '');
         if (a.dxKey) dom.setAttribute('data-dx-key', a.dxKey); else dom.removeAttribute('data-dx-key');
+        dom.classList.toggle('dxr--cesse', a.status === 'cesse');
         nameEl.setAttribute('data-diag-id', a.id || '');
+        nameEl.setAttribute('data-dx-code', a.code || '');
         nameEl.textContent = a.name || 'Diagnostic';
-        // La documentation (Problème/Antécédent — D1) remplace la simple
-        // promotion : le bouton reste « Promouvoir en problème » pour
-        // l'instant (le menu « Documenter comme » arrive avec son propre
-        // NodeView, voir la suite de la branche diagnostics), seul l'attribut
-        // source du toggle change.
-        promoteBtn.classList.toggle('dxr-promoted', !!a.documentAs);
+        codeEl.textContent = a.code || '';
+        codeEl.hidden = !a.code;
+        statusEl.hidden = a.status !== 'cesse';
+        subEl.hidden = !a.replaces;
+        subEl.textContent = a.replaces ? ('remplace : ' + a.replaces.name) : '';
+        // Le placement/lien viennent de la décoration quand elle existe (déjà
+        // calculés une fois pour tout le fil par dxNumberingPlugin) — sinon
+        // (décorations indisponibles) on retombe sur un calcul local.
+        const placement = spec ? spec.dxPlacement : window.diagPlacement(a);
+        const linked = spec ? spec.dxLinked : !!a.sommaireId;
+        const b = window.diagDocButton(placement, linked);
+        docBtn.className = 'dxr-doc dxr-doc--' + b.mod;
+        docBtn.title = b.title;
+        docBtn.setAttribute('aria-label', b.title);
+        docIcon.textContent = b.icon;
+        docLabel.textContent = b.label;
         // Numéro du fil (dxNumberingPlugin plus haut) : posé par décoration,
         // pas par un attribut du node — il dépend de la position de TOUTES
         // les occurrences du même fil dans le document entier

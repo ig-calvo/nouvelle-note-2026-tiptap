@@ -74,11 +74,18 @@
 }
 .note-field .ql-editor .dxr-head {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
   align-items: center;
   gap: 6px;
   border-left: 3px solid #7fa8d8;
   padding: 6px 10px 4px 12px;
   user-select: none;
+}
+/* [hidden] natif (codeEl/statusEl/subEl — editor-schema.jsx) doit l'emporter
+   sur le display:inline-flex/flex posé par les règles ci-dessous. */
+.note-field .ql-editor .dxr-head [hidden] {
+  display: none !important;
 }
 .note-field .ql-editor .dxr-ic {
   font-size: 14px !important;
@@ -100,7 +107,52 @@
 .note-field .ql-editor .dxr-name:hover {
   background: rgba(106, 150, 192, 0.1);
 }
-.note-field .ql-editor .dxr-promote {
+/* Code CIM-10, à côté du nom — masqué (hidden natif) en texte libre. */
+.note-field .ql-editor .dxr-code {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+/* Étiquette « Cessé » — même palette que .rx-status--ceased (médicaments
+   cessés), pour une lecture cohérente entre note et Sommaire. */
+.note-field .ql-editor .dxr-status {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #7a1f26;
+  background: #ecdfe0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+/* Nom barré quand la région est Cessé (D2) — la classe suit attrs.status,
+   pas une pseudo-classe : posée par le NodeView (editor-schema.jsx). */
+.note-field .ql-editor .dxr--cesse .dxr-name {
+  text-decoration: line-through;
+  text-decoration-color: #b04a4a;
+}
+/* « remplace : X » (D3) — italique discret, jamais éditable (dans le
+   contenteditable=false de l'en-tête), tronqué si trop long. */
+.note-field .ql-editor .dxr-sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 11.5px;
+  color: rgba(0, 0, 0, 0.55);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+/* « Documenter comme » (D1) — remplace .dxr-promote. .dxr-doc--probleme et
+   .dxr-doc--antecedent reprennent l'ancien vert de .dxr-promoted (documenté,
+   peu importe la section) ; .dxr-doc--none reste neutre (rien à signaler). */
+.note-field .ql-editor .dxr-doc {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -108,25 +160,31 @@
   background: transparent;
   color: #8aaac8;
   border-radius: 10px;
-  padding: 2px 8px 2px 5px;
+  padding: 2px 4px 2px 8px;
+  margin-left: auto;
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 120ms, border-color 120ms, color 120ms;
 }
-.note-field .ql-editor .dxr-promote:hover {
+.note-field .ql-editor .dxr-doc:hover {
   background: rgba(106, 150, 192, 0.08);
   border-color: #7fa8d8;
   color: #4a6f94;
 }
-.note-field .ql-editor .dxr-promote.dxr-promoted {
+.note-field .ql-editor .dxr-doc--probleme,
+.note-field .ql-editor .dxr-doc--antecedent {
   background: #e7f5ea;
   border-color: #2e7d32;
   color: #2e7d32;
 }
-.note-field .ql-editor .dxr-promote .material-icons-outlined {
+.note-field .ql-editor .dxr-doc .material-icons-outlined {
   font-size: 13px !important;
+}
+.note-field .ql-editor .dxr-doc__caret {
+  font-size: 14px !important;
+  margin-left: -2px;
 }
 .note-field .ql-editor .dxr-body {
   border-left: 3px solid #7fa8d8;

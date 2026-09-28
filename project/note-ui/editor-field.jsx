@@ -31,6 +31,39 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
   const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
   const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
+  const [diagDocMenu, setDiagDocMenu] = useStateE(null); // { dxKey, number, rect, ctx } — menu « Documenter comme »
+
+  // Section du Sommaire (base, hors superposition de la note) où vit une
+  // ligne liée — pour le libellé « Déjà aux problèmes… » vs « Ajouté aux… »
+  // dans diagDocMenuItems (diagnostics.jsx). null si non liée ou si le
+  // Sommaire n'a encore rien publié.
+  function dxBaseKindFor(sommaireId) {
+    if (!sommaireId) return null;
+    const base = window.__SOMMAIRE_DX_BASE;
+    if (!base) return null;
+    if ((base.problems || []).some(function (r) { return r.id === sommaireId; })) return 'problems';
+    if ((base.history || []).some(function (r) { return r.id === sommaireId; })) return 'history';
+    return null;
+  }
+
+  // Applique la documentation (Problème/Antécédent/Non documenté — D1) à
+  // TOUTES les occurrences du fil (patchDiagRegions, editor-schema.jsx) —
+  // renommer/Cesser/Remplacer ne touchent qu'une occurrence, mais documenter
+  // est un état du FIL, pas d'une seule région (voir dxThreadIdentity).
+  function commitDiagDocumentation(dxKey, value) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = window.getDiagModel(editor);
+    const thread = model.byKey[dxKey];
+    if (!thread) return;
+    const now = new Date().toISOString();
+    const author = window.__CURRENT_AUTHOR || null;
+    const patches = thread.occurrences.map(function (o) {
+      return { id: o.id, patch: { documentAs: value, documentedAt: value ? now : null, documentedBy: value ? author : null } };
+    });
+    window.patchDiagRegions(editor, patches);
+    editor.commands.focus();
+  }
 
   const onChipClickRef = useRefE(null); onChipClickRef.current = onChipClick;
 
@@ -538,27 +571,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return;
       }
-      const promoteEl = e.target.closest('.dxr-promote');
-      if (promoteEl) {
+      const docEl = e.target.closest('.dxr-doc');
+      if (docEl) {
         e.preventDefault();
-        const head = promoteEl.closest('.dxr-head');
-        const nmEl = head && head.querySelector('.dxr-name');
-        const nm = nmEl ? nmEl.textContent.trim() : '';
-        if (nm) window.dispatchEvent(new CustomEvent('note:add-problem', { detail: { name: nm } }));
-        // Écrit dans le doc via patchDiagRegions (seul chemin autorisé, voir
-        // editor-schema.jsx) — la classe .dxr-promoted suit maintenant
-        // attrs.documentAs via render() ; c'est aussi ce qui fait entrer le
-        // diagnostic dans le Journal des actions (« Problèmes »). Encore
-        // ciblé sur CETTE occurrence : le menu « Documenter comme » (à venir)
-        // l'appliquera à tout le fil (patchDiagRegions accepte déjà plusieurs
-        // ids en une seule transaction).
-        const regionPos = findRegionPosFromDOM(editor, promoteEl);
+        const regionPos = findRegionPosFromDOM(editor, docEl);
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
-          if (node) {
-            window.patchDiagRegions(editor, [{ id: node.attrs.id, patch: {
-              documentAs: 'probleme', documentedAt: new Date().toISOString(), documentedBy: window.__CURRENT_AUTHOR || null
-            } }]);
+          const model = node && window.getDiagModel(editor);
+          const thread = model && model.byKey[node.attrs.dxKey];
+          if (thread) {
+            const e2 = thread.effective;
+            setDiagDocMenu({
+              dxKey: thread.dxKey, number: thread.number, rect: docEl.getBoundingClientRect(),
+              ctx: { documentAs: e2.documentAs, ceased: e2.status === 'cesse', linked: !!e2.sommaireId, baseKind: dxBaseKindFor(e2.sommaireId) }
+            });
           }
         }
       }
@@ -898,6 +924,21 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }} />
       }
 
+      {/* « Documenter comme » (D1) — Problème / Antécédent / Non documenté,
+          ouvert depuis le bouton .dxr-doc de l'en-tête d'une région. */}
+      {diagDocMenu &&
+        <DiagDocMenu
+          anchorRect={diagDocMenu.rect}
+          number={diagDocMenu.number}
+          items={window.diagDocMenuItems(diagDocMenu.ctx)}
+          onClose={() => setDiagDocMenu(null)}
+          onSelect={function (value) {
+            const dxKey = diagDocMenu.dxKey;
+            setDiagDocMenu(null);
+            commitDiagDocumentation(dxKey, value);
+          }} />
+      }
+
       <input
         ref={fileInputRef}
         type="file"
@@ -1185,6 +1226,95 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
     </div>
   );
 }
+
+// ---------------------------------------------------------
+// DiagDocMenu — « Documenter comme » (D1) : Problème / Antécédent / Non
+// documenté, un choix exclusif. items vient de diagDocMenuItems
+// (diagnostics.jsx), déjà calculé (selected/disabled/desc) selon l'état du
+// fil. Clavier complet (↑↓ sautent les options désactivées, Entrée valide,
+// Échap ferme) : contrairement au reste de l'en-tête, ce bouton est le seul
+// endroit du header qui doit être opérable sans souris — le panneau prend
+// le focus à l'ouverture et le rend à l'éditeur à la fermeture.
+// ---------------------------------------------------------
+function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
+  const panelRef = useRefE(null);
+  const [active, setActive] = useStateE(function () {
+    const i = items.findIndex(function (it) { return it.selected; });
+    return i >= 0 ? i : 0;
+  });
+
+  useEffectE(function () {
+    if (panelRef.current) panelRef.current.focus();
+  }, []);
+
+  useEffectE(function () {
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    return function () { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
+  }, [onClose]);
+
+  function pick(idx) { if (!items[idx].disabled) onSelect(items[idx].value); }
+  function step(dir) {
+    let next = active;
+    for (let i = 0; i < items.length; i++) {
+      next = (next + dir + items.length) % items.length;
+      if (!items[next].disabled) break;
+    }
+    setActive(next);
+  }
+  function onKeyDown(e) {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(active); }
+  }
+
+  const panelW = 280;
+  const MARGIN = 8;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} tabIndex={-1} role="menu" aria-label="Documenter comme" onKeyDown={onKeyDown}
+      style={Object.assign({}, ddmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={ddmS.heading}>Documenter comme</div>
+      {items.map(function (it, i) {
+        return (
+          <div key={it.value || 'aucun'} role="menuitemradio" aria-checked={it.selected} aria-disabled={it.disabled || undefined}
+            onMouseEnter={function () { if (!it.disabled) setActive(i); }}
+            onMouseDown={function (e) { e.preventDefault(); }}
+            onClick={function () { pick(i); }}
+            style={Object.assign({}, ddmS.item, it.disabled ? ddmS.itemDisabled : {}, (i === active && !it.disabled) ? ddmS.itemActive : {})}>
+            <span className="material-icons-outlined" style={{ fontSize: 18, color: it.selected ? '#1a5fd4' : 'rgba(0,0,0,0.5)', flexShrink: 0 }}>{it.icon}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: it.selected ? 600 : 400, color: 'rgba(0,0,0,0.85)' }}>{it.label}</div>
+              <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.5)' }}>{it.desc}</div>
+            </span>
+            {it.selected && <span className="material-icons-outlined" style={{ fontSize: 16, color: '#1a5fd4', flexShrink: 0 }}>check</span>}
+          </div>
+        );
+      })}
+      <div style={ddmS.foot}>S'applique au diagnostic n° {number} partout dans la note.</div>
+    </div>
+  );
+}
+
+const ddmS = {
+  panel: {
+    position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
+    borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.20)', padding: '6px 0',
+    fontFamily: "var(--font-body, 'Inter', sans-serif)", outline: 'none',
+    animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
+  },
+  heading: { padding: '4px 14px 6px', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.4)' },
+  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer' },
+  itemActive: { background: '#eef1fb' },
+  itemDisabled: { opacity: 0.45, cursor: 'default' },
+  foot: { padding: '6px 14px 2px', borderTop: '1px solid #f0f0f6', marginTop: 4, fontSize: 11, color: 'rgba(0,0,0,0.4)' }
+};
 
 const afmS = {
   panel: {
