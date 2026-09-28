@@ -144,9 +144,10 @@
 
 /* Puce « renvoi à un diagnostic » (.dxref, node diagnosticRef) — insérée
    dans la Conclusion (ou ailleurs) via le picker du même nom. Son numéro
-   n'est pas posé en CSS : il est recalculé en JS à chaque transaction (voir
-   syncDiagnosticRefs, editor-field.jsx) car il dépend de la position d'UN
-   AUTRE node dans le doc, ce qu'un compteur CSS ne peut pas exprimer. */
+   n'est pas posé en CSS : le NodeView (editor-schema.jsx) l'écrit en texte
+   depuis la décoration dxNumberingPlugin, recalculée à chaque transaction,
+   car il dépend de la position d'UN AUTRE node dans le doc (le fil visé),
+   ce qu'un compteur CSS ne peut pas exprimer. */
 .note-field .ql-editor .dxref {
   display: inline-flex;
   align-items: center;
@@ -189,27 +190,24 @@
    ============================================================ */
 
 /* --- Actuel : le style de base + numérotation, sans barre d'accent ---
-   Même compteur que la variante « Numéroté », posé sur .app pour traverser
-   toute la note. Le numéro REMPLACE l'icône de la région (un seul marqueur
+   Même numéro que la variante « Numéroté », posé par décoration
+   (dxNumberingPlugin, editor-schema.jsx) sur data-dx-num, une par diagnostic
+   du fil (dxKey) — pas par un compteur CSS positionnel, qui ne peut pas
+   dédoublonner un même diagnostic repris plus loin dans la note (R3). Le
+   numéro REMPLACE l'icône de la région (un seul marqueur
    en tête de ligne, pas deux) et prend la forme d'une pastille noire. La
    barre d'accent gauche du style de base (border-left) est retirée : avec
    la pastille en tête et la flèche du corps (ci-dessous), une troisième
    marque verticale faisait doublon. */
-.diag-style-actuel {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-actuel .note-field .ql-editor .dxr-head,
 .diag-style-actuel .note-field .ql-editor .dxr-body {
   border-left: none;
-}
-.diag-style-actuel .note-field .ql-editor .dxr-head {
-  counter-increment: omd-diag-counter;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,21 +262,17 @@
    Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
    (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
    .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-carte {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-carte .note-field .ql-editor .dxr-head {
   background: #ECF3F7;
   border-left: none;
   border-radius: 10px 10px 0 0;
   padding: 8px 14px 5px 12px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-carte .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-carte .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -335,9 +329,6 @@
    (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
    .dxr-head, gouttière de 24px dans .dxr-body pour la flèche de chaque <p>
    (padding-left du head = 8px ici, d'où le -16px qui reste identique). */
-.diag-style-etiquette {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-etiquette .note-field .ql-editor .dxr-head {
   display: inline-flex;
   background: var(--brand-primary-container, #e5e2f3);
@@ -345,13 +336,12 @@
   border-radius: 999px;
   padding: 3px 12px 3px 8px;
   margin-bottom: 3px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -406,21 +396,17 @@
    Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
    (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
    .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-rail {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-rail .note-field .ql-editor .dxr-head {
   background: #eef1f6;
   border-left: none;
   border-radius: 6px 6px 0 0;
   padding: 6px 12px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-rail .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-rail .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -472,12 +458,9 @@
 }
 
 /* --- Numéroté : titre + bullet numéroté selon la position dans la note ---
-   Le compteur CSS est posé sur .app (une seule fois, tout en haut) : il
-   traverse tout le document tant que les régions restent des descendantes
-   DOM de .app dans l'ordre réel du texte. */
-.diag-style-numbered {
-  counter-reset: omd-diag-counter;
-}
+   Le numéro vient de data-dx-num (dxNumberingPlugin, editor-schema.jsx),
+   posé par décoration sur .dxr-head — un par FIL (dxKey), pas par occurrence
+   ni par position DOM : une reprise du même diagnostic garde son numéro. */
 .diag-style-numbered .note-field .ql-editor .dxr-head {
   display: flex;
   align-items: baseline;
@@ -485,10 +468,9 @@
   background: transparent;
   border-left: none;
   padding: 4px 0 2px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-numbered .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter) '.';
+  content: attr(data-dx-num) '.';
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 14px;

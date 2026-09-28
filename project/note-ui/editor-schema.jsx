@@ -351,6 +351,82 @@ function dxAttrsFromDom(dom) {
     createdAt: dom.getAttribute('data-dx-created-at') || null
   };
 }
+// ---------------------------------------------------------
+// Numérotation des diagnostics par décorations ProseMirror — remplace le
+// compteur CSS positionnel omd-diag-counter (editor.css), incapable de
+// dédoublonner par fil (R3). Un seul plugin, partagé par la clé
+// dxNumberingKey : son state {model, decos} est reconstruit à chaque
+// transaction qui change le doc, ou quand la méta dxRefresh est posée (ex.
+// au chargement de la CIM-10, pour recalculer canRefine — voir editor-field.jsx).
+// decos pose data-dx-num sur chaque .dxr-head (lu par le NodeView, voir
+// render() plus bas) et sur chaque .dxref ; le CSS lit attr(data-dx-num)
+// au lieu de counter(omd-diag-counter) dans les 5 styles.
+// ---------------------------------------------------------
+let _dxNumKey = null;
+function dxNumberingKey() { return _dxNumKey || (_dxNumKey = new window.Tiptap.pm.PluginKey('diagNumbering')); }
+
+function dxBuildNumberingState(doc) {
+  const PM = window.Tiptap.pm;
+  const model = window.diagnosticThreads(doc);
+  if (!PM.Decoration || !PM.DecorationSet) {
+    // Instance de prosemirror-view manquante ou incompatible (voir le
+    // commentaire d'import, Note Clinique.html) : pas de numéros affichés
+    // plutôt qu'un plantage — signalé une seule fois par appel, pas assez
+    // grave pour la bannière tiptap:error (le reste de l'éditeur fonctionne).
+    console.error('diagNumbering : Decoration/DecorationSet indisponibles sur window.Tiptap.pm — les numéros de diagnostic ne s’afficheront pas.');
+    return { model: model, decos: null };
+  }
+  const decos = [];
+  model.threads.forEach(function (t) {
+    const placement = window.diagPlacement(t.effective);
+    const linked = !!t.effective.sommaireId;
+    const canRefine = window.diagCanRefine(t.effective);
+    t.occurrences.forEach(function (o, i) {
+      if (o.pos == null || o.nodeSize == null) return; // JSON hors éditeur : rien à décorer
+      decos.push(PM.Decoration.node(o.pos, o.pos + o.nodeSize, { 'data-dx-num': String(t.number) }, {
+        dxNum: t.number, dxKey: t.dxKey, dxOcc: i + 1, dxOccCount: t.occurrences.length,
+        dxPlacement: placement, dxLinked: linked, dxCanRefine: canRefine
+      }));
+    });
+  });
+  model.refs.forEach(function (r) {
+    if (r.pos == null || r.nodeSize == null) return;
+    decos.push(PM.Decoration.node(r.pos, r.pos + r.nodeSize, r.number ? { 'data-dx-num': String(r.number) } : {}, { dxNum: r.number }));
+  });
+  return { model: model, decos: PM.DecorationSet.create(doc, decos) };
+}
+
+function dxNumberingPlugin() {
+  const PM = window.Tiptap.pm;
+  return new PM.Plugin({
+    key: dxNumberingKey(),
+    state: {
+      init(_config, state) { return dxBuildNumberingState(state.doc); },
+      apply(tr, prev, _oldState, newState) {
+        if (!tr.docChanged && !tr.getMeta('dxRefresh')) return prev;
+        return dxBuildNumberingState(newState.doc);
+      }
+    },
+    props: {
+      decorations(state) {
+        const s = dxNumberingKey().getState(state);
+        return s ? s.decos : null;
+      }
+    }
+  });
+}
+
+// Extrait le spec de décoration (dxNum, dxKey…) portant sur CE node depuis le
+// tableau `decorations` reçu par le NodeView (création et update()).
+function dxSpecFromDecorations(decorations) {
+  if (!decorations) return null;
+  for (let i = 0; i < decorations.length; i++) {
+    const spec = decorations[i] && decorations[i].spec;
+    if (spec && spec.dxNum != null) return spec;
+  }
+  return null;
+}
+
 function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRegion',
   group: 'block',
@@ -403,7 +479,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       const body = document.createElement('div');
       body.className = 'dxr-body';
 
-      function render(attrs) {
+      function render(attrs, spec) {
         const a = window.normalizeDiagAttrs(attrs);
         dom.setAttribute('data-diag-id', a.id || '');
         if (a.dxKey) dom.setAttribute('data-dx-key', a.dxKey); else dom.removeAttribute('data-dx-key');
@@ -415,8 +491,15 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         // NodeView, voir la suite de la branche diagnostics), seul l'attribut
         // source du toggle change.
         promoteBtn.classList.toggle('dxr-promoted', !!a.documentAs);
+        // Numéro du fil (dxNumberingPlugin plus haut) : posé par décoration,
+        // pas par un attribut du node — il dépend de la position de TOUTES
+        // les occurrences du même fil dans le document entier
+        // (diagnosticThreads), jamais de cette seule région. Lu par le CSS
+        // via attr(data-dx-num) (editor.css, les 5 styles de région).
+        if (spec && spec.dxNum != null) head.setAttribute('data-dx-num', String(spec.dxNum));
+        else head.removeAttribute('data-dx-num');
       }
-      render(props.node.attrs);
+      render(props.node.attrs, dxSpecFromDecorations(props.decorations));
 
       dom.appendChild(head);
       dom.appendChild(body);
@@ -428,9 +511,9 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         // délégué (ex. le flash .dxr-flash sur `dom`, voir editor-field.jsx)
         // ne doivent pas déclencher une relecture du node par ProseMirror.
         ignoreMutation(m) { return !body.contains(m.target); },
-        update(updatedNode) {
+        update(updatedNode, decorations) {
           if (updatedNode.type.name !== 'diagnosticRegion') return false;
-          render(updatedNode.attrs);
+          render(updatedNode.attrs, dxSpecFromDecorations(decorations));
           return true;
         }
       };
@@ -482,26 +565,29 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   // même numéro). N'affecte jamais l'état effectif du fil (voir
   // diagnosticThreads) : seule l'identité d'instance est corrigée ici.
   addProseMirrorPlugins() {
-    return [new window.Tiptap.pm.Plugin({
-      appendTransaction(transactions, oldState, newState) {
-        if (!transactions.some(function (t) { return t.docChanged; })) return null;
-        const seenIds = new Set();
-        let changed = false;
-        const tr = newState.tr;
-        newState.doc.descendants(function (node, pos) {
-          if (node.type.name !== 'diagnosticRegion') return;
-          let id = node.attrs.id;
-          if (!id || seenIds.has(id)) {
-            id = window.newDiagId();
-            tr.setNodeAttribute(pos, 'id', id);
-            changed = true;
-          }
-          seenIds.add(id);
-          if (!node.attrs.dxKey) { tr.setNodeAttribute(pos, 'dxKey', 'n:' + id); changed = true; }
-        });
-        return changed ? tr : null;
-      }
-    })];
+    return [
+      new window.Tiptap.pm.Plugin({
+        appendTransaction(transactions, oldState, newState) {
+          if (!transactions.some(function (t) { return t.docChanged; })) return null;
+          const seenIds = new Set();
+          let changed = false;
+          const tr = newState.tr;
+          newState.doc.descendants(function (node, pos) {
+            if (node.type.name !== 'diagnosticRegion') return;
+            let id = node.attrs.id;
+            if (!id || seenIds.has(id)) {
+              id = window.newDiagId();
+              tr.setNodeAttribute(pos, 'id', id);
+              changed = true;
+            }
+            seenIds.add(id);
+            if (!node.attrs.dxKey) { tr.setNodeAttribute(pos, 'dxKey', 'n:' + id); changed = true; }
+          });
+          return changed ? tr : null;
+        }
+      }),
+      dxNumberingPlugin()
+    ];
   }
 }); }
 
@@ -531,27 +617,25 @@ function patchDiagRegions(editor, patches) {
   return changed;
 }
 
-// getDiagModel — les fils du document VIVANT de l'éditeur (voir
-// diagnosticThreads, diagnostics.jsx). Recalculé à chaque appel : bon marché
-// (quelques dizaines de régions au plus) et toujours à jour, sans état à
-// invalider à la main.
+// getDiagModel — les fils du document VIVANT de l'éditeur. Lit le state du
+// plugin dxNumberingPlugin (déjà reconstruit à chaque transaction qui change
+// le doc, voir plus haut) au lieu de recalculer : un seul calcul par
+// transaction, partagé avec les décorations.
 function getDiagModel(editor) {
-  return window.diagnosticThreads(editor.state.doc);
+  const s = dxNumberingKey().getState(editor.state);
+  return s ? s.model : window.diagnosticThreads(editor.state.doc);
 }
 
-// listDiagnostics (dédoublonnée par fil, avec numéro) vit maintenant dans
-// diagnostics.jsx — utilisée par le picker « Renvoi à un diagnostic »
-// (editor-field.jsx) et pour tenir à jour les puces déjà insérées (voir
-// diagnosticRef ci-dessous).
-
 // ---------------------------------------------------------
-// DiagnosticRefNode — puce inline « (N) » renvoyant au Nᵉ diagnostic du
-// document (voir listDiagnostics ci-dessus). Ne stocke QUE l'id du
-// diagnostic visé : le numéro affiché n'est pas un attribut à lui, il
-// dépend de la position de TOUS les diagnostics du document et ne peut
-// donc pas se recalculer depuis le seul update() de ce node — il est
-// recalculé à chaque transaction par syncDiagnosticRefs (editor-field.jsx),
-// comme updateLineBtnPos pour la même raison (état dérivé du doc entier).
+// DiagnosticRefNode — puce inline « (N) » renvoyant au diagnostic visé par
+// dxKey (l'identité du FIL, pas d'une occurrence — R3 : reprendre un
+// diagnostic dans la Conclusion doit renvoyer au même numéro qu'en Détails).
+// diagId reste lu en parseHTML pour un ancien renvoi collé/repris (résolu
+// via byId, voir dxNumberingPlugin/diagnosticThreads) mais n'est plus écrit
+// par de nouvelles insertions. Le numéro affiché n'est pas un attribut du
+// node : il dépend de la position de TOUS les diagnostics du document et est
+// posé par décoration (dxNumberingPlugin ci-dessus), comme updateLineBtnPos
+// pour la même raison (état dérivé du doc entier).
 // ---------------------------------------------------------
 function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRef',
@@ -561,27 +645,39 @@ function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
   selectable: true,
   draggable: false,
   addAttributes() {
-    return { diagId: { default: null } };
+    return { dxKey: { default: null }, diagId: { default: null } };
   },
   parseHTML() {
-    return [{ tag: 'span.dxref[data-diag-id]', getAttrs(dom) { return { diagId: dom.getAttribute('data-diag-id') }; } }];
+    return [{
+      tag: 'span.dxref[data-diag-id], span.dxref[data-dx-key]',
+      getAttrs(dom) { return { dxKey: dom.getAttribute('data-dx-key') || null, diagId: dom.getAttribute('data-diag-id') || null }; }
+    }];
   },
   renderHTML({ node }) {
-    return ['span', { class: 'dxref', 'data-diag-id': node.attrs.diagId, contenteditable: 'false' }, '(?)'];
+    const attrs = { class: 'dxref', contenteditable: 'false' };
+    if (node.attrs.dxKey) attrs['data-dx-key'] = node.attrs.dxKey;
+    if (node.attrs.diagId) attrs['data-diag-id'] = node.attrs.diagId;
+    return ['span', attrs, '(?)'];
   },
   addNodeView() {
     return (props) => {
       const dom = document.createElement('span');
       dom.className = 'dxref';
       dom.setAttribute('contenteditable', 'false');
-      dom.setAttribute('data-diag-id', props.node.attrs.diagId || '');
-      dom.textContent = '(?)';
+      function render(attrs, spec) {
+        if (attrs.dxKey) dom.setAttribute('data-dx-key', attrs.dxKey); else dom.removeAttribute('data-dx-key');
+        if (attrs.diagId) dom.setAttribute('data-diag-id', attrs.diagId); else dom.removeAttribute('data-diag-id');
+        const num = spec ? spec.dxNum : null;
+        dom.textContent = num ? '(' + num + ')' : '(?)';
+        dom.classList.toggle('dxref-broken', !num);
+      }
+      render(props.node.attrs, dxSpecFromDecorations(props.decorations));
       return {
         dom,
         ignoreMutation: () => true,
-        update(updatedNode) {
+        update(updatedNode, decorations) {
           if (updatedNode.type.name !== 'diagnosticRef') return false;
-          dom.setAttribute('data-diag-id', updatedNode.attrs.diagId || '');
+          render(updatedNode.attrs, dxSpecFromDecorations(decorations));
           return true;
         }
       };

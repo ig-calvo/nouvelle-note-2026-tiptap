@@ -156,9 +156,10 @@
 <script type="module">
   (async function () {
     try {
-      const [core, pmState, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
+      const [core, pmState, pmView, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
         import('https://esm.sh/@tiptap/core@2.11.5'),
         import('https://esm.sh/@tiptap/pm@2.11.5/state'),
+        import('https://esm.sh/@tiptap/pm@2.11.5/view'),
         import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
         import('https://esm.sh/@tiptap/extension-placeholder@2.11.5'),
         import('https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
@@ -173,7 +174,14 @@
         StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
         Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
         Link: link.default,
-        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection }
+        // Decoration/DecorationSet (numérotation des diagnostics par
+        // décorations, editor-schema.jsx) DOIVENT venir de la même instance
+        // de prosemirror-view que celle utilisée par l'EditorView réel —
+        // même version épinglée (2.11.5) que /state ci-dessus, déjà
+        // éprouvée : Plugin/PluginKey en sont issus et fonctionnent avec
+        // core sans problème d'instance depuis le début de ce prototype.
+        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection,
+          Decoration: pmView.Decoration, DecorationSet: pmView.DecorationSet, EditorView: pmView.EditorView }
       };
       window.dispatchEvent(new Event('tiptap:ready'));
     } catch (err) {

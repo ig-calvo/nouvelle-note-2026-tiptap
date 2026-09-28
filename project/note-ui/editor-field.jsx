@@ -437,22 +437,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     } catch (e) {}
   }
 
-  // Numéro affiché par chaque puce « Renvoi à un diagnostic » (.dxref) :
-  // ni un attribut du node ni un compteur CSS ne peuvent le porter, puisqu'il
-  // dépend de la position d'UN AUTRE node (le diagnostic visé) dans le doc.
-  // Recalculé ici à chaque transaction, comme updateLineBtnPos ci-dessus —
-  // et pose window.__HAS_DIAGNOSTICS, lu par filterSlashItems pour n'offrir
-  // le picker que si la note contient déjà au moins un diagnostic.
-  function syncDiagnosticRefs(editor) {
-    const diags = window.listDiagnostics(editor.state.doc);
-    window.__HAS_DIAGNOSTICS = diags.length > 0;
-    const numberById = {};
-    diags.forEach(function (d, i) { numberById[d.id] = i + 1; });
-    editor.view.dom.querySelectorAll('.dxref[data-diag-id]').forEach(function (el) {
-      const num = numberById[el.getAttribute('data-diag-id')];
-      el.textContent = num ? '(' + num + ')' : '(?)';
-      el.classList.toggle('dxref-broken', !num);
-    });
+  // Le numéro de chaque puce « Renvoi à un diagnostic » (.dxref) est
+  // maintenant posé par décoration (dxNumberingPlugin, editor-schema.jsx),
+  // recalculée par ProseMirror à chaque transaction — plus besoin de le
+  // faire ici. Il ne reste que window.__HAS_DIAGNOSTICS, lu par
+  // filterSlashItems pour n'offrir le picker « Renvoi à un diagnostic » que
+  // si la note contient déjà au moins un diagnostic (un FIL, pas une
+  // occurrence — une reprise ne compte pas deux fois).
+  function syncDiagFlags(editor) {
+    window.__HAS_DIAGNOSTICS = window.getDiagModel(editor).threads.length > 0;
   }
 
   // --- init Tiptap once
@@ -480,7 +473,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       onUpdate({ editor }) {
         onDocChange(editor.getJSON());
         updateLineBtnPos(editor);
-        syncDiagnosticRefs(editor);
+        syncDiagFlags(editor);
       },
       onSelectionUpdate({ editor }) {
         updateLineBtnPos(editor);
@@ -492,8 +485,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // Le contenu initial (brouillon, dernière note, gabarit) n'émet pas
     // d'update — on amorce nous-mêmes compteurs/Sommaire une seule fois.
     onDocChange(editor.getJSON());
-    syncDiagnosticRefs(editor);
+    syncDiagFlags(editor);
     if (onReady) onReady(editor);
+
+    // La CIM-10 peut finir de charger après le montage (fetch asynchrone,
+    // Note Clinique.html) : canRefine (posé dans les décorations,
+    // dxNumberingPlugin) dépend de son index. Une transaction à méta
+    // dxRefresh force le plugin à se reconstruire sans rien changer au doc.
+    function onCim10Ready() {
+      editor.view.dispatch(editor.state.tr.setMeta('dxRefresh', true).setMeta('addToHistory', false));
+    }
+    window.addEventListener('cim10:ready', onCim10Ready);
 
     // Diagnostic header — clic sur le nom → renommer ; clic sur le bouton →
     // documenter comme problème (écouté par Summary.jsx via note:add-problem
@@ -505,10 +507,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (refEl) {
         e.preventDefault();
         // Puce cassée (diagnostic référencé supprimé depuis) : rien à
-        // ouvrir, voir syncDiagnosticRefs plus bas pour dxref-broken.
+        // ouvrir — voir le NodeView de diagnosticRef (editor-schema.jsx) qui
+        // pose dxref-broken quand la décoration ne porte aucun numéro.
         if (refEl.classList.contains('dxref-broken')) return;
-        const id = refEl.getAttribute('data-diag-id');
-        const target = id && editor.view.dom.querySelector('.dxr[data-diag-id="' + id + '"]');
+        // Par dxKey (le FIL visé) d'abord — la seule forme que produisent les
+        // nouveaux renvois ; data-diag-id reste lu pour un renvoi ancien
+        // (diagId) collé avant cette fonctionnalité, résolu vers la PREMIÈRE
+        // occurrence de son fil via getDiagModel.byId.
+        const dxKey = refEl.getAttribute('data-dx-key');
+        let target = dxKey && editor.view.dom.querySelector('.dxr[data-dx-key="' + CSS.escape(dxKey) + '"]');
+        if (!target) {
+          const id = refEl.getAttribute('data-diag-id');
+          const entry = id && window.getDiagModel(editor).byId[id];
+          if (entry) target = editor.view.dom.querySelector('.dxr[data-dx-key="' + CSS.escape(entry.dxKey) + '"]');
+        }
         if (target) {
           target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           target.classList.add('dxr-flash');
@@ -588,6 +600,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     });
 
     return () => {
+      window.removeEventListener('cim10:ready', onCim10Ready);
       editor.destroy();
       editorRef.current = null;
       if (onReady) onReady(null);
@@ -879,9 +892,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           diagnostics={diagRefMenu.diagnostics}
           onClose={() => setDiagRefMenu(null)}
           onBack={() => { setDiagRefMenu(null); openSlashMenu(); }}
-          onSelect={function (diagId) {
+          onSelect={function (d) {
             setDiagRefMenu(null);
-            editorRef.current.chain().focus().insertContent({ type: 'diagnosticRef', attrs: { diagId: diagId } }).run();
+            editorRef.current.chain().focus().insertContent({ type: 'diagnosticRef', attrs: { dxKey: d.dxKey, diagId: d.id } }).run();
           }} />
       }
 
@@ -1113,10 +1126,11 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
 // ---------------------------------------------------------
 // DiagnosticRefMenu — sous-menu de « Renvoi à un diagnostic » : liste les
 // diagnostics déjà présents dans la note (capturée à l'ouverture, voir
-// runSlashCommand) et insère une puce .dxref pointant sur celui choisi.
-// Le numéro affiché ici (comme celui de la puce une fois insérée) est
-// toujours le même que la pastille de son .dxr-head — les deux comptent les
-// diagnostics dans le même ordre (voir listDiagnostics, editor-schema.jsx).
+// runSlashCommand), un par FIL (listDiagnostics dédoublonne par dxKey — une
+// reprise en Détails ET en Conclusion n'y figure qu'une fois), et insère une
+// puce .dxref pointant sur le fil choisi. Le numéro affiché (d.number) est
+// le même que la pastille de sa région : les deux viennent de la même
+// numérotation par fil (diagnosticThreads/dxNumberingPlugin).
 // ---------------------------------------------------------
 function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect }) {
   const panelRef = useRefE(null);
@@ -1155,14 +1169,15 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
       <div style={afmS.list}>
         {(diagnostics || []).length === 0
           ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
-          : diagnostics.map(function (d, i) {
+          : diagnostics.map(function (d) {
             return (
-              <div key={d.id} style={afmS.item}
+              <div key={d.dxKey} style={afmS.item}
                 onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
                 onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
-                onClick={function () { onSelect(d.id); }}>
-                <span style={afmS.dxrefBadge}>{i + 1}</span>
+                onClick={function () { onSelect(d); }}>
+                <span style={afmS.dxrefBadge}>{d.number}</span>
                 <span style={afmS.itemLabel}>{d.name}</span>
+                {d.status === 'cesse' && <span style={afmS.ceasedTag}>Cessé</span>}
               </div>
             );
           })}
@@ -1185,13 +1200,19 @@ const afmS = {
   list: { padding: '6px 0' },
   item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
   itemIcon: { fontSize: 20, color: 'rgba(0,0,0,0.5)', flexShrink: 0 },
-  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))' },
+  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))', flex: 1 },
   itemDesc: { fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', marginTop: 1 },
   dxrefBadge: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 18, height: 18, borderRadius: '50%', background: '#000', color: '#fff',
     fontFamily: "var(--font-body, 'Inter', sans-serif)", fontWeight: 600, fontSize: 11,
     lineHeight: 1, flexShrink: 0
+  },
+  // Même palette que .rx-status--ceased (editor.css) — un fil cessé peut
+  // quand même être repris par un renvoi (il reste dans la note).
+  ceasedTag: {
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+    color: '#7a1f26', background: '#ecdfe0', borderRadius: 4, padding: '2px 6px', flexShrink: 0
   }
 };
 
