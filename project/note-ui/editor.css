@@ -266,7 +266,7 @@
    Diagnostic region — variantes (tweak "Style de région").
    Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
    du même nom retire cet accent et ajoute pastille numérotée + flèche de
-   liaison par ligne. Carte/Étiquette/Rail reprennent ce même mécanisme
+   liaison par ligne. Carte/Étiquette reprennent ce même mécanisme
    (icône masquée, pastille noire, flèche par <p>) par-dessus leur propre
    habillage (boîte, pilule, bandeau). Numéroté garde son propre repère
    "1." (pas de pastille) mais gagne lui aussi la flèche par ligne.
@@ -457,71 +457,6 @@
   position: relative;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-body p::before {
-  content: 'subdirectory_arrow_right';
-  font-family: 'Material Icons Outlined';
-  font-size: 15px;
-  line-height: 1;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  font-variant-ligatures: common-ligatures;
-  color: #9dbbd6;
-  position: absolute;
-  left: -16px;
-  width: 18px;
-  display: flex;
-  justify-content: center;
-  top: 4px;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* --- Rail : bandeau plein largeur + corps indenté + trait de fermeture ---
-   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
-   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
-   .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-rail .note-field .ql-editor .dxr-head {
-  background: #eef1f6;
-  border-left: none;
-  border-radius: 6px 6px 0 0;
-  padding: 6px 12px;
-}
-.diag-style-rail .note-field .ql-editor .dxr-ic {
-  display: none;
-}
-.diag-style-rail .note-field .ql-editor .dxr-head::before {
-  content: attr(data-dx-num);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-.diag-style-rail .note-field .ql-editor .dxr-name {
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #3d5a80;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body {
-  border-left: none;
-  padding: 1px 12px 9px 18px;
-  padding-left: 28px;
-  border-bottom: 1px solid #dde2ea;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body p {
-  position: relative;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body p::before {
   content: 'subdirectory_arrow_right';
   font-family: 'Material Icons Outlined';
   font-size: 15px;
