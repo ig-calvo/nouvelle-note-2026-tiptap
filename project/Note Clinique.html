@@ -355,6 +355,11 @@ function docPillLabel(kind, done, total) {
 function portalPillLabel(shared) {
   return 'Portail patient : ' + shared + (shared > 1 ? ' éléments partagés' : ' élément partagé');
 }
+// Glyphe des pastilles : police Material Symbols (les noms comme « radiology »
+// n'existent pas dans Material Icons Outlined, où le texte s'affichait en
+// clair et étirait la pastille à ~130 px) + boîte fixe 17 px qui ne peut plus
+// s'élargir si un nom d'icône est inconnu.
+const docPillIcon = { fontSize: 17, width: 17, height: 17, overflow: 'hidden', flexShrink: 0, lineHeight: 1 };
 function docPillStyle(done) {
   return {
     display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)',
@@ -503,7 +508,7 @@ function App() {
                 const done = s.total > 0 && s.done === s.total;
                 return (
                   <div key={s.kind} role="img" aria-label={docPillLabel(s.kind, s.done, s.total)} title={docPillLabel(s.kind, s.done, s.total)} style={docPillStyle(done)}>
-                    <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>{s.icon}</span>
+                    <span className="material-symbols-outlined" aria-hidden="true" style={docPillIcon}>{s.icon}</span>
                     {s.done}/{s.total}
                   </div>
                 );
@@ -513,7 +518,7 @@ function App() {
                   pastille pré-facturation tant qu'aucune donnée de
                   facturation n'existe dans le prototype. */}
               <div role="img" aria-label={portalPillLabel(0)} title={portalPillLabel(0)} style={docPillStyle(true)}>
-                <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>verified_user</span>
+                <span className="material-symbols-outlined" aria-hidden="true" style={docPillIcon}>verified_user</span>
                 0
               </div>
               <div style={{ flex: 1 }} />
