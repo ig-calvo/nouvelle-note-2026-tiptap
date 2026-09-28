@@ -102,24 +102,38 @@ function normalizeDiagAttrs(attrs) {
 // PLUS RÉCENTE (createdAt), pas de la dernière dans le document : une région
 // Cessé glissée au-dessus d'une ancienne mention doit quand même l'emporter.
 // ---------------------------------------------------------
-function dxWinningOccurrence(occurrences) {
-  let win = occurrences[0];
-  for (let i = 1; i < occurrences.length; i++) {
-    const o = occurrences[i], a = o.attrs.createdAt, b = win.attrs.createdAt;
-    if (a && b) { if (a >= b) win = o; } else win = o; // horodatage absent d'un côté : le dernier du document gagne
+// Occurrence la plus récente d'une liste, même règle que dxWinningOccurrence
+// (createdAt décroissant ; horodatage absent d'un côté : le dernier du
+// document — donc de `list` — gagne). Factorisé pour être réutilisé sur un
+// sous-ensemble d'occurrences (dxEffective, pour `replaces`) sans dupliquer
+// la règle de récence.
+function dxMostRecent(list) {
+  let win = list[0];
+  for (let i = 1; i < list.length; i++) {
+    const o = list[i], a = o.attrs.createdAt, b = win.attrs.createdAt;
+    if (a && b) { if (a >= b) win = o; } else win = o;
   }
   return win;
+}
+
+function dxWinningOccurrence(occurrences) {
+  return dxMostRecent(occurrences);
 }
 
 function dxEffective(t) {
   const occs = t.occurrences;
   const win = dxWinningOccurrence(occs);
-  let replaces = null;
-  // Le dernier `replaces` non nul de tout le fil l'emporte, pas seulement
-  // celui de l'occurrence gagnante : un Reprendre après un Remplacer remet
-  // replaces à null sur SA PROPRE occurrence (il ne doit rien changer à
-  // l'état effectif), mais « remplace : X » doit continuer à s'afficher.
-  occs.forEach(function (o) { if (o.attrs.replaces) replaces = o.attrs.replaces; });
+  // Le `replaces` non nul le plus RÉCENT (même règle de récence que win, pas
+  // l'ordre du document) l'emporte, pas seulement celui de l'occurrence
+  // gagnante : un Reprendre après un Remplacer remet replaces à null sur SA
+  // PROPRE occurrence (il ne doit rien changer à l'état effectif), mais
+  // « remplace : X » doit continuer à s'afficher. Prendre le dernier replaces
+  // dans l'ordre du DOCUMENT (au lieu de createdAt) était un bogue : un 2e
+  // Remplacer posé dans les Détails après un 1er déjà en Conclusion (la
+  // Conclusion est toujours physiquement après, même écrite avant) affichait
+  // alors le mauvais prédécesseur — trouvé en testant, voir diagnostics.test.mjs.
+  const withReplaces = occs.filter(function (o) { return !!o.attrs.replaces; });
+  const replaces = withReplaces.length ? dxMostRecent(withReplaces).attrs.replaces : null;
   return {
     dxKey: t.dxKey, number: t.number,
     name: win.attrs.name, code: win.attrs.code || null, level: win.attrs.level || null,

@@ -79,6 +79,23 @@ test('replaces effectif = le dernier non nul de tout le fil (une reprise sans re
   assert.deepEqual(w.diagnosticThreads(d).byKey['n:d1'].effective.replaces, { name: 'A', code: 'A1' });
 });
 
+test('replaces effectif suit createdAt, pas l’ordre du document : un 2e Remplacer posé en Détails après un 1er déjà en Conclusion garde le bon prédécesseur', () => {
+  // Conclusion (SPLIT) est toujours physiquement après les Détails, qu'elle
+  // ait été écrite avant ou après — order du document ≠ ordre de récence.
+  // d3 (t3, dans les Détails, le PLUS RÉCENT) remplace B ; d2 (t2, en
+  // Conclusion, plus ancien mais physiquement dernier) remplace A. gagnant
+  // effectif = d3 (A), donc replaces effectif doit être « B », pas « A ».
+  const d = doc(
+    DX({ id: 'd1', dxKey: 'n:d1', name: 'A', code: null, replaces: null, createdAt: 't1' }),
+    DX({ id: 'd3', dxKey: 'n:d1', name: 'D', code: null, replaces: { name: 'B', code: null }, createdAt: 't3' }),
+    SPLIT,
+    DX({ id: 'd2', dxKey: 'n:d1', name: 'B', code: null, replaces: { name: 'A', code: null }, createdAt: 't2' })
+  );
+  const effective = w.diagnosticThreads(d).byKey['n:d1'].effective;
+  assert.equal(effective.name, 'D');
+  assert.deepEqual(effective.replaces, { name: 'B', code: null });
+});
+
 test('renvois : résolus par dxKey, ou par diagId sur du contenu ancien ; un renvoi cassé donne number:null', () => {
   const d = doc(
     DX({ id: 'd1', dxKey: 'n:d1', name: 'X' }),
