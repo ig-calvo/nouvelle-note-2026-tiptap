@@ -299,7 +299,58 @@ function makeReferenceNode() { return window.Tiptap.Node.create({
 // CSS ». Un seul curseur continu texte → en-tête (non-éditable) → corps
 // (contentDOM, éditable) → texte. L'en-tête (nom + bouton promouvoir) est
 // géré par un mousedown délégué sur editor.view.dom, voir editor-field.jsx.
+//
+// Attributs (voir diagnostics.jsx pour leur usage complet — normalizeDiagAttrs,
+// diagnosticThreads, makeDiagRegionAttrs) :
+//  - id : identifiant de CETTE occurrence, unique dans le document.
+//  - dxKey : identité du FIL — partagée par toutes les occurrences d'un même
+//    diagnostic repris (Reprendre), c'est elle qui donne le numéro (R3).
+//  - name/code/level/source : le diagnostic choisi (texte libre, CIM-10 ou
+//    sommaire) — source ne vaut jamais 'note', voir dxThreadIdentity.
+//  - sommaireId/documentAs : le lien avec le Sommaire (Problème/Antécédent —
+//    D1) et la ligne visée, si le fil vient du dossier ou y a été ajouté.
+//  - status/replaces : Cesser (D2) et Remplacer (D3).
+//  - documentedAt/documentedBy : horodatage du dernier acte qui a touché le
+//    Sommaire — clé du Journal des actions (buildActionLog plus haut).
+// Tous font l'aller-retour par des attributs data-* (round-trip HTML), pour
+// que le copier-coller d'une région garde son identité complète.
 // ---------------------------------------------------------
+function dxDataAttrs(attrs) {
+  const a = attrs || {};
+  const out = { 'data-diag-id': a.id || '' };
+  if (a.dxKey) out['data-dx-key'] = a.dxKey;
+  if (a.code) out['data-dx-code'] = a.code;
+  if (a.level) out['data-dx-level'] = a.level;
+  if (a.source) out['data-dx-source'] = a.source;
+  if (a.sommaireId) out['data-dx-sommaire-id'] = a.sommaireId;
+  if (a.documentAs) out['data-dx-document-as'] = a.documentAs;
+  if (a.status === 'cesse') out['data-dx-status'] = 'cesse';
+  if (a.replaces) out['data-dx-replaces'] = JSON.stringify(a.replaces);
+  if (a.documentedAt) out['data-dx-documented-at'] = a.documentedAt;
+  if (a.documentedBy) out['data-dx-documented-by'] = a.documentedBy;
+  if (a.createdAt) out['data-dx-created-at'] = a.createdAt;
+  return out;
+}
+function dxAttrsFromDom(dom) {
+  const nameEl = dom.querySelector('.dxr-name');
+  let replaces = null;
+  try { replaces = dom.getAttribute('data-dx-replaces') ? JSON.parse(dom.getAttribute('data-dx-replaces')) : null; } catch (e) {}
+  return {
+    id: dom.getAttribute('data-diag-id') || null,
+    dxKey: dom.getAttribute('data-dx-key') || null,
+    name: nameEl ? nameEl.textContent : 'Diagnostic',
+    code: dom.getAttribute('data-dx-code') || null,
+    level: dom.getAttribute('data-dx-level') || null,
+    source: dom.getAttribute('data-dx-source') || null,
+    sommaireId: dom.getAttribute('data-dx-sommaire-id') || null,
+    documentAs: dom.getAttribute('data-dx-document-as') || null,
+    status: dom.getAttribute('data-dx-status') === 'cesse' ? 'cesse' : 'actif',
+    replaces: replaces,
+    documentedAt: dom.getAttribute('data-dx-documented-at') || null,
+    documentedBy: dom.getAttribute('data-dx-documented-by') || null,
+    createdAt: dom.getAttribute('data-dx-created-at') || null
+  };
+}
 function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRegion',
   group: 'block',
@@ -308,25 +359,18 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   defining: true,
   addAttributes() {
     return {
-      id: { default: null }, name: { default: 'Diagnostic' },
-      // Posés au clic sur « Promouvoir en problème » (editor-field.jsx) — un
-      // diagnostic non promu n'alimente ni le Sommaire (Summary.jsx) ni le
-      // Journal des actions ; voir buildActionLog plus bas.
-      promotedAt: { default: null }, promotedBy: { default: null }
+      id: { default: null }, dxKey: { default: null }, name: { default: 'Diagnostic' },
+      code: { default: null }, level: { default: null }, source: { default: null },
+      sommaireId: { default: null }, documentAs: { default: null }, status: { default: 'actif' },
+      replaces: { default: null }, documentedAt: { default: null }, documentedBy: { default: null },
+      createdAt: { default: null }
     };
   },
   parseHTML() {
-    return [{
-      tag: 'div.dxr',
-      getAttrs(dom) {
-        const nameEl = dom.querySelector('.dxr-name');
-        return { id: dom.getAttribute('data-diag-id') || null, name: nameEl ? nameEl.textContent : 'Diagnostic' };
-      },
-      contentElement: '.dxr-body'
-    }];
+    return [{ tag: 'div.dxr', getAttrs: dxAttrsFromDom, contentElement: '.dxr-body' }];
   },
   renderHTML({ node, HTMLAttributes }) {
-    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr', 'data-diag-id': node.attrs.id }, HTMLAttributes),
+    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr' }, HTMLAttributes, dxDataAttrs(node.attrs)),
       ['div', { class: 'dxr-head', contenteditable: 'false' },
         ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
         ['span', { class: 'dxr-name', 'data-diag-id': node.attrs.id }, node.attrs.name],
@@ -360,10 +404,17 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       body.className = 'dxr-body';
 
       function render(attrs) {
-        dom.setAttribute('data-diag-id', attrs.id || '');
-        nameEl.setAttribute('data-diag-id', attrs.id || '');
-        nameEl.textContent = attrs.name || 'Diagnostic';
-        promoteBtn.classList.toggle('dxr-promoted', !!attrs.promotedAt);
+        const a = window.normalizeDiagAttrs(attrs);
+        dom.setAttribute('data-diag-id', a.id || '');
+        if (a.dxKey) dom.setAttribute('data-dx-key', a.dxKey); else dom.removeAttribute('data-dx-key');
+        nameEl.setAttribute('data-diag-id', a.id || '');
+        nameEl.textContent = a.name || 'Diagnostic';
+        // La documentation (Problème/Antécédent — D1) remplace la simple
+        // promotion : le bouton reste « Promouvoir en problème » pour
+        // l'instant (le menu « Documenter comme » arrive avec son propre
+        // NodeView, voir la suite de la branche diagnostics), seul l'attribut
+        // source du toggle change.
+        promoteBtn.classList.toggle('dxr-promoted', !!a.documentAs);
       }
       render(props.node.attrs);
 
@@ -373,6 +424,10 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       return {
         dom,
         contentDOM: body,
+        // Les classes/attrs posés directement sur `head` par ce mousedown
+        // délégué (ex. le flash .dxr-flash sur `dom`, voir editor-field.jsx)
+        // ne doivent pas déclencher une relecture du node par ProseMirror.
+        ignoreMutation(m) { return !body.contains(m.target); },
         update(updatedNode) {
           if (updatedNode.type.name !== 'diagnosticRegion') return false;
           render(updatedNode.attrs);
@@ -381,9 +436,13 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       };
     };
   },
-  // Enter sur le dernier paragraphe vide de la région → sort (nouveau
-  // paragraphe après, façon Notion). Backspace en tête d'une région réduite
-  // à un seul paragraphe vide → supprime toute la région.
+  // Entrée sur le dernier paragraphe vide de la région → sort en insérant un
+  // nouveau paragraphe APRÈS (jamais de suppression ici, même si la région
+  // n'a qu'un seul paragraphe : une région Reprendre/Cesser/Remplacer n'a
+  // souvent aucun texte à ajouter, et Entrée est la touche la plus naturelle
+  // à taper ensuite — elle ne doit jamais effacer la région ni son numéro).
+  // Backspace en tête d'une région réduite à un seul paragraphe vide →
+  // suppression explicite de toute la région, elle continue de fonctionner.
   addKeyboardShortcuts() {
     return {
       Enter: () => {
@@ -396,26 +455,10 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (regionDepth < 0 || $from.node(regionDepth).type.name !== 'diagnosticRegion') return false;
         const region = $from.node(regionDepth);
         if ($from.index(regionDepth) !== region.childCount - 1) return false;
-        // Le paragraphe vide qui déclenche la sortie ne doit pas rester dans la
-        // région (sinon une ligne fantôme y reste) : on le retire — ou, s'il est
-        // seul, on retire toute la région — avant de placer le curseur dans un
-        // nouveau paragraphe après.
-        if (region.childCount === 1) {
-          const regionStart = $from.before(regionDepth);
-          const regionEnd = $from.after(regionDepth);
-          return editor.chain()
-            .deleteRange({ from: regionStart, to: regionEnd })
-            .insertContentAt(regionStart, { type: 'paragraph' })
-            .setTextSelection(regionStart + 1)
-            .run();
-        }
-        const paraStart = $from.before($from.depth);
-        const paraEnd = $from.after($from.depth);
-        const afterRegionPos = paraStart + 1;
+        const regionEnd = $from.after(regionDepth);
         return editor.chain()
-          .deleteRange({ from: paraStart, to: paraEnd })
-          .insertContentAt(afterRegionPos, { type: 'paragraph' })
-          .setTextSelection(afterRegionPos + 1)
+          .insertContentAt(regionEnd, { type: 'paragraph' })
+          .setTextSelection(regionEnd + 1)
           .run();
       },
       Backspace: () => {
@@ -432,8 +475,69 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         return editor.chain().deleteRange({ from: regionPos, to: regionPos + region.nodeSize }).run();
       }
     };
+  },
+  // Garde d'hygiène des ids/dxKey — recale newDiagId() et sépare deux
+  // occurrences qui partageraient le même id (copier-coller d'une région),
+  // en gardant leur dxKey commune (X4 : elles restent le même fil, donc le
+  // même numéro). N'affecte jamais l'état effectif du fil (voir
+  // diagnosticThreads) : seule l'identité d'instance est corrigée ici.
+  addProseMirrorPlugins() {
+    return [new window.Tiptap.pm.Plugin({
+      appendTransaction(transactions, oldState, newState) {
+        if (!transactions.some(function (t) { return t.docChanged; })) return null;
+        const seenIds = new Set();
+        let changed = false;
+        const tr = newState.tr;
+        newState.doc.descendants(function (node, pos) {
+          if (node.type.name !== 'diagnosticRegion') return;
+          let id = node.attrs.id;
+          if (!id || seenIds.has(id)) {
+            id = window.newDiagId();
+            tr.setNodeAttribute(pos, 'id', id);
+            changed = true;
+          }
+          seenIds.add(id);
+          if (!node.attrs.dxKey) { tr.setNodeAttribute(pos, 'dxKey', 'n:' + id); changed = true; }
+        });
+        return changed ? tr : null;
+      }
+    })];
   }
 }); }
+
+// patchDiagRegions — seul chemin pour modifier les attributs d'une ou
+// plusieurs régions diagnostic après coup (documenter, renommer, préciser…).
+// `patches` est un tableau [{id, patch}] — même forme que le retour de
+// diagRelabelPatches (diagnostics.jsx) : `patch` est un objet à fusionner
+// dans les attrs existants, ou une fonction (attrs) => objet. Une seule
+// transaction pour tout le tableau.
+function patchDiagRegions(editor, patches) {
+  const byId = {};
+  (patches || []).forEach(function (p) { if (p && p.id) byId[p.id] = p.patch; });
+  if (!Object.keys(byId).length) return false;
+  let changed = false;
+  editor.chain().command(function (props) {
+    const tr = props.tr;
+    tr.doc.descendants(function (node, pos) {
+      if (node.type.name !== 'diagnosticRegion') return;
+      const patch = byId[node.attrs.id];
+      if (!patch) return;
+      const next = (typeof patch === 'function') ? patch(node.attrs) : patch;
+      tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, next));
+      changed = true;
+    });
+    return changed;
+  }).run();
+  return changed;
+}
+
+// getDiagModel — les fils du document VIVANT de l'éditeur (voir
+// diagnosticThreads, diagnostics.jsx). Recalculé à chaque appel : bon marché
+// (quelques dizaines de régions au plus) et toujours à jour, sans état à
+// invalider à la main.
+function getDiagModel(editor) {
+  return window.diagnosticThreads(editor.state.doc);
+}
 
 // listDiagnostics (dédoublonnée par fil, avec numéro) vit maintenant dans
 // diagnostics.jsx — utilisée par le picker « Renvoi à un diagnostic »
@@ -1253,11 +1357,12 @@ function DEFAULT_DOC() {
 // scanDoc — une seule marche sur le doc JSON : chips présents (dans l'ordre
 // du document), compteurs par type d'entité + diagnostics, items pour le
 // Sommaire. Fonctionne sur un doc « vivant » (editor.getJSON()) ou stocké
-// (brouillon / note complétée).
+// (brouillon / note complétée). Les diagnostics sont dédoublonnés par fil
+// (diagnosticThreads, diagnostics.jsx) : un diagnostic repris en Détails et
+// en Conclusion ne compte qu'une fois.
 // ---------------------------------------------------------
 function scanDoc(docJson) {
   const chips = [];
-  const diagNames = [];
   // Formulaires d'outils cliniques présents dans la note. Depuis V7 ils sont
   // transmissibles au même titre qu'une requête (plan V7 §D) — le checkout
   // s'en sert pour construire un document par formulaire. Liste séparée des
@@ -1270,8 +1375,6 @@ function scanDoc(docJson) {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
         text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
       } });
-    } else if (node.type === 'diagnosticRegion') {
-      diagNames.push(node.attrs.name);
     } else if (node.type === 'clinicalTool') {
       tools.push({
         id: node.attrs.instanceId, toolId: node.attrs.toolId,
@@ -1281,12 +1384,14 @@ function scanDoc(docJson) {
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  const diagThreads = window.diagnosticThreads(docJson).threads.map(function (t) { return t.effective; });
+  const diagNames = diagThreads.map(function (e) { return e.status === 'cesse' ? e.name + ' (cessé)' : e.name; });
   const counts = {};
   chips.forEach(function (c) { if (c.entity.type) counts[c.entity.type] = (counts[c.entity.type] || 0) + 1; });
-  if (diagNames.length) counts.diagnostic = diagNames.length;
+  if (diagThreads.length) counts.diagnostic = diagThreads.length;
   const items = chips.map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
-  diagNames.forEach(function (nm, i) { items.push({ id: 'dx-' + i, type: 'diagnostic', label: nm }); });
-  return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
+  diagThreads.forEach(function (e) { items.push({ id: 'dx-' + e.dxKey, type: 'diagnostic', label: e.name }); });
+  return { chips: chips, counts: counts, items: items, diagNames: diagNames, diagThreads: diagThreads, tools: tools };
 }
 
 
@@ -1299,9 +1404,9 @@ function scanDoc(docJson) {
 // modifiée plusieurs fois n'a qu'une entrée : le doc ne garde que le
 // dernier état de chaque node, il n'y a pas de dédoublonnage à faire.
 // attrs.savedAt/author sont posés à la création/édition (chip,
-// clinicalTool) ou à la promotion (diagnosticRegion → Problèmes, voir
-// editor-field.jsx) — un diagnostic non promu n'apparaît pas ici, comme
-// dans le Sommaire.
+// clinicalTool) ou à la documentation (diagnosticRegion → Problèmes ou
+// Antécédents, voir le menu « Documenter comme » dans editor-field.jsx) —
+// un diagnostic non documenté n'apparaît pas ici, comme dans le Sommaire.
 // ---------------------------------------------------------
 const ACTION_LOG_TYPES = [
   'taches', 'outilsCliniques', 'signesVitaux', 'habitudesDeVie', 'programme',
@@ -1319,6 +1424,7 @@ const ACTION_LOG_META = {
   requetes: { label: 'Requêtes' },
   consignes: { label: 'Consignes' },
   problemes: { label: 'Problèmes' },
+  antecedents: { label: 'Antécédents' },
   fichier: { label: 'Fichier' }
 };
 // chip.attrs.type → clé du journal — seuls les types réellement produits par
@@ -1370,18 +1476,25 @@ function buildActionLog(docJson) {
         author: node.attrs.author, savedAt: node.attrs.savedAt,
         sourceType: 'clinicalTool', sourceId: node.attrs.instanceId
       });
-    } else if (node.type === 'diagnosticRegion' && node.attrs.promotedAt) {
-      // Même icône que l'en-tête de la région diagnostic (dxr-ic).
-      entries.push({
-        key: 'dx-' + node.attrs.id, logType: 'problemes',
-        title: node.attrs.name || 'Diagnostic', icon: 'local_hospital',
-        author: node.attrs.promotedBy, savedAt: node.attrs.promotedAt,
-        sourceType: 'diagnosticRegion', sourceId: node.attrs.id
-      });
     }
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  // Diagnostics : une entrée par FIL (pas par occurrence), seulement pour un
+  // fil documenté (Problème ou Antécédent — voir diagPlacement,
+  // diagnostics.jsx). Même icône que l'en-tête de la région (dxr-ic).
+  window.diagnosticThreads(docJson).threads.forEach(function (t) {
+    const e = t.effective, placement = window.diagPlacement(e);
+    if (!placement || !e.documentedAt) return;
+    entries.push({
+      key: 'dx-' + t.dxKey, logType: placement === 'probleme' ? 'problemes' : 'antecedents',
+      title: e.status === 'cesse' ? e.name + ' — cessé' : (e.replaces ? e.name + ' (remplace ' + e.replaces.name + ')' : e.name),
+      verb: e.status === 'cesse' ? 'Cessé' : (e.replaces ? 'Modifié' : 'Documenté'),
+      icon: 'local_hospital',
+      author: e.documentedBy, savedAt: e.documentedAt,
+      sourceType: 'diagnosticRegion', sourceId: e.lastId
+    });
+  });
   // Ordre fixe par type, puis dernière sauvegarde d'abord au sein d'un type.
   entries.sort(function (a, b) {
     if (order[a.logType] !== order[b.logType]) return order[a.logType] - order[b.logType];
@@ -1633,5 +1746,7 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
-  updateChipEntity
+  updateChipEntity,
+  patchDiagRegions,
+  getDiagModel
 });

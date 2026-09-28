@@ -429,7 +429,7 @@ function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickS
                     </div>
                   )}
                   <div
-                    onMouseDown={(e) => { e.preventDefault(); if (onPickSuggestion) onPickSuggestion(s.libelle); }}
+                    onMouseDown={(e) => { e.preventDefault(); if (onPickSuggestion) onPickSuggestion(s); }}
                     style={{
                       display: 'flex', alignItems: 'center', gap: 10,
                       padding: '6px 16px', cursor: 'pointer',

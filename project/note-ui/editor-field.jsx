@@ -68,9 +68,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
   }
 
+  // Convertit une suggestion du dropdown /dx (searchDx : problème au dossier
+  // OU résultat CIM-10 — editor-schema.jsx) en pick pour makeDiagRegionAttrs
+  // (diagnostics.jsx). Passerelle temporaire : le nouveau sélecteur
+  // (dx-picker.jsx, à venir) construira le pick lui-même.
+  function dxPickFromSuggestion(s) {
+    if (!s) return null;
+    if (s.fromChart) return { source: 'libre', name: s.libelle }; // liste statique PROBLEMS, remplacée avec le pont Sommaire
+    const code = s.code || null;
+    return { source: 'cim10', name: s.libelle, code: code, level: (code && window.CIM10 && window.CIM10.ready()) ? window.CIM10.levelOf(code) : null };
+  }
+
   // Sélection d'une suggestion CIM-10 (clic dans le DiagnosticDropdown).
-  function chooseDiagSuggestion(libelle) {
-    if (slashCommandRef.current) slashCommandRef.current({ __dx: true, name: libelle });
+  function chooseDiagSuggestion(s) {
+    if (slashCommandRef.current) slashCommandRef.current({ __dx: true, action: 'nouveau', pick: dxPickFromSuggestion(s) });
   }
 
   // Insère le chip d'ordonnance riche (posologie complète) à la position de
@@ -105,14 +116,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
   }
 
-  // Crée la région diagnostic à la position de « /dx query » : en-tête +
-  // un paragraphe de corps vide, curseur placé dans ce paragraphe.
+  // Crée (bientôt aussi : Reprend/Remplace/Cesse — dx-picker.jsx) une région
+  // diagnostic à la position de « /dx query » : en-tête + un paragraphe de
+  // corps vide, curseur placé dans ce paragraphe. makeDiagRegionAttrs
+  // (diagnostics.jsx) est le seul endroit qui construit ses attributs.
   function runDiagnosticCommand(editor, range, props) {
-    const name = (props.name || '').trim() || 'Diagnostic';
-    const diagId = window.newDiagId();
+    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    if (!attrs) return;
+    const diagId = attrs.id;
     const diagnosticContent = {
       type: 'diagnosticRegion',
-      attrs: { id: diagId, name: name },
+      attrs: attrs,
       content: [{ type: 'paragraph' }]
     };
     // Si « /dx query » occupe tout le paragraphe courant (ligne vide avant
@@ -137,7 +151,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   // Exécute l'action d'un item choisi. Reçoit {editor, range, props} du
   // plugin — `props` est soit un item SLASH_ITEMS (menu générique), soit
-  // {__order, item, action, kind} (RxMenu), soit {__dx, name} (DiagnosticDropdown).
+  // {__order, item, action, kind} (RxMenu), soit {__dx, action, pick, target}
+  // (DiagnosticDropdown — voir makeDiagRegionAttrs, diagnostics.jsx).
   function runSlashCommand({ editor, range, props }) {
     if (props.__order) { runOrderCommand(editor, range, props); return; }
     if (props.__dx) { runDiagnosticCommand(editor, range, props); return; }
@@ -299,7 +314,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
             }
           } else if (parsed.mode === 'dx') {
             const s = selectedIndex >= 0 ? currentItems[selectedIndex] : null;
-            slashCommandRef.current({ __dx: true, name: s ? s.libelle : (parsed.term || '').trim() });
+            const pick = s ? dxPickFromSuggestion(s) : { source: 'libre', name: (parsed.term || '').trim() };
+            slashCommandRef.current({ __dx: true, action: 'nouveau', pick: pick });
           } else {
             const it = currentItems[selectedIndex];
             if (it) slashCommandRef.current(it);
@@ -453,9 +469,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       // ensureSplit : tout document venu d'ailleurs (brouillon repris, dernière
       // note, gabarit, note d'avant cette fonctionnalité) reçoit sa ligne de
       // séparation — à la place de son ancien Titre 2 « Conclusion » quand il
-      // en avait un, sinon à la fin. Un seul point de passage pour tous les
-      // chemins de montage.
-      content: window.ensureSplit(initialDoc || window.DEFAULT_DOC()),
+      // en avait un, sinon à la fin. prepareDiagDoc (diagnostics.jsx) fait de
+      // même pour les diagnostics : recale newDiagId, corrige les ids/dxKey
+      // manquants ou dupliqués, migre l'ancien promotedAt/promotedBy. Un seul
+      // point de passage pour tous les chemins de montage.
+      content: window.prepareDiagDoc(window.ensureSplit(initialDoc || window.DEFAULT_DOC())),
       editorProps: {
         attributes: { class: 'ql-editor ProseMirror' }
       },
@@ -478,7 +496,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (onReady) onReady(editor);
 
     // Diagnostic header — clic sur le nom → renommer ; clic sur le bouton →
-    // promouvoir en problème (écouté par Summary.jsx via note:add-problem).
+    // documenter comme problème (écouté par Summary.jsx via note:add-problem
+    // — bouton et libellé « Promouvoir » inchangés ici ; le menu « Documenter
+    // comme » et le pont déclaratif avec le Sommaire arrivent avec la suite
+    // de la branche diagnostics).
     editor.view.dom.addEventListener('mousedown', (e) => {
       const refEl = e.target.closest('.dxref');
       if (refEl) {
@@ -512,20 +533,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const nmEl = head && head.querySelector('.dxr-name');
         const nm = nmEl ? nmEl.textContent.trim() : '';
         if (nm) window.dispatchEvent(new CustomEvent('note:add-problem', { detail: { name: nm } }));
-        // Persisté dans le doc (pas seulement une classe CSS transitoire) —
-        // la classe .dxr-promoted suit maintenant attrs.promotedAt via
-        // render() ; c'est aussi ce qui fait entrer le diagnostic dans le
-        // Journal des actions (« Problèmes ») une fois promu.
+        // Écrit dans le doc via patchDiagRegions (seul chemin autorisé, voir
+        // editor-schema.jsx) — la classe .dxr-promoted suit maintenant
+        // attrs.documentAs via render() ; c'est aussi ce qui fait entrer le
+        // diagnostic dans le Journal des actions (« Problèmes »). Encore
+        // ciblé sur CETTE occurrence : le menu « Documenter comme » (à venir)
+        // l'appliquera à tout le fil (patchDiagRegions accepte déjà plusieurs
+        // ids en une seule transaction).
         const regionPos = findRegionPosFromDOM(editor, promoteEl);
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
           if (node) {
-            editor.chain().command(function (props) {
-              props.tr.setNodeMarkup(regionPos, undefined, Object.assign({}, node.attrs, {
-                promotedAt: new Date().toISOString(), promotedBy: window.__CURRENT_AUTHOR || null
-              }));
-              return true;
-            }).run();
+            window.patchDiagRegions(editor, [{ id: node.attrs.id, patch: {
+              documentAs: 'probleme', documentedAt: new Date().toISOString(), documentedBy: window.__CURRENT_AUTHOR || null
+            } }]);
           }
         }
       }

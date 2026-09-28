@@ -5,7 +5,8 @@
 // (return null) tant qu'aucune activité n'est rattachée à la note — pas
 // juste masqué. Les entrées viennent de buildActionLog (editor-schema.jsx),
 // qui lit les attrs savedAt/author posés à la création/édition de chaque
-// chip/outil clinique, ou à la promotion d'un diagnostic.
+// chip/outil clinique, ou à la documentation d'un diagnostic (Problème ou
+// Antécédent — un diagnostic non documenté n'apparaît pas ici).
 // =========================================================
 function formatLogTimestamp(iso) {
   if (!iso) return '';
@@ -29,10 +30,14 @@ function ActionLogIcon({ entry }) {
 // attribut data-* d'identification.
 function scrollToLogSource(editor, entry) {
   if (!editor) return;
-  const attr = entry.sourceType === 'chip' ? 'data-cid'
-    : entry.sourceType === 'clinicalTool' ? 'data-instance-id'
-    : 'data-diag-id';
-  const el = editor.view.dom.querySelector('[' + attr + '="' + entry.sourceId + '"]');
+  // Pour un diagnostic, .dxr-name ET un éventuel renvoi .dxref portent aussi
+  // data-diag-id (le renvoi le porte pour la RÉGION qu'il vise, pas pour
+  // lui-même) — sans le restreindre à .dxr, un renvoi antérieur dans le DOM
+  // ferait défiler vers la mauvaise puce.
+  const selector = entry.sourceType === 'chip' ? '[data-cid="' + entry.sourceId + '"]'
+    : entry.sourceType === 'clinicalTool' ? '[data-instance-id="' + entry.sourceId + '"]'
+    : '.dxr[data-diag-id="' + entry.sourceId + '"]';
+  const el = editor.view.dom.querySelector(selector);
   if (!el) return;
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   el.classList.add('action-log-flash');
@@ -55,9 +60,12 @@ function ActionLog({ docJson, editor }) {
         <span className="material-icons-outlined action-log__chevron">{collapsed ? 'chevron_right' : 'expand_more'}</span>
       </button>
       {!collapsed && entries.map(function (entry) {
+        // Un diagnostic porte son propre verbe (Documenté/Cessé/Modifié —
+        // voir buildActionLog) ; les autres activités restent « Ajouté ».
+        const verb = entry.verb || 'Ajouté';
         const meta = entry.author
-          ? (entry.savedAt ? 'Ajouté par ' + entry.author + ' le ' + formatLogTimestamp(entry.savedAt) : 'Ajouté par ' + entry.author)
-          : (entry.savedAt ? 'Ajouté le ' + formatLogTimestamp(entry.savedAt) : '');
+          ? (entry.savedAt ? verb + ' par ' + entry.author + ' le ' + formatLogTimestamp(entry.savedAt) : verb + ' par ' + entry.author)
+          : (entry.savedAt ? verb + ' le ' + formatLogTimestamp(entry.savedAt) : '');
         return (
           <button key={entry.key} type="button" className="action-log__row"
             onClick={function () { scrollToLogSource(editor, entry); }}>

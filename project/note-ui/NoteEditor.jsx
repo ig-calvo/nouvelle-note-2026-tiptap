@@ -9,7 +9,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   }, [showClinicalTools]);
 
   // Même pont que ci-dessus : lu à la création/édition d'un chip, d'un outil
-  // clinique ou à la promotion d'un diagnostic (editor-field.jsx,
+  // clinique ou à la documentation d'un diagnostic (editor-field.jsx,
   // editor-schema.jsx) pour horodater l'auteur au moment de l'action, sans
   // faire remonter ces fonctions profondément imbriquées jusqu'ici par props.
   React.useEffect(function() {
@@ -516,7 +516,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // ----- Points de départ (tweak "Points de départ") -----
   function startFromLast() {
     if (lastNote && lastNote.doc) {
-      initialDocRef.current = lastNote.doc;
+      // rebaseDiagDocForNewNote (diagnostics.jsx) clone le doc (jamais la
+      // même référence que la note complétée — appendToFirstSection et
+      // insertClinicalTool ci-dessus mutent initialDocRef.current en place
+      // avant montage) et relie chaque diagnostic à sa ligne du dossier :
+      // cette note-ci n'a pas encore documenté quoi que ce soit, elle ne
+      // doit pas prétendre avoir cessé/remplacé ce que la précédente a fait.
+      initialDocRef.current = window.rebaseDiagDocForNewNote(lastNote.doc, window.__SOMMAIRE_DX_BASE || window.sommaireDxSeed());
       if (!raison.trim()) setRaison(lastNote.title || '');
     }
     var epId = (lastNote && lastNote.episodeId) || ('ep-' + Date.now());
