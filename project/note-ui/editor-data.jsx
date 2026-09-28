@@ -616,8 +616,6 @@ const RECOGNIZERS = [];
 
 const SLASH_ITEMS = [
   // ── STRUCTURE ────────────────────────────────────────────
-  { key: 'add-section', section: 'Structure', icon: 'add', title: 'Ajouter une section', desc: 'Nouvelle section de texte libre', kbd: 'sec',
-    addSection: true },
   { key: 'outils-cliniques', section: 'Structure', icon: 'handyman', title: 'Outils cliniques', desc: 'Score, calculatrice, outil clinique…', kbd: '',
     ctPicker: true, noKbd: true },
   { key: 'note-templates', section: 'Structure', icon: 'post_add', title: 'Gabarits de note', desc: 'Syndrome viral, infection urinaire, examen périodique…', kbd: '',

@@ -236,13 +236,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       window.dispatchEvent(new CustomEvent('note:confidential-field-request'));
       return;
     }
-    if (it.addSection) {
-      editor.chain().focus().insertContentAt(range, [
-        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Nouvelle section' }] },
-        { type: 'paragraph' }
-      ]).run();
-      return;
-    }
     if (it.template) {
       const chipId = window.newChipId();
       const meta = window.NOTE_DATA.ENTITY_TYPES[it.template.type] || {};
