@@ -173,8 +173,21 @@ test('intent edit : nom inchangé propose « Codes plus précis » sans texte li
   assert.deepEqual(untouched.sections.map((s) => s.title), ['Codes plus précis — H66']);
   assert.equal(untouched.freeText, null);
   const touched = w.dxBuildModel(st, 'Otite moyenne (renommée)', ctxWith(null));
-  assert.deepEqual(touched.freeText, { name: 'Otite moyenne (renommée)', kind: 'edit' });
+  assert.deepEqual(touched.freeText, { name: 'Otite moyenne (renommée)', kind: 'edit', hadCode: true });
   assert.equal(touched.sections.some((s) => s.title === 'Codes plus précis — H66'), false);
+});
+
+test('texte libre en mode edit/refine porte hadCode (indice « le code sera retiré ») selon que la région avait un code', () => {
+  const withCode = w.dxInitState({ kind: 'edit', region: { name: 'Otite moyenne', code: 'H66' } });
+  const m1 = w.dxBuildModel(withCode, 'un autre nom', ctxWith(null));
+  assert.equal(m1.freeText.hadCode, true);
+  const withoutCode = w.dxInitState({ kind: 'edit', region: { name: 'Texte libre', code: null } });
+  const m2 = w.dxBuildModel(withoutCode, 'un autre nom', ctxWith(null));
+  assert.equal(m2.freeText.hadCode, false);
+  // Vue browse (après un drill depuis edit/refine) : même indice, pas juste à la racine.
+  const refine = w.dxInitState({ kind: 'refine', region: { name: 'Otite moyenne', code: 'H66' } });
+  const m3 = w.dxBuildModel(refine, 'introuvable', ctxWith(null));
+  assert.equal(m3.freeText.hadCode, true);
 });
 
 // ---------------------------------------------------------------------------

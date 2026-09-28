@@ -495,7 +495,7 @@ function DxList({ model, activeIndex, actionFocus, onEvent }) {
         </div>
       ))}
       {model.freeText && (function () {
-        const copy = window.DX_COPY.freeText[model.freeText.kind](model.freeText.name);
+        const copy = window.DX_COPY.freeText[model.freeText.kind](model.freeText.name, model.freeText.hadCode);
         const isActive = activeIndex === model.minIndex;
         return (
           <div className={'dx-item dx-item--free' + (isActive ? ' is-active' : '')}
@@ -535,6 +535,88 @@ function DiagnosticDropdown({ placement, model, activeIndex, actionFocus, onEven
     <div className="dx-menu" ref={ref} style={Object.assign({ position: 'fixed', zIndex: 60 }, placement.style)} role="listbox">
       <DxHead model={model} onEvent={onEvent} />
       <DxList model={model} activeIndex={activeIndex} actionFocus={actionFocus} onEvent={onEvent} />
+      <DxFoot model={model} activeIndex={activeIndex} />
+    </div>
+  );
+}
+
+// DxEditPopover — clic sur le nom/le code d'une région existante (mode
+// 'edit') ou son bouton « Préciser » (mode 'refine', dxCanRefine — commit
+// 10). Même modèle/réducteur que DiagnosticDropdown (dxBuildModel/dxStep,
+// DxHead/DxList/DxFoot réutilisés tels quels), mais ce popover porte SON
+// PROPRE terme dans un vrai <input> : contrairement au sélecteur /dx, il
+// n'est pas déclenché par le plugin Suggestion et n'a donc pas de texte de
+// document à lire — et il produit un effet `relabel` (renommer en place),
+// jamais `commit` (qui insérerait une NOUVELLE région).
+function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel, onClose }) {
+  const ref = useRefP(null);
+  const [term, setTerm] = useStateP(mode === 'refine' ? '' : (region.name || ''));
+  const [dxState, setDxState] = useStateP(function () { return window.dxInitState({ kind: mode, region: region }); });
+  const [, bumpCim] = useStateP(0);
+
+  useEffectP(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    const t = setTimeout(() => document.addEventListener('mousedown', onDoc), 0);
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
+  }, [onClose]);
+
+  // La CIM-10 peut finir de charger après l'ouverture (fetch asynchrone,
+  // Note Clinique.html) — whenReady (cim10-index.jsx) appelle son callback
+  // tout de suite si déjà prête, une seule fois sinon : un seul re-rendu
+  // suffit à faire apparaître enfants/résultats une fois l'index disponible.
+  useEffectP(() => {
+    if (window.CIM10 && window.CIM10.whenReady && !window.CIM10.ready()) {
+      window.CIM10.whenReady(function () { bumpCim(function (n) { return n + 1; }); });
+    }
+  }, []);
+
+  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null });
+  const activeIndex = window.dxActiveIndex(dxState, model);
+
+  function applyResult(result) {
+    setDxState(result.state);
+    result.effects.forEach(function (effect) {
+      if (effect.type === 'setTerm') setTerm(effect.term);
+      else if (effect.type === 'relabel') { onRelabel(effect.to); onClose(); }
+      else if (effect.type === 'close') onClose();
+    });
+  }
+  function dispatch(evt) { applyResult(window.dxStep(dxState, evt, model)); }
+  function onKeyDown(e) {
+    const evt = { type: 'key', key: e.key, mod: e.metaKey || e.ctrlKey || e.altKey };
+    const result = window.dxStep(dxState, evt, model);
+    if (!result.handled) return;
+    e.preventDefault();
+    applyResult(result);
+  }
+  function onChangeTerm(v) {
+    setTerm(v);
+    setDxState(function (s) { return Object.assign({}, s, { activeIndex: null, actionFocus: 0 }); });
+  }
+
+  const placement = window.dxMenuPlacement(
+    { top: anchorRect.top, bottom: anchorRect.bottom, left: anchorRect.left },
+    { w: window.innerWidth, h: window.innerHeight },
+    { width: 380 }
+  );
+
+  return (
+    <div className="dx-menu dx-edit" ref={ref} style={Object.assign({ position: 'fixed', zIndex: 70 }, placement.style)}>
+      <div className="dx-edit__field">
+        <input
+          autoFocus
+          value={term}
+          placeholder={mode === 'refine' ? 'Rechercher un code plus précis…' : 'Renommer ou choisir un code CIM-10…'}
+          onChange={(e) => onChangeTerm(e.target.value)}
+          onKeyDown={onKeyDown} />
+      </div>
+      <DxHead model={model} onEvent={dispatch} />
+      <DxList model={model} activeIndex={activeIndex} actionFocus={0} onEvent={dispatch} />
+      {otherMentionsCount > 0 &&
+        <div className="dx-edit__hint">
+          Renomme aussi {otherMentionsCount} autre{otherMentionsCount > 1 ? 's' : ''} mention{otherMentionsCount > 1 ? 's' : ''} de ce diagnostic.
+        </div>
+      }
       <DxFoot model={model} activeIndex={activeIndex} />
     </div>
   );
@@ -766,4 +848,4 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
     </div>);
 }
 
-Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu, DiagnosticDropdown, DxHead, DxList, DxRow, DxFoot });
+Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu, DiagnosticDropdown, DxHead, DxList, DxRow, DxFoot, DxEditPopover });

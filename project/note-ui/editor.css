@@ -115,6 +115,13 @@
   color: rgba(0, 0, 0, 0.5);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 4px;
+  transition: background 120ms;
+}
+.note-field .ql-editor .dxr-code:hover {
+  background: rgba(106, 150, 192, 0.1);
 }
 /* Étiquette « Cessé » — même palette que .rx-status--ceased (médicaments
    cessés), pour une lecture cohérente entre note et Sommaire. */
@@ -148,6 +155,24 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   flex-shrink: 1;
+}
+/* « Préciser » — ouvre DxEditPopover en mode refine (editor-field.jsx). */
+.note-field .ql-editor .dxr-refine {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a6f94;
+  background: transparent;
+  border: 1px solid #c8d9ed;
+  border-radius: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms, border-color 120ms;
+}
+.note-field .ql-editor .dxr-refine:hover {
+  background: rgba(106, 150, 192, 0.1);
+  border-color: #7fa8d8;
 }
 /* « Documenter comme » (D1) — remplace .dxr-promote. .dxr-doc--probleme et
    .dxr-doc--antecedent reprennent l'ancien vert de .dxr-promoted (documenté,
@@ -770,6 +795,14 @@
 .dx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .dx-empty__hint { margin-top: 4px; font-size: 12px; color: var(--fg-3); }
 .dx-menu__foot { padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
+
+/* DxEditPopover (commit 10) — clic sur le nom/code d'une région, ou son
+   bouton .dxr-refine. Même coquille .dx-menu ; .dx-edit ajoute le champ de
+   saisie propre au popover (pas de texte de document à lire, voir son en-tête). */
+.dx-edit__field { padding: 10px 14px 4px; }
+.dx-edit__field input { width: 100%; box-sizing: border-box; border: 1px solid #c8d9ed; border-radius: 8px; padding: 7px 10px; font: 500 14px var(--font-body); color: var(--fg-1); outline: none; }
+.dx-edit__field input:focus { border-color: #7fa8d8; }
+.dx-edit__hint { padding: 6px 16px; font-size: 11.5px; color: var(--fg-3); font-style: italic; border-top: 1px solid #eceaf4; }
 
 /* Med dropdown */
 @keyframes medmenu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }

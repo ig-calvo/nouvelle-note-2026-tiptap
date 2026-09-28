@@ -210,7 +210,7 @@ function dxBuildModel(state, rawTerm, ctx) {
       sections.push(dxSec('browse', 'Résultats', rows.map(dxCimItem),
         rows.length ? null : DX_COPY.empty.cim(term), res.moreGroups));
       const fx = intent.kind === 'remplacer' ? 'remplacer' : (intent.kind === 'edit' ? 'edit' : (intent.kind === 'refine' ? 'edit' : 'nouveau'));
-      freeText = { name: term, kind: fx };
+      freeText = { name: term, kind: fx, hadCode: (intent.kind === 'edit' || intent.kind === 'refine') ? !!intent.region.code : false };
     }
   } else if (intent.kind === 'nouveau') {
     const linked = dxLinkedSommaireIds(threads);
@@ -249,7 +249,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     }
     if (!untouched) {
       dxPushCim(sections, cim, term, dxTakenCodes([], [], [r.code]), false);
-      if (term) freeText = { name: term, kind: 'edit' };
+      if (term) freeText = { name: term, kind: 'edit', hadCode: !!r.code };
     }
   }
 

@@ -426,6 +426,9 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
     if (a.code) head.push(['span', { class: 'dxr-code' }, a.code]);
     if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, 'Cessé']);
     if (a.replaces) head.push(['span', { class: 'dxr-sub' }, 'remplace : ' + a.replaces.name]);
+    if (window.diagCanRefine(a)) {
+      head.push(['button', { type: 'button', class: 'dxr-refine', title: 'Choisir un code plus précis' }, 'Préciser']);
+    }
     const b = window.diagDocButton(window.diagPlacement(a), !!a.sommaireId);
     head.push(['button', { type: 'button', class: 'dxr-doc dxr-doc--' + b.mod, title: b.title },
       ['span', { class: 'material-icons-outlined' }, b.icon],
@@ -460,6 +463,16 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       const subEl = document.createElement('span');
       subEl.className = 'dxr-sub';
       head.appendChild(subEl);
+      // « Préciser » — descend d'un niveau dans la CIM-10 sur un code qui a
+      // des enfants (D4, diagCanRefine). Ouvre DxEditPopover en mode refine
+      // (editor-field.jsx), pas visible tant que le code n'a pas d'enfants
+      // (catégorie déjà la plus précise, texte libre, CIM-10 pas encore chargée).
+      const refineBtn = document.createElement('button');
+      refineBtn.type = 'button';
+      refineBtn.className = 'dxr-refine';
+      refineBtn.title = 'Choisir un code plus précis';
+      refineBtn.textContent = 'Préciser';
+      head.appendChild(refineBtn);
       // « Documenter comme » (D1) — remplace l'ancien bouton « Promouvoir en
       // problème ». Son icône/libellé/couleur suivent diagDocButton
       // (diagnostics.jsx) : Documenter / Non documenté / Problème / Antécédent
@@ -495,6 +508,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         statusEl.hidden = a.status !== 'cesse';
         subEl.hidden = !a.replaces;
         subEl.textContent = a.replaces ? ('remplace : ' + a.replaces.name) : '';
+        refineBtn.hidden = spec ? !spec.dxCanRefine : !window.diagCanRefine(a);
         // Le placement/lien viennent de la décoration quand elle existe (déjà
         // calculés une fois pour tout le fil par dxNumberingPlugin) — sinon
         // (décorations indisponibles) on retombe sur un calcul local.

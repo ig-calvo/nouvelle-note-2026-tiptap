@@ -27,7 +27,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const chipMenuTimerRef = useRefE(null);
   const addBtnRef = useRefE(null);
   const fileInputRef = useRefE(null);
-  const [diagRename, setDiagRename] = useStateE(null); // { pos, value, rect } — renommage d'une région diagnostic
+  const [dxEdit, setDxEdit] = useStateE(null); // { id, region, mode, rect, otherMentionsCount } — DxEditPopover (edit/refine)
   const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
   const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
   const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
@@ -481,7 +481,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   // Position (avant-nœud) de la région diagnostic la plus proche englobant
   // un nœud DOM donné — utilisé pour retrouver le node depuis un clic sur
-  // son en-tête (.dxr-name / .dxr-promote), non géré par le NodeView lui-même.
+  // son en-tête (.dxr-name/.dxr-code/.dxr-refine/.dxr-doc), non géré par le
+  // NodeView lui-même.
   function findRegionPosFromDOM(editor, domNode) {
     try {
       const pos = editor.view.posAtDOM(domNode, 0);
@@ -493,28 +494,40 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     return -1;
   }
 
-  function openDiagRename(nameEl, regionPos, attrs) {
-    const rect = nameEl.getBoundingClientRect();
-    setDiagRename({
-      pos: regionPos,
-      value: attrs.name || '',
-      rect: { top: rect.bottom + 4, left: Math.max(8, Math.min(rect.left, window.innerWidth - 280)) }
-    });
+  // Ouvre DxEditPopover sur le nom/code (mode 'edit') ou le bouton « Préciser »
+  // (mode 'refine', dxCanRefine) d'une région existante — anchorEl sert au
+  // positionnement (dxMenuPlacement), attrs à l'intent initial de dx-picker
+  // (dxInitState). otherMentionsCount (indice « Renomme aussi N autres
+  // mentions ») : occurrences du MÊME fil qui portent encore la version
+  // actuelle (nom+code) — celles qu'un renommage toucherait aussi, hors
+  // celle-ci (voir diagRelabelPatches, appliqué tel quel à la validation).
+  function openDxEdit(regionPos, attrs, mode, anchorEl) {
+    const editor = editorRef.current;
+    const rect = anchorEl.getBoundingClientRect();
+    const thread = editor && window.getDiagModel(editor).byKey[attrs.dxKey];
+    const version = { name: attrs.name, code: attrs.code || null };
+    const otherMentionsCount = thread
+      ? thread.occurrences.filter(function (o) {
+          return o.id !== attrs.id && o.attrs.name === version.name && (o.attrs.code || null) === version.code;
+        }).length
+      : 0;
+    setDxEdit({ pos: regionPos, region: attrs, mode: mode, rect: rect, otherMentionsCount: otherMentionsCount });
   }
 
-  function commitDiagRename(newName) {
+  // Applique un renommage/reclassement (relabel de dx-picker.jsx — DxEditPopover)
+  // à TOUTES les occurrences de la même version, via diagRelabelPatches
+  // (diagnostics.jsx) + patchDiagRegions (editor-schema.jsx), en une seule
+  // transaction. Un `replaces` qui visait cette version est aussi mis à jour.
+  function commitDxRelabel(editedId, to) {
     const editor = editorRef.current;
-    const dr = diagRename;
-    setDiagRename(null);
-    if (!editor || !dr) return;
-    const name = (newName || '').trim();
-    if (!name) return;
-    editor.chain().focus().command(function (props) {
-      const node = props.tr.doc.nodeAt(dr.pos);
-      if (!node || node.type.name !== 'diagnosticRegion') return false;
-      props.tr.setNodeMarkup(dr.pos, undefined, Object.assign({}, node.attrs, { name: name }));
-      return true;
-    }).run();
+    if (!editor || !editedId) return;
+    const model = window.getDiagModel(editor);
+    const allOccurrences = model.threads.reduce(function (acc, t) { return acc.concat(t.occurrences); }, []);
+    const patches = window.diagRelabelPatches(allOccurrences, editedId, to, {
+      now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
+    });
+    if (patches.length) window.patchDiagRegions(editor, patches);
+    editor.commands.focus();
   }
 
   // Rouvre le menu (bouton « + » ou retour du picker d'outils cliniques).
@@ -630,13 +643,26 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return;
       }
-      const nameEl = e.target.closest('.dxr-name');
-      if (nameEl) {
+      // Nom OU code : mode 'edit' (DxEditPopover) — un renommage libre ne
+      // change que le nom (le code est conservé), choisir un code CIM-10
+      // change nom+code+niveau (voir dx-picker.jsx, intent 'edit').
+      const nameOrCodeEl = e.target.closest('.dxr-name, .dxr-code');
+      if (nameOrCodeEl) {
         e.preventDefault();
-        const regionPos = findRegionPosFromDOM(editor, nameEl);
+        const regionPos = findRegionPosFromDOM(editor, nameOrCodeEl);
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
-          if (node) openDiagRename(nameEl, regionPos, node.attrs);
+          if (node) openDxEdit(regionPos, node.attrs, 'edit', nameOrCodeEl);
+        }
+        return;
+      }
+      const refineEl = e.target.closest('.dxr-refine');
+      if (refineEl) {
+        e.preventDefault();
+        const regionPos = findRegionPosFromDOM(editor, refineEl);
+        if (regionPos >= 0) {
+          const node = editor.state.doc.nodeAt(regionPos);
+          if (node) openDxEdit(regionPos, node.attrs, 'refine', refineEl);
         }
         return;
       }
@@ -947,13 +973,16 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         );
       })()}
 
-      {/* Renommage d'une région diagnostic (clic sur son nom) */}
-      {diagRename &&
-        <DiagRenamePopover
-          pos={diagRename.rect}
-          value={diagRename.value}
-          onCommit={commitDiagRename}
-          onCancel={() => setDiagRename(null)} />
+      {/* Modifier (nom/code) ou Préciser un diagnostic existant (clic sur
+          son nom, son code, ou son bouton .dxr-refine) */}
+      {dxEdit &&
+        <DxEditPopover
+          anchorRect={dxEdit.rect}
+          region={dxEdit.region}
+          mode={dxEdit.mode}
+          otherMentionsCount={dxEdit.otherMentionsCount}
+          onRelabel={(to) => commitDxRelabel(dxEdit.region.id, to)}
+          onClose={() => setDxEdit(null)} />
       }
 
       {/* Choix de la source du fichier — sous-menu de « Ajouter des
@@ -1072,42 +1101,6 @@ const cmS = {
     padding: '8px 16px', cursor: 'pointer', font: "600 13px 'Inter',sans-serif", color: '#fff'
   }
 };
-
-// ---------------------------------------------------------
-// DiagRenamePopover — éditeur inline pour renommer une région diagnostic
-// (clic sur son nom dans l'en-tête).
-// ---------------------------------------------------------
-function DiagRenamePopover({ pos, value, onCommit, onCancel }) {
-  const [v, setV] = useStateE(value || '');
-  const inputRef = useRefE(null);
-  useEffectE(function () {
-    if (inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
-  }, []);
-  return (
-    <div style={{
-      position: 'fixed', top: pos.top, left: pos.left, zIndex: 70,
-      background: '#fff', border: '1px solid #b3ccf0', borderRadius: 10,
-      boxShadow: '0 4px 16px rgba(37,36,94,0.16)',
-      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', minWidth: 240
-    }}>
-      <span className="material-icons-outlined" style={{ fontSize: 16, color: '#1a5fd4', flexShrink: 0 }}>local_hospital</span>
-      <input
-        ref={inputRef}
-        value={v}
-        placeholder="Nom du diagnostic…"
-        style={{
-          flex: 1, border: 'none', borderBottom: '1.5px solid #1a5fd4', outline: 'none',
-          background: 'transparent', font: "500 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.85)', padding: '2px 2px'
-        }}
-        onChange={(e) => setV(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') { e.preventDefault(); onCommit(v); }
-          else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
-        }}
-        onBlur={() => onCommit(v)} />
-    </div>
-  );
-}
 
 // ---------------------------------------------------------
 // AddFileSourceMenu — sous-menu de « Ajouter des fichiers » (choix de la
