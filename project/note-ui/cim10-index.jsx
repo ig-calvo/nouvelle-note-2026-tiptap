@@ -15,10 +15,9 @@
 // de fichier) l'enveloppe, gère le chargement asynchrone et se reconstruit
 // si window.CIM10_DATA change de référence.
 //
-// Aucun autre fichier n'est modifié ici : le /dx actuel (searchCIM10,
-// searchDx dans editor-schema.jsx) continue de lire CIM10_DATA directement
-// et n'utilise pas encore cet index — le picker (dx-picker.jsx) s'y
-// branchera plus tard.
+// Le sélecteur /dx (dx-picker.jsx, éditeur : editor-field.jsx) est le seul
+// consommateur de la façade window.CIM10 — searchCIM10/searchDx (l'ancienne
+// lecture directe de CIM10_DATA) ont été retirés d'editor-schema.jsx.
 // =========================================================
 
 const CIM10_STOP = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'l', 'd', 'et', 'a', 'au', 'aux', 'en', 'un', 'une']);

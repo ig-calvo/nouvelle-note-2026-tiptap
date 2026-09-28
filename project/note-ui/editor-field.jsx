@@ -101,22 +101,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
   }
 
-  // Convertit une suggestion du dropdown /dx (searchDx : problème au dossier
-  // OU résultat CIM-10 — editor-schema.jsx) en pick pour makeDiagRegionAttrs
-  // (diagnostics.jsx). Passerelle temporaire : le nouveau sélecteur
-  // (dx-picker.jsx, à venir) construira le pick lui-même.
-  function dxPickFromSuggestion(s) {
-    if (!s) return null;
-    if (s.fromChart) return { source: 'libre', name: s.libelle }; // liste statique PROBLEMS, remplacée avec le pont Sommaire
-    const code = s.code || null;
-    return { source: 'cim10', name: s.libelle, code: code, level: (code && window.CIM10 && window.CIM10.ready()) ? window.CIM10.levelOf(code) : null };
-  }
-
-  // Sélection d'une suggestion CIM-10 (clic dans le DiagnosticDropdown).
-  function chooseDiagSuggestion(s) {
-    if (slashCommandRef.current) slashCommandRef.current({ __dx: true, action: 'nouveau', pick: dxPickFromSuggestion(s) });
-  }
-
   // Insère le chip d'ordonnance riche (posologie complète) à la position de
   // « /rx query » (ou /lab /img /ref). Porté de l'ancien insertOrderChip
   // Quill : « cesser » construit un chip barré sans posologie ; « ajuster »
@@ -279,11 +263,66 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // (selectedIndex, items…) vit dans cette fermeture ; on le reflète dans
   // le state React (setSlash) uniquement pour le rendu de <SlashMenu>.
   function makeSlashRender() {
-    let selectedIndex = 0, currentItems = [], currentClientRect = null, lastQuery = '';
+    let selectedIndex = 0, currentItems = [], currentClientRect = null, currentRange = null, lastQuery = '';
+    // État du picker /dx (dx-picker.jsx) — vit dans cette fermeture comme
+    // selectedIndex pour les autres modes ; reconstruit à chaque appel de
+    // publish() via dxBuildModel, jamais recalculé séparément pour le
+    // clavier et l'affichage (voir l'en-tête de dx-picker.jsx : c'était le
+    // piège de searchDx, deux appels indépendants).
+    let dxState = null, dxModel = null, dxSelfRewrite = false;
 
-    // Le mode dx démarre sans sélection (-1) : Entrée confirme alors le texte
-    // tapé tel quel (voir onKeyDown) — les autres modes démarrent sur le 1er item.
-    function initialIndex(mode) { return mode === 'dx' ? -1 : 0; }
+    function initialIndex() { return 0; }
+
+    // Contexte lu à chaque (re)construction du modèle /dx : fils de la note
+    // (par dxKey, décorations à jour via getDiagModel), lignes du Sommaire
+    // (base + superposition en attente, via getSommaireDiagnostics) et
+    // façade CIM-10 (peut ne pas être prête — dxBuildModel s'en accommode).
+    function dxCtx() {
+      const editor = editorRef.current;
+      return {
+        threads: editor ? window.getDiagModel(editor).threads : [],
+        sommaire: window.getSommaireDiagnostics ? window.getSommaireDiagnostics() : [],
+        cim: window.CIM10 || null
+      };
+    }
+
+    // Réécrit « /dx <ancien terme> » en « /dx <nouveau terme> » sans altérer
+    // l'historique (undo) — utilisé par les effets `setTerm` de dxStep
+    // (drill, remonter, fil d'Ariane) : le terme affiché doit suivre le
+    // niveau courant de l'arbre CIM-10 sans que l'utilisateur retape rien.
+    // dxSelfRewrite distingue cette réécriture d'une vraie frappe pour
+    // onUpdate, qui sinon réinitialiserait la sélection du picker (voir plus bas).
+    function rewriteDxTerm(term) {
+      const editor = editorRef.current;
+      if (!editor || !currentRange) { publish(lastQuery); return; }
+      const next = '/dx ' + term;
+      // drillTo/popStack effacent presque toujours le terme (retour à '') —
+      // si le terme AFFICHÉ est déjà celui-là (cas le plus fréquent : ouvrir
+      // « Parcourir la CIM-10 » sans avoir tapé de recherche), le texte du
+      // document ne change pas du tout : insertContentAt ne produit alors
+      // aucune transaction, et onUpdate (donc publish) ne se redéclenche
+      // jamais tout seul. dxState porte déjà le nouvel état (assigné par
+      // l'appelant avant applyDxEffects) — il ne reste qu'à republier nous-
+      // mêmes pour que l'affichage suive.
+      if (editor.state.doc.textBetween(currentRange.from, currentRange.to, '\n') === next) { publish(lastQuery); return; }
+      dxSelfRewrite = true;
+      editor.chain().focus().insertContentAt(currentRange, next).run();
+    }
+
+    // Exécute les effets renvoyés par dxStep — setTerm réécrit la requête
+    // (déclenche onUpdate, qui republie avec le nouveau terme), commit
+    // délègue à runDiagnosticCommand (editor-field.jsx) via le `command` du
+    // plugin (ce qui ferme aussi le picker), close ferme sans rien insérer.
+    // relabel n'apparaît jamais ici : ce contrôleur n'ouvre le picker qu'en
+    // intent 'nouveau', jamais 'edit'/'refine' (réservés à DxEditPopover).
+    function applyDxEffects(effects) {
+      effects.forEach(function (effect) {
+        if (effect.type === 'setTerm') { rewriteDxTerm(effect.term); }
+        else if (effect.type === 'commit' && slashCommandRef.current) {
+          slashCommandRef.current({ __dx: true, action: effect.payload.action, pick: effect.payload.pick || null, target: effect.payload.target || null });
+        } else if (effect.type === 'close') { setSlash(null); }
+      });
+    }
 
     // Menu générique : même une requête avec espace et 0 résultat reste
     // affichée (message « aucun résultat » + indice Échap) — plus de
@@ -293,48 +332,72 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // leur propre message « rien trouvé ».
     function publish(query) {
       const parsed = parseSlashQuery(query);
+      if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
         setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
         return;
       }
       if (parsed.mode === 'dx') {
-        const term = (parsed.term || '').trim();
-        setSlash({ mode: 'dx', query: term, suggestions: window.searchDx(term), activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
+        if (!dxState) dxState = window.dxInitState({ kind: 'nouveau' });
+        dxModel = window.dxBuildModel(dxState, parsed.term || '', dxCtx());
+        setSlash({
+          mode: 'dx', model: dxModel, actionFocus: dxState.actionFocus,
+          activeIndex: window.dxActiveIndex(dxState, dxModel),
+          rect: currentClientRect ? currentClientRect() : null
+        });
         return;
       }
       setSlash({ mode: 'menu', items: currentItems, activeIndex: selectedIndex, query: query, rect: currentClientRect ? currentClientRect() : null });
     }
     const api = {
       onStart(props) {
-        selectedIndex = initialIndex(parseSlashQuery(props.query).mode);
-        currentItems = props.items; currentClientRect = props.clientRect; lastQuery = props.query;
+        selectedIndex = initialIndex();
+        dxState = null; dxModel = null; dxSelfRewrite = false;
+        currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
       },
       onUpdate(props) {
-        if (props.query !== lastQuery) selectedIndex = initialIndex(parseSlashQuery(props.query).mode);
-        lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect;
+        const parsed = parseSlashQuery(props.query);
+        if (dxSelfRewrite) {
+          dxSelfRewrite = false; // réécriture déclenchée par un effet setTerm — dxState déjà à jour, ne pas retoucher la sélection
+        } else if (parsed.mode === 'dx' && dxState) {
+          // Vraie frappe pendant que le picker est déjà ouvert : la sélection
+          // se réinitialise (même règle que l'événement 'term' non-self de
+          // dxStep), mais intent/vue/pile restent (on continue de chercher
+          // dans le même sous-arbre CIM-10 si on y était).
+          dxState = Object.assign({}, dxState, { activeIndex: null, actionFocus: 0 });
+        } else if (props.query !== lastQuery) {
+          selectedIndex = initialIndex();
+        }
+        lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range;
         slashCommandRef.current = props.command;
         publish(props.query);
       },
       onKeyDown(props) {
-        if (props.event.key === 'Escape') { setSlash(null); return true; }
         const parsed = parseSlashQuery(lastQuery);
+        if (parsed.mode === 'dx') {
+          if (!dxState || !dxModel) return false;
+          const evt = { type: 'key', key: props.event.key, mod: props.event.metaKey || props.event.ctrlKey || props.event.altKey };
+          const result = window.dxStep(dxState, evt, dxModel);
+          if (!result.handled) return false;
+          dxState = result.state;
+          applyDxEffects(result.effects);
+          if (result.effects.length === 0) publish(lastQuery);
+          return true;
+        }
+        if (props.event.key === 'Escape') { setSlash(null); return true; }
         // Menu générique sans aucun résultat : on n'intercepte plus les
         // flèches/Entrée (rien à sélectionner) — la frappe continue
         // normalement, le message « aucun résultat » reste affiché via publish().
         if (parsed.mode === 'menu' && currentItems.length === 0) return false;
         if (props.event.key === 'ArrowDown') {
-          selectedIndex = parsed.mode === 'dx'
-            ? Math.min(currentItems.length - 1, (selectedIndex >= 0 ? selectedIndex : -1) + 1)
-            : Math.min(currentItems.length - 1, selectedIndex + 1);
+          selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;
         }
         if (props.event.key === 'ArrowUp') {
-          selectedIndex = parsed.mode === 'dx'
-            ? Math.max(-1, (selectedIndex >= 0 ? selectedIndex : 0) - 1)
-            : Math.max(0, selectedIndex - 1);
+          selectedIndex = Math.max(0, selectedIndex - 1);
           publish(lastQuery); return true;
         }
         if (props.event.key === 'Enter' || props.event.key === 'Tab') {
@@ -345,10 +408,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               const isActiveMed = it.med && it.medStatus === 'active';
               slashCommandRef.current({ __order: true, item: it, action: isActiveMed ? 'renouveler' : undefined, kind: parsed.kind });
             }
-          } else if (parsed.mode === 'dx') {
-            const s = selectedIndex >= 0 ? currentItems[selectedIndex] : null;
-            const pick = s ? dxPickFromSuggestion(s) : { source: 'libre', name: (parsed.term || '').trim() };
-            slashCommandRef.current({ __dx: true, action: 'nouveau', pick: pick });
           } else {
             const it = currentItems[selectedIndex];
             if (it) slashCommandRef.current(it);
@@ -359,7 +418,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       },
       onExit() { setSlash(null); },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
-      republish() { publish(lastQuery); }
+      republish() { publish(lastQuery); },
+      // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
+      // même réducteur que le clavier (dxStep), pour que survol/clic/fil
+      // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
+      dxEvent(evt) {
+        if (!dxState || !dxModel) return;
+        const result = window.dxStep(dxState, evt, dxModel);
+        dxState = result.state;
+        applyDxEffects(result.effects);
+        if (result.effects.length === 0) publish(lastQuery);
+      }
     };
     slashApiRef.current = api;
     return api;
@@ -860,16 +929,23 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onClose={() => setSlash(null)} />
       }
 
-      {/* Mode diagnostic — /dx (recherche CIM-10) */}
-      {slash && slash.mode === 'dx' &&
-        <DiagnosticDropdown
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - 380)) }}
-          query={slash.query}
-          suggestions={slash.suggestions}
-          activeIndex={slash.activeIndex}
-          onPickSuggestion={chooseDiagSuggestion}
-          onClose={() => setSlash(null)} />
-      }
+      {/* Mode diagnostic — /dx (dx-picker.jsx : Dans cette note → Sommaire → CIM-10) */}
+      {slash && slash.mode === 'dx' && (() => {
+        const anchor = slash.rect || { top: 0, bottom: 0, left: 0 };
+        const placement = window.dxMenuPlacement(
+          { top: anchor.top, bottom: anchor.bottom, left: anchor.left },
+          { w: window.innerWidth, h: window.innerHeight }
+        );
+        return (
+          <DiagnosticDropdown
+            placement={placement}
+            model={slash.model}
+            activeIndex={slash.activeIndex}
+            actionFocus={slash.actionFocus}
+            onEvent={(evt) => { if (slashApiRef.current) slashApiRef.current.dxEvent(evt); }}
+            onClose={() => setSlash(null)} />
+        );
+      })()}
 
       {/* Renommage d'une région diagnostic (clic sur son nom) */}
       {diagRename &&

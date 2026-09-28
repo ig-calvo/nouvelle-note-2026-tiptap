@@ -722,24 +722,6 @@ const PATIENT = {
   status: 'En consultation',
 };
 
-// Problèmes au dossier affichés en tête du menu /dx (voir searchDx dans
-// editor-schema.jsx) — cale temporaire vers le VRAI Sommaire (Summary.jsx),
-// via getSommaireDiagnostics (diagnostics.jsx) : la liste PROBLEMS figée
-// d'avant cette fonctionnalité (Asthme léger, Allergie pénicilline,
-// Grossesse — sans lien avec le Sommaire affiché) est retirée. Même
-// principe que PATIENT_MEDS pour /rx : sans terme tapé, on retrouve tout le
-// dossier ; avec un terme, on filtre. Forme alignée sur searchCIM10
-// (libelle, generic) pour fusionner les deux listes dans une seule
-// navigation clavier — `fromChart` distingue un problème du dossier d'un
-// code CIM-10. Remplacé par le nouveau sélecteur (dx-picker.jsx à venir).
-function searchProblems(query) {
-  const q = _norm((query || '').trim());
-  const rows = window.getSommaireDiagnostics ? window.getSommaireDiagnostics() : [];
-  return rows
-    .filter(function (r) { return !q || _norm(r.name).includes(q); })
-    .map(function (r) { return { key: r.sommaireId, libelle: r.name, generic: false, fromChart: true }; });
-}
-
 const VITALS = [
   { ic: 'thermostat',    lbl: 'Température', val: '38,1 °C' },
   { ic: 'favorite',      lbl: 'FC',            val: '84 bpm' },
@@ -779,4 +761,4 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, searchProblems };
+  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };

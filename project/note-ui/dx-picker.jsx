@@ -373,6 +373,13 @@ function dxStep(state, event, model) {
     if (!popStack()) effects.push({ type: 'close' });
   } else if (event.type === 'activate') {
     activate(model.flat[event.index], event.action);
+  } else if (event.type === 'commitFreeText') {
+    // Clic direct sur la ligne « Nouveau diagnostic : X » / « Remplacer par : X »
+    // / « Renommer : X » — même effet que Entrée quand aucune ligne du flat
+    // n'est active (voir la branche Enter/Tab ci-dessous), exposé en événement
+    // propre pour la souris (DxList, editor-popover.jsx) sans dupliquer la
+    // logique de commitPick.
+    if (model.freeText) commitPick(null, model.freeText.name);
   } else if (event.type === 'key') {
     const key = event.key;
     if (event.mod) { handled = false; }

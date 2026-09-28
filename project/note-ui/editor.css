@@ -720,6 +720,57 @@
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }
 
+/* Dx picker dropdown (commande /dx) — dx-picker.jsx (modèle) + DiagnosticDropdown/
+   DxHead/DxList/DxRow/DxFoot (editor-popover.jsx). Même patron que .rx-menu
+   ci-dessus (coquille, défilement, pied clavier) ; palettes Cessé/Documenté
+   reprises telles quelles de .dxr-status/.dxr-doc--probleme (en-tête de
+   région, plus haut dans ce fichier) pour rester cohérent entre la note et
+   ce menu. */
+.dx-menu { position: fixed; width: 460px; background: #fff; border: 1px solid #d0d5f0; border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
+.dx-menu__scroll { overflow-y: auto; padding-bottom: 6px; }
+.dx-head { border-bottom: 1px solid #eceaf4; }
+.dx-banner { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #f3f4fb; }
+.dx-banner__text { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-banner__cancel { border: 0; background: transparent; cursor: pointer; padding: 2px; display: inline-flex; color: var(--fg-3); border-radius: 50%; flex-shrink: 0; }
+.dx-banner__cancel:hover { background: rgba(0,0,0,0.06); color: var(--fg-1); }
+.dx-banner__cancel .material-icons-outlined { font-size: 17px; }
+.dx-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px 14px; font-size: 12px; color: var(--fg-3); }
+.dx-crumbs__sep { color: var(--fg-3); }
+.dx-crumbs__link { border: 0; background: transparent; cursor: pointer; padding: 1px 3px; font: inherit; color: var(--brand-primary, #1a5fd4); border-radius: 3px; }
+.dx-crumbs__link:hover { background: rgba(26,95,212,0.08); text-decoration: underline; }
+.dx-crumbs__here { padding: 1px 3px; color: var(--fg-1); font-weight: 600; }
+.dx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid #eceaf4; margin-bottom: 4px; }
+.dx-sec-block + .dx-sec-block .dx-sec { margin-top: 6px; }
+.dx-sec-note { padding: 4px 16px 10px; font-size: 12px; color: var(--fg-3); }
+.dx-more { padding: 6px 16px 10px; font-size: 12px; color: var(--fg-3); font-style: italic; }
+.dx-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 110ms; }
+.dx-item.is-active { background: #eef1fb; }
+.dx-item--branch { color: var(--fg-3); }
+.dx-item__lead { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
+.dx-item__lead .material-icons-outlined { font-size: 17px; color: var(--fg-3); }
+.dx-num { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--brand-primary-container, #e3ecfa); color: var(--brand-primary, #1a5fd4); font-weight: 700; font-size: 11px; line-height: 1; }
+.dx-code { font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.5); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dx-item__body { flex: 1; min-width: 0; }
+.dx-item__name { font-size: 14px; font-weight: 600; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-item__code { font-weight: 500; color: var(--fg-3); }
+.dx-hl { background: none; color: var(--brand-primary, #1a5fd4); font-weight: 700; }
+.dx-item__sub { font-size: 12px; color: var(--fg-3); margin-top: 1px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-tag { display: inline-flex; align-items: center; margin-top: 3px; margin-right: 6px; font: 600 10px/15px var(--font-body); text-transform: uppercase; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; }
+.dx-tag--cesse { background: #ecdfe0; color: #7a1f26; }
+.dx-tag--probleme, .dx-tag--antecedent { background: #e7f5ea; color: #2e7d32; }
+.dx-act-group { display: flex; align-items: center; gap: 4px; padding-top: 1px; flex-shrink: 0; }
+.dx-act { border: 1px solid #d0d5f0; background: #fff; cursor: pointer; padding: 3px 9px; border-radius: 6px; font: 600 11px var(--font-body); color: var(--fg-2); white-space: nowrap; transition: background 110ms, border-color 110ms; }
+.dx-act:hover { background: #f3f4fb; }
+.dx-act.is-focus { border-color: var(--brand-primary, #1a5fd4); color: var(--brand-primary, #1a5fd4); background: #eef3fb; }
+.dx-item__chev { border: 0; background: transparent; cursor: pointer; padding: 2px; display: inline-flex; color: var(--fg-3); border-radius: 50%; flex-shrink: 0; margin-left: 2px; }
+.dx-item__chev:hover { background: rgba(0,0,0,0.06); color: var(--fg-1); }
+.dx-item__chev .material-icons-outlined { font-size: 18px; }
+.dx-item--free { border-top: 1px solid #eceaf4; }
+.dx-item--free .dx-item__lead .material-icons-outlined { color: var(--brand-primary, #1a5fd4); }
+.dx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
+.dx-empty__hint { margin-top: 4px; font-size: 12px; color: var(--fg-3); }
+.dx-menu__foot { padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
+
 /* Med dropdown */
 @keyframes medmenu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 

@@ -12,33 +12,6 @@ function newChipId() { return 'c' + _chipSeq++; }
 // juste avant ce fichier — voir Note Clinique.html), avec le reste du modèle
 // des diagnostics (fils, numéros, Sommaire).
 
-// searchCIM10 — filtre les entrées CIM-10 par requête (insensible aux accents).
-// Catégories génériques (parapluie) d'abord — plus rapides à repérer et
-// suffisantes pour la majorité des consultations ; les codes précis restent
-// juste en dessous pour qui en a besoin.
-function searchCIM10(query) {
-  const data = window.CIM10_DATA;
-  if (!data || !query || query.trim().length < 2) return [];
-  const norm = function (s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
-  const q = norm(query.trim());
-  const generic = [];
-  const specific = [];
-  for (let i = 0; i < data.length; i++) {
-    if (!norm(data[i].libelle).includes(q)) continue;
-    (data[i].generic ? generic : specific).push(data[i]);
-  }
-  return generic.concat(specific).slice(0, 8);
-}
-
-// searchDx - liste unique (dossier + CIM-10) pour le menu /dx, meme principe
-// que flattenRxResults pour /rx : une seule liste a plat pour la navigation
-// clavier (Suggestion.items()) et le rendu (DiagnosticDropdown), les
-// problemes au dossier en tete.
-function searchDx(query) {
-  const term = (query || '').trim();
-  return window.NOTE_DATA.searchProblems(term).concat(searchCIM10(term));
-}
-
 // ---------------------------------------------------------
 // DOM builder for a chip — même rendu que l'ancien ChipBlot Quill.
 // Réutilisé à la fois par la création du NodeView et par sa mise à jour
@@ -1461,7 +1434,11 @@ function buildSlashExtension(handlers) {
           items: function (props) {
             const parsed = parseSlashQuery(props.query);
             if (parsed.mode === 'order') return flattenRxResults(window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim()));
-            if (parsed.mode === 'dx') return searchDx(parsed.term || '');
+            // Mode dx : le modèle affiché/navigué vient de dxBuildModel, construit
+            // une seule fois par le contrôleur (editor-field.jsx) — items() ne sert
+            // qu'à activer/désactiver la navigation clavier interne du plugin
+            // Suggestion, qu'on laisse volontairement inerte ici (voir dxStep).
+            if (parsed.mode === 'dx') return [];
             return filterSlashItems(props.query);
           },
           command: handlers.onCommand,
@@ -1864,8 +1841,6 @@ Object.assign(window, {
   splitPosPM,
   newChipId,
   newToolInstanceId,
-  searchCIM10,
-  searchDx,
   CT_FIELD_DEFAULTS,
   buildClinicalToolNode,
   buildEditorExtensions,

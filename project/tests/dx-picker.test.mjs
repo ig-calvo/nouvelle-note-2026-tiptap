@@ -279,6 +279,17 @@ test('Entrée avec un texte qui ne correspond à rien crée un diagnostic en tex
   assert.deepEqual(r.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'libre', name: "un truc qui n'existe pas du tout", code: null, level: null } } }]);
 });
 
+test('commitFreeText (clic souris sur la ligne texte libre) produit le même effet que Entrée, sans passer par le flat', () => {
+  const st = w.dxInitState({ kind: 'nouveau' });
+  const model = w.dxBuildModel(st, "un truc qui n'existe pas du tout", ctxWith(null));
+  const r = w.dxStep(st, { type: 'commitFreeText' }, model);
+  assert.deepEqual(r.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'libre', name: "un truc qui n'existe pas du tout", code: null, level: null } } }]);
+  // Sans texte libre affiché (terme vide), l'événement est absorbé sans effet.
+  const emptyModel = w.dxBuildModel(st, '', ctxWith(null));
+  const r2 = w.dxStep(st, { type: 'commitFreeText' }, emptyModel);
+  assert.deepEqual(r2.effects, []);
+});
+
 test('Backspace sur un terme vide remonte la pile (drill puis retour à la racine)', () => {
   const st = w.dxInitState({ kind: 'nouveau' });
   const model = w.dxBuildModel(st, '', ctxWith(null));
