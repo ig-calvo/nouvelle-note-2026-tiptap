@@ -70,3 +70,9 @@ test('diagnostics.jsx charge après note-sections.jsx et avant editor-schema.jsx
   assert.ok(idx('note-ui/diagnostics.jsx') < idx('note-ui/editor-schema.jsx'));
   assert.ok(idx('note-ui/diagnostics.jsx') < idx('note-ui/Summary.jsx'), 'Summary.jsx appelle sommaireDxSeed() à son chargement');
 });
+
+test('dx-picker.jsx charge avant editor-schema.jsx', () => {
+  const idx = (rel) => srcs.indexOf(rel);
+  assert.ok(idx('note-ui/dx-picker.jsx') >= 0, 'note-ui/dx-picker.jsx doit être listé dans srcs');
+  assert.ok(idx('note-ui/dx-picker.jsx') < idx('note-ui/editor-schema.jsx'));
+});
