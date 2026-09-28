@@ -80,6 +80,10 @@ function AIBox({ onAddToNote }) {
   // Le canevas ne sert qu'à générer la note depuis une transcription : caché
   // tant qu'aucun enregistrement n'a été lancé.
   const showCanevas = aiState !== 'idle';
+  // Même comportement qu'un FloatField (NoteEditor.jsx) : au repos, le libellé
+  // est posé dans le cadre ; il remonte sur la bordure dès qu'un
+  // enregistrement est lancé.
+  const labelFloated = aiState !== 'idle';
   const genBtnPrimary = isReady || isGenerated;
   const genBtnDim = aiState === 'idle' || isLoading || isGenerating;
   const recBtnDim = isLoading || isGenerating;
@@ -87,9 +91,9 @@ function AIBox({ onAddToNote }) {
   return (
     <div style={aiS.box}>
       {/* Legend */}
-      <div style={aiS.legend}>
-        <span className="material-icons" style={aiS.legendIcon}>auto_awesome</span>
-        <span style={aiS.legendLabel}>Assistant IA</span>
+      <div style={{ ...aiS.legend, ...(labelFloated ? aiS.legendFloating : aiS.legendResting) }}>
+        <span className="material-icons" style={{ ...aiS.legendIcon, ...(labelFloated ? {} : aiS.legendIconResting) }}>auto_awesome</span>
+        <span style={{ ...aiS.legendLabel, ...(labelFloated ? {} : aiS.legendLabelResting) }}>Assistant IA</span>
       </div>
 
       {/* Recording bar */}
@@ -247,9 +251,13 @@ const BP_HOVER = 'rgb(37,47,150)';
 
 const aiS = {
   box: { position: 'relative', border: '1px solid rgb(217,217,230)', borderRadius: 10, padding: '18px 16px 14px', marginTop: 6, fontFamily: "'Inter',sans-serif" },
-  legend: { position: 'absolute', top: -11, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: '#fff', padding: '0 6px' },
-  legendIcon: { fontSize: 16, color: BP },
-  legendLabel: { font: '600 13px Inter', color: BP },
+  legend: { position: 'absolute', left: 14, display: 'flex', alignItems: 'center', gap: 5, background: '#fff', padding: '0 6px', pointerEvents: 'none', transition: 'top 0.16s ease' },
+  legendFloating: { top: -11 },
+  legendResting: { top: 25 },
+  legendIcon: { fontSize: 16, color: BP, transition: 'font-size 0.16s ease, color 0.16s ease' },
+  legendIconResting: { fontSize: 18, color: 'rgba(0,0,0,0.45)' },
+  legendLabel: { fontFamily: 'Inter', fontWeight: 600, fontSize: 13, color: BP, transition: 'font-size 0.16s ease, color 0.16s ease' },
+  legendLabelResting: { fontWeight: 400, fontSize: 16, color: 'rgba(0,0,0,0.55)' },
 
   /* Toolbar row */
   aiRow: { display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'nowrap' },
