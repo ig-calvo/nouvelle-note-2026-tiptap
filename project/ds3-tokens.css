@@ -31,6 +31,7 @@
   --mat-sys-level1: 0px 2px 1px -1px rgba(0,0,0,.2), 0px 1px 1px 0px rgba(0,0,0,.14), 0px 1px 3px 0px rgba(0,0,0,.12);
   --mat-sys-level2: 0px 3px 3px -2px rgba(0,0,0,.2), 0px 3px 4px 0px rgba(0,0,0,.14), 0px 1px 8px 0px rgba(0,0,0,.12);
   --mat-sys-level3: 0px 3px 5px -1px rgba(0,0,0,.2), 0px 6px 10px 0px rgba(0,0,0,.14), 0px 1px 18px 0px rgba(0,0,0,.12);
+  --mat-sys-level5: 0px 7px 8px -4px rgba(0,0,0,.2), 0px 12px 17px 2px rgba(0,0,0,.14), 0px 5px 22px 4px rgba(0,0,0,.12);
   /* level2 renversé, pour un élément flottant collé en bas de l'écran */
   --ds-level2-up: 0px -3px 3px -2px rgba(0,0,0,.2), 0px -3px 4px 0px rgba(0,0,0,.14), 0px -1px 8px 0px rgba(0,0,0,.12);
 
@@ -102,3 +103,18 @@
 .ds-btn--filled { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
 .ds-btn--tonal { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
 .ds-btn--icon { width: 40px; padding: 0; background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-secondary-container); border: 1px solid var(--mat-sys-outline); }
+
+/* Bouton icône 32 px (dsButtonSize xsmall) et item de sélecteur : state-layer 0,08 / 0,12,
+   focus clavier = anneau 3 px inverse-surface. */
+.ds-icon-btn, .ds-pick-item { transition: background-color var(--motion-duration) var(--motion-ease); }
+.ds-icon-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; padding: 0; border: 0;
+  border-radius: var(--mat-sys-corner-small);
+  background: transparent; color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+}
+.ds-icon-btn:hover, .ds-pick-item:hover:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.ds-icon-btn:active, .ds-pick-item:active:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent); }
+.ds-icon-btn:focus-visible, .ds-pick-item:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }

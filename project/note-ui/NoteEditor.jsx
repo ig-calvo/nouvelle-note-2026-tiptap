@@ -114,7 +114,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [transmissionOnlyId, setTransmissionOnlyId] = React.useState(null);
   const [txState, setTxState] = React.useState({});
   const [quickSendCid, setQuickSendCid] = React.useState(null);
-  const [noteDate, setNoteDate] = React.useState(function() { return new Date().toISOString().slice(0, 10); });
+  const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
   const [visitType, setVisitType] = React.useState('Visite en clinique');
   const [showTags, setShowTags] = React.useState(false);
@@ -777,8 +777,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
         <FloatField label="Raison de consultation" flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
-        <FloatField label="Date" width={210} input type="date" value={noteDate} onValueChange={setNoteDate} />
-        <FloatField label="Heure" width={170} input type="time" value={noteTime} onValueChange={setNoteTime} />
+        <DsDateField label="Date" width={210} value={noteDate} onChange={setNoteDate} />
+        <DsTimeField label="Heure" width={170} value={noteTime} onChange={setNoteTime} />
         <FloatField label="Type de visite" width={260} select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
         <button
           type="button"
@@ -1279,6 +1279,283 @@ function FloatField({ label, children, width, flex, error, input, type, select, 
     </div>);
 }
 
+// ─── Sélecteurs date / heure DS3 ────────────────────────────────────────────
+// Équivalents prototype de MatDatepicker / MatTimepicker : champ texte (saisie
+// clavier) + bouton d'ouverture + panneau (container-low, élévation 5). Format
+// FR — « 28 sept. 2026 », « 15:35 » (24 h) — indépendant de la locale du
+// navigateur. Les valeurs restent 'AAAA-MM-JJ' et 'HH:MM' pour le reste de l'app.
+function pad2(n) { return String(n).padStart(2, '0'); }
+function isoOf(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
+function localIsoDate(dt) { return isoOf(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
+function parseIso(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+  return m ? { y: +m[1], m: +m[2] - 1, d: +m[3] } : null;
+}
+function isRealDate(y, m, d) {
+  const dt = new Date(y, m, d);
+  return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+}
+function fmtDateFr(iso) {
+  const p = parseIso(iso);
+  return p ? new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(p.y, p.m, p.d)) : '';
+}
+// Accepte 2026-09-28, 28/09/2026, 28-9-2026 ; null si invalide.
+function parseDateInput(text) {
+  const t = (text || '').trim();
+  let y, m, d, r;
+  if ((r = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(t))) { y = +r[1]; m = +r[2] - 1; d = +r[3]; }
+  else if ((r = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/.exec(t))) { d = +r[1]; m = +r[2] - 1; y = +r[3]; }
+  else return null;
+  return isRealDate(y, m, d) ? isoOf(y, m, d) : null;
+}
+// Accepte 15:35, 15h35, 1535, 3:35 pm, 9 ; null si invalide.
+function parseTimeInput(text) {
+  const t = (text || '').trim().toLowerCase().replace(/\s+/g, '').replace(/\./g, '');
+  let r = /^(\d{1,2})(?:[:h](\d{2})?)?(am|pm)?$/.exec(t);
+  let h, mi, ap;
+  if (r) { h = +r[1]; mi = r[2] ? +r[2] : 0; ap = r[3]; }
+  else if ((r = /^(\d{2})(\d{2})(am|pm)?$/.exec(t))) { h = +r[1]; mi = +r[2]; ap = r[3]; }
+  else return null;
+  if (ap) { if (h < 1 || h > 12) return null; h = (h % 12) + (ap === 'pm' ? 12 : 0); }
+  if (h > 23 || mi > 59) return null;
+  return pad2(h) + ':' + pad2(mi);
+}
+
+function PickerField({ label, width, value, format, parse, onCommit, icon, toggleLabel, children }) {
+  const [open, setOpen] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
+  const [draft, setDraft] = React.useState(null);
+  const wrapRef = React.useRef(null);
+  const toggleRef = React.useRef(null);
+  const inputId = React.useId();
+
+  React.useEffect(function() {
+    if (!open) return undefined;
+    function onDown(e) { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', onDown);
+    return function() { document.removeEventListener('mousedown', onDown); };
+  }, [open]);
+
+  function commit() {
+    if (draft === null) return;
+    const v = parse(draft);
+    if (v && v !== value) onCommit(v);
+    setDraft(null);
+  }
+  function close(refocus) {
+    setOpen(false);
+    if (refocus && toggleRef.current) toggleRef.current.focus();
+  }
+  function choose(v) { onCommit(v); setDraft(null); close(true); }
+
+  return (
+    <div
+      ref={wrapRef}
+      style={{ ...neFieldStyles.wrap, width, flexShrink: 0, ...(focused || open ? neFieldStyles.wrapFocused : {}) }}
+      onFocus={function() { setFocused(true); }}
+      onBlur={function(e) { if (!wrapRef.current.contains(e.relatedTarget)) setFocused(false); }}>
+      <label htmlFor={inputId} style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused || open ? { color: 'var(--mat-sys-primary)' } : {}) }}>{label}</label>
+      <div style={neFieldStyles.inner}>
+        <input
+          id={inputId}
+          type="text"
+          autoComplete="off"
+          style={neFieldStyles.input}
+          value={draft !== null ? draft : format(value)}
+          onChange={function(e) { setDraft(e.target.value); }}
+          onFocus={function(e) { setDraft(format(value)); e.target.select(); }}
+          onBlur={commit}
+          onKeyDown={function(e) {
+            if (e.key === 'Enter') { commit(); }
+            else if (e.key === 'Escape') { setDraft(null); }
+            else if (e.key === 'ArrowDown' && e.altKey) { e.preventDefault(); setOpen(true); }
+          }} />
+        <button
+          ref={toggleRef}
+          type="button"
+          className="ds-icon-btn"
+          aria-label={toggleLabel}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={function() { setOpen(function(o) { return !o; }); }}>
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>{icon}</span>
+        </button>
+      </div>
+      {open &&
+        <div
+          role="dialog"
+          aria-label={label}
+          style={neFieldStyles.popup}
+          onKeyDown={function(e) { if (e.key === 'Escape') { e.stopPropagation(); close(true); } }}>
+          {children({ choose: choose })}
+        </div>}
+    </div>);
+}
+
+function DsDateField({ label, width, value, onChange }) {
+  return (
+    <PickerField label={label} width={width} value={value} format={fmtDateFr} parse={parseDateInput} onCommit={onChange} icon="calendar_today" toggleLabel="Ouvrir le calendrier">
+      {function(api) { return <DsCalendar value={value} onSelect={api.choose} />; }}
+    </PickerField>);
+}
+
+function DsTimeField({ label, width, value, onChange }) {
+  return (
+    <PickerField label={label} width={width} value={value} format={function(v) { return v || ''; }} parse={parseTimeInput} onCommit={onChange} icon="schedule" toggleLabel="Choisir l’heure">
+      {function(api) { return <DsTimeList value={value} onSelect={api.choose} />; }}
+    </PickerField>);
+}
+
+function DsCalendar({ value, onSelect }) {
+  const sel = parseIso(value);
+  const now = new Date();
+  const todayIso = localIsoDate(now);
+  const [cursor, setCursor] = React.useState(sel || { y: now.getFullYear(), m: now.getMonth(), d: now.getDate() });
+  const gridRef = React.useRef(null);
+  const moveFocus = React.useRef(true); // focus initial + navigation clavier seulement
+
+  React.useEffect(function() {
+    if (!moveFocus.current || !gridRef.current) return;
+    const el = gridRef.current.querySelector('[data-day="' + cursor.d + '"]');
+    if (el) el.focus();
+    moveFocus.current = false;
+  }, [cursor]);
+
+  const monthFmt = new Intl.DateTimeFormat('fr-CA', { month: 'long', year: 'numeric' });
+  const wdShort = new Intl.DateTimeFormat('fr-CA', { weekday: 'narrow' });
+  const wdLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long' });
+  const dayLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const first = new Date(cursor.y, cursor.m, 1);
+  const daysInMonth = new Date(cursor.y, cursor.m + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < first.getDay(); i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  while (cells.length % 7) cells.push(null);
+  const weeks = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  function goto(dt, focus) { moveFocus.current = !!focus; setCursor({ y: dt.getFullYear(), m: dt.getMonth(), d: dt.getDate() }); }
+  function shiftMonth(delta, focus) {
+    const last = new Date(cursor.y, cursor.m + delta + 1, 0).getDate();
+    goto(new Date(cursor.y, cursor.m + delta, Math.min(cursor.d, last)), focus);
+  }
+  function onGridKey(e) {
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[e.key];
+    if (step) { e.preventDefault(); goto(new Date(cursor.y, cursor.m, cursor.d + step), true); }
+    else if (e.key === 'PageUp') { e.preventDefault(); shiftMonth(-1, true); }
+    else if (e.key === 'PageDown') { e.preventDefault(); shiftMonth(1, true); }
+  }
+
+  return (
+    <div style={{ width: 296 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--ds-spacing-xs)' }}>
+        <button type="button" className="ds-icon-btn" aria-label="Mois précédent" onClick={function() { shiftMonth(-1, false); }}>
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_left</span>
+        </button>
+        <div aria-live="polite" style={{ font: 'var(--mat-sys-title-medium-bold, 600 16px/20px var(--font-mat-sys-brand-family))', color: 'var(--mat-sys-on-surface)', textTransform: 'capitalize' }}>{monthFmt.format(first)}</div>
+        <button type="button" className="ds-icon-btn" aria-label="Mois suivant" onClick={function() { shiftMonth(1, false); }}>
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_right</span>
+        </button>
+      </div>
+      <div role="grid" aria-label={monthFmt.format(first)} ref={gridRef} onKeyDown={onGridKey}>
+        <div role="row" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 40px)' }}>
+          {[0, 1, 2, 3, 4, 5, 6].map(function(i) {
+            const ref = new Date(2023, 0, 1 + i); // 1er janv. 2023 = dimanche
+            return <div key={i} role="columnheader" aria-label={wdLong.format(ref)} style={{ height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', font: 'var(--mat-sys-label-medium)', color: 'var(--mat-sys-on-surface-variant)', textTransform: 'uppercase' }}>{wdShort.format(ref)}</div>;
+          })}
+        </div>
+        {weeks.map(function(w, wi) {
+          return (
+            <div key={wi} role="row" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 40px)' }}>
+              {w.map(function(d, di) {
+                if (!d) return <div key={di} role="gridcell" />;
+                const iso = isoOf(cursor.y, cursor.m, d);
+                const isSel = value === iso;
+                const isToday = iso === todayIso;
+                return (
+                  <div key={di} role="gridcell" aria-selected={isSel} style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button
+                      type="button"
+                      data-day={d}
+                      className="ds-pick-item"
+                      tabIndex={d === cursor.d ? 0 : -1}
+                      aria-label={dayLong.format(new Date(cursor.y, cursor.m, d))}
+                      aria-current={isToday ? 'date' : undefined}
+                      onClick={function() { onSelect(iso); }}
+                      style={{
+                        width: 40, height: 40, borderRadius: 'var(--mat-sys-corner-full, 9999px)', cursor: 'pointer',
+                        font: isSel ? 'var(--mat-sys-body-medium-bold, 600 14px/21px var(--font-mat-sys-plain-family))' : 'var(--mat-sys-body-medium)',
+                        border: isToday && !isSel ? '1px solid var(--mat-sys-primary)' : '1px solid transparent',
+                        background: isSel ? 'var(--mat-sys-primary)' : 'transparent',
+                        color: isSel ? 'var(--mat-sys-on-primary)' : 'var(--mat-sys-on-surface)'
+                      }}>{d}</button>
+                  </div>);
+              })}
+            </div>);
+        })}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--ds-spacing-xs)' }}>
+        <button type="button" className="ds-btn" style={{ height: 40, padding: '0 var(--ds-spacing-s)', background: 'transparent', color: 'var(--mat-sys-primary)' }} onClick={function() { onSelect(todayIso); }}>Aujourd’hui</button>
+      </div>
+    </div>);
+}
+
+const TIME_OPTIONS = (function() {
+  const out = [];
+  for (let m = 0; m < 24 * 60; m += 15) out.push(pad2(Math.floor(m / 60)) + ':' + pad2(m % 60));
+  return out;
+})();
+
+function DsTimeList({ value, onSelect }) {
+  const listRef = React.useRef(null);
+  const toMin = function(t) { const p = /^(\d{2}):(\d{2})$/.exec(t || ''); return p ? +p[1] * 60 + +p[2] : 8 * 60; };
+  const target = toMin(value);
+  let nearest = 0;
+  TIME_OPTIONS.forEach(function(t, i) { if (Math.abs(toMin(t) - target) < Math.abs(toMin(TIME_OPTIONS[nearest]) - target)) nearest = i; });
+
+  React.useEffect(function() {
+    const el = listRef.current && listRef.current.children[nearest];
+    if (el) { el.focus(); listRef.current.scrollTop = el.offsetTop - listRef.current.clientHeight / 2 + el.offsetHeight / 2; }
+  }, []);
+
+  function onKey(e) {
+    const items = listRef.current.children;
+    const i = Array.prototype.indexOf.call(items, document.activeElement);
+    let n = null;
+    if (e.key === 'ArrowDown') n = Math.min(items.length - 1, i + 1);
+    else if (e.key === 'ArrowUp') n = Math.max(0, i - 1);
+    else if (e.key === 'Home') n = 0;
+    else if (e.key === 'End') n = items.length - 1;
+    if (n !== null) { e.preventDefault(); items[n].focus(); }
+  }
+
+  return (
+    <div ref={listRef} role="listbox" aria-label="Heures" onKeyDown={onKey} style={{ width: 146, maxHeight: 264, overflowY: 'auto', position: 'relative' }}>
+      {TIME_OPTIONS.map(function(t, i) {
+        const isSel = t === value;
+        return (
+          <button
+            key={t}
+            type="button"
+            role="option"
+            className="ds-pick-item"
+            aria-selected={isSel}
+            tabIndex={i === nearest ? 0 : -1}
+            onClick={function() { onSelect(t); }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', height: 40, padding: '0 var(--ds-spacing-12)',
+              border: 0, borderRadius: 'var(--mat-sys-corner-small)', cursor: 'pointer', textAlign: 'left',
+              font: isSel ? 'var(--mat-sys-body-medium-bold, 600 14px/21px var(--font-mat-sys-plain-family))' : 'var(--mat-sys-body-medium)',
+              background: isSel ? 'var(--mat-sys-secondary-container)' : 'transparent',
+              color: isSel ? 'var(--mat-sys-on-secondary-container)' : 'var(--mat-sys-on-surface)'
+            }}>
+            {t}
+            {isSel ? <span className="material-icons-outlined" style={{ fontSize: 18 }}>check</span> : null}
+          </button>);
+      })}
+    </div>);
+}
+
 const neFieldStyles = {
   // DS3 : champ 44 px, coin 8 px, contour --mat-sys-outline (4:1), focus 2 px primary
   wrap: { position: 'relative', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', height: 44, display: 'flex', alignItems: 'center', padding: '0 var(--ds-spacing-12)', background: 'var(--mat-sys-surface-container-lowest)' },
@@ -1288,6 +1565,7 @@ const neFieldStyles = {
   labelFloating: { top: -9, fontSize: 12, lineHeight: '16px', fontWeight: 500, letterSpacing: 'var(--mat-sys-label-medium-tracking)' },
   labelResting: { top: 9, fontSize: 16, lineHeight: '24px', fontWeight: 400, letterSpacing: 'var(--mat-sys-body-large-tracking)' },
   inner: { display: 'flex', alignItems: 'center', width: '100%', gap: 'var(--ds-spacing-xs)' },
+  popup: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 40, background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-large)', boxShadow: 'var(--mat-sys-level5)', padding: 'var(--ds-spacing-12)' },
   input: { border: 'none', outline: 'none', background: 'transparent', width: '100%', font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 0 }
 };
 

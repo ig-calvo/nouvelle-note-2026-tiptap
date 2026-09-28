@@ -127,8 +127,7 @@ function FloatingToolbar({ position = 'haut' }) {
   // Largeur budgétée par la fenêtre (pas de conteneur parent à mesurer,
   // contrairement au mode "Haut de note") — recalculée à chaque render,
   // comme `left` ci-dessous.
-  const W = Math.max(300, Math.min(620, window.innerWidth - 16));
-  const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
+  const maxW = Math.max(300, Math.min(620, window.innerWidth - 16));
   const anchoredBelow = state.top != null;
   const vAnchor = anchoredBelow ? { top: state.top } : { bottom: state.bottom };
 
@@ -136,9 +135,26 @@ function FloatingToolbar({ position = 'haut' }) {
   // (flip) pour rester du côté du texte plutôt que de s'éloigner vers le
   // bas de la fenêtre — voir menuStyle dans rich-text-controls.jsx.
   const chunks = S.buildToolbarChunks(editor, linkEditor, run, anchoredBelow);
-  const visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, W);
+  const visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, maxW);
   const visibleChunks = chunks.slice(0, visibleCount);
   const hiddenChunks = chunks.slice(visibleCount);
+
+  // La barre épouse ses boutons (pas de vide à droite du « ⋯ ») ; maxW ne sert
+  // que de budget pour décider de ce qui déborde. Le champ URL, lui, garde
+  // toute la largeur disponible. Largeur exacte : chaque bouton, séparateur et
+  // le menu déroulant est un enfant flex séparé par `gap` (chunkedWidth ne
+  // compte qu'un enfant par groupe, d'où une marge de budget volontaire) ;
+  // + 2 × 10 de padding + 2 de bordures (box-sizing: border-box).
+  let contentW = S.CHUNK_DROPDOWN_W;
+  let childCount = 1;
+  S.CHUNK_WIDTHS.slice(0, visibleCount).forEach((cw) => {
+    contentW += S.CHUNK_DIV_W + cw;
+    childCount += 1 + cw / S.CHUNK_BTN_W;
+  });
+  if (hiddenChunks.length > 0) { contentW += S.CHUNK_DIV_W + S.CHUNK_BTN_W; childCount += 2; }
+  const fitW = contentW + (childCount - 1) * ftS.bar.gap + 2 * 10 + 2;
+  const W = linkEditor.editing ? maxW : Math.min(maxW, fitW);
+  const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
 
   return (
     <div
