@@ -127,8 +127,7 @@ function FloatingToolbar({ position = 'haut' }) {
   // Largeur budgétée par la fenêtre (pas de conteneur parent à mesurer,
   // contrairement au mode "Haut de note") — recalculée à chaque render,
   // comme `left` ci-dessous.
-  const W = Math.max(300, Math.min(620, window.innerWidth - 16));
-  const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
+  const maxW = Math.max(300, Math.min(620, window.innerWidth - 16));
   const anchoredBelow = state.top != null;
   const vAnchor = anchoredBelow ? { top: state.top } : { bottom: state.bottom };
 
@@ -136,9 +135,23 @@ function FloatingToolbar({ position = 'haut' }) {
   // (flip) pour rester du côté du texte plutôt que de s'éloigner vers le
   // bas de la fenêtre — voir menuStyle dans rich-text-controls.jsx.
   const chunks = S.buildToolbarChunks(editor, linkEditor, run, anchoredBelow);
-  const visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, W);
+  const visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, maxW);
   const visibleChunks = chunks.slice(0, visibleCount);
   const hiddenChunks = chunks.slice(visibleCount);
+
+  // La barre épouse ses boutons (`width: fit-content` en production) ; maxW ne
+  // sert que de budget pour décider de ce qui déborde. Le champ URL, lui, garde
+  // toute la largeur disponible. Largeur exacte : boutons et menu déroulant
+  // sont collés (gap 0), chaque séparateur pèse 1 px + 2 × 4 px d'air, plus
+  // 2 × 8 de padding et 2 de bordures (box-sizing: border-box). chunkedWidth
+  // garde des marges plus larges : c'est un budget, pas une mesure.
+  const sepCount = visibleCount + (hiddenChunks.length > 0 ? 1 : 0);
+  let contentW = S.CHUNK_DROPDOWN_W;
+  S.CHUNK_WIDTHS.slice(0, visibleCount).forEach((cw) => { contentW += cw; });
+  if (hiddenChunks.length > 0) contentW += S.CHUNK_BTN_W;
+  const fitW = contentW + sepCount * (S.CHUNK_DIV_W + 2 * 4) + 2 * 8 + 2;
+  const W = linkEditor.editing ? maxW : Math.min(maxW, fitW);
+  const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
 
   return (
     <div
@@ -172,18 +185,20 @@ function FloatingToolbar({ position = 'haut' }) {
 }
 
 const ftS = {
+  // Habillage de la barre Tiptap de production : container-lowest, bordure
+  // outline-variant, coin 8, élévation 2 (élément flottant), padding 4/8.
   bar: {
     position: 'fixed',
     zIndex: 2000,
-    background: '#fff',
-    border: '1px solid #e0e0eb',
-    borderRadius: 10,
-    boxShadow: '0 4px 20px rgba(37,36,94,0.14)',
+    background: 'var(--mat-sys-surface-container-lowest)',
+    border: '1px solid var(--mat-sys-outline-variant)',
+    borderRadius: 'var(--mat-sys-corner-small)',
+    boxShadow: 'var(--mat-sys-level2)',
     display: 'flex',
     alignItems: 'center',
-    padding: '4px 10px',
-    gap: 2,
-    fontFamily: "'Inter', sans-serif",
+    padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xs)',
+    gap: 0,
+    fontFamily: 'var(--font-mat-sys-plain-family)',
     animation: 'pop-in 140ms cubic-bezier(0.2,0,0,1)'
   }
 };

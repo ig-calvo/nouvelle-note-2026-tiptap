@@ -13,6 +13,7 @@
   document.write('<link rel="stylesheet" href="note-ui/editor.css?v=' + v + '">');
   document.write('<link rel="stylesheet" href="note-ui/clinical-tool.css?v=' + v + '">');
   document.write('<link rel="stylesheet" href="colors_and_type.css?v=' + v + '">');
+  document.write('<link rel="stylesheet" href="ds3-tokens.css?v=' + v + '">');
 })();
 </script>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
@@ -114,15 +115,15 @@
     align-items: center;
     gap: 10px;
     padding: 10px 20px;
-    background: #fff;
-    border-top: 1px solid #e5e5ec;
+    background: var(--mat-sys-surface-container-lowest);
+    border-top: 1px solid var(--mat-sys-outline-variant);
     /* Pas de z-index : sticky crée déjà son propre contexte d'empilement et,
        étant le dernier enfant, il couvre le contenu qui défile dessous. Un
        z-index positif le ferait passer au-dessus des scrims modaux (piégés
        dans l'aside Summary en position:sticky). */
     min-height: 64px;
     margin-top: auto;
-    box-shadow: 0 -4px 12px rgba(37,36,94,0.08);
+    box-shadow: var(--ds-level2-up); /* élément flottant : élévation ≥ 2 */
   }
   ::-webkit-scrollbar { width: 9px; height: 9px; }
   ::-webkit-scrollbar-thumb { background: rgba(166, 167, 229, 0.7); border-radius: 5px; }
@@ -347,11 +348,11 @@ const DOC_KIND_LABEL = {
 };
 function docPillStyle(done) {
   return {
-    display: 'flex', alignItems: 'center', gap: 5,
-    padding: '5px 11px', borderRadius: 20,
-    background: done ? '#f0f0f5' : '#e9f2fc',
-    color: done ? 'rgba(0,0,0,0.45)' : '#1975d1',
-    fontWeight: 700, fontSize: 13, fontFamily: "'Inter',sans-serif",
+    display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)',
+    padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', borderRadius: 'var(--mat-sys-corner-large)',
+    background: done ? 'var(--mat-sys-surface-container-low)' : 'var(--mat-sys-primary-container)',
+    color: done ? 'var(--mat-sys-on-surface-variant)' : 'var(--mat-sys-primary)',
+    font: 'var(--mat-sys-label-medium)', fontWeight: 600, letterSpacing: 'var(--mat-sys-label-medium-tracking)',
   };
 }
 
@@ -507,11 +508,11 @@ function App() {
                 0
               </div>
               <div style={{ flex: 1 }} />
-              <button style={{ border: '1px solid #d0d0e0', borderRadius: 8, background: '#eeeef8', padding: '9px 22px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: '#25245E' }}
+              <button className="ds-btn ds-btn--tonal"
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
-              <button style={{ border: 0, borderRadius: 8, background: '#25245E', padding: '9px 24px', cursor: 'pointer', font: "600 14px 'Inter',sans-serif", color: '#fff' }}
+              <button className="ds-btn ds-btn--filled"
                 onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Compléter</button>
-              <button title="Transmission des documents" style={{ border: '1px solid #d0d0e0', borderRadius: 8, background: '#fff', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#25245E' }}
+              <button className="ds-btn ds-btn--icon" title="Transmission des documents" aria-label="Transmission des documents"
                 onClick={() => { if (noteTransmitRef.current) noteTransmitRef.current(); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20 }}>send</span>
               </button>

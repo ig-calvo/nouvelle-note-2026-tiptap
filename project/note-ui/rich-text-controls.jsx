@@ -131,13 +131,13 @@ function ToolbarLinkEditRow({ linkEditor }) {
           if (e.key === 'Enter') { e.preventDefault(); linkEditor.confirm(); }
           else if (e.key === 'Escape') { e.preventDefault(); linkEditor.cancel(); }
         }} />
-      <button type="button" title="Confirmer" style={tbS.linkBtn}
+      <button type="button" className="ds-tb-btn" title="Confirmer" aria-label="Confirmer" style={tbS.linkBtn}
         onMouseDown={(e) => { e.preventDefault(); linkEditor.confirm(); }}>
-        <span className="material-icons-outlined" style={{ fontSize: 20, color: '#1975d1' }}>check</span>
+        <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
       </button>
-      <button type="button" title="Annuler" style={tbS.linkBtn}
+      <button type="button" className="ds-tb-btn" title="Annuler" aria-label="Annuler" style={tbS.linkBtn}
         onMouseDown={(e) => { e.preventDefault(); linkEditor.cancel(); }}>
-        <span className="material-icons-outlined" style={{ fontSize: 20, color: 'rgba(0,0,0,0.5)' }}>close</span>
+        <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>close</span>
       </button>
     </div>
   );
@@ -150,7 +150,7 @@ function ToolbarLinkEditRow({ linkEditor }) {
 function ToolbarBtn({ icon, title, active, disabled, onCmd, iconStyle, asRow }) {
   if (asRow) {
     return (
-      <button type="button" title={title} disabled={disabled}
+      <button type="button" className={'ds-tb-item' + (active ? ' is-active' : '')} title={title} disabled={disabled} aria-pressed={active === undefined ? undefined : !!active}
         style={{ ...tbS.overflowItem, ...(active ? tbS.overflowItemActive : {}), ...(disabled ? tbS.itemDisabled : {}) }}
         onMouseDown={(e) => { e.preventDefault(); if (!disabled) onCmd(); }}>
         <span className="material-icons-outlined" style={{ fontSize: 20, ...iconStyle }}>{icon}</span>
@@ -159,7 +159,7 @@ function ToolbarBtn({ icon, title, active, disabled, onCmd, iconStyle, asRow }) 
     );
   }
   return (
-    <button type="button" title={title} disabled={disabled}
+    <button type="button" className={'ds-tb-btn' + (active ? ' is-active' : '')} title={title} aria-label={title} disabled={disabled} aria-pressed={active === undefined ? undefined : !!active}
       style={{ ...tbS.btn, ...(active ? tbS.btnActive : {}), ...(disabled ? tbS.itemDisabled : {}) }}
       onMouseDown={(e) => { e.preventDefault(); if (!disabled) onCmd(); }}>
       <span className="material-icons-outlined" style={{ fontSize: 22, ...iconStyle }}>{icon}</span>
@@ -181,14 +181,14 @@ function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asR
   return (
     <div style={{ position: 'relative', ...(asRow ? { width: '100%' } : {}) }}>
       {asRow ? (
-        <button type="button" title={title}
+        <button type="button" className={'ds-tb-item' + ((open || active) ? ' is-active' : '')} title={title} aria-haspopup="dialog" aria-expanded={open}
           style={{ ...tbS.overflowItem, ...((open || active) ? tbS.overflowItemActive : {}) }}
           onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>{icon}</span>
           <span>{title}</span>
         </button>
       ) : (
-        <button type="button" title={title}
+        <button type="button" className={'ds-tb-btn' + ((open || active) ? ' is-active' : '')} title={title} aria-label={title} aria-haspopup="dialog" aria-expanded={open}
           style={{ ...tbS.btn, ...tbS.colorBtn, ...((open || active) ? tbS.btnActive : {}) }}
           onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
           <span className="material-icons-outlined" style={{ fontSize: 22 }}>{icon}</span>
@@ -199,20 +199,20 @@ function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asR
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
           <div style={asRow ? { ...tbS.colorMenu, left: '100%', top: 0, marginTop: 0, marginLeft: 8 } : menuStyle(tbS.colorMenu, flip)}>
-            <button type="button" title="Aucune couleur" style={tbS.swatchBtn}
+            <button type="button" className="ds-tb-swatch" title="Aucune couleur" aria-label="Aucune couleur" style={tbS.swatchBtn}
               onMouseDown={(e) => { e.preventDefault(); onPick(null); setOpen(false); }}>
               <span style={tbS.swatchNone}>
-                <span className="material-icons-outlined" style={{ fontSize: 15, color: '#8f8f8f' }}>block</span>
+                <span className="material-icons-outlined" style={{ fontSize: 13, color: 'var(--mat-sys-on-surface-variant)' }}>block</span>
               </span>
             </button>
             {colors.map((hex) => {
               const isCur = (current || '').toLowerCase() === hex.toLowerCase();
               const isWhite = hex.toLowerCase() === '#ffffff';
               return (
-                <button type="button" key={hex} title={hex}
+                <button type="button" key={hex} className="ds-tb-swatch" title={hex} aria-label={hex} aria-pressed={isCur}
                   style={{ ...tbS.swatchBtn, ...(isCur ? tbS.swatchBtnActive : {}) }}
                   onMouseDown={(e) => { e.preventDefault(); onPick(hex); setOpen(false); }}>
-                  <span style={{ ...tbS.swatch, background: hex, ...(isWhite ? { border: '1px solid #d8d8e0' } : {}) }} />
+                  <span style={{ ...tbS.swatch, background: hex, ...(isWhite ? { border: '1px solid var(--mat-sys-outline-variant)' } : {}) }} />
                 </button>
               );
             })}
@@ -238,16 +238,16 @@ function ToolbarBlockDropdown({ curBlock, onPick, width, flip }) {
   const [open, setOpen] = React.useState(false);
   return (
     <div style={{ position: 'relative', width: width || CHUNK_DROPDOWN_W, flexShrink: 0 }}>
-      <button type="button" style={tbS.typeBtn} onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
+      <button type="button" className="ds-tb-btn" aria-haspopup="menu" aria-expanded={open} style={tbS.typeBtn} onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
         <span>{curBlock.label}</span>
-        <span className="material-icons-outlined" style={{ fontSize: 20, color: 'rgba(0,0,0,0.55)' }}>unfold_more</span>
+        <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>unfold_more</span>
       </button>
       {open &&
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
           <div style={menuStyle(tbS.blockDrop, flip)}>
             {TOOLBAR_BLOCK_TYPES.map((b) => (
-              <div key={b.level}
+              <div key={b.level} className={'ds-tb-item' + (curBlock.level === b.level ? ' is-active' : '')} role="menuitem" aria-current={curBlock.level === b.level ? 'true' : undefined}
                 style={{ ...tbS.blockItem, ...b.preview, ...(curBlock.level === b.level ? tbS.blockItemActive : {}) }}
                 onMouseDown={(e) => { e.preventDefault(); onPick(b); setOpen(false); }}>
                 {b.label}
@@ -314,7 +314,7 @@ function ToolbarOverflowMenu({ chunks, flip }) {
   if (!chunks.length) return null;
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
-      <button type="button" title="Plus d'options" style={{ ...tbS.btn, ...(open ? tbS.btnActive : {}) }}
+      <button type="button" className={'ds-tb-btn' + (open ? ' is-active' : '')} title="Plus d'options" aria-label="Plus d'options" aria-haspopup="menu" aria-expanded={open} style={{ ...tbS.btn, ...(open ? tbS.btnActive : {}) }}
         onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
         <span className="material-icons-outlined" style={{ fontSize: 22 }}>more_horiz</span>
       </button>
@@ -330,30 +330,38 @@ function ToolbarOverflowMenu({ chunks, flip }) {
   );
 }
 
+// Habillage aligné sur la barre Tiptap de production (tiptap-toolbar.component.scss,
+// omnimed-frontend-shared) : boutons icône 40 px coin 8, état actif = couleur
+// primary (coin 12 au survol), hover = state layer surface-container-high,
+// séparateur outline-variant avec 4 px d'air de chaque côté, menus 200 px en
+// surface-container-low / level2 / coin 8 (items 44 px), palette 15 px.
+// Fond, survol et focus vivent dans ds3-tokens.css (.ds-tb-btn / .ds-tb-item) :
+// un `background` inline empêcherait le :hover.
 const tbS = {
-  typeBtn: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, width: '100%', minHeight: 36, padding: '8px 8px 8px 12px', border: 0, background: 'transparent', borderRadius: 999, cursor: 'pointer', font: "400 14px 'Inter',sans-serif", color: '#232428' },
-  blockDrop: { position: 'absolute', top: '100%', left: 0, background: '#fff', border: '1px solid #e0e0eb', borderRadius: 8, boxShadow: '0 4px 12px rgba(37,36,94,0.12)', zIndex: 10, minWidth: 140, overflow: 'hidden' },
-  blockItem: { padding: '8px 14px', fontSize: 13, cursor: 'pointer', color: 'rgba(0,0,0,0.78)' },
-  blockItemActive: { background: '#ebf6ff' },
-  sep: { width: 1, alignSelf: 'stretch', background: '#d8d8e0', flexShrink: 0 },
-  btn: { width: 40, height: 40, border: 0, background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(0,0,0,0.7)', flexShrink: 0 },
-  btnActive: { background: '#ebf6ff', color: '#1975d1' },
-  itemDisabled: { opacity: 0.35, cursor: 'default' },
+  typeBtn: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--ds-spacing-xxs)', width: '100%', height: 32, padding: '0 var(--ds-spacing-12)', border: 0, borderRadius: 'var(--mat-sys-corner-small)', cursor: 'pointer', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)' },
+  blockDrop: { position: 'absolute', top: '100%', left: 0, background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', zIndex: 10, width: 200, overflow: 'hidden', marginTop: 'calc(var(--ds-spacing-xxs) + 1px + var(--ds-spacing-xxs))' },
+  blockItem: { display: 'flex', alignItems: 'center', minHeight: 44, padding: '0 var(--ds-spacing-12)', cursor: 'pointer', color: 'var(--mat-sys-on-surface)' },
+  blockItemActive: {},
+  sep: { width: 1, alignSelf: 'stretch', background: 'var(--mat-sys-outline-variant)', margin: '0 var(--ds-spacing-xxs)', flexShrink: 0 },
+  btn: { position: 'relative', width: 40, height: 40, border: 0, borderRadius: 'var(--mat-sys-corner-small)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mat-sys-on-secondary-container)', flexShrink: 0 },
+  btnActive: { borderRadius: 'var(--mat-sys-corner-medium)' }, // fond tonal : .is-active dans ds3-tokens.css
+  itemDisabled: { opacity: 0.38, cursor: 'default' },
   colorBtn: { flexDirection: 'column', gap: 0, paddingTop: 2 },
   colorBar: { width: 18, height: 3, borderRadius: 2, marginTop: -3 },
   menuScrim: { position: 'fixed', inset: 0, zIndex: 9 },
-  colorMenu: { position: 'absolute', top: '100%', left: 0, marginTop: 8, background: '#fff', border: '1px solid #ececf2', borderRadius: 16, boxShadow: '0 10px 30px rgba(37,36,94,0.18)', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, padding: 14 },
-  swatchBtn: { width: 34, height: 34, border: 0, background: 'transparent', borderRadius: 10, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 },
-  swatchBtnActive: { boxShadow: 'inset 0 0 0 2px #1f1f1f' },
-  swatch: { width: 24, height: 24, borderRadius: 7 },
-  swatchNone: { width: 24, height: 24, borderRadius: 7, border: '1px solid #d8d8e0', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
-  overflowMenu: { position: 'absolute', top: '100%', right: 0, marginTop: 8, background: '#fff', border: '1px solid #e0e0eb', borderRadius: 8, boxShadow: '0 4px 12px rgba(37,36,94,0.12)', zIndex: 10, minWidth: 190, overflow: 'visible', padding: '4px 0' },
-  overflowRow: { display: 'flex', alignItems: 'center' },
-  overflowItem: { display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 0, background: 'transparent', padding: '8px 14px', cursor: 'pointer', font: "400 13px 'Inter',sans-serif", color: 'rgba(0,0,0,0.78)', textAlign: 'left' },
-  overflowItemActive: { background: '#ebf6ff' },
-  linkRow: { display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 },
-  linkInput: { flex: 1, minWidth: 0, border: 0, borderBottom: '1.5px solid #1975d1', outline: 'none', background: 'transparent', font: "400 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.85)', padding: '4px 2px' },
-  linkBtn: { width: 32, height: 32, border: 0, background: 'transparent', borderRadius: 6, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+  colorMenu: { position: 'absolute', top: '100%', left: 0, marginTop: 'calc(var(--ds-spacing-xxs) + 1px + var(--ds-spacing-xxs))', background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', zIndex: 10, display: 'grid', gridTemplateColumns: 'repeat(5, 20px)', gap: 'var(--ds-spacing-xxs)', padding: 'var(--ds-spacing-12)' },
+  swatchBtn: { width: 20, height: 20, border: 0, background: 'transparent', borderRadius: 'var(--mat-sys-corner-extra-small)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0 },
+  swatchBtnActive: { outline: '1px solid var(--mat-sys-on-surface)', outlineOffset: 0 },
+  swatch: { width: 15, height: 15, borderRadius: 'var(--mat-sys-corner-extra-small)' },
+  swatchNone: { width: 15, height: 15, borderRadius: 'var(--mat-sys-corner-extra-small)', border: '1px solid var(--mat-sys-outline-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  overflowMenu: { position: 'absolute', top: '100%', right: 0, marginTop: 'calc(var(--ds-spacing-xxs) + 1px + var(--ds-spacing-xxs))', background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', zIndex: 10, width: 'max-content', minWidth: 200, overflow: 'visible', padding: 'var(--ds-spacing-xxs) 0' },
+  // Un item par ligne, comme le menu « Voir plus » de production.
+  overflowRow: { display: 'flex', flexDirection: 'column', alignItems: 'stretch' },
+  overflowItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', width: '100%', minHeight: 44, border: 0, padding: '0 var(--ds-spacing-12)', cursor: 'pointer', font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', textAlign: 'left', whiteSpace: 'nowrap' },
+  overflowItemActive: {},
+  linkRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', flex: 1, minWidth: 0, padding: 'var(--ds-spacing-xxs)' },
+  linkInput: { flex: 1, minWidth: 0, border: 0, borderBottom: '2px solid var(--mat-sys-primary)', outline: 'none', background: 'transparent', font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 'var(--ds-spacing-xxs) 2px' },
+  linkBtn: { position: 'relative', width: 32, height: 32, border: 0, borderRadius: 'var(--mat-sys-corner-small)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
 };
 
 window.ToolbarShared = {

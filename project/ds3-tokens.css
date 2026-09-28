@@ -1,0 +1,133 @@
+/* Jetons Omnimed Design System 3 (DS3) — sous-ensemble utilisé par la carte Note.
+   Valeurs relues dans tokens.json du DS3 (clair / sombre via light-dark()).
+   `color-scheme: light` garde le rendu actuel ; retirer pour suivre le mode sombre
+   (classes omnimed-light / omnimed-dark sur <html> dans le DS). */
+:root {
+  color-scheme: light;
+
+  /* Rôles de couleur */
+  --mat-sys-primary: light-dark(#2e38a6, #b5b9e3);
+  --mat-sys-on-primary: light-dark(#ffffff, #141a52);
+  --mat-sys-primary-container: light-dark(#d6d9f5, #1e267b);
+  --mat-sys-secondary-container: light-dark(#dedbef, #3a3167);
+  --mat-sys-on-secondary-container: light-dark(#3a3167, #dedbef);
+  --mat-sys-surface: light-dark(#f8f7fd, #0e0e0f);
+  --mat-sys-surface-container-lowest: light-dark(#ffffff, #09090a);
+  --mat-sys-surface-container-low: light-dark(#f2f1f9, #17171a);
+  --mat-sys-surface-container-high: light-dark(#e6e4f1, #2a292e);
+  --mat-sys-on-surface: light-dark(#17171a, #e1dfec);
+  --mat-sys-on-surface-variant: light-dark(#484c51, #dee5ed);
+  --mat-sys-outline: light-dark(#798086, #9299a0);
+  --mat-sys-outline-variant: light-dark(#c3ccd5, #484c51);
+  --mat-sys-inverse-surface: light-dark(#313036, #e1dfec);
+  --mat-sys-error: light-dark(#a32933, #debabd);
+
+  /* Coins */
+  --mat-sys-corner-extra-small: 4px;
+  --mat-sys-corner-small: 8px;
+  --mat-sys-corner-medium: 12px;
+  --mat-sys-corner-large: 16px;
+
+  /* Élévation (ombres Material par défaut : noir neutre) */
+  --mat-sys-level1: 0px 2px 1px -1px rgba(0,0,0,.2), 0px 1px 1px 0px rgba(0,0,0,.14), 0px 1px 3px 0px rgba(0,0,0,.12);
+  --mat-sys-level2: 0px 3px 3px -2px rgba(0,0,0,.2), 0px 3px 4px 0px rgba(0,0,0,.14), 0px 1px 8px 0px rgba(0,0,0,.12);
+  --mat-sys-level3: 0px 3px 5px -1px rgba(0,0,0,.2), 0px 6px 10px 0px rgba(0,0,0,.14), 0px 1px 18px 0px rgba(0,0,0,.12);
+  --mat-sys-level5: 0px 7px 8px -4px rgba(0,0,0,.2), 0px 12px 17px 2px rgba(0,0,0,.14), 0px 5px 22px 4px rgba(0,0,0,.12);
+  /* level2 renversé, pour un élément flottant collé en bas de l'écran */
+  --ds-level2-up: 0px -3px 3px -2px rgba(0,0,0,.2), 0px -3px 4px 0px rgba(0,0,0,.14), 0px -1px 8px 0px rgba(0,0,0,.12);
+
+  /* Espacement (grille 4 pt) */
+  --ds-spacing-xxs: 4px;
+  --ds-spacing-xs: 8px;
+  --ds-spacing-12: 12px;
+  --ds-spacing-s: 16px;
+  --ds-spacing-m: 24px;
+  --ds-spacing-l: 32px;
+
+  /* Familles */
+  --font-mat-sys-brand-family: Poppins, "Segoe UI", system-ui, sans-serif;
+  --font-mat-sys-plain-family: Inter, "Segoe UI", system-ui, sans-serif;
+
+  /* Rôles typographiques : raccourci `font` (graisse taille/interligne famille) */
+  --mat-sys-headline-small: 600 24px/24px var(--font-mat-sys-brand-family);
+  --mat-sys-title-large: 400 18px/24px var(--font-mat-sys-brand-family);
+  --mat-sys-body-large: 400 16px/24px var(--font-mat-sys-plain-family);
+  --mat-sys-body-large-bold: 600 16px/24px var(--font-mat-sys-plain-family);
+  --mat-sys-body-medium: 400 14px/21px var(--font-mat-sys-plain-family);
+  --mat-sys-body-small: 400 12px/18px var(--font-mat-sys-plain-family);
+  --mat-sys-label-large: 500 14px/20px var(--font-mat-sys-plain-family);
+  --mat-sys-label-large-bold: 600 14px/20px var(--font-mat-sys-plain-family);
+  --mat-sys-label-medium: 500 12px/16px var(--font-mat-sys-plain-family);
+
+  /* Approche par rôle */
+  --mat-sys-body-large-tracking: 0.25px;
+  --mat-sys-body-medium-tracking: 0.25px;
+  --mat-sys-label-large-tracking: 0.25px;
+  --mat-sys-label-medium-tracking: 0.4px;
+
+  /* Mouvement et états */
+  --motion-duration: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Boutons DS3 (matButton, dsButtonSize="small" = 40 px).
+   Coin 8 px ; état survol/appui = state-layer 0,08 / 0,12 ; pas de shrink au clic ;
+   focus clavier = anneau 3 px inverse-surface. */
+.ds-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-spacing-xs);
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 var(--ds-spacing-m);
+  border: 0;
+  border-radius: var(--mat-sys-corner-small);
+  font: var(--mat-sys-label-large-bold);
+  letter-spacing: var(--mat-sys-label-large-tracking);
+  cursor: pointer;
+}
+.ds-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--motion-duration) var(--motion-ease);
+}
+.ds-btn:hover::before { opacity: 0.08; }
+.ds-btn:active::before { opacity: 0.12; }
+.ds-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 2px; }
+.ds-btn--filled { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.ds-btn--tonal { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ds-btn--icon { width: 40px; padding: 0; background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-secondary-container); border: 1px solid var(--mat-sys-outline); }
+
+/* Bouton icône 32 px (dsButtonSize xsmall) et item de sélecteur : state-layer 0,08 / 0,12,
+   focus clavier = anneau 3 px inverse-surface. */
+.ds-icon-btn, .ds-pick-item { transition: background-color var(--motion-duration) var(--motion-ease); }
+.ds-icon-btn {
+  flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; padding: 0; border: 0;
+  border-radius: var(--mat-sys-corner-small);
+  background: transparent; color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+}
+.ds-icon-btn:hover, .ds-pick-item:hover:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.ds-icon-btn:active, .ds-pick-item:active:not([aria-selected="true"]) { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent); }
+.ds-icon-btn:focus-visible, .ds-pick-item:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+
+/* Barre de mise en forme (aligné sur tiptap-toolbar.component.scss) : fond transparent au repos,
+   survol / appui / focus = state layer surface-container-high plein, focus clavier = anneau 3 px. */
+.ds-tb-btn, .ds-tb-item, .ds-tb-swatch { background: transparent; transition: background-color var(--motion-duration) var(--motion-ease); }
+.ds-tb-btn:hover:not(:disabled), .ds-tb-btn:active:not(:disabled), .ds-tb-item:hover:not(:disabled), .ds-tb-item:active:not(:disabled) { background: var(--mat-sys-surface-container-high); }
+.ds-tb-swatch:hover { outline: 1px solid var(--mat-sys-outline); outline-offset: 0; }
+.ds-tb-btn:focus-visible, .ds-tb-item:focus-visible, .ds-tb-swatch:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 0; z-index: 1; }
+/* Sélectionné = style du bouton tonal (secondary-container / on-secondary-container) : le fond
+   porte l'état, pas seulement la couleur du glyphe (WCAG 1.4.1). Survol : state layer 0,08 par-dessus. */
+.ds-tb-btn.is-active, .ds-tb-item.is-active { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ds-tb-btn.is-active:hover:not(:disabled), .ds-tb-item.is-active:hover:not(:disabled) { background: color-mix(in srgb, var(--mat-sys-on-secondary-container) 8%, var(--mat-sys-secondary-container)); }
+.ds-tb-btn.is-active:active:not(:disabled), .ds-tb-item.is-active:active:not(:disabled) { background: color-mix(in srgb, var(--mat-sys-on-secondary-container) 12%, var(--mat-sys-secondary-container)); }
