@@ -371,4 +371,9 @@ test('sommaireDxRowView met en forme left/mid/right/title pour l’affichage du 
   const resolved = w.sommaireDxRowView({ name: 'Cystite', code: 'N30.0', status: 'resolu', resolvedOn: '08/12/2025' });
   assert.equal(resolved.mid, 'résolu');
   assert.equal(resolved.right, '08/12/2025');
+  // Un problème du dossier cessé (D2) garde son `since` d'origine (mergeSommaireDx
+  // ne l'efface pas) : c'est resolvedOn, la date la plus récente, qui doit
+  // s'afficher, pas l'ancien « depuis ».
+  const ceasedFromProblem = w.sommaireDxRowView({ name: 'Rhinite allergique', code: 'J30.4', since: '2019', status: 'resolu', resolvedOn: '28/09/2026' });
+  assert.equal(ceasedFromProblem.right, '28/09/2026');
 });

@@ -530,7 +530,12 @@ function sommaireDxRowView(r) {
   return Object.assign({}, r, {
     left: r.name,
     mid: r.status === 'resolu' ? 'résolu' : '',
-    right: r.since ? ('depuis ' + r.since) : (r.resolvedOn || ''),
+    // resolvedOn l'emporte quand les deux sont présents : un problème
+    // Cessé (D2) garde son `since` d'origine (mergeSommaireDx ne le touche
+    // pas), mais c'est la date de résolution, la plus récente, qui doit
+    // s'afficher — sinon la ligne semble ignorer le Cesser qui vient de
+    // l'y amener.
+    right: r.resolvedOn || (r.since ? ('depuis ' + r.since) : ''),
     title: r.name + (r.code ? (' (' + r.code + ')') : ''),
   });
 }

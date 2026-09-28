@@ -722,23 +722,22 @@ const PATIENT = {
   status: 'En consultation',
 };
 
-const PROBLEMS = [
-  { id: 'pb1', ttl: 'Asthme léger', meta: 'Depuis 2018 · Contrôlé', sev: 'ok', sevLbl: 'Stable' },
-  { id: 'pb2', ttl: 'Allergie pénicilline', meta: 'Réaction: éruption cutanée', sev: 'err', sevLbl: 'Légère' },
-  { id: 'pb3', ttl: 'Grossesse', meta: '22 sem · suivi GARE', sev: '', sevLbl: 'Actif' },
-];
-
-// Problemes au dossier - memes donnees que le sommaire (liste ci-dessus).
-// Affiches en tete du menu /dx (voir searchDx dans editor-schema.jsx), meme
-// principe que PATIENT_MEDS pour /rx : sans terme tape, on retrouve tout le
-// dossier ; avec un terme, on filtre. Forme alignee sur searchCIM10 (libelle,
-// generic) pour pouvoir fusionner les deux listes dans une seule navigation
-// clavier - `fromChart` distingue un probleme du dossier d'un code CIM-10.
+// Problèmes au dossier affichés en tête du menu /dx (voir searchDx dans
+// editor-schema.jsx) — cale temporaire vers le VRAI Sommaire (Summary.jsx),
+// via getSommaireDiagnostics (diagnostics.jsx) : la liste PROBLEMS figée
+// d'avant cette fonctionnalité (Asthme léger, Allergie pénicilline,
+// Grossesse — sans lien avec le Sommaire affiché) est retirée. Même
+// principe que PATIENT_MEDS pour /rx : sans terme tapé, on retrouve tout le
+// dossier ; avec un terme, on filtre. Forme alignée sur searchCIM10
+// (libelle, generic) pour fusionner les deux listes dans une seule
+// navigation clavier — `fromChart` distingue un problème du dossier d'un
+// code CIM-10. Remplacé par le nouveau sélecteur (dx-picker.jsx à venir).
 function searchProblems(query) {
   const q = _norm((query || '').trim());
-  return PROBLEMS
-    .filter(function (p) { return !q || _norm(p.ttl).includes(q); })
-    .map(function (p) { return { key: p.id, libelle: p.ttl, generic: false, fromChart: true }; });
+  const rows = window.getSommaireDiagnostics ? window.getSommaireDiagnostics() : [];
+  return rows
+    .filter(function (r) { return !q || _norm(r.name).includes(q); })
+    .map(function (r) { return { key: r.sommaireId, libelle: r.name, generic: false, fromChart: true }; });
 }
 
 const VITALS = [
@@ -778,6 +777,6 @@ const SCENARIOS = [
     hint: 'Cliquez sur un chip pour modifier les détails.' },
 ];
 
-window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PROBLEMS, VITALS, RESULTS_RECENT, SCENARIOS,
+window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, searchProblems };

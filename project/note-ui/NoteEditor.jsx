@@ -48,6 +48,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // gabarit appliqué avant ouverture) — voir handleEditorReady/handleDocChange.
   const editorRef = React.useRef(null);
   const initialDocRef = React.useRef(null);
+  // Dernier instantané des fils de diagnostic envoyé au Sommaire (JSON, pour
+  // comparaison bon marché) — évite de redispatcher note:diagnostics-change
+  // quand rien n'a changé (handleDocChange tourne à chaque frappe).
+  const lastDxRef = React.useRef(null);
   const [docStats, setDocStats] = React.useState({ counts: {}, items: [], diagNames: [], chips: [] });
   // Doc JSON brut (docStats n'en garde qu'un résumé) — nécessaire au Journal
   // des actions (buildActionLog a besoin des attrs savedAt/author de chaque
@@ -68,6 +72,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   React.useEffect(function() {
     window.__CONFIDENTIAL_FIELD_ADDED = confidentialAdded;
   }, [confidentialAdded]);
+  // Filet de sécurité : si la note se ferme par un autre chemin que
+  // Compléter/resetNote (ex. le parent bascule isOpen sans passer par eux),
+  // la superposition du Sommaire ne doit pas rester accrochée à une note
+  // qui n'est plus visible.
+  React.useEffect(function() {
+    if (!isOpen && lastDxRef.current) {
+      lastDxRef.current = null;
+      window.__NOTE_DX_OVERLAY = [];
+      window.dispatchEvent(new CustomEvent('note:diagnostics-change', { detail: { threads: [] } }));
+    }
+  }, [isOpen]);
   // Déclenché par l'item « Champ confidentiel » du menu « + » (NoteBody vit
   // dans un composant distinct, voir ct-picker-open pour le même pont).
   React.useEffect(function() {
@@ -118,6 +133,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setDocStats(stats);
     setDocJson(docJson);
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
+    // Superposition déclarative au Sommaire (Summary.jsx) : l'état effectif de
+    // chaque fil documenté (Problème/Antécédent — D1/D2/D3), affiché « en
+    // attente » tant que la note n'est pas complétée (E2). Comparaison JSON
+    // pour ne dispatcher que si quelque chose a réellement changé.
+    const dxJson = JSON.stringify(stats.diagThreads);
+    if (dxJson !== lastDxRef.current) {
+      lastDxRef.current = dxJson;
+      window.__NOTE_DX_OVERLAY = stats.diagThreads;
+      window.dispatchEvent(new CustomEvent('note:diagnostics-change', { detail: { threads: stats.diagThreads } }));
+    }
   }
 
   // Pied de note (barre du bas, voir Note Clinique.html) : un résumé
@@ -493,6 +518,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
 
   function resetNote() {
     initialDocRef.current = null;
+    // La superposition n'a de sens que pour LA note en cours d'édition :
+    // sans ce nettoyage, une prochaine note vierge repartirait avec les
+    // lignes « en attente » de celle qu'on vient de fermer.
+    lastDxRef.current = null;
+    window.__NOTE_DX_OVERLAY = [];
+    window.dispatchEvent(new CustomEvent('note:diagnostics-change', { detail: { threads: [] } }));
     setRaison('');
     setTags([]);
     setShowTags(false);
@@ -679,6 +710,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       // lieu d'un checkout vierge reconstruit depuis le seul contenu.
       txState: txState,
     };
+    // Fusion définitive dans le dossier (Summary.jsx) — après ça, la ligne
+    // n'est plus « en attente » : Cesser devient résolu à la date DE LA NOTE
+    // (pas celle du clic, une note peut être antidatée), un Remplacer
+    // renomme la ligne d'origine. Doit précéder resetNote() : la ligne
+    // ci-dessous vide docStats/docJson, dont stats.diagThreads dépend.
+    window.dispatchEvent(new CustomEvent('note:diagnostics-commit', {
+      detail: { threads: stats.diagThreads, today: window.fmtSommaireDate(noteDate ? new Date(noteDate + 'T12:00') : new Date()) }
+    }));
     resetNote();
     if (onComplete) onComplete(data);
   }
