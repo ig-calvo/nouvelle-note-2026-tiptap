@@ -27,10 +27,43 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const chipMenuTimerRef = useRefE(null);
   const addBtnRef = useRefE(null);
   const fileInputRef = useRefE(null);
-  const [diagRename, setDiagRename] = useStateE(null); // { pos, value, rect } — renommage d'une région diagnostic
+  const [dxEdit, setDxEdit] = useStateE(null); // { id, region, mode, rect, otherMentionsCount } — DxEditPopover (edit/refine)
   const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
   const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
   const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
+  const [diagDocMenu, setDiagDocMenu] = useStateE(null); // { dxKey, number, rect, ctx } — menu « Documenter comme »
+
+  // Section du Sommaire (base, hors superposition de la note) où vit une
+  // ligne liée — pour le libellé « Déjà aux problèmes… » vs « Ajouté aux… »
+  // dans diagDocMenuItems (diagnostics.jsx). null si non liée ou si le
+  // Sommaire n'a encore rien publié.
+  function dxBaseKindFor(sommaireId) {
+    if (!sommaireId) return null;
+    const base = window.__SOMMAIRE_DX_BASE;
+    if (!base) return null;
+    if ((base.problems || []).some(function (r) { return r.id === sommaireId; })) return 'problems';
+    if ((base.history || []).some(function (r) { return r.id === sommaireId; })) return 'history';
+    return null;
+  }
+
+  // Applique la documentation (Problème/Antécédent/Non documenté — D1) à
+  // TOUTES les occurrences du fil (patchDiagRegions, editor-schema.jsx) —
+  // renommer/Cesser/Remplacer ne touchent qu'une occurrence, mais documenter
+  // est un état du FIL, pas d'une seule région (voir dxThreadIdentity).
+  function commitDiagDocumentation(dxKey, value) {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = window.getDiagModel(editor);
+    const thread = model.byKey[dxKey];
+    if (!thread) return;
+    const now = new Date().toISOString();
+    const author = window.__CURRENT_AUTHOR || null;
+    const patches = thread.occurrences.map(function (o) {
+      return { id: o.id, patch: { documentAs: value, documentedAt: value ? now : null, documentedBy: value ? author : null } };
+    });
+    window.patchDiagRegions(editor, patches);
+    editor.commands.focus();
+  }
 
   const onChipClickRef = useRefE(null); onChipClickRef.current = onChipClick;
 
@@ -68,11 +101,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
   }
 
-  // Sélection d'une suggestion CIM-10 (clic dans le DiagnosticDropdown).
-  function chooseDiagSuggestion(libelle) {
-    if (slashCommandRef.current) slashCommandRef.current({ __dx: true, name: libelle });
-  }
-
   // Insère le chip d'ordonnance riche (posologie complète) à la position de
   // « /rx query » (ou /lab /img /ref). Porté de l'ancien insertOrderChip
   // Quill : « cesser » construit un chip barré sans posologie ; « ajuster »
@@ -105,14 +133,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
   }
 
-  // Crée la région diagnostic à la position de « /dx query » : en-tête +
-  // un paragraphe de corps vide, curseur placé dans ce paragraphe.
+  // Crée (bientôt aussi : Reprend/Remplace/Cesse — dx-picker.jsx) une région
+  // diagnostic à la position de « /dx query » : en-tête + un paragraphe de
+  // corps vide, curseur placé dans ce paragraphe. makeDiagRegionAttrs
+  // (diagnostics.jsx) est le seul endroit qui construit ses attributs.
   function runDiagnosticCommand(editor, range, props) {
-    const name = (props.name || '').trim() || 'Diagnostic';
-    const diagId = window.newDiagId();
+    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    if (!attrs) return;
+    const diagId = attrs.id;
     const diagnosticContent = {
       type: 'diagnosticRegion',
-      attrs: { id: diagId, name: name },
+      attrs: attrs,
       content: [{ type: 'paragraph' }]
     };
     // Si « /dx query » occupe tout le paragraphe courant (ligne vide avant
@@ -137,7 +168,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   // Exécute l'action d'un item choisi. Reçoit {editor, range, props} du
   // plugin — `props` est soit un item SLASH_ITEMS (menu générique), soit
-  // {__order, item, action, kind} (RxMenu), soit {__dx, name} (DiagnosticDropdown).
+  // {__order, item, action, kind} (RxMenu), soit {__dx, action, pick, target}
+  // (DiagnosticDropdown — voir makeDiagRegionAttrs, diagnostics.jsx).
   function runSlashCommand({ editor, range, props }) {
     if (props.__order) { runOrderCommand(editor, range, props); return; }
     if (props.__dx) { runDiagnosticCommand(editor, range, props); return; }
@@ -204,13 +236,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       window.dispatchEvent(new CustomEvent('note:confidential-field-request'));
       return;
     }
-    if (it.addSection) {
-      editor.chain().focus().insertContentAt(range, [
-        { type: 'heading', attrs: { level: 2 }, content: [{ type: 'text', text: 'Nouvelle section' }] },
-        { type: 'paragraph' }
-      ]).run();
-      return;
-    }
     if (it.template) {
       const chipId = window.newChipId();
       const meta = window.NOTE_DATA.ENTITY_TYPES[it.template.type] || {};
@@ -231,11 +256,66 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // (selectedIndex, items…) vit dans cette fermeture ; on le reflète dans
   // le state React (setSlash) uniquement pour le rendu de <SlashMenu>.
   function makeSlashRender() {
-    let selectedIndex = 0, currentItems = [], currentClientRect = null, lastQuery = '';
+    let selectedIndex = 0, currentItems = [], currentClientRect = null, currentRange = null, lastQuery = '';
+    // État du picker /dx (dx-picker.jsx) — vit dans cette fermeture comme
+    // selectedIndex pour les autres modes ; reconstruit à chaque appel de
+    // publish() via dxBuildModel, jamais recalculé séparément pour le
+    // clavier et l'affichage (voir l'en-tête de dx-picker.jsx : c'était le
+    // piège de searchDx, deux appels indépendants).
+    let dxState = null, dxModel = null, dxSelfRewrite = false;
 
-    // Le mode dx démarre sans sélection (-1) : Entrée confirme alors le texte
-    // tapé tel quel (voir onKeyDown) — les autres modes démarrent sur le 1er item.
-    function initialIndex(mode) { return mode === 'dx' ? -1 : 0; }
+    function initialIndex() { return 0; }
+
+    // Contexte lu à chaque (re)construction du modèle /dx : fils de la note
+    // (par dxKey, décorations à jour via getDiagModel), lignes du Sommaire
+    // (base + superposition en attente, via getSommaireDiagnostics) et
+    // façade CIM-10 (peut ne pas être prête — dxBuildModel s'en accommode).
+    function dxCtx() {
+      const editor = editorRef.current;
+      return {
+        threads: editor ? window.getDiagModel(editor).threads : [],
+        sommaire: window.getSommaireDiagnostics ? window.getSommaireDiagnostics() : [],
+        cim: window.CIM10 || null
+      };
+    }
+
+    // Réécrit « /dx <ancien terme> » en « /dx <nouveau terme> » sans altérer
+    // l'historique (undo) — utilisé par les effets `setTerm` de dxStep
+    // (drill, remonter, fil d'Ariane) : le terme affiché doit suivre le
+    // niveau courant de l'arbre CIM-10 sans que l'utilisateur retape rien.
+    // dxSelfRewrite distingue cette réécriture d'une vraie frappe pour
+    // onUpdate, qui sinon réinitialiserait la sélection du picker (voir plus bas).
+    function rewriteDxTerm(term) {
+      const editor = editorRef.current;
+      if (!editor || !currentRange) { publish(lastQuery); return; }
+      const next = '/dx ' + term;
+      // drillTo/popStack effacent presque toujours le terme (retour à '') —
+      // si le terme AFFICHÉ est déjà celui-là (cas le plus fréquent : ouvrir
+      // « Parcourir la CIM-10 » sans avoir tapé de recherche), le texte du
+      // document ne change pas du tout : insertContentAt ne produit alors
+      // aucune transaction, et onUpdate (donc publish) ne se redéclenche
+      // jamais tout seul. dxState porte déjà le nouvel état (assigné par
+      // l'appelant avant applyDxEffects) — il ne reste qu'à republier nous-
+      // mêmes pour que l'affichage suive.
+      if (editor.state.doc.textBetween(currentRange.from, currentRange.to, '\n') === next) { publish(lastQuery); return; }
+      dxSelfRewrite = true;
+      editor.chain().focus().insertContentAt(currentRange, next).run();
+    }
+
+    // Exécute les effets renvoyés par dxStep — setTerm réécrit la requête
+    // (déclenche onUpdate, qui republie avec le nouveau terme), commit
+    // délègue à runDiagnosticCommand (editor-field.jsx) via le `command` du
+    // plugin (ce qui ferme aussi le picker), close ferme sans rien insérer.
+    // relabel n'apparaît jamais ici : ce contrôleur n'ouvre le picker qu'en
+    // intent 'nouveau', jamais 'edit'/'refine' (réservés à DxEditPopover).
+    function applyDxEffects(effects) {
+      effects.forEach(function (effect) {
+        if (effect.type === 'setTerm') { rewriteDxTerm(effect.term); }
+        else if (effect.type === 'commit' && slashCommandRef.current) {
+          slashCommandRef.current({ __dx: true, action: effect.payload.action, pick: effect.payload.pick || null, target: effect.payload.target || null });
+        } else if (effect.type === 'close') { setSlash(null); }
+      });
+    }
 
     // Menu générique : même une requête avec espace et 0 résultat reste
     // affichée (message « aucun résultat » + indice Échap) — plus de
@@ -245,48 +325,72 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // leur propre message « rien trouvé ».
     function publish(query) {
       const parsed = parseSlashQuery(query);
+      if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
         setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
         return;
       }
       if (parsed.mode === 'dx') {
-        const term = (parsed.term || '').trim();
-        setSlash({ mode: 'dx', query: term, suggestions: window.searchDx(term), activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
+        if (!dxState) dxState = window.dxInitState({ kind: 'nouveau' });
+        dxModel = window.dxBuildModel(dxState, parsed.term || '', dxCtx());
+        setSlash({
+          mode: 'dx', model: dxModel, actionFocus: dxState.actionFocus,
+          activeIndex: window.dxActiveIndex(dxState, dxModel),
+          rect: currentClientRect ? currentClientRect() : null
+        });
         return;
       }
       setSlash({ mode: 'menu', items: currentItems, activeIndex: selectedIndex, query: query, rect: currentClientRect ? currentClientRect() : null });
     }
     const api = {
       onStart(props) {
-        selectedIndex = initialIndex(parseSlashQuery(props.query).mode);
-        currentItems = props.items; currentClientRect = props.clientRect; lastQuery = props.query;
+        selectedIndex = initialIndex();
+        dxState = null; dxModel = null; dxSelfRewrite = false;
+        currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
       },
       onUpdate(props) {
-        if (props.query !== lastQuery) selectedIndex = initialIndex(parseSlashQuery(props.query).mode);
-        lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect;
+        const parsed = parseSlashQuery(props.query);
+        if (dxSelfRewrite) {
+          dxSelfRewrite = false; // réécriture déclenchée par un effet setTerm — dxState déjà à jour, ne pas retoucher la sélection
+        } else if (parsed.mode === 'dx' && dxState) {
+          // Vraie frappe pendant que le picker est déjà ouvert : la sélection
+          // se réinitialise (même règle que l'événement 'term' non-self de
+          // dxStep), mais intent/vue/pile restent (on continue de chercher
+          // dans le même sous-arbre CIM-10 si on y était).
+          dxState = Object.assign({}, dxState, { activeIndex: null, actionFocus: 0 });
+        } else if (props.query !== lastQuery) {
+          selectedIndex = initialIndex();
+        }
+        lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range;
         slashCommandRef.current = props.command;
         publish(props.query);
       },
       onKeyDown(props) {
-        if (props.event.key === 'Escape') { setSlash(null); return true; }
         const parsed = parseSlashQuery(lastQuery);
+        if (parsed.mode === 'dx') {
+          if (!dxState || !dxModel) return false;
+          const evt = { type: 'key', key: props.event.key, mod: props.event.metaKey || props.event.ctrlKey || props.event.altKey };
+          const result = window.dxStep(dxState, evt, dxModel);
+          if (!result.handled) return false;
+          dxState = result.state;
+          applyDxEffects(result.effects);
+          if (result.effects.length === 0) publish(lastQuery);
+          return true;
+        }
+        if (props.event.key === 'Escape') { setSlash(null); return true; }
         // Menu générique sans aucun résultat : on n'intercepte plus les
         // flèches/Entrée (rien à sélectionner) — la frappe continue
         // normalement, le message « aucun résultat » reste affiché via publish().
         if (parsed.mode === 'menu' && currentItems.length === 0) return false;
         if (props.event.key === 'ArrowDown') {
-          selectedIndex = parsed.mode === 'dx'
-            ? Math.min(currentItems.length - 1, (selectedIndex >= 0 ? selectedIndex : -1) + 1)
-            : Math.min(currentItems.length - 1, selectedIndex + 1);
+          selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;
         }
         if (props.event.key === 'ArrowUp') {
-          selectedIndex = parsed.mode === 'dx'
-            ? Math.max(-1, (selectedIndex >= 0 ? selectedIndex : 0) - 1)
-            : Math.max(0, selectedIndex - 1);
+          selectedIndex = Math.max(0, selectedIndex - 1);
           publish(lastQuery); return true;
         }
         if (props.event.key === 'Enter' || props.event.key === 'Tab') {
@@ -297,9 +401,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               const isActiveMed = it.med && it.medStatus === 'active';
               slashCommandRef.current({ __order: true, item: it, action: isActiveMed ? 'renouveler' : undefined, kind: parsed.kind });
             }
-          } else if (parsed.mode === 'dx') {
-            const s = selectedIndex >= 0 ? currentItems[selectedIndex] : null;
-            slashCommandRef.current({ __dx: true, name: s ? s.libelle : (parsed.term || '').trim() });
           } else {
             const it = currentItems[selectedIndex];
             if (it) slashCommandRef.current(it);
@@ -310,7 +411,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       },
       onExit() { setSlash(null); },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
-      republish() { publish(lastQuery); }
+      republish() { publish(lastQuery); },
+      // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
+      // même réducteur que le clavier (dxStep), pour que survol/clic/fil
+      // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
+      dxEvent(evt) {
+        if (!dxState || !dxModel) return;
+        const result = window.dxStep(dxState, evt, dxModel);
+        dxState = result.state;
+        applyDxEffects(result.effects);
+        if (result.effects.length === 0) publish(lastQuery);
+      }
     };
     slashApiRef.current = api;
     return api;
@@ -363,7 +474,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   // Position (avant-nœud) de la région diagnostic la plus proche englobant
   // un nœud DOM donné — utilisé pour retrouver le node depuis un clic sur
-  // son en-tête (.dxr-name / .dxr-promote), non géré par le NodeView lui-même.
+  // son en-tête (.dxr-name/.dxr-code/.dxr-refine/.dxr-doc), non géré par le
+  // NodeView lui-même.
   function findRegionPosFromDOM(editor, domNode) {
     try {
       const pos = editor.view.posAtDOM(domNode, 0);
@@ -375,28 +487,40 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     return -1;
   }
 
-  function openDiagRename(nameEl, regionPos, attrs) {
-    const rect = nameEl.getBoundingClientRect();
-    setDiagRename({
-      pos: regionPos,
-      value: attrs.name || '',
-      rect: { top: rect.bottom + 4, left: Math.max(8, Math.min(rect.left, window.innerWidth - 280)) }
-    });
+  // Ouvre DxEditPopover sur le nom/code (mode 'edit') ou le bouton « Préciser »
+  // (mode 'refine', dxCanRefine) d'une région existante — anchorEl sert au
+  // positionnement (dxMenuPlacement), attrs à l'intent initial de dx-picker
+  // (dxInitState). otherMentionsCount (indice « Renomme aussi N autres
+  // mentions ») : occurrences du MÊME fil qui portent encore la version
+  // actuelle (nom+code) — celles qu'un renommage toucherait aussi, hors
+  // celle-ci (voir diagRelabelPatches, appliqué tel quel à la validation).
+  function openDxEdit(regionPos, attrs, mode, anchorEl) {
+    const editor = editorRef.current;
+    const rect = anchorEl.getBoundingClientRect();
+    const thread = editor && window.getDiagModel(editor).byKey[attrs.dxKey];
+    const version = { name: attrs.name, code: attrs.code || null };
+    const otherMentionsCount = thread
+      ? thread.occurrences.filter(function (o) {
+          return o.id !== attrs.id && o.attrs.name === version.name && (o.attrs.code || null) === version.code;
+        }).length
+      : 0;
+    setDxEdit({ pos: regionPos, region: attrs, mode: mode, rect: rect, otherMentionsCount: otherMentionsCount });
   }
 
-  function commitDiagRename(newName) {
+  // Applique un renommage/reclassement (relabel de dx-picker.jsx — DxEditPopover)
+  // à TOUTES les occurrences de la même version, via diagRelabelPatches
+  // (diagnostics.jsx) + patchDiagRegions (editor-schema.jsx), en une seule
+  // transaction. Un `replaces` qui visait cette version est aussi mis à jour.
+  function commitDxRelabel(editedId, to) {
     const editor = editorRef.current;
-    const dr = diagRename;
-    setDiagRename(null);
-    if (!editor || !dr) return;
-    const name = (newName || '').trim();
-    if (!name) return;
-    editor.chain().focus().command(function (props) {
-      const node = props.tr.doc.nodeAt(dr.pos);
-      if (!node || node.type.name !== 'diagnosticRegion') return false;
-      props.tr.setNodeMarkup(dr.pos, undefined, Object.assign({}, node.attrs, { name: name }));
-      return true;
-    }).run();
+    if (!editor || !editedId) return;
+    const model = window.getDiagModel(editor);
+    const allOccurrences = model.threads.reduce(function (acc, t) { return acc.concat(t.occurrences); }, []);
+    const patches = window.diagRelabelPatches(allOccurrences, editedId, to, {
+      now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
+    });
+    if (patches.length) window.patchDiagRegions(editor, patches);
+    editor.commands.focus();
   }
 
   // Rouvre le menu (bouton « + » ou retour du picker d'outils cliniques).
@@ -421,22 +545,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     } catch (e) {}
   }
 
-  // Numéro affiché par chaque puce « Renvoi à un diagnostic » (.dxref) :
-  // ni un attribut du node ni un compteur CSS ne peuvent le porter, puisqu'il
-  // dépend de la position d'UN AUTRE node (le diagnostic visé) dans le doc.
-  // Recalculé ici à chaque transaction, comme updateLineBtnPos ci-dessus —
-  // et pose window.__HAS_DIAGNOSTICS, lu par filterSlashItems pour n'offrir
-  // le picker que si la note contient déjà au moins un diagnostic.
-  function syncDiagnosticRefs(editor) {
-    const diags = window.listDiagnostics(editor.state.doc);
-    window.__HAS_DIAGNOSTICS = diags.length > 0;
-    const numberById = {};
-    diags.forEach(function (d, i) { numberById[d.id] = i + 1; });
-    editor.view.dom.querySelectorAll('.dxref[data-diag-id]').forEach(function (el) {
-      const num = numberById[el.getAttribute('data-diag-id')];
-      el.textContent = num ? '(' + num + ')' : '(?)';
-      el.classList.toggle('dxref-broken', !num);
-    });
+  // Le numéro de chaque puce « Renvoi à un diagnostic » (.dxref) est
+  // maintenant posé par décoration (dxNumberingPlugin, editor-schema.jsx),
+  // recalculée par ProseMirror à chaque transaction — plus besoin de le
+  // faire ici. Il ne reste que window.__HAS_DIAGNOSTICS, lu par
+  // filterSlashItems pour n'offrir le picker « Renvoi à un diagnostic » que
+  // si la note contient déjà au moins un diagnostic (un FIL, pas une
+  // occurrence — une reprise ne compte pas deux fois).
+  function syncDiagFlags(editor) {
+    window.__HAS_DIAGNOSTICS = window.getDiagModel(editor).threads.length > 0;
   }
 
   // --- init Tiptap once
@@ -453,16 +570,18 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       // ensureSplit : tout document venu d'ailleurs (brouillon repris, dernière
       // note, gabarit, note d'avant cette fonctionnalité) reçoit sa ligne de
       // séparation — à la place de son ancien Titre 2 « Conclusion » quand il
-      // en avait un, sinon à la fin. Un seul point de passage pour tous les
-      // chemins de montage.
-      content: window.ensureSplit(initialDoc || window.DEFAULT_DOC()),
+      // en avait un, sinon à la fin. prepareDiagDoc (diagnostics.jsx) fait de
+      // même pour les diagnostics : recale newDiagId, corrige les ids/dxKey
+      // manquants ou dupliqués, migre l'ancien promotedAt/promotedBy. Un seul
+      // point de passage pour tous les chemins de montage.
+      content: window.prepareDiagDoc(window.ensureSplit(initialDoc || window.DEFAULT_DOC())),
       editorProps: {
         attributes: { class: 'ql-editor ProseMirror' }
       },
       onUpdate({ editor }) {
         onDocChange(editor.getJSON());
         updateLineBtnPos(editor);
-        syncDiagnosticRefs(editor);
+        syncDiagFlags(editor);
       },
       onSelectionUpdate({ editor }) {
         updateLineBtnPos(editor);
@@ -474,20 +593,42 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // Le contenu initial (brouillon, dernière note, gabarit) n'émet pas
     // d'update — on amorce nous-mêmes compteurs/Sommaire une seule fois.
     onDocChange(editor.getJSON());
-    syncDiagnosticRefs(editor);
+    syncDiagFlags(editor);
     if (onReady) onReady(editor);
 
+    // La CIM-10 peut finir de charger après le montage (fetch asynchrone,
+    // Note Clinique.html) : canRefine (posé dans les décorations,
+    // dxNumberingPlugin) dépend de son index. Une transaction à méta
+    // dxRefresh force le plugin à se reconstruire sans rien changer au doc.
+    function onCim10Ready() {
+      editor.view.dispatch(editor.state.tr.setMeta('dxRefresh', true).setMeta('addToHistory', false));
+    }
+    window.addEventListener('cim10:ready', onCim10Ready);
+
     // Diagnostic header — clic sur le nom → renommer ; clic sur le bouton →
-    // promouvoir en problème (écouté par Summary.jsx via note:add-problem).
+    // documenter comme problème (écouté par Summary.jsx via note:add-problem
+    // — bouton et libellé « Promouvoir » inchangés ici ; le menu « Documenter
+    // comme » et le pont déclaratif avec le Sommaire arrivent avec la suite
+    // de la branche diagnostics).
     editor.view.dom.addEventListener('mousedown', (e) => {
       const refEl = e.target.closest('.dxref');
       if (refEl) {
         e.preventDefault();
         // Puce cassée (diagnostic référencé supprimé depuis) : rien à
-        // ouvrir, voir syncDiagnosticRefs plus bas pour dxref-broken.
+        // ouvrir — voir le NodeView de diagnosticRef (editor-schema.jsx) qui
+        // pose dxref-broken quand la décoration ne porte aucun numéro.
         if (refEl.classList.contains('dxref-broken')) return;
-        const id = refEl.getAttribute('data-diag-id');
-        const target = id && editor.view.dom.querySelector('.dxr[data-diag-id="' + id + '"]');
+        // Par dxKey (le FIL visé) d'abord — la seule forme que produisent les
+        // nouveaux renvois ; data-diag-id reste lu pour un renvoi ancien
+        // (diagId) collé avant cette fonctionnalité, résolu vers la PREMIÈRE
+        // occurrence de son fil via getDiagModel.byId.
+        const dxKey = refEl.getAttribute('data-dx-key');
+        let target = dxKey && editor.view.dom.querySelector('.dxr[data-dx-key="' + CSS.escape(dxKey) + '"]');
+        if (!target) {
+          const id = refEl.getAttribute('data-diag-id');
+          const entry = id && window.getDiagModel(editor).byId[id];
+          if (entry) target = editor.view.dom.querySelector('.dxr[data-dx-key="' + CSS.escape(entry.dxKey) + '"]');
+        }
         if (target) {
           target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           target.classList.add('dxr-flash');
@@ -495,37 +636,43 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return;
       }
-      const nameEl = e.target.closest('.dxr-name');
-      if (nameEl) {
+      // Nom OU code : mode 'edit' (DxEditPopover) — un renommage libre ne
+      // change que le nom (le code est conservé), choisir un code CIM-10
+      // change nom+code+niveau (voir dx-picker.jsx, intent 'edit').
+      const nameOrCodeEl = e.target.closest('.dxr-name, .dxr-code');
+      if (nameOrCodeEl) {
         e.preventDefault();
-        const regionPos = findRegionPosFromDOM(editor, nameEl);
+        const regionPos = findRegionPosFromDOM(editor, nameOrCodeEl);
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
-          if (node) openDiagRename(nameEl, regionPos, node.attrs);
+          if (node) openDxEdit(regionPos, node.attrs, 'edit', nameOrCodeEl);
         }
         return;
       }
-      const promoteEl = e.target.closest('.dxr-promote');
-      if (promoteEl) {
+      const refineEl = e.target.closest('.dxr-refine');
+      if (refineEl) {
         e.preventDefault();
-        const head = promoteEl.closest('.dxr-head');
-        const nmEl = head && head.querySelector('.dxr-name');
-        const nm = nmEl ? nmEl.textContent.trim() : '';
-        if (nm) window.dispatchEvent(new CustomEvent('note:add-problem', { detail: { name: nm } }));
-        // Persisté dans le doc (pas seulement une classe CSS transitoire) —
-        // la classe .dxr-promoted suit maintenant attrs.promotedAt via
-        // render() ; c'est aussi ce qui fait entrer le diagnostic dans le
-        // Journal des actions (« Problèmes ») une fois promu.
-        const regionPos = findRegionPosFromDOM(editor, promoteEl);
+        const regionPos = findRegionPosFromDOM(editor, refineEl);
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
-          if (node) {
-            editor.chain().command(function (props) {
-              props.tr.setNodeMarkup(regionPos, undefined, Object.assign({}, node.attrs, {
-                promotedAt: new Date().toISOString(), promotedBy: window.__CURRENT_AUTHOR || null
-              }));
-              return true;
-            }).run();
+          if (node) openDxEdit(regionPos, node.attrs, 'refine', refineEl);
+        }
+        return;
+      }
+      const docEl = e.target.closest('.dxr-doc');
+      if (docEl) {
+        e.preventDefault();
+        const regionPos = findRegionPosFromDOM(editor, docEl);
+        if (regionPos >= 0) {
+          const node = editor.state.doc.nodeAt(regionPos);
+          const model = node && window.getDiagModel(editor);
+          const thread = model && model.byKey[node.attrs.dxKey];
+          if (thread) {
+            const e2 = thread.effective;
+            setDiagDocMenu({
+              dxKey: thread.dxKey, number: thread.number, rect: docEl.getBoundingClientRect(),
+              ctx: { documentAs: e2.documentAs, ceased: e2.status === 'cesse', linked: !!e2.sommaireId, baseKind: dxBaseKindFor(e2.sommaireId) }
+            });
           }
         }
       }
@@ -567,6 +714,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     });
 
     return () => {
+      window.removeEventListener('cim10:ready', onCim10Ready);
       editor.destroy();
       editorRef.current = null;
       if (onReady) onReady(null);
@@ -800,24 +948,34 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onClose={() => setSlash(null)} />
       }
 
-      {/* Mode diagnostic — /dx (recherche CIM-10) */}
-      {slash && slash.mode === 'dx' &&
-        <DiagnosticDropdown
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - 380)) }}
-          query={slash.query}
-          suggestions={slash.suggestions}
-          activeIndex={slash.activeIndex}
-          onPickSuggestion={chooseDiagSuggestion}
-          onClose={() => setSlash(null)} />
-      }
+      {/* Mode diagnostic — /dx (dx-picker.jsx : Dans cette note → Sommaire → CIM-10) */}
+      {slash && slash.mode === 'dx' && (() => {
+        const anchor = slash.rect || { top: 0, bottom: 0, left: 0 };
+        const placement = window.dxMenuPlacement(
+          { top: anchor.top, bottom: anchor.bottom, left: anchor.left },
+          { w: window.innerWidth, h: window.innerHeight }
+        );
+        return (
+          <DiagnosticDropdown
+            placement={placement}
+            model={slash.model}
+            activeIndex={slash.activeIndex}
+            actionFocus={slash.actionFocus}
+            onEvent={(evt) => { if (slashApiRef.current) slashApiRef.current.dxEvent(evt); }}
+            onClose={() => setSlash(null)} />
+        );
+      })()}
 
-      {/* Renommage d'une région diagnostic (clic sur son nom) */}
-      {diagRename &&
-        <DiagRenamePopover
-          pos={diagRename.rect}
-          value={diagRename.value}
-          onCommit={commitDiagRename}
-          onCancel={() => setDiagRename(null)} />
+      {/* Modifier (nom/code) ou Préciser un diagnostic existant (clic sur
+          son nom, son code, ou son bouton .dxr-refine) */}
+      {dxEdit &&
+        <DxEditPopover
+          anchorRect={dxEdit.rect}
+          region={dxEdit.region}
+          mode={dxEdit.mode}
+          otherMentionsCount={dxEdit.otherMentionsCount}
+          onRelabel={(to) => commitDxRelabel(dxEdit.region.id, to)}
+          onClose={() => setDxEdit(null)} />
       }
 
       {/* Choix de la source du fichier — sous-menu de « Ajouter des
@@ -858,9 +1016,24 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           diagnostics={diagRefMenu.diagnostics}
           onClose={() => setDiagRefMenu(null)}
           onBack={() => { setDiagRefMenu(null); openSlashMenu(); }}
-          onSelect={function (diagId) {
+          onSelect={function (d) {
             setDiagRefMenu(null);
-            editorRef.current.chain().focus().insertContent({ type: 'diagnosticRef', attrs: { diagId: diagId } }).run();
+            editorRef.current.chain().focus().insertContent({ type: 'diagnosticRef', attrs: { dxKey: d.dxKey, diagId: d.id } }).run();
+          }} />
+      }
+
+      {/* « Documenter comme » (D1) — Problème / Antécédent / Non documenté,
+          ouvert depuis le bouton .dxr-doc de l'en-tête d'une région. */}
+      {diagDocMenu &&
+        <DiagDocMenu
+          anchorRect={diagDocMenu.rect}
+          number={diagDocMenu.number}
+          items={window.diagDocMenuItems(diagDocMenu.ctx)}
+          onClose={() => setDiagDocMenu(null)}
+          onSelect={function (value) {
+            const dxKey = diagDocMenu.dxKey;
+            setDiagDocMenu(null);
+            commitDiagDocumentation(dxKey, value);
           }} />
       }
 
@@ -921,42 +1094,6 @@ const cmS = {
     padding: '8px 16px', cursor: 'pointer', font: "600 13px 'Inter',sans-serif", color: '#fff'
   }
 };
-
-// ---------------------------------------------------------
-// DiagRenamePopover — éditeur inline pour renommer une région diagnostic
-// (clic sur son nom dans l'en-tête).
-// ---------------------------------------------------------
-function DiagRenamePopover({ pos, value, onCommit, onCancel }) {
-  const [v, setV] = useStateE(value || '');
-  const inputRef = useRefE(null);
-  useEffectE(function () {
-    if (inputRef.current) { inputRef.current.focus(); inputRef.current.select(); }
-  }, []);
-  return (
-    <div style={{
-      position: 'fixed', top: pos.top, left: pos.left, zIndex: 70,
-      background: '#fff', border: '1px solid #b3ccf0', borderRadius: 10,
-      boxShadow: '0 4px 16px rgba(37,36,94,0.16)',
-      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', minWidth: 240
-    }}>
-      <span className="material-icons-outlined" style={{ fontSize: 16, color: '#1a5fd4', flexShrink: 0 }}>local_hospital</span>
-      <input
-        ref={inputRef}
-        value={v}
-        placeholder="Nom du diagnostic…"
-        style={{
-          flex: 1, border: 'none', borderBottom: '1.5px solid #1a5fd4', outline: 'none',
-          background: 'transparent', font: "500 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.85)', padding: '2px 2px'
-        }}
-        onChange={(e) => setV(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') { e.preventDefault(); onCommit(v); }
-          else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
-        }}
-        onBlur={() => onCommit(v)} />
-    </div>
-  );
-}
 
 // ---------------------------------------------------------
 // AddFileSourceMenu — sous-menu de « Ajouter des fichiers » (choix de la
@@ -1092,10 +1229,11 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
 // ---------------------------------------------------------
 // DiagnosticRefMenu — sous-menu de « Renvoi à un diagnostic » : liste les
 // diagnostics déjà présents dans la note (capturée à l'ouverture, voir
-// runSlashCommand) et insère une puce .dxref pointant sur celui choisi.
-// Le numéro affiché ici (comme celui de la puce une fois insérée) est
-// toujours le même que la pastille de son .dxr-head — les deux comptent les
-// diagnostics dans le même ordre (voir listDiagnostics, editor-schema.jsx).
+// runSlashCommand), un par FIL (listDiagnostics dédoublonne par dxKey — une
+// reprise en Détails ET en Conclusion n'y figure qu'une fois), et insère une
+// puce .dxref pointant sur le fil choisi. Le numéro affiché (d.number) est
+// le même que la pastille de sa région : les deux viennent de la même
+// numérotation par fil (diagnosticThreads/dxNumberingPlugin).
 // ---------------------------------------------------------
 function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect }) {
   const panelRef = useRefE(null);
@@ -1134,14 +1272,15 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
       <div style={afmS.list}>
         {(diagnostics || []).length === 0
           ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
-          : diagnostics.map(function (d, i) {
+          : diagnostics.map(function (d) {
             return (
-              <div key={d.id} style={afmS.item}
+              <div key={d.dxKey} style={afmS.item}
                 onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
                 onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
-                onClick={function () { onSelect(d.id); }}>
-                <span style={afmS.dxrefBadge}>{i + 1}</span>
+                onClick={function () { onSelect(d); }}>
+                <span style={afmS.dxrefBadge}>{d.number}</span>
                 <span style={afmS.itemLabel}>{d.name}</span>
+                {d.status === 'cesse' && <span style={afmS.ceasedTag}>Cessé</span>}
               </div>
             );
           })}
@@ -1149,6 +1288,95 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
     </div>
   );
 }
+
+// ---------------------------------------------------------
+// DiagDocMenu — « Documenter comme » (D1) : Problème / Antécédent / Non
+// documenté, un choix exclusif. items vient de diagDocMenuItems
+// (diagnostics.jsx), déjà calculé (selected/disabled/desc) selon l'état du
+// fil. Clavier complet (↑↓ sautent les options désactivées, Entrée valide,
+// Échap ferme) : contrairement au reste de l'en-tête, ce bouton est le seul
+// endroit du header qui doit être opérable sans souris — le panneau prend
+// le focus à l'ouverture et le rend à l'éditeur à la fermeture.
+// ---------------------------------------------------------
+function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
+  const panelRef = useRefE(null);
+  const [active, setActive] = useStateE(function () {
+    const i = items.findIndex(function (it) { return it.selected; });
+    return i >= 0 ? i : 0;
+  });
+
+  useEffectE(function () {
+    if (panelRef.current) panelRef.current.focus();
+  }, []);
+
+  useEffectE(function () {
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    return function () { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
+  }, [onClose]);
+
+  function pick(idx) { if (!items[idx].disabled) onSelect(items[idx].value); }
+  function step(dir) {
+    let next = active;
+    for (let i = 0; i < items.length; i++) {
+      next = (next + dir + items.length) % items.length;
+      if (!items[next].disabled) break;
+    }
+    setActive(next);
+  }
+  function onKeyDown(e) {
+    if (e.key === 'Escape') { e.preventDefault(); onClose(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); step(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); step(-1); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(active); }
+  }
+
+  const panelW = 280;
+  const MARGIN = 8;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} tabIndex={-1} role="menu" aria-label="Documenter comme" onKeyDown={onKeyDown}
+      style={Object.assign({}, ddmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={ddmS.heading}>Documenter comme</div>
+      {items.map(function (it, i) {
+        return (
+          <div key={it.value || 'aucun'} role="menuitemradio" aria-checked={it.selected} aria-disabled={it.disabled || undefined}
+            onMouseEnter={function () { if (!it.disabled) setActive(i); }}
+            onMouseDown={function (e) { e.preventDefault(); }}
+            onClick={function () { pick(i); }}
+            style={Object.assign({}, ddmS.item, it.disabled ? ddmS.itemDisabled : {}, (i === active && !it.disabled) ? ddmS.itemActive : {})}>
+            <span className="material-icons-outlined" style={{ fontSize: 18, color: it.selected ? '#1a5fd4' : 'rgba(0,0,0,0.5)', flexShrink: 0 }}>{it.icon}</span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13.5, fontWeight: it.selected ? 600 : 400, color: 'rgba(0,0,0,0.85)' }}>{it.label}</div>
+              <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.5)' }}>{it.desc}</div>
+            </span>
+            {it.selected && <span className="material-icons-outlined" style={{ fontSize: 16, color: '#1a5fd4', flexShrink: 0 }}>check</span>}
+          </div>
+        );
+      })}
+      <div style={ddmS.foot}>S'applique au diagnostic n° {number} partout dans la note.</div>
+    </div>
+  );
+}
+
+const ddmS = {
+  panel: {
+    position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
+    borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.20)', padding: '6px 0',
+    fontFamily: "var(--font-body, 'Inter', sans-serif)", outline: 'none',
+    animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
+  },
+  heading: { padding: '4px 14px 6px', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.4)' },
+  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer' },
+  itemActive: { background: '#eef1fb' },
+  itemDisabled: { opacity: 0.45, cursor: 'default' },
+  foot: { padding: '6px 14px 2px', borderTop: '1px solid #f0f0f6', marginTop: 4, fontSize: 11, color: 'rgba(0,0,0,0.4)' }
+};
 
 const afmS = {
   panel: {
@@ -1164,13 +1392,19 @@ const afmS = {
   list: { padding: '6px 0' },
   item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
   itemIcon: { fontSize: 20, color: 'rgba(0,0,0,0.5)', flexShrink: 0 },
-  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))' },
+  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))', flex: 1 },
   itemDesc: { fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', marginTop: 1 },
   dxrefBadge: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 18, height: 18, borderRadius: '50%', background: '#000', color: '#fff',
     fontFamily: "var(--font-body, 'Inter', sans-serif)", fontWeight: 600, fontSize: 11,
     lineHeight: 1, flexShrink: 0
+  },
+  // Même palette que .rx-status--ceased (editor.css) — un fil cessé peut
+  // quand même être repris par un renvoi (il reste dans la note).
+  ceasedTag: {
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+    color: '#7a1f26', background: '#ecdfe0', borderRadius: 4, padding: '2px 6px', flexShrink: 0
   }
 };
 

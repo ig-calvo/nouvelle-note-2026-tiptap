@@ -156,9 +156,10 @@
 <script type="module">
   (async function () {
     try {
-      const [core, pmState, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
+      const [core, pmState, pmView, starterKit, placeholder, suggestion, underline, textStyle, color, highlight, link] = await Promise.all([
         import('https://esm.sh/@tiptap/core@2.11.5'),
         import('https://esm.sh/@tiptap/pm@2.11.5/state'),
+        import('https://esm.sh/@tiptap/pm@2.11.5/view'),
         import('https://esm.sh/@tiptap/starter-kit@2.11.5'),
         import('https://esm.sh/@tiptap/extension-placeholder@2.11.5'),
         import('https://esm.sh/@tiptap/suggestion@2.11.5?deps=@tiptap/core@2.11.5,@tiptap/pm@2.11.5'),
@@ -173,7 +174,14 @@
         StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
         Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
         Link: link.default,
-        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection }
+        // Decoration/DecorationSet (numérotation des diagnostics par
+        // décorations, editor-schema.jsx) DOIVENT venir de la même instance
+        // de prosemirror-view que celle utilisée par l'EditorView réel —
+        // même version épinglée (2.11.5) que /state ci-dessus, déjà
+        // éprouvée : Plugin/PluginKey en sont issus et fonctionnent avec
+        // core sans problème d'instance depuis le début de ce prototype.
+        pm: { Plugin: pmState.Plugin, PluginKey: pmState.PluginKey, TextSelection: pmState.TextSelection,
+          Decoration: pmView.Decoration, DecorationSet: pmView.DecorationSet, EditorView: pmView.EditorView }
       };
       window.dispatchEvent(new Event('tiptap:ready'));
     } catch (err) {
@@ -182,7 +190,40 @@
   })();
 </script>
 
-<script>fetch('note-ui/cim10-fr-clinique.json?v=' + Date.now()).then(function(r){return r.json();}).then(function(d){window.CIM10_DATA=d;});</script>
+<script>
+(function () {
+  // Deux fichiers indépendants : la liste plate existante (CIM10_DATA) et la
+  // hiérarchie (chapitres/blocs/catégories manquantes — CIM10_HIERARCHY, voir
+  // note-ui/cim10-index.jsx). Chargés séparément, chacun posé sur `window` dès
+  // qu'il arrive : un échec de la hiérarchie n'empêche pas CIM10_DATA d'être
+  // utilisable par l'ancien /dx (searchCIM10), qui ne lit que ce fichier.
+  var v = '?v=' + Date.now();
+  // Chaque fetch attrape sa propre erreur (jamais de rejet qui remonte) —
+  // Promise.all attend donc toujours les DEUX tentatives, réussies ou non,
+  // avant d'émettre cim10:ready une seule fois. Sans ça, l'ordre d'arrivée
+  // réseau des deux fichiers pourrait déclencher l'événement avant que
+  // CIM10_DATA (le plus gros des deux) soit posé.
+  function get(url, onOk) {
+    return fetch(url + v).then(function (r) {
+      if (!r.ok) throw new Error(url + ' : HTTP ' + r.status);
+      return r.json();
+    }).then(onOk).catch(function (err) {
+      window.CIM10_ERROR = (err && err.message) || String(err);
+      console.error('CIM-10 : ' + url + ' non chargé :', window.CIM10_ERROR);
+    });
+  }
+  Promise.all([
+    get('note-ui/cim10-fr-clinique.json', function (d) { window.CIM10_DATA = d; }),
+    get('note-ui/cim10-hierarchy.json', function (d) { window.CIM10_HIERARCHY = d; })
+  ]).then(function () {
+    // Émis même si l'un des deux a échoué : CIM10.status() distingue
+    // 'ready'/'error' via window.CIM10_ERROR — voir cim10-index.jsx. Une
+    // hiérarchie manquante n'empêche pas l'ancien /dx (searchCIM10, qui ne
+    // lit que CIM10_DATA) de continuer à fonctionner.
+    window.dispatchEvent(new Event('cim10:ready'));
+  });
+})();
+</script>
 <!-- Chargeur JSX avec anti-cache : ajoute un horodatage à chaque rechargement
      pour qu'on voie toujours la dernière version du code pendant le prototypage.
      TOUJOURS synchrone et inconditionnel : document.write() appelé après la
@@ -204,6 +245,9 @@
     'note-ui/editor-data.jsx',
     'note-ui/editor-popover.jsx',
     'note-ui/note-sections.jsx',
+    'note-ui/diagnostics.jsx',
+    'note-ui/cim10-index.jsx',
+    'note-ui/dx-picker.jsx',
     'note-ui/editor-schema.jsx',
     'note-ui/review-mode.jsx',
     'note-ui/DocumentViewerModal.jsx',
@@ -532,7 +576,6 @@ function App() {
                       { value: 'actuel', label: 'Actuel' },
                       { value: 'carte', label: 'Carte' },
                       { value: 'etiquette', label: 'Étiquette' },
-                      { value: 'rail', label: 'Rail' },
                     ]}
                     onChange={(v) => setTweak('diagStyle', v)} />
       </TweaksPanel>

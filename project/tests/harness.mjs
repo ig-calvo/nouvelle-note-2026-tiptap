@@ -4,14 +4,21 @@
 // chargé par <script type="text/babel"> qui publie ses fonctions sur `window`.
 // On reproduit donc exactement ça — un `window` de remplacement et les vrais
 // fichiers évalués dedans — plutôt que de dupliquer la logique dans les tests.
-// Aucune dépendance : `node --test project/tests/`.
+// Aucune dépendance : `node --test project/tests/*.test.mjs` (la forme
+// « dossier » n'est plus acceptée depuis Node 25).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+export const projectDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/editor-schema.jsx']) {
+// Lit un fichier JSON du prototype (ex. la base CIM-10) sans passer par le
+// faux `window` — utile aux tests qui vérifient les données elles-mêmes.
+export function readProjectJSON(rel) {
+  return JSON.parse(fs.readFileSync(path.join(projectDir, rel), 'utf8'));
+}
+
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx']) {
   const win = {};
   for (const rel of files) {
     const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');

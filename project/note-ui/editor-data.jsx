@@ -616,8 +616,6 @@ const RECOGNIZERS = [];
 
 const SLASH_ITEMS = [
   // ── STRUCTURE ────────────────────────────────────────────
-  { key: 'add-section', section: 'Structure', icon: 'add', title: 'Ajouter une section', desc: 'Nouvelle section de texte libre', kbd: 'sec',
-    addSection: true },
   { key: 'outils-cliniques', section: 'Structure', icon: 'handyman', title: 'Outils cliniques', desc: 'Score, calculatrice, outil clinique…', kbd: '',
     ctPicker: true, noKbd: true },
   { key: 'note-templates', section: 'Structure', icon: 'post_add', title: 'Gabarits de note', desc: 'Syndrome viral, infection urinaire, examen périodique…', kbd: '',
@@ -722,25 +720,6 @@ const PATIENT = {
   status: 'En consultation',
 };
 
-const PROBLEMS = [
-  { id: 'pb1', ttl: 'Asthme léger', meta: 'Depuis 2018 · Contrôlé', sev: 'ok', sevLbl: 'Stable' },
-  { id: 'pb2', ttl: 'Allergie pénicilline', meta: 'Réaction: éruption cutanée', sev: 'err', sevLbl: 'Légère' },
-  { id: 'pb3', ttl: 'Grossesse', meta: '22 sem · suivi GARE', sev: '', sevLbl: 'Actif' },
-];
-
-// Problemes au dossier - memes donnees que le sommaire (liste ci-dessus).
-// Affiches en tete du menu /dx (voir searchDx dans editor-schema.jsx), meme
-// principe que PATIENT_MEDS pour /rx : sans terme tape, on retrouve tout le
-// dossier ; avec un terme, on filtre. Forme alignee sur searchCIM10 (libelle,
-// generic) pour pouvoir fusionner les deux listes dans une seule navigation
-// clavier - `fromChart` distingue un probleme du dossier d'un code CIM-10.
-function searchProblems(query) {
-  const q = _norm((query || '').trim());
-  return PROBLEMS
-    .filter(function (p) { return !q || _norm(p.ttl).includes(q); })
-    .map(function (p) { return { key: p.id, libelle: p.ttl, generic: false, fromChart: true }; });
-}
-
 const VITALS = [
   { ic: 'thermostat',    lbl: 'Température', val: '38,1 °C' },
   { ic: 'favorite',      lbl: 'FC',            val: '84 bpm' },
@@ -778,6 +757,6 @@ const SCENARIOS = [
     hint: 'Cliquez sur un chip pour modifier les détails.' },
 ];
 
-window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PROBLEMS, VITALS, RESULTS_RECENT, SCENARIOS,
+window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, searchProblems };
+  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };

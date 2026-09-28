@@ -250,10 +250,10 @@ const BP = 'rgb(46,56,166)';
 const BP_HOVER = 'rgb(37,47,150)';
 
 const aiS = {
-  box: { position: 'relative', border: '1px solid rgb(217,217,230)', borderRadius: 10, padding: '18px 16px 14px', marginTop: 6, fontFamily: "'Inter',sans-serif" },
+  box: { position: 'relative', border: '1px solid rgb(217,217,230)', borderRadius: 10, padding: '10px 16px 8px', marginTop: 6, fontFamily: "'Inter',sans-serif" },
   legend: { position: 'absolute', left: 14, display: 'flex', alignItems: 'center', gap: 5, background: '#fff', padding: '0 6px', pointerEvents: 'none', transition: 'top 0.16s ease' },
   legendFloating: { top: -11 },
-  legendResting: { top: 25 },
+  legendResting: { top: 17 },
   legendIcon: { fontSize: 16, color: BP, transition: 'font-size 0.16s ease, color 0.16s ease' },
   legendIconResting: { fontSize: 18, color: 'rgba(0,0,0,0.45)' },
   legendLabel: { fontFamily: 'Inter', fontWeight: 600, fontSize: 13, color: BP, transition: 'font-size 0.16s ease, color 0.16s ease' },
@@ -264,7 +264,7 @@ const aiS = {
 
   /* Gabarit */
   gabaritWrap: { position: 'relative', flexShrink: 0 },
-  gabaritBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, minWidth: 158, border: '1px solid rgb(200,200,215)', borderRadius: 8, background: '#fff', padding: '7px 8px 7px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap', cursor: 'pointer' },
+  gabaritBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, minWidth: 158, borderWidth: 1, borderStyle: 'solid', borderColor: 'rgb(200,200,215)', borderRadius: 8, background: '#fff', padding: '7px 8px 7px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)', whiteSpace: 'nowrap', cursor: 'pointer' },
   gabaritBtnOpen: { borderColor: BP, boxShadow: '0 0 0 3px rgba(46,56,166,0.15)' },
   gabaritCaret: { fontSize: 20, color: 'rgba(0,0,0,0.4)' },
   ddBg: { position: 'fixed', inset: 0, zIndex: 199 },

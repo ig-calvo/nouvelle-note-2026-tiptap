@@ -1,5 +1,5 @@
 // Ligne de séparation Détails de la consultation / Conclusion.
-// Lancer : node --test project/tests/
+// Lancer : node --test project/tests/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPrototype, doc, H2, P, SPLIT, CHIP, textOf } from './harness.mjs';

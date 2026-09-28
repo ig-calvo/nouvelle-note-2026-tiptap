@@ -74,11 +74,18 @@
 }
 .note-field .ql-editor .dxr-head {
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
   align-items: center;
   gap: 6px;
   border-left: 3px solid #7fa8d8;
   padding: 6px 10px 4px 12px;
   user-select: none;
+}
+/* [hidden] natif (codeEl/statusEl/subEl — editor-schema.jsx) doit l'emporter
+   sur le display:inline-flex/flex posé par les règles ci-dessous. */
+.note-field .ql-editor .dxr-head [hidden] {
+  display: none !important;
 }
 .note-field .ql-editor .dxr-ic {
   font-size: 14px !important;
@@ -100,7 +107,77 @@
 .note-field .ql-editor .dxr-name:hover {
   background: rgba(106, 150, 192, 0.1);
 }
-.note-field .ql-editor .dxr-promote {
+/* Code CIM-10, à côté du nom — masqué (hidden natif) en texte libre. */
+.note-field .ql-editor .dxr-code {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 1px 4px;
+  transition: background 120ms;
+}
+.note-field .ql-editor .dxr-code:hover {
+  background: rgba(106, 150, 192, 0.1);
+}
+/* Étiquette « Cessé » — même palette que .rx-status--ceased (médicaments
+   cessés), pour une lecture cohérente entre note et Sommaire. */
+.note-field .ql-editor .dxr-status {
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #7a1f26;
+  background: #ecdfe0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+/* Nom barré quand la région est Cessé (D2) — la classe suit attrs.status,
+   pas une pseudo-classe : posée par le NodeView (editor-schema.jsx). */
+.note-field .ql-editor .dxr--cesse .dxr-name {
+  text-decoration: line-through;
+  text-decoration-color: #b04a4a;
+}
+/* « remplace : X » (D3) — italique discret, jamais éditable (dans le
+   contenteditable=false de l'en-tête), tronqué si trop long. */
+.note-field .ql-editor .dxr-sub {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 11.5px;
+  color: rgba(0, 0, 0, 0.55);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 1;
+}
+/* « Préciser » — ouvre DxEditPopover en mode refine (editor-field.jsx). */
+.note-field .ql-editor .dxr-refine {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  color: #4a6f94;
+  background: transparent;
+  border: 1px solid #c8d9ed;
+  border-radius: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms, border-color 120ms;
+}
+.note-field .ql-editor .dxr-refine:hover {
+  background: rgba(106, 150, 192, 0.1);
+  border-color: #7fa8d8;
+}
+/* « Documenter comme » (D1) — remplace .dxr-promote. .dxr-doc--probleme et
+   .dxr-doc--antecedent reprennent l'ancien vert de .dxr-promoted (documenté,
+   peu importe la section) ; .dxr-doc--none reste neutre (rien à signaler). */
+.note-field .ql-editor .dxr-doc {
   display: inline-flex;
   align-items: center;
   gap: 3px;
@@ -108,25 +185,31 @@
   background: transparent;
   color: #8aaac8;
   border-radius: 10px;
-  padding: 2px 8px 2px 5px;
+  padding: 2px 4px 2px 8px;
+  margin-left: auto;
   font-family: var(--font-body);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: background 120ms, border-color 120ms, color 120ms;
 }
-.note-field .ql-editor .dxr-promote:hover {
+.note-field .ql-editor .dxr-doc:hover {
   background: rgba(106, 150, 192, 0.08);
   border-color: #7fa8d8;
   color: #4a6f94;
 }
-.note-field .ql-editor .dxr-promote.dxr-promoted {
+.note-field .ql-editor .dxr-doc--probleme,
+.note-field .ql-editor .dxr-doc--antecedent {
   background: #e7f5ea;
   border-color: #2e7d32;
   color: #2e7d32;
 }
-.note-field .ql-editor .dxr-promote .material-icons-outlined {
+.note-field .ql-editor .dxr-doc .material-icons-outlined {
   font-size: 13px !important;
+}
+.note-field .ql-editor .dxr-doc__caret {
+  font-size: 14px !important;
+  margin-left: -2px;
 }
 .note-field .ql-editor .dxr-body {
   border-left: 3px solid #7fa8d8;
@@ -144,9 +227,10 @@
 
 /* Puce « renvoi à un diagnostic » (.dxref, node diagnosticRef) — insérée
    dans la Conclusion (ou ailleurs) via le picker du même nom. Son numéro
-   n'est pas posé en CSS : il est recalculé en JS à chaque transaction (voir
-   syncDiagnosticRefs, editor-field.jsx) car il dépend de la position d'UN
-   AUTRE node dans le doc, ce qu'un compteur CSS ne peut pas exprimer. */
+   n'est pas posé en CSS : le NodeView (editor-schema.jsx) l'écrit en texte
+   depuis la décoration dxNumberingPlugin, recalculée à chaque transaction,
+   car il dépend de la position d'UN AUTRE node dans le doc (le fil visé),
+   ce qu'un compteur CSS ne peut pas exprimer. */
 .note-field .ql-editor .dxref {
   display: inline-flex;
   align-items: center;
@@ -182,34 +266,31 @@
    Diagnostic region — variantes (tweak "Style de région").
    Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
    du même nom retire cet accent et ajoute pastille numérotée + flèche de
-   liaison par ligne. Carte/Étiquette/Rail reprennent ce même mécanisme
+   liaison par ligne. Carte/Étiquette reprennent ce même mécanisme
    (icône masquée, pastille noire, flèche par <p>) par-dessus leur propre
    habillage (boîte, pilule, bandeau). Numéroté garde son propre repère
    "1." (pas de pastille) mais gagne lui aussi la flèche par ligne.
    ============================================================ */
 
 /* --- Actuel : le style de base + numérotation, sans barre d'accent ---
-   Même compteur que la variante « Numéroté », posé sur .app pour traverser
-   toute la note. Le numéro REMPLACE l'icône de la région (un seul marqueur
+   Même numéro que la variante « Numéroté », posé par décoration
+   (dxNumberingPlugin, editor-schema.jsx) sur data-dx-num, une par diagnostic
+   du fil (dxKey) — pas par un compteur CSS positionnel, qui ne peut pas
+   dédoublonner un même diagnostic repris plus loin dans la note (R3). Le
+   numéro REMPLACE l'icône de la région (un seul marqueur
    en tête de ligne, pas deux) et prend la forme d'une pastille noire. La
    barre d'accent gauche du style de base (border-left) est retirée : avec
    la pastille en tête et la flèche du corps (ci-dessous), une troisième
    marque verticale faisait doublon. */
-.diag-style-actuel {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-actuel .note-field .ql-editor .dxr-head,
 .diag-style-actuel .note-field .ql-editor .dxr-body {
   border-left: none;
-}
-.diag-style-actuel .note-field .ql-editor .dxr-head {
-  counter-increment: omd-diag-counter;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-actuel .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,21 +345,17 @@
    Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
    (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
    .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-carte {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-carte .note-field .ql-editor .dxr-head {
   background: #ECF3F7;
   border-left: none;
   border-radius: 10px 10px 0 0;
   padding: 8px 14px 5px 12px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-carte .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-carte .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -335,9 +412,6 @@
    (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
    .dxr-head, gouttière de 24px dans .dxr-body pour la flèche de chaque <p>
    (padding-left du head = 8px ici, d'où le -16px qui reste identique). */
-.diag-style-etiquette {
-  counter-reset: omd-diag-counter;
-}
 .diag-style-etiquette .note-field .ql-editor .dxr-head {
   display: inline-flex;
   background: var(--brand-primary-container, #e5e2f3);
@@ -345,13 +419,12 @@
   border-radius: 999px;
   padding: 3px 12px 3px 8px;
   margin-bottom: 3px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-ic {
   display: none;
 }
 .diag-style-etiquette .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
+  content: attr(data-dx-num);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -402,82 +475,10 @@
   pointer-events: none;
 }
 
-/* --- Rail : bandeau plein largeur + corps indenté + trait de fermeture ---
-   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
-   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
-   .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-rail {
-  counter-reset: omd-diag-counter;
-}
-.diag-style-rail .note-field .ql-editor .dxr-head {
-  background: #eef1f6;
-  border-left: none;
-  border-radius: 6px 6px 0 0;
-  padding: 6px 12px;
-  counter-increment: omd-diag-counter;
-}
-.diag-style-rail .note-field .ql-editor .dxr-ic {
-  display: none;
-}
-.diag-style-rail .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-.diag-style-rail .note-field .ql-editor .dxr-name {
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  color: #3d5a80;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body {
-  border-left: none;
-  padding: 1px 12px 9px 18px;
-  padding-left: 28px;
-  border-bottom: 1px solid #dde2ea;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body p {
-  position: relative;
-}
-.diag-style-rail .note-field .ql-editor .dxr-body p::before {
-  content: 'subdirectory_arrow_right';
-  font-family: 'Material Icons Outlined';
-  font-size: 15px;
-  line-height: 1;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  font-variant-ligatures: common-ligatures;
-  color: #9dbbd6;
-  position: absolute;
-  left: -16px;
-  width: 18px;
-  display: flex;
-  justify-content: center;
-  top: 4px;
-  user-select: none;
-  pointer-events: none;
-}
-
 /* --- Numéroté : titre + bullet numéroté selon la position dans la note ---
-   Le compteur CSS est posé sur .app (une seule fois, tout en haut) : il
-   traverse tout le document tant que les régions restent des descendantes
-   DOM de .app dans l'ordre réel du texte. */
-.diag-style-numbered {
-  counter-reset: omd-diag-counter;
-}
+   Le numéro vient de data-dx-num (dxNumberingPlugin, editor-schema.jsx),
+   posé par décoration sur .dxr-head — un par FIL (dxKey), pas par occurrence
+   ni par position DOM : une reprise du même diagnostic garde son numéro. */
 .diag-style-numbered .note-field .ql-editor .dxr-head {
   display: flex;
   align-items: baseline;
@@ -485,10 +486,9 @@
   background: transparent;
   border-left: none;
   padding: 4px 0 2px;
-  counter-increment: omd-diag-counter;
 }
 .diag-style-numbered .note-field .ql-editor .dxr-head::before {
-  content: counter(omd-diag-counter) '.';
+  content: attr(data-dx-num) '.';
   font-family: var(--font-display);
   font-weight: 500;
   font-size: 14px;
@@ -679,6 +679,65 @@
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }
+
+/* Dx picker dropdown (commande /dx) — dx-picker.jsx (modèle) + DiagnosticDropdown/
+   DxHead/DxList/DxRow/DxFoot (editor-popover.jsx). Même patron que .rx-menu
+   ci-dessus (coquille, défilement, pied clavier) ; palettes Cessé/Documenté
+   reprises telles quelles de .dxr-status/.dxr-doc--probleme (en-tête de
+   région, plus haut dans ce fichier) pour rester cohérent entre la note et
+   ce menu. */
+.dx-menu { position: fixed; width: 460px; background: #fff; border: 1px solid #d0d5f0; border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
+.dx-menu__scroll { overflow-y: auto; padding-bottom: 6px; }
+.dx-head { border-bottom: 1px solid #eceaf4; }
+.dx-banner { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #f3f4fb; }
+.dx-banner__text { flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-banner__cancel { border: 0; background: transparent; cursor: pointer; padding: 2px; display: inline-flex; color: var(--fg-3); border-radius: 50%; flex-shrink: 0; }
+.dx-banner__cancel:hover { background: rgba(0,0,0,0.06); color: var(--fg-1); }
+.dx-banner__cancel .material-icons-outlined { font-size: 17px; }
+.dx-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 8px 14px; font-size: 12px; color: var(--fg-3); }
+.dx-crumbs__sep { color: var(--fg-3); }
+.dx-crumbs__link { border: 0; background: transparent; cursor: pointer; padding: 1px 3px; font: inherit; color: var(--brand-primary, #1a5fd4); border-radius: 3px; }
+.dx-crumbs__link:hover { background: rgba(26,95,212,0.08); text-decoration: underline; }
+.dx-crumbs__here { padding: 1px 3px; color: var(--fg-1); font-weight: 600; }
+.dx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid #eceaf4; margin-bottom: 4px; }
+.dx-sec-block + .dx-sec-block .dx-sec { margin-top: 6px; }
+.dx-sec-note { padding: 4px 16px 10px; font-size: 12px; color: var(--fg-3); }
+.dx-more { padding: 6px 16px 10px; font-size: 12px; color: var(--fg-3); font-style: italic; }
+.dx-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 110ms; }
+.dx-item.is-active { background: #eef1fb; }
+.dx-item--branch { color: var(--fg-3); }
+.dx-item__lead { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
+.dx-item__lead .material-icons-outlined { font-size: 17px; color: var(--fg-3); }
+.dx-num { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--brand-primary-container, #e3ecfa); color: var(--brand-primary, #1a5fd4); font-weight: 700; font-size: 11px; line-height: 1; }
+.dx-code { font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.5); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dx-item__body { flex: 1; min-width: 0; }
+.dx-item__name { font-size: 14px; font-weight: 600; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-item__code { font-weight: 500; color: var(--fg-3); }
+.dx-hl { background: none; color: var(--brand-primary, #1a5fd4); font-weight: 700; }
+.dx-item__sub { font-size: 12px; color: var(--fg-3); margin-top: 1px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dx-tag { display: inline-flex; align-items: center; margin-top: 3px; margin-right: 6px; font: 600 10px/15px var(--font-body); text-transform: uppercase; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; }
+.dx-tag--cesse { background: #ecdfe0; color: #7a1f26; }
+.dx-tag--probleme, .dx-tag--antecedent { background: #e7f5ea; color: #2e7d32; }
+.dx-act-group { display: flex; align-items: center; gap: 4px; padding-top: 1px; flex-shrink: 0; }
+.dx-act { border: 1px solid #d0d5f0; background: #fff; cursor: pointer; padding: 3px 9px; border-radius: 6px; font: 600 11px var(--font-body); color: var(--fg-2); white-space: nowrap; transition: background 110ms, border-color 110ms; }
+.dx-act:hover { background: #f3f4fb; }
+.dx-act.is-focus { border-color: var(--brand-primary, #1a5fd4); color: var(--brand-primary, #1a5fd4); background: #eef3fb; }
+.dx-item__chev { border: 0; background: transparent; cursor: pointer; padding: 2px; display: inline-flex; color: var(--fg-3); border-radius: 50%; flex-shrink: 0; margin-left: 2px; }
+.dx-item__chev:hover { background: rgba(0,0,0,0.06); color: var(--fg-1); }
+.dx-item__chev .material-icons-outlined { font-size: 18px; }
+.dx-item--free { border-top: 1px solid #eceaf4; }
+.dx-item--free .dx-item__lead .material-icons-outlined { color: var(--brand-primary, #1a5fd4); }
+.dx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
+.dx-empty__hint { margin-top: 4px; font-size: 12px; color: var(--fg-3); }
+.dx-menu__foot { padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
+
+/* DxEditPopover (commit 10) — clic sur le nom/code d'une région, ou son
+   bouton .dxr-refine. Même coquille .dx-menu ; .dx-edit ajoute le champ de
+   saisie propre au popover (pas de texte de document à lire, voir son en-tête). */
+.dx-edit__field { padding: 10px 14px 4px; }
+.dx-edit__field input { width: 100%; box-sizing: border-box; border: 1px solid #c8d9ed; border-radius: 8px; padding: 7px 10px; font: 500 14px var(--font-body); color: var(--fg-1); outline: none; }
+.dx-edit__field input:focus { border-color: #7fa8d8; }
+.dx-edit__hint { padding: 6px 16px; font-size: 11.5px; color: var(--fg-3); font-style: italic; border-top: 1px solid #eceaf4; }
 
 /* Med dropdown */
 @keyframes medmenu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }

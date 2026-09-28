@@ -137,8 +137,10 @@ function ChipPill({ attrs, keyProp }) {
   );
 }
 
-// Rendu read-only d'un nœud inline (texte avec marques, ou chip).
-function DocInline({ node, keyProp }) {
+// Rendu read-only d'un nœud inline (texte avec marques, chip, ou renvoi à un
+// diagnostic). dxModel (diagnosticThreads sur le doc COMPLET — voir DocView)
+// donne le numéro du fil visé, comme la décoration dxNumberingPlugin en édition.
+function DocInline({ node, keyProp, dxModel }) {
   if (node.type === 'text') {
     var el = node.text;
     (node.marks || []).forEach(function(m) {
@@ -150,15 +152,29 @@ function DocInline({ node, keyProp }) {
     return <React.Fragment key={keyProp}>{el}</React.Fragment>;
   }
   if (node.type === 'chip') return <ChipPill attrs={node.attrs} keyProp={keyProp} />;
+  if (node.type === 'diagnosticRef') {
+    var a = node.attrs || {};
+    var thread = dxModel && (dxModel.byKey[a.dxKey] || (a.diagId && dxModel.byId[a.diagId] && dxModel.byKey[dxModel.byId[a.diagId].dxKey]));
+    return <span key={keyProp} style={nlStyles.roDxref}>{thread ? thread.number : '?'}</span>;
+  }
   return null;
 }
 
 // Rendu read-only d'un document Tiptap complet (note complétée) : titres,
-// paragraphes, chips, blocs de référence. Remplace l'ancien rendu à
-// marqueurs {{CHIP}}/{{DIAG}}/{{REF}} — le doc JSON est déjà structuré.
-function DocView({ doc, blocks }) {
+// paragraphes, chips, blocs de référence, régions/renvois diagnostic
+// (numéro, Cessé, remplace — mêmes informations qu'en édition, voir
+// editor-schema.jsx). Remplace l'ancien rendu à marqueurs {{CHIP}}/{{DIAG}}/
+// {{REF}} — le doc JSON est déjà structuré.
+//
+// dxModel : passer explicitement diagnosticThreads(doc) quand `blocks` est
+// une TRANCHE du document (ConclusionPreview, sous la ligne uniquement) — le
+// numéro d'un fil dépend de la PREMIÈRE occurrence dans tout le document
+// (Détails ET Conclusion), jamais calculable depuis la seule Conclusion.
+// Recalculé depuis `doc` sinon (DocView appelé avec le document complet).
+function DocView({ doc, blocks, dxModel }) {
   var source = blocks || (doc && doc.content);
   if (!source) return null;
+  var model = dxModel || (doc && window.diagnosticThreads ? window.diagnosticThreads(doc) : null);
   var out = source.map(function(node, bi) {
     // Ligne de séparation Détails / Conclusion — même repère qu'en édition
     // (libellé au-dessus du trait), mais figé : une note complétée est signée,
@@ -176,7 +192,7 @@ function DocView({ doc, blocks }) {
       var Tag = 'h' + Math.min(3, Math.max(1, level));
       var hStyle = level <= 1 ? nlStyles.roHeading1 : level === 2 ? nlStyles.roHeading2 : nlStyles.roHeading3;
       return React.createElement(Tag, { key: 'h-' + bi, style: hStyle },
-        (node.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; }));
+        (node.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; }));
     }
     if (node.type === 'reference') {
       return (
@@ -192,19 +208,26 @@ function DocView({ doc, blocks }) {
     if (node.type === 'paragraph') {
       var kids = node.content || [];
       if (!kids.length) return null;
-      return <p key={'p-' + bi} style={{ margin: '0 0 8px' }}>{kids.map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; })}</p>;
+      return <p key={'p-' + bi} style={{ margin: '0 0 8px' }}>{kids.map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}</p>;
     }
     if (node.type === 'diagnosticRegion') {
+      var a = node.attrs || {};
       var bodyParas = (node.content || []).filter(function(p) { return (p.content || []).length; });
+      var entry = model && model.byId[a.id];
+      var isCesse = a.status === 'cesse';
       return (
         <div key={'db-' + bi} style={nlStyles.roDiag}>
           <div style={nlStyles.roDiagHeader}>
+            {entry && <span style={nlStyles.roDiagNum}>{entry.number}</span>}
             <span className="material-icons-outlined" style={nlStyles.roDiagIcon}>local_hospital</span>
-            <span style={nlStyles.roDiagName}>{node.attrs.name}</span>
+            <span style={Object.assign({}, nlStyles.roDiagName, isCesse ? nlStyles.roDiagNameCesse : null)}>{a.name}</span>
+            {a.code && <span style={nlStyles.roDiagCode}>{a.code}</span>}
+            {isCesse && <span style={nlStyles.roDiagStatus}>Cessé</span>}
+            {a.replaces && <span style={nlStyles.roDiagSub}>remplace : {a.replaces.name}</span>}
           </div>
           <div style={nlStyles.roDiagBody}>
             {bodyParas.map(function(p, pi) {
-              return <p key={pi} style={{ margin: '0 0 4px' }}>{(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} />; })}</p>;
+              return <p key={pi} style={{ margin: '0 0 4px' }}>{(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}</p>;
             })}
           </div>
         </div>
@@ -269,7 +292,11 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     if (note.doc && window.conclusionBlocks) {
       var blocks = window.conclusionBlocks(note.doc);
       if (!window.conclusionIsEmpty(note.doc)) {
-        return <div style={nlStyles.conclPreviewText}><DocView blocks={blocks} /></div>;
+        // dxModel sur le DOCUMENT COMPLET, pas la seule tranche `blocks` — un
+        // diagnostic peut avoir été numéroté en Détails, sa reprise ici doit
+        // porter le même numéro (voir l'en-tête de DocView).
+        var dxModel = window.diagnosticThreads ? window.diagnosticThreads(note.doc) : null;
+        return <div style={nlStyles.conclPreviewText}><DocView blocks={blocks} dxModel={dxModel} /></div>;
       }
     } else if (note.conclusion && note.conclusion.trim()) {
       return (
@@ -653,7 +680,25 @@ const nlStyles = {
   roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: '#e8f0fb', padding: '6px 12px' },
   roDiagIcon: { fontSize: 16, color: '#1a5fd4' },
   roDiagName: { fontSize: 12, fontWeight: 500, color: '#1a5fd4' },
+  roDiagNameCesse: { textDecoration: 'line-through', textDecorationColor: '#b04a4a' },
+  roDiagNum: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8,
+    background: '#1a5fd4', color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0,
+  },
+  roDiagCode: { fontSize: 11, fontWeight: 500, color: 'rgba(0,0,0,0.5)', fontVariantNumeric: 'tabular-nums' },
+  roDiagStatus: {
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+    color: '#7a1f26', background: '#ecdfe0', borderRadius: 4, padding: '2px 6px',
+  },
+  roDiagSub: { fontSize: 11, fontStyle: 'italic', color: 'rgba(0,0,0,0.55)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   roDiagBody: { background: '#f5f9ff', padding: '8px 12px', fontSize: 14, color: 'rgba(0,0,0,0.82)', lineHeight: 1.5, letterSpacing: 0.25 },
+  roDxref: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: 20, height: 18, padding: '0 5px', margin: '0 1px', borderRadius: 9,
+    background: 'var(--brand-primary-container, #e3ecfa)', color: 'var(--brand-primary, #1a5fd4)',
+    fontWeight: 700, fontSize: 11, lineHeight: 1, verticalAlign: 1,
+  },
   roRef: { margin: '8px 0', padding: '9px 14px', borderLeft: '3px solid #b0a99a', background: '#faf9f6', borderRadius: '0 8px 8px 0' },
   roRefHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 },
   roRefIcon: { fontSize: 15, color: '#8a7f68' },

@@ -369,185 +369,263 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
   );
 }
 
-// DiagnosticDropdown — mode « /dx », affiché pendant la saisie du nom du
-// diagnostic. Les suggestions viennent de searchCIM10 (editor-schema.jsx).
-function DiagnosticDropdown({ position, query, suggestions, activeIndex, onPickSuggestion, onClose }) {
-  const ref = useRefP(null);
-  useEffectP(() => {
-    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [onClose]);
+// DiagnosticDropdown — mode « /dx ». Un seul modèle par publication
+// (dxBuildModel, dx-picker.jsx), construit par le contrôleur
+// (makeSlashRender, editor-field.jsx) : ce composant ne fait qu'afficher
+// `model`/`activeIndex`/`actionFocus` et relayer les événements souris à
+// `onEvent` (même forme que les événements dxStep — hover/drill/jump/back/
+// activate/commitFreeText), jamais son propre calcul de résultats.
+function DxHighlight({ text, term }) {
+  const ranges = window.dxHighlightRanges(text, term);
+  if (!ranges.length) return text;
+  const parts = [];
+  let last = 0;
+  ranges.forEach(function (r, i) {
+    if (r[0] > last) parts.push(<React.Fragment key={'t' + i}>{text.slice(last, r[0])}</React.Fragment>);
+    parts.push(<mark key={'m' + i} className="dx-hl">{text.slice(r[0], r[1])}</mark>);
+    last = r[1];
+  });
+  if (last < text.length) parts.push(<React.Fragment key="tail">{text.slice(last)}</React.Fragment>);
+  return parts;
+}
+
+function DxHead({ model, onEvent }) {
+  const b = model.banner;
+  const crumbs = model.crumbs;
+  if (!b && !(crumbs && crumbs.length > 1)) return null;
   return (
-    <div ref={ref} style={{
-      position: 'fixed', top: position.top, left: position.left,
-      background: '#fff', border: '1px solid #b3ccf0', borderRadius: 10,
-      boxShadow: '0 4px 16px rgba(37,36,94,0.16)',
-      zIndex: 60, minWidth: 320, maxWidth: 420,
-      fontFamily: "'Inter',sans-serif", overflow: 'hidden'
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px' }}>
-        <span className="material-icons-outlined" style={{ fontSize: 18, color: '#1a5fd4', flexShrink: 0 }}>local_hospital</span>
-        {query
-          ? <span style={{ font: "400 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.75)', flex: 1 }}>
-              Diagnostic : <strong>{query}</strong>
-            </span>
-          : <span style={{ font: "400 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.45)', flex: 1 }}>
-              Saisissez le nom du diagnostic…
-            </span>
-        }
-        {query && (
-          <kbd style={{
-            marginLeft: 'auto', background: '#f0f0f8', border: '1px solid #d0d0e0',
-            borderRadius: 4, padding: '2px 7px', font: "500 12px 'Inter',sans-serif", color: '#555', flexShrink: 0
-          }}>↵</kbd>
-        )}
-      </div>
-      {suggestions && suggestions.length > 0 && (
-        <>
-          <div style={{ height: 1, background: '#e8ecf5', margin: '0 12px' }} />
-          <div style={{ padding: '4px 0 6px' }}>
-            {suggestions.map((s, i) => {
-              const showChartHeader = s.fromChart && (i === 0 || !suggestions[i - 1].fromChart);
-              const showCodeHeader = !s.fromChart && i > 0 && suggestions[i - 1].fromChart;
-              const showDivider = !s.fromChart && i > 0 && suggestions[i - 1].generic && !s.generic;
-              return (
-                <React.Fragment key={(s.key || s.code || 'x') + '-' + i}>
-                  {showChartHeader && (
-                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
-                      Problèmes au dossier
-                    </div>
-                  )}
-                  {showCodeHeader && (
-                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
-                      Codes CIM-10
-                    </div>
-                  )}
-                  {showDivider && (
-                    <div style={{ padding: '6px 16px 4px', fontSize: 10, fontWeight: 600, letterSpacing: '0.04em', color: 'rgba(0,0,0,0.35)', textTransform: 'uppercase' }}>
-                      Codes précis
-                    </div>
-                  )}
-                  <div
-                    onMouseDown={(e) => { e.preventDefault(); if (onPickSuggestion) onPickSuggestion(s.libelle); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10,
-                      padding: '6px 16px', cursor: 'pointer',
-                      background: i === activeIndex ? '#eef3fb' : 'transparent'
-                    }}
-                  >
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', justifyContent: s.fromChart ? 'center' : 'flex-start',
-                      fontSize: 11, fontWeight: 600, minWidth: 44, flexShrink: 0,
-                      color: s.fromChart ? '#2e7d32' : (s.generic ? '#6967d1' : '#1a5fd4'), fontVariantNumeric: 'tabular-nums'
-                    }}>
-                      {s.fromChart
-                        ? <span className="material-icons-outlined" style={{ fontSize: 15 }} title="Au dossier">inventory_2</span>
-                        : (s.generic ? 'Général' : s.code)}
-                    </span>
-                    <span style={{ fontSize: 13, color: 'rgba(0,0,0,0.82)', fontWeight: (s.generic || s.fromChart) ? 600 : 400, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.libelle}</span>
-                    {i === activeIndex && <kbd style={{ background: '#f0f0f8', border: '1px solid #d0d0e0', borderRadius: 3, padding: '1px 5px', fontSize: 11, color: '#888', flexShrink: 0 }}>↵</kbd>}
-                  </div>
-                </React.Fragment>
-              );
-            })}
-          </div>
-        </>
-      )}
+    <div className="dx-head">
+      {b &&
+        <div className="dx-banner">
+          <span className="dx-banner__text">
+            {b.kind === 'remplacer' ? window.DX_COPY.banner.remplacer(b.target)
+              : b.kind === 'refine' ? window.DX_COPY.banner.refine(b.region)
+              : window.DX_COPY.banner.edit(b.region)}
+          </span>
+          <button type="button" className="dx-banner__cancel" title="Annuler"
+            onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'back' }); }}>
+            <span className="material-icons-outlined">close</span>
+          </button>
+        </div>
+      }
+      {crumbs && crumbs.length > 1 &&
+        <div className="dx-crumbs">
+          {crumbs.map((c, i) => (
+            <React.Fragment key={c.id}>
+              {i > 0 && <span className="dx-crumbs__sep">›</span>}
+              {c.current
+                ? <span className="dx-crumbs__here">{c.label}</span>
+                : <button type="button" className="dx-crumbs__link"
+                    onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'jump', nodeId: c.id }); }}>{c.label}</button>}
+            </React.Fragment>
+          ))}
+        </div>
+      }
     </div>
   );
 }
 
-// Functions / "Ajouter" menu — opened from the + button
-function AddMenu({ position, tools, orders, onPickTool, onPickOrder, onPickFile, onAddSection, onClose }) {
-  const stop = (e) => e.stopPropagation();
-  const [showFileSub, setShowFileSub] = useStateP(false);
+function DxRow({ item, term, active, actionFocus, onEvent }) {
+  const it = item;
+  const isNav = it.kind === 'nav';
+  const canDrill = !!it.nav && !isNav;
+  const showActions = active && (it.actions || []).length > 0;
+  return (
+    <div className={'dx-item' + (active ? ' is-active' : '') + (isNav ? ' dx-item--nav' : '') + (!it.selectable && !isNav ? ' dx-item--branch' : '')}
+      role="option" aria-selected={active}
+      onMouseEnter={() => onEvent({ type: 'hover', index: it.idx })}
+      onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'activate', index: it.idx }); }}>
+      <span className="dx-item__lead">
+        {it.kind === 'note' ? <span className="dx-num">{it.lead}</span>
+          : it.kind === 'sommaire' ? <span className="material-icons-outlined">{it.lead}</span>
+          : isNav ? <span className="material-icons-outlined">account_tree</span>
+          : it.lead ? <span className="dx-code">{it.lead}</span> : null}
+      </span>
+      <div className="dx-item__body">
+        <div className="dx-item__name">
+          <DxHighlight text={it.label} term={term} />
+          {it.code && it.kind !== 'cim' && <span className="dx-item__code"> · {it.code}</span>}
+        </div>
+        {it.sub && <div className="dx-item__sub">{it.sub}</div>}
+        {it.tags.map(function (t) { return <span key={t.kind} className={'dx-tag dx-tag--' + t.kind}>{t.text}</span>; })}
+      </div>
+      {showActions &&
+        <div className="dx-act-group">
+          {it.actions.map(function (a, i) {
+            const meta = window.DX_COPY.actions[a];
+            return (
+              <button key={a} type="button" title={meta.title}
+                className={'dx-act' + (i === actionFocus ? ' is-focus' : '')}
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onEvent({ type: 'activate', index: it.idx, action: a }); }}>
+                {meta.label}
+              </button>
+            );
+          })}
+        </div>
+      }
+      {canDrill &&
+        <button type="button" className="dx-item__chev" title="Explorer"
+          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onEvent({ type: 'drill', nodeId: it.nav }); }}>
+          <span className="material-icons-outlined">chevron_right</span>
+        </button>
+      }
+    </div>
+  );
+}
 
-  const instructionsItem = (tools || []).find(function(t) { return t.key === 'instructions'; });
-  const diagnosticItem = (tools || []).find(function(t) { return t.key === 'diagnostic'; });
+function DxList({ model, activeIndex, actionFocus, onEvent }) {
+  return (
+    <div className="dx-menu__scroll">
+      {model.empty &&
+        <div className="dx-empty">
+          <div>{model.empty.text}</div>
+          {model.empty.hint && <div className="dx-empty__hint">{model.empty.hint}</div>}
+        </div>
+      }
+      {model.sections.map((sec) => (
+        <div key={sec.key} className="dx-sec-block">
+          {sec.title && <div className="dx-sec">{sec.title}</div>}
+          {sec.items.map((it) => (
+            <DxRow key={it.key} item={it} term={model.term}
+              active={it.idx === activeIndex} actionFocus={it.idx === activeIndex ? actionFocus : 0}
+              onEvent={onEvent} />
+          ))}
+          {sec.note && <div className="dx-sec-note">{sec.note}</div>}
+          {sec.more > 0 && <div className="dx-more">{window.DX_COPY.more(sec.more)}</div>}
+        </div>
+      ))}
+      {model.freeText && (function () {
+        const copy = window.DX_COPY.freeText[model.freeText.kind](model.freeText.name, model.freeText.hadCode);
+        const isActive = activeIndex === model.minIndex;
+        return (
+          <div className={'dx-item dx-item--free' + (isActive ? ' is-active' : '')}
+            onMouseEnter={() => onEvent({ type: 'hover', index: model.minIndex })}
+            onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'commitFreeText' }); }}>
+            <span className="dx-item__lead"><span className="material-icons-outlined">add_circle_outline</span></span>
+            <div className="dx-item__body">
+              <div className="dx-item__name">{copy.title}</div>
+              {copy.sub && <div className="dx-item__sub">{copy.sub}</div>}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+function DxFoot({ model, activeIndex }) {
+  const active = activeIndex >= 0 ? model.flat[activeIndex] : null;
+  const text = model.view.kind === 'browse' ? window.DX_COPY.foot.nav
+    : (active && active.actions && active.actions.length > 0) ? window.DX_COPY.foot.note
+    : window.DX_COPY.foot.root;
+  return <div className="dx-menu__foot">{text}</div>;
+}
+
+function DiagnosticDropdown({ placement, model, activeIndex, actionFocus, onEvent, onClose }) {
+  const ref = useRefP(null);
+  useEffectP(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    // Différé d'un tick — même raison que RxMenu ci-dessus : la ligne qui a
+    // ouvert ce menu (item « diagnosticEntry » du SlashMenu, ou la frappe
+    // « /dx ») ne doit pas le refermer aussitôt via son propre mousedown.
+    const t = setTimeout(() => document.addEventListener('mousedown', onDoc), 0);
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
+  }, [onClose]);
+  return (
+    <div className="dx-menu" ref={ref} style={Object.assign({ position: 'fixed', zIndex: 60 }, placement.style)} role="listbox">
+      <DxHead model={model} onEvent={onEvent} />
+      <DxList model={model} activeIndex={activeIndex} actionFocus={actionFocus} onEvent={onEvent} />
+      <DxFoot model={model} activeIndex={activeIndex} />
+    </div>
+  );
+}
+
+// DxEditPopover — clic sur le nom/le code d'une région existante (mode
+// 'edit') ou son bouton « Préciser » (mode 'refine', dxCanRefine — commit
+// 10). Même modèle/réducteur que DiagnosticDropdown (dxBuildModel/dxStep,
+// DxHead/DxList/DxFoot réutilisés tels quels), mais ce popover porte SON
+// PROPRE terme dans un vrai <input> : contrairement au sélecteur /dx, il
+// n'est pas déclenché par le plugin Suggestion et n'a donc pas de texte de
+// document à lire — et il produit un effet `relabel` (renommer en place),
+// jamais `commit` (qui insérerait une NOUVELLE région).
+function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel, onClose }) {
+  const ref = useRefP(null);
+  const [term, setTerm] = useStateP(mode === 'refine' ? '' : (region.name || ''));
+  const [dxState, setDxState] = useStateP(function () { return window.dxInitState({ kind: mode, region: region }); });
+  const [, bumpCim] = useStateP(0);
+
+  useEffectP(() => {
+    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    const t = setTimeout(() => document.addEventListener('mousedown', onDoc), 0);
+    return () => { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
+  }, [onClose]);
+
+  // La CIM-10 peut finir de charger après l'ouverture (fetch asynchrone,
+  // Note Clinique.html) — whenReady (cim10-index.jsx) appelle son callback
+  // tout de suite si déjà prête, une seule fois sinon : un seul re-rendu
+  // suffit à faire apparaître enfants/résultats une fois l'index disponible.
+  // `cancelled` évite un setState après une fermeture du popover survenue
+  // avant que cim10:ready n'ait fini de se déclencher (whenReady ne renvoie
+  // rien à désabonner : son propre listener DOM s'enlève tout seul une fois
+  // déclenché, mais sans ce garde son callback tenterait quand même de
+  // rafraîchir un popover déjà démonté).
+  useEffectP(() => {
+    let cancelled = false;
+    if (window.CIM10 && window.CIM10.whenReady && !window.CIM10.ready()) {
+      window.CIM10.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
+    }
+    return () => { cancelled = true; };
+  }, []);
+
+  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null });
+  const activeIndex = window.dxActiveIndex(dxState, model);
+
+  function applyResult(result) {
+    setDxState(result.state);
+    result.effects.forEach(function (effect) {
+      if (effect.type === 'setTerm') setTerm(effect.term);
+      else if (effect.type === 'relabel') { onRelabel(effect.to); onClose(); }
+      else if (effect.type === 'close') onClose();
+    });
+  }
+  function dispatch(evt) { applyResult(window.dxStep(dxState, evt, model)); }
+  function onKeyDown(e) {
+    const evt = { type: 'key', key: e.key, mod: e.metaKey || e.ctrlKey || e.altKey };
+    const result = window.dxStep(dxState, evt, model);
+    if (!result.handled) return;
+    e.preventDefault();
+    applyResult(result);
+  }
+  function onChangeTerm(v) {
+    setTerm(v);
+    setDxState(function (s) { return Object.assign({}, s, { activeIndex: null, actionFocus: 0 }); });
+  }
+
+  const placement = window.dxMenuPlacement(
+    { top: anchorRect.top, bottom: anchorRect.bottom, left: anchorRect.left },
+    { w: window.innerWidth, h: window.innerHeight },
+    { width: 380 }
+  );
 
   return (
-    <>
-      <div className="addmenu-scrim" onMouseDown={(e) => { e.preventDefault(); onClose(); }} />
-      <div className="addmenu" style={position} onMouseDown={stop}>
-
-        <div className="addmenu-sec">RÉDACTION</div>
-        <button className="addmenu-item" style={showFileSub ? { background: '#f5f5fa' } : {}}
-          onMouseDown={(e) => { e.preventDefault(); setShowFileSub(s => !s); }}>
-          <span className="material-icons-outlined ic">upload_file</span>
-          <span className="lbl">Ajouter des fichiers</span>
-          <span className="kbd">Alt+A</span>
-          <span className="material-icons-outlined arr" style={{ transition: 'transform 0.15s', transform: showFileSub ? 'rotate(90deg)' : 'none' }}>chevron_right</span>
-        </button>
-        {showFileSub && (
-          <div style={{ background: '#f8f8fb', borderLeft: '3px solid #dde0f5', margin: '0 0 4px 18px', borderRadius: '0 6px 6px 0' }}>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickFile) onPickFile('computer'); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>laptop</span>
-              <span className="lbl">Depuis mon ordinateur</span>
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'rgba(0,0,0,0.35)', fontFamily: "'Inter',sans-serif" }}>PDF · PNG</span>
-            </button>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>smartphone</span>
-              <span className="lbl">Depuis mon téléphone</span>
-            </button>
-            <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); onClose(); }}>
-              <span className="material-icons-outlined ic" style={{ fontSize: 18 }}>person</span>
-              <span className="lbl">Depuis le téléphone du patient</span>
-            </button>
-          </div>
-        )}
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); }}>
-          <span className="material-icons-outlined ic">bolt</span>
-          <span className="lbl">Textes rapides</span>
-          <span className="kbd">Ctrl+R</span>
-        </button>
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onAddSection) onAddSection(); onClose(); }}>
-          <span className="material-icons-outlined ic">add</span>
-          <span className="lbl">Ajouter une section</span>
-          <span className="kbd">/sec</span>
-        </button>
-        {instructionsItem && (
-          <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickTool) onPickTool(instructionsItem); onClose(); }}>
-            <span className="material-symbols-outlined ic">{instructionsItem.icon}</span>
-            <span className="lbl">Instructions patient</span>
-            <span className="kbd">/{instructionsItem.kbd}</span>
-          </button>
-        )}
-
-        <div className="addmenu-div" />
-
-        <div className="addmenu-sec">FONCTIONS</div>
-        {diagnosticItem && (
-          <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onPickTool) onPickTool(diagnosticItem); onClose(); }}>
-            <span className="material-symbols-outlined ic">{diagnosticItem.icon}</span>
-            <span className="lbl">Diagnostic</span>
-            <span className="kbd">/{diagnosticItem.kbd}</span>
-          </button>
-        )}
-        {(orders || []).map((it) => (
-          <button key={it.key} className="addmenu-item"
-            onMouseDown={(e) => { e.preventDefault(); if (onPickOrder) onPickOrder(it.kbd); onClose(); }}>
-            <span className="material-symbols-outlined ic">{it.icon}</span>
-            <span className="lbl">{it.title}</span>
-            <span className="kbd">/{it.kbd}</span>
-          </button>
-        ))}
-        <button className="addmenu-item" onMouseDown={(e) => {
-          e.preventDefault();
-          onClose();
-          const rect = e.currentTarget.getBoundingClientRect();
-          window.dispatchEvent(new CustomEvent('ct-picker-open', { detail: { rect } }));
-        }}>
-          <span className="material-icons-outlined ic">handyman</span>
-          <span className="lbl">Outils cliniques</span>
-          <span className="material-icons-outlined arr">chevron_right</span>
-        </button>
-        <button className="addmenu-item" onMouseDown={(e) => { e.preventDefault(); if (onAddSection) onAddSection(); onClose(); }}>
-          <span className="material-icons-outlined ic">lock</span>
-          <span className="lbl">Note confidentielle</span>
-        </button>
+    <div className="dx-menu dx-edit" ref={ref} style={Object.assign({ position: 'fixed', zIndex: 70 }, placement.style)}>
+      <div className="dx-edit__field">
+        <input
+          autoFocus
+          value={term}
+          placeholder={mode === 'refine' ? 'Rechercher un code plus précis…' : 'Renommer ou choisir un code CIM-10…'}
+          onChange={(e) => onChangeTerm(e.target.value)}
+          onKeyDown={onKeyDown} />
       </div>
-    </>
+      <DxHead model={model} onEvent={dispatch} />
+      <DxList model={model} activeIndex={activeIndex} actionFocus={0} onEvent={dispatch} />
+      {otherMentionsCount > 0 &&
+        <div className="dx-edit__hint">
+          Renomme aussi {otherMentionsCount} autre{otherMentionsCount > 1 ? 's' : ''} mention{otherMentionsCount > 1 ? 's' : ''} de ce diagnostic.
+        </div>
+      }
+      <DxFoot model={model} activeIndex={activeIndex} />
+    </div>
   );
 }
 
@@ -684,4 +762,4 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
     </div>);
 }
 
-Object.assign(window, { ChipPopover, SlashMenu, AddMenu, RxMenu, DiagnosticDropdown });
+Object.assign(window, { ChipPopover, SlashMenu, RxMenu, DiagnosticDropdown, DxHead, DxList, DxRow, DxFoot, DxEditPopover });

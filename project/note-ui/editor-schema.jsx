@@ -8,35 +8,9 @@
 
 let _chipSeq = 1;
 function newChipId() { return 'c' + _chipSeq++; }
-let _diagSeq = 1;
-function newDiagId() { return 'd' + _diagSeq++; }
-
-// searchCIM10 — filtre les entrées CIM-10 par requête (insensible aux accents).
-// Catégories génériques (parapluie) d'abord — plus rapides à repérer et
-// suffisantes pour la majorité des consultations ; les codes précis restent
-// juste en dessous pour qui en a besoin.
-function searchCIM10(query) {
-  const data = window.CIM10_DATA;
-  if (!data || !query || query.trim().length < 2) return [];
-  const norm = function (s) { return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); };
-  const q = norm(query.trim());
-  const generic = [];
-  const specific = [];
-  for (let i = 0; i < data.length; i++) {
-    if (!norm(data[i].libelle).includes(q)) continue;
-    (data[i].generic ? generic : specific).push(data[i]);
-  }
-  return generic.concat(specific).slice(0, 8);
-}
-
-// searchDx - liste unique (dossier + CIM-10) pour le menu /dx, meme principe
-// que flattenRxResults pour /rx : une seule liste a plat pour la navigation
-// clavier (Suggestion.items()) et le rendu (DiagnosticDropdown), les
-// problemes au dossier en tete.
-function searchDx(query) {
-  const term = (query || '').trim();
-  return window.NOTE_DATA.searchProblems(term).concat(searchCIM10(term));
-}
+// newDiagId / listDiagnostics vivent maintenant dans diagnostics.jsx (chargé
+// juste avant ce fichier — voir Note Clinique.html), avec le reste du modèle
+// des diagnostics (fils, numéros, Sommaire).
 
 // ---------------------------------------------------------
 // DOM builder for a chip — même rendu que l'ancien ChipBlot Quill.
@@ -298,7 +272,134 @@ function makeReferenceNode() { return window.Tiptap.Node.create({
 // CSS ». Un seul curseur continu texte → en-tête (non-éditable) → corps
 // (contentDOM, éditable) → texte. L'en-tête (nom + bouton promouvoir) est
 // géré par un mousedown délégué sur editor.view.dom, voir editor-field.jsx.
+//
+// Attributs (voir diagnostics.jsx pour leur usage complet — normalizeDiagAttrs,
+// diagnosticThreads, makeDiagRegionAttrs) :
+//  - id : identifiant de CETTE occurrence, unique dans le document.
+//  - dxKey : identité du FIL — partagée par toutes les occurrences d'un même
+//    diagnostic repris (Reprendre), c'est elle qui donne le numéro (R3).
+//  - name/code/level/source : le diagnostic choisi (texte libre, CIM-10 ou
+//    sommaire) — source ne vaut jamais 'note', voir dxThreadIdentity.
+//  - sommaireId/documentAs : le lien avec le Sommaire (Problème/Antécédent —
+//    D1) et la ligne visée, si le fil vient du dossier ou y a été ajouté.
+//  - status/replaces : Cesser (D2) et Remplacer (D3).
+//  - documentedAt/documentedBy : horodatage du dernier acte qui a touché le
+//    Sommaire — clé du Journal des actions (buildActionLog plus haut).
+// Tous font l'aller-retour par des attributs data-* (round-trip HTML), pour
+// que le copier-coller d'une région garde son identité complète.
 // ---------------------------------------------------------
+function dxDataAttrs(attrs) {
+  const a = attrs || {};
+  const out = { 'data-diag-id': a.id || '' };
+  if (a.dxKey) out['data-dx-key'] = a.dxKey;
+  if (a.code) out['data-dx-code'] = a.code;
+  if (a.level) out['data-dx-level'] = a.level;
+  if (a.source) out['data-dx-source'] = a.source;
+  if (a.sommaireId) out['data-dx-sommaire-id'] = a.sommaireId;
+  if (a.documentAs) out['data-dx-document-as'] = a.documentAs;
+  if (a.status === 'cesse') out['data-dx-status'] = 'cesse';
+  if (a.replaces) out['data-dx-replaces'] = JSON.stringify(a.replaces);
+  if (a.documentedAt) out['data-dx-documented-at'] = a.documentedAt;
+  if (a.documentedBy) out['data-dx-documented-by'] = a.documentedBy;
+  if (a.createdAt) out['data-dx-created-at'] = a.createdAt;
+  return out;
+}
+function dxAttrsFromDom(dom) {
+  const nameEl = dom.querySelector('.dxr-name');
+  let replaces = null;
+  try { replaces = dom.getAttribute('data-dx-replaces') ? JSON.parse(dom.getAttribute('data-dx-replaces')) : null; } catch (e) {}
+  return {
+    id: dom.getAttribute('data-diag-id') || null,
+    dxKey: dom.getAttribute('data-dx-key') || null,
+    name: nameEl ? nameEl.textContent : 'Diagnostic',
+    code: dom.getAttribute('data-dx-code') || null,
+    level: dom.getAttribute('data-dx-level') || null,
+    source: dom.getAttribute('data-dx-source') || null,
+    sommaireId: dom.getAttribute('data-dx-sommaire-id') || null,
+    documentAs: dom.getAttribute('data-dx-document-as') || null,
+    status: dom.getAttribute('data-dx-status') === 'cesse' ? 'cesse' : 'actif',
+    replaces: replaces,
+    documentedAt: dom.getAttribute('data-dx-documented-at') || null,
+    documentedBy: dom.getAttribute('data-dx-documented-by') || null,
+    createdAt: dom.getAttribute('data-dx-created-at') || null
+  };
+}
+// ---------------------------------------------------------
+// Numérotation des diagnostics par décorations ProseMirror — remplace le
+// compteur CSS positionnel omd-diag-counter (editor.css), incapable de
+// dédoublonner par fil (R3). Un seul plugin, partagé par la clé
+// dxNumberingKey : son state {model, decos} est reconstruit à chaque
+// transaction qui change le doc, ou quand la méta dxRefresh est posée (ex.
+// au chargement de la CIM-10, pour recalculer canRefine — voir editor-field.jsx).
+// decos pose data-dx-num sur chaque .dxr-head (lu par le NodeView, voir
+// render() plus bas) et sur chaque .dxref ; le CSS lit attr(data-dx-num)
+// au lieu de counter(omd-diag-counter) dans les 5 styles.
+// ---------------------------------------------------------
+let _dxNumKey = null;
+function dxNumberingKey() { return _dxNumKey || (_dxNumKey = new window.Tiptap.pm.PluginKey('diagNumbering')); }
+
+function dxBuildNumberingState(doc) {
+  const PM = window.Tiptap.pm;
+  const model = window.diagnosticThreads(doc);
+  if (!PM.Decoration || !PM.DecorationSet) {
+    // Instance de prosemirror-view manquante ou incompatible (voir le
+    // commentaire d'import, Note Clinique.html) : pas de numéros affichés
+    // plutôt qu'un plantage — signalé une seule fois par appel, pas assez
+    // grave pour la bannière tiptap:error (le reste de l'éditeur fonctionne).
+    console.error('diagNumbering : Decoration/DecorationSet indisponibles sur window.Tiptap.pm — les numéros de diagnostic ne s’afficheront pas.');
+    return { model: model, decos: null };
+  }
+  const decos = [];
+  model.threads.forEach(function (t) {
+    const placement = window.diagPlacement(t.effective);
+    const linked = !!t.effective.sommaireId;
+    const canRefine = window.diagCanRefine(t.effective);
+    t.occurrences.forEach(function (o, i) {
+      if (o.pos == null || o.nodeSize == null) return; // JSON hors éditeur : rien à décorer
+      decos.push(PM.Decoration.node(o.pos, o.pos + o.nodeSize, { 'data-dx-num': String(t.number) }, {
+        dxNum: t.number, dxKey: t.dxKey, dxOcc: i + 1, dxOccCount: t.occurrences.length,
+        dxPlacement: placement, dxLinked: linked, dxCanRefine: canRefine
+      }));
+    });
+  });
+  model.refs.forEach(function (r) {
+    if (r.pos == null || r.nodeSize == null) return;
+    decos.push(PM.Decoration.node(r.pos, r.pos + r.nodeSize, r.number ? { 'data-dx-num': String(r.number) } : {}, { dxNum: r.number }));
+  });
+  return { model: model, decos: PM.DecorationSet.create(doc, decos) };
+}
+
+function dxNumberingPlugin() {
+  const PM = window.Tiptap.pm;
+  return new PM.Plugin({
+    key: dxNumberingKey(),
+    state: {
+      init(_config, state) { return dxBuildNumberingState(state.doc); },
+      apply(tr, prev, _oldState, newState) {
+        if (!tr.docChanged && !tr.getMeta('dxRefresh')) return prev;
+        return dxBuildNumberingState(newState.doc);
+      }
+    },
+    props: {
+      decorations(state) {
+        const s = dxNumberingKey().getState(state);
+        return s ? s.decos : null;
+      }
+    }
+  });
+}
+
+// Extrait le spec de décoration (dxNum, dxKey…) portant sur CE node depuis le
+// tableau `decorations` reçu par le NodeView (création et update()).
+function dxSpecFromDecorations(decorations) {
+  if (!decorations) return null;
+  for (let i = 0; i < decorations.length; i++) {
+    const spec = decorations[i] && decorations[i].spec;
+    if (spec && spec.dxNum != null) return spec;
+  }
+  return null;
+}
+
 function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRegion',
   group: 'block',
@@ -307,30 +408,34 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   defining: true,
   addAttributes() {
     return {
-      id: { default: null }, name: { default: 'Diagnostic' },
-      // Posés au clic sur « Promouvoir en problème » (editor-field.jsx) — un
-      // diagnostic non promu n'alimente ni le Sommaire (Summary.jsx) ni le
-      // Journal des actions ; voir buildActionLog plus bas.
-      promotedAt: { default: null }, promotedBy: { default: null }
+      id: { default: null }, dxKey: { default: null }, name: { default: 'Diagnostic' },
+      code: { default: null }, level: { default: null }, source: { default: null },
+      sommaireId: { default: null }, documentAs: { default: null }, status: { default: 'actif' },
+      replaces: { default: null }, documentedAt: { default: null }, documentedBy: { default: null },
+      createdAt: { default: null }
     };
   },
   parseHTML() {
-    return [{
-      tag: 'div.dxr',
-      getAttrs(dom) {
-        const nameEl = dom.querySelector('.dxr-name');
-        return { id: dom.getAttribute('data-diag-id') || null, name: nameEl ? nameEl.textContent : 'Diagnostic' };
-      },
-      contentElement: '.dxr-body'
-    }];
+    return [{ tag: 'div.dxr', getAttrs: dxAttrsFromDom, contentElement: '.dxr-body' }];
   },
   renderHTML({ node, HTMLAttributes }) {
-    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr', 'data-diag-id': node.attrs.id }, HTMLAttributes),
-      ['div', { class: 'dxr-head', contenteditable: 'false' },
-        ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
-        ['span', { class: 'dxr-name', 'data-diag-id': node.attrs.id }, node.attrs.name],
-        ['button', { type: 'button', class: 'dxr-promote', title: 'Promouvoir en problème' },
-          ['span', { class: 'material-icons-outlined' }, 'add_task']]],
+    const a = node.attrs;
+    const head = ['div', { class: 'dxr-head', contenteditable: 'false' },
+      ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
+      ['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]];
+    if (a.code) head.push(['span', { class: 'dxr-code' }, a.code]);
+    if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, 'Cessé']);
+    if (a.replaces) head.push(['span', { class: 'dxr-sub' }, 'remplace : ' + a.replaces.name]);
+    if (window.diagCanRefine(a)) {
+      head.push(['button', { type: 'button', class: 'dxr-refine', title: 'Choisir un code plus précis' }, 'Préciser']);
+    }
+    const b = window.diagDocButton(window.diagPlacement(a), !!a.sommaireId);
+    head.push(['button', { type: 'button', class: 'dxr-doc dxr-doc--' + b.mod, title: b.title },
+      ['span', { class: 'material-icons-outlined' }, b.icon],
+      ['span', {}, b.label],
+      ['span', { class: 'material-icons-outlined dxr-doc__caret' }, 'arrow_drop_down']]);
+    return ['div', window.Tiptap.mergeAttributes({ class: 'dxr' }, HTMLAttributes, dxDataAttrs(a)),
+      head,
       ['div', { class: 'dxr-body' }, 0]];
   },
   addNodeView() {
@@ -348,23 +453,82 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       const nameEl = document.createElement('span');
       nameEl.className = 'dxr-name';
       head.appendChild(nameEl);
-      const promoteBtn = document.createElement('button');
-      promoteBtn.type = 'button';
-      promoteBtn.className = 'dxr-promote';
-      promoteBtn.title = 'Promouvoir en problème';
-      promoteBtn.innerHTML = '<span class="material-icons-outlined">add_task</span>';
-      head.appendChild(promoteBtn);
+      const codeEl = document.createElement('span');
+      codeEl.className = 'dxr-code';
+      head.appendChild(codeEl);
+      const statusEl = document.createElement('span');
+      statusEl.className = 'dxr-status';
+      statusEl.textContent = 'Cessé';
+      head.appendChild(statusEl);
+      const subEl = document.createElement('span');
+      subEl.className = 'dxr-sub';
+      head.appendChild(subEl);
+      // « Préciser » — descend d'un niveau dans la CIM-10 sur un code qui a
+      // des enfants (D4, diagCanRefine). Ouvre DxEditPopover en mode refine
+      // (editor-field.jsx), pas visible tant que le code n'a pas d'enfants
+      // (catégorie déjà la plus précise, texte libre, CIM-10 pas encore chargée).
+      const refineBtn = document.createElement('button');
+      refineBtn.type = 'button';
+      refineBtn.className = 'dxr-refine';
+      refineBtn.title = 'Choisir un code plus précis';
+      refineBtn.textContent = 'Préciser';
+      head.appendChild(refineBtn);
+      // « Documenter comme » (D1) — remplace l'ancien bouton « Promouvoir en
+      // problème ». Son icône/libellé/couleur suivent diagDocButton
+      // (diagnostics.jsx) : Documenter / Non documenté / Problème / Antécédent
+      // / Antécédent · résolu. Ouvre DiagDocMenu (editor-field.jsx), qui
+      // applique la documentation à TOUT le fil (patchDiagRegions).
+      const docBtn = document.createElement('button');
+      docBtn.type = 'button';
+      docBtn.setAttribute('aria-haspopup', 'menu');
+      const docIcon = document.createElement('span');
+      docIcon.className = 'material-icons-outlined';
+      docBtn.appendChild(docIcon);
+      const docLabel = document.createElement('span');
+      docBtn.appendChild(docLabel);
+      const docCaret = document.createElement('span');
+      docCaret.className = 'material-icons-outlined dxr-doc__caret';
+      docCaret.textContent = 'arrow_drop_down';
+      docBtn.appendChild(docCaret);
+      head.appendChild(docBtn);
 
       const body = document.createElement('div');
       body.className = 'dxr-body';
 
-      function render(attrs) {
-        dom.setAttribute('data-diag-id', attrs.id || '');
-        nameEl.setAttribute('data-diag-id', attrs.id || '');
-        nameEl.textContent = attrs.name || 'Diagnostic';
-        promoteBtn.classList.toggle('dxr-promoted', !!attrs.promotedAt);
+      function render(attrs, spec) {
+        const a = window.normalizeDiagAttrs(attrs);
+        dom.setAttribute('data-diag-id', a.id || '');
+        if (a.dxKey) dom.setAttribute('data-dx-key', a.dxKey); else dom.removeAttribute('data-dx-key');
+        dom.classList.toggle('dxr--cesse', a.status === 'cesse');
+        nameEl.setAttribute('data-diag-id', a.id || '');
+        nameEl.setAttribute('data-dx-code', a.code || '');
+        nameEl.textContent = a.name || 'Diagnostic';
+        codeEl.textContent = a.code || '';
+        codeEl.hidden = !a.code;
+        statusEl.hidden = a.status !== 'cesse';
+        subEl.hidden = !a.replaces;
+        subEl.textContent = a.replaces ? ('remplace : ' + a.replaces.name) : '';
+        refineBtn.hidden = spec ? !spec.dxCanRefine : !window.diagCanRefine(a);
+        // Le placement/lien viennent de la décoration quand elle existe (déjà
+        // calculés une fois pour tout le fil par dxNumberingPlugin) — sinon
+        // (décorations indisponibles) on retombe sur un calcul local.
+        const placement = spec ? spec.dxPlacement : window.diagPlacement(a);
+        const linked = spec ? spec.dxLinked : !!a.sommaireId;
+        const b = window.diagDocButton(placement, linked);
+        docBtn.className = 'dxr-doc dxr-doc--' + b.mod;
+        docBtn.title = b.title;
+        docBtn.setAttribute('aria-label', b.title);
+        docIcon.textContent = b.icon;
+        docLabel.textContent = b.label;
+        // Numéro du fil (dxNumberingPlugin plus haut) : posé par décoration,
+        // pas par un attribut du node — il dépend de la position de TOUTES
+        // les occurrences du même fil dans le document entier
+        // (diagnosticThreads), jamais de cette seule région. Lu par le CSS
+        // via attr(data-dx-num) (editor.css, les 5 styles de région).
+        if (spec && spec.dxNum != null) head.setAttribute('data-dx-num', String(spec.dxNum));
+        else head.removeAttribute('data-dx-num');
       }
-      render(props.node.attrs);
+      render(props.node.attrs, dxSpecFromDecorations(props.decorations));
 
       dom.appendChild(head);
       dom.appendChild(body);
@@ -372,17 +536,25 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       return {
         dom,
         contentDOM: body,
-        update(updatedNode) {
+        // Les classes/attrs posés directement sur `head` par ce mousedown
+        // délégué (ex. le flash .dxr-flash sur `dom`, voir editor-field.jsx)
+        // ne doivent pas déclencher une relecture du node par ProseMirror.
+        ignoreMutation(m) { return !body.contains(m.target); },
+        update(updatedNode, decorations) {
           if (updatedNode.type.name !== 'diagnosticRegion') return false;
-          render(updatedNode.attrs);
+          render(updatedNode.attrs, dxSpecFromDecorations(decorations));
           return true;
         }
       };
     };
   },
-  // Enter sur le dernier paragraphe vide de la région → sort (nouveau
-  // paragraphe après, façon Notion). Backspace en tête d'une région réduite
-  // à un seul paragraphe vide → supprime toute la région.
+  // Entrée sur le dernier paragraphe vide de la région → sort en insérant un
+  // nouveau paragraphe APRÈS (jamais de suppression ici, même si la région
+  // n'a qu'un seul paragraphe : une région Reprendre/Cesser/Remplacer n'a
+  // souvent aucun texte à ajouter, et Entrée est la touche la plus naturelle
+  // à taper ensuite — elle ne doit jamais effacer la région ni son numéro).
+  // Backspace en tête d'une région réduite à un seul paragraphe vide →
+  // suppression explicite de toute la région, elle continue de fonctionner.
   addKeyboardShortcuts() {
     return {
       Enter: () => {
@@ -395,26 +567,10 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (regionDepth < 0 || $from.node(regionDepth).type.name !== 'diagnosticRegion') return false;
         const region = $from.node(regionDepth);
         if ($from.index(regionDepth) !== region.childCount - 1) return false;
-        // Le paragraphe vide qui déclenche la sortie ne doit pas rester dans la
-        // région (sinon une ligne fantôme y reste) : on le retire — ou, s'il est
-        // seul, on retire toute la région — avant de placer le curseur dans un
-        // nouveau paragraphe après.
-        if (region.childCount === 1) {
-          const regionStart = $from.before(regionDepth);
-          const regionEnd = $from.after(regionDepth);
-          return editor.chain()
-            .deleteRange({ from: regionStart, to: regionEnd })
-            .insertContentAt(regionStart, { type: 'paragraph' })
-            .setTextSelection(regionStart + 1)
-            .run();
-        }
-        const paraStart = $from.before($from.depth);
-        const paraEnd = $from.after($from.depth);
-        const afterRegionPos = paraStart + 1;
+        const regionEnd = $from.after(regionDepth);
         return editor.chain()
-          .deleteRange({ from: paraStart, to: paraEnd })
-          .insertContentAt(afterRegionPos, { type: 'paragraph' })
-          .setTextSelection(afterRegionPos + 1)
+          .insertContentAt(regionEnd, { type: 'paragraph' })
+          .setTextSelection(regionEnd + 1)
           .run();
       },
       Backspace: () => {
@@ -431,31 +587,84 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         return editor.chain().deleteRange({ from: regionPos, to: regionPos + region.nodeSize }).run();
       }
     };
+  },
+  // Garde d'hygiène des ids/dxKey — recale newDiagId() et sépare deux
+  // occurrences qui partageraient le même id (copier-coller d'une région),
+  // en gardant leur dxKey commune (X4 : elles restent le même fil, donc le
+  // même numéro). N'affecte jamais l'état effectif du fil (voir
+  // diagnosticThreads) : seule l'identité d'instance est corrigée ici.
+  addProseMirrorPlugins() {
+    return [
+      new window.Tiptap.pm.Plugin({
+        appendTransaction(transactions, oldState, newState) {
+          if (!transactions.some(function (t) { return t.docChanged; })) return null;
+          const seenIds = new Set();
+          let changed = false;
+          const tr = newState.tr;
+          newState.doc.descendants(function (node, pos) {
+            if (node.type.name !== 'diagnosticRegion') return;
+            let id = node.attrs.id;
+            if (!id || seenIds.has(id)) {
+              id = window.newDiagId();
+              tr.setNodeAttribute(pos, 'id', id);
+              changed = true;
+            }
+            seenIds.add(id);
+            if (!node.attrs.dxKey) { tr.setNodeAttribute(pos, 'dxKey', 'n:' + id); changed = true; }
+          });
+          return changed ? tr : null;
+        }
+      }),
+      dxNumberingPlugin()
+    ];
   }
 }); }
 
-// Liste les régions diagnostic du document dans l'ordre où elles y
-// apparaissent — c'est cet ordre (identique à l'ordre DOM des .dxr, donc au
-// compteur CSS omd-diag-counter qui numérote leur en-tête) qui définit le
-// numéro « officiel » de chaque diagnostic. Utilisé pour peupler le picker
-// « Renvoi à un diagnostic » (editor-field.jsx) et pour tenir à jour les
-// puces déjà insérées (voir diagnosticRef ci-dessous).
-function listDiagnostics(doc) {
-  const list = [];
-  doc.descendants(function (node) {
-    if (node.type.name === 'diagnosticRegion') list.push({ id: node.attrs.id, name: node.attrs.name });
-  });
-  return list;
+// patchDiagRegions — seul chemin pour modifier les attributs d'une ou
+// plusieurs régions diagnostic après coup (documenter, renommer, préciser…).
+// `patches` est un tableau [{id, patch}] — même forme que le retour de
+// diagRelabelPatches (diagnostics.jsx) : `patch` est un objet à fusionner
+// dans les attrs existants, ou une fonction (attrs) => objet. Une seule
+// transaction pour tout le tableau.
+function patchDiagRegions(editor, patches) {
+  const byId = {};
+  (patches || []).forEach(function (p) { if (p && p.id) byId[p.id] = p.patch; });
+  if (!Object.keys(byId).length) return false;
+  let changed = false;
+  editor.chain().command(function (props) {
+    const tr = props.tr;
+    tr.doc.descendants(function (node, pos) {
+      if (node.type.name !== 'diagnosticRegion') return;
+      const patch = byId[node.attrs.id];
+      if (!patch) return;
+      const next = (typeof patch === 'function') ? patch(node.attrs) : patch;
+      tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, next));
+      changed = true;
+    });
+    return changed;
+  }).run();
+  return changed;
+}
+
+// getDiagModel — les fils du document VIVANT de l'éditeur. Lit le state du
+// plugin dxNumberingPlugin (déjà reconstruit à chaque transaction qui change
+// le doc, voir plus haut) au lieu de recalculer : un seul calcul par
+// transaction, partagé avec les décorations.
+function getDiagModel(editor) {
+  const s = dxNumberingKey().getState(editor.state);
+  return s ? s.model : window.diagnosticThreads(editor.state.doc);
 }
 
 // ---------------------------------------------------------
-// DiagnosticRefNode — puce inline « (N) » renvoyant au Nᵉ diagnostic du
-// document (voir listDiagnostics ci-dessus). Ne stocke QUE l'id du
-// diagnostic visé : le numéro affiché n'est pas un attribut à lui, il
-// dépend de la position de TOUS les diagnostics du document et ne peut
-// donc pas se recalculer depuis le seul update() de ce node — il est
-// recalculé à chaque transaction par syncDiagnosticRefs (editor-field.jsx),
-// comme updateLineBtnPos pour la même raison (état dérivé du doc entier).
+// DiagnosticRefNode — puce inline « (N) » renvoyant au diagnostic visé par
+// dxKey (l'identité du FIL, pas d'une occurrence — R3 : reprendre un
+// diagnostic dans la Conclusion doit renvoyer au même numéro qu'en Détails).
+// diagId reste lu en parseHTML pour un ancien renvoi collé/repris (résolu
+// via byId, voir dxNumberingPlugin/diagnosticThreads) mais n'est plus écrit
+// par de nouvelles insertions. Le numéro affiché n'est pas un attribut du
+// node : il dépend de la position de TOUS les diagnostics du document et est
+// posé par décoration (dxNumberingPlugin ci-dessus), comme updateLineBtnPos
+// pour la même raison (état dérivé du doc entier).
 // ---------------------------------------------------------
 function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
   name: 'diagnosticRef',
@@ -465,27 +674,39 @@ function makeDiagnosticRefNode() { return window.Tiptap.Node.create({
   selectable: true,
   draggable: false,
   addAttributes() {
-    return { diagId: { default: null } };
+    return { dxKey: { default: null }, diagId: { default: null } };
   },
   parseHTML() {
-    return [{ tag: 'span.dxref[data-diag-id]', getAttrs(dom) { return { diagId: dom.getAttribute('data-diag-id') }; } }];
+    return [{
+      tag: 'span.dxref[data-diag-id], span.dxref[data-dx-key]',
+      getAttrs(dom) { return { dxKey: dom.getAttribute('data-dx-key') || null, diagId: dom.getAttribute('data-diag-id') || null }; }
+    }];
   },
   renderHTML({ node }) {
-    return ['span', { class: 'dxref', 'data-diag-id': node.attrs.diagId, contenteditable: 'false' }, '(?)'];
+    const attrs = { class: 'dxref', contenteditable: 'false' };
+    if (node.attrs.dxKey) attrs['data-dx-key'] = node.attrs.dxKey;
+    if (node.attrs.diagId) attrs['data-diag-id'] = node.attrs.diagId;
+    return ['span', attrs, '(?)'];
   },
   addNodeView() {
     return (props) => {
       const dom = document.createElement('span');
       dom.className = 'dxref';
       dom.setAttribute('contenteditable', 'false');
-      dom.setAttribute('data-diag-id', props.node.attrs.diagId || '');
-      dom.textContent = '(?)';
+      function render(attrs, spec) {
+        if (attrs.dxKey) dom.setAttribute('data-dx-key', attrs.dxKey); else dom.removeAttribute('data-dx-key');
+        if (attrs.diagId) dom.setAttribute('data-diag-id', attrs.diagId); else dom.removeAttribute('data-diag-id');
+        const num = spec ? spec.dxNum : null;
+        dom.textContent = num ? '(' + num + ')' : '(?)';
+        dom.classList.toggle('dxref-broken', !num);
+      }
+      render(props.node.attrs, dxSpecFromDecorations(props.decorations));
       return {
         dom,
         ignoreMutation: () => true,
-        update(updatedNode) {
+        update(updatedNode, decorations) {
           if (updatedNode.type.name !== 'diagnosticRef') return false;
-          dom.setAttribute('data-diag-id', updatedNode.attrs.diagId || '');
+          render(updatedNode.attrs, dxSpecFromDecorations(decorations));
           return true;
         }
       };
@@ -1227,7 +1448,11 @@ function buildSlashExtension(handlers) {
           items: function (props) {
             const parsed = parseSlashQuery(props.query);
             if (parsed.mode === 'order') return flattenRxResults(window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim()));
-            if (parsed.mode === 'dx') return searchDx(parsed.term || '');
+            // Mode dx : le modèle affiché/navigué vient de dxBuildModel, construit
+            // une seule fois par le contrôleur (editor-field.jsx) — items() ne sert
+            // qu'à activer/désactiver la navigation clavier interne du plugin
+            // Suggestion, qu'on laisse volontairement inerte ici (voir dxStep).
+            if (parsed.mode === 'dx') return [];
             return filterSlashItems(props.query);
           },
           command: handlers.onCommand,
@@ -1261,11 +1486,12 @@ function DEFAULT_DOC() {
 // scanDoc — une seule marche sur le doc JSON : chips présents (dans l'ordre
 // du document), compteurs par type d'entité + diagnostics, items pour le
 // Sommaire. Fonctionne sur un doc « vivant » (editor.getJSON()) ou stocké
-// (brouillon / note complétée).
+// (brouillon / note complétée). Les diagnostics sont dédoublonnés par fil
+// (diagnosticThreads, diagnostics.jsx) : un diagnostic repris en Détails et
+// en Conclusion ne compte qu'une fois.
 // ---------------------------------------------------------
 function scanDoc(docJson) {
   const chips = [];
-  const diagNames = [];
   // Formulaires d'outils cliniques présents dans la note. Depuis V7 ils sont
   // transmissibles au même titre qu'une requête (plan V7 §D) — le checkout
   // s'en sert pour construire un document par formulaire. Liste séparée des
@@ -1278,8 +1504,6 @@ function scanDoc(docJson) {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
         text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
       } });
-    } else if (node.type === 'diagnosticRegion') {
-      diagNames.push(node.attrs.name);
     } else if (node.type === 'clinicalTool') {
       tools.push({
         id: node.attrs.instanceId, toolId: node.attrs.toolId,
@@ -1289,12 +1513,14 @@ function scanDoc(docJson) {
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  const diagThreads = window.diagnosticThreads(docJson).threads.map(function (t) { return t.effective; });
+  const diagNames = diagThreads.map(function (e) { return e.status === 'cesse' ? e.name + ' (cessé)' : e.name; });
   const counts = {};
   chips.forEach(function (c) { if (c.entity.type) counts[c.entity.type] = (counts[c.entity.type] || 0) + 1; });
-  if (diagNames.length) counts.diagnostic = diagNames.length;
+  if (diagThreads.length) counts.diagnostic = diagThreads.length;
   const items = chips.map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
-  diagNames.forEach(function (nm, i) { items.push({ id: 'dx-' + i, type: 'diagnostic', label: nm }); });
-  return { chips: chips, counts: counts, items: items, diagNames: diagNames, tools: tools };
+  diagThreads.forEach(function (e) { items.push({ id: 'dx-' + e.dxKey, type: 'diagnostic', label: e.name }); });
+  return { chips: chips, counts: counts, items: items, diagNames: diagNames, diagThreads: diagThreads, tools: tools };
 }
 
 
@@ -1307,9 +1533,9 @@ function scanDoc(docJson) {
 // modifiée plusieurs fois n'a qu'une entrée : le doc ne garde que le
 // dernier état de chaque node, il n'y a pas de dédoublonnage à faire.
 // attrs.savedAt/author sont posés à la création/édition (chip,
-// clinicalTool) ou à la promotion (diagnosticRegion → Problèmes, voir
-// editor-field.jsx) — un diagnostic non promu n'apparaît pas ici, comme
-// dans le Sommaire.
+// clinicalTool) ou à la documentation (diagnosticRegion → Problèmes ou
+// Antécédents, voir le menu « Documenter comme » dans editor-field.jsx) —
+// un diagnostic non documenté n'apparaît pas ici, comme dans le Sommaire.
 // ---------------------------------------------------------
 const ACTION_LOG_TYPES = [
   'taches', 'outilsCliniques', 'signesVitaux', 'habitudesDeVie', 'programme',
@@ -1327,6 +1553,7 @@ const ACTION_LOG_META = {
   requetes: { label: 'Requêtes' },
   consignes: { label: 'Consignes' },
   problemes: { label: 'Problèmes' },
+  antecedents: { label: 'Antécédents' },
   fichier: { label: 'Fichier' }
 };
 // chip.attrs.type → clé du journal — seuls les types réellement produits par
@@ -1378,18 +1605,25 @@ function buildActionLog(docJson) {
         author: node.attrs.author, savedAt: node.attrs.savedAt,
         sourceType: 'clinicalTool', sourceId: node.attrs.instanceId
       });
-    } else if (node.type === 'diagnosticRegion' && node.attrs.promotedAt) {
-      // Même icône que l'en-tête de la région diagnostic (dxr-ic).
-      entries.push({
-        key: 'dx-' + node.attrs.id, logType: 'problemes',
-        title: node.attrs.name || 'Diagnostic', icon: 'local_hospital',
-        author: node.attrs.promotedBy, savedAt: node.attrs.promotedAt,
-        sourceType: 'diagnosticRegion', sourceId: node.attrs.id
-      });
     }
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  // Diagnostics : une entrée par FIL (pas par occurrence), seulement pour un
+  // fil documenté (Problème ou Antécédent — voir diagPlacement,
+  // diagnostics.jsx). Même icône que l'en-tête de la région (dxr-ic).
+  window.diagnosticThreads(docJson).threads.forEach(function (t) {
+    const e = t.effective, placement = window.diagPlacement(e);
+    if (!placement || !e.documentedAt) return;
+    entries.push({
+      key: 'dx-' + t.dxKey, logType: placement === 'probleme' ? 'problemes' : 'antecedents',
+      title: e.status === 'cesse' ? e.name + ' — cessé' : (e.replaces ? e.name + ' (remplace ' + e.replaces.name + ')' : e.name),
+      verb: e.status === 'cesse' ? 'Cessé' : (e.replaces ? 'Modifié' : 'Documenté'),
+      icon: 'local_hospital',
+      author: e.documentedBy, savedAt: e.documentedAt,
+      sourceType: 'diagnosticRegion', sourceId: e.lastId
+    });
+  });
   // Ordre fixe par type, puis dernière sauvegarde d'abord au sein d'un type.
   entries.sort(function (a, b) {
     if (order[a.logType] !== order[b.logType]) return order[a.logType] - order[b.logType];
@@ -1620,10 +1854,7 @@ Object.assign(window, {
   currentSplitSlot,
   splitPosPM,
   newChipId,
-  newDiagId,
   newToolInstanceId,
-  searchCIM10,
-  searchDx,
   CT_FIELD_DEFAULTS,
   buildClinicalToolNode,
   buildEditorExtensions,
@@ -1643,5 +1874,6 @@ Object.assign(window, {
   findChipPos,
   getChipEntity,
   updateChipEntity,
-  listDiagnostics
+  patchDiagRegions,
+  getDiagModel
 });

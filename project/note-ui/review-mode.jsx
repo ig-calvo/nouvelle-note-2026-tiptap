@@ -190,6 +190,13 @@ function buildTrackingTr(transactions, oldState, newState, author, TextSelection
   steps.forEach(function (entry, idx) {
     const step = entry.step, before = entry.before;
     if (step.jsonID !== 'replace' && step.jsonID !== 'replaceAround') return;
+    // Un ReplaceAroundStep « structurel » (ex. tr.setNodeMarkup — changer les
+    // attrs d'un node sans toucher son contenu) porte structure:true : aucun
+    // texte n'est réellement supprimé ni inséré, seule l'enveloppe change.
+    // Le traiter comme un remplacement de texte réinsérerait tout le corps du
+    // node en barré (le slice recouvre tout le contenu par construction d'un
+    // ReplaceAroundStep) — rien à tracker ici, l'attribut change silencieusement.
+    if (step.jsonID === 'replaceAround' && step.structure) return;
     const pureDelete = step.slice.size === 0;
 
     // ── Suppression : réinsère le contenu retiré, barré, au point de

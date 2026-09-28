@@ -1,5 +1,10 @@
 /* global React */
 
+// Base de démo des Problèmes/Antécédents — partagée avec /dx (diagnostics.jsx,
+// sommaireDxSeed) : c'est la MÊME liste qu'un pick « Sommaire » du picker
+// propose, pas une liste à part comme l'ancienne PROBLEMS d'editor-data.jsx.
+var DX_SEED = window.sommaireDxSeed();
+
 var INIT_DATA = {
   results: [],
   programs: [],
@@ -11,10 +16,13 @@ var INIT_DATA = {
     { left:'Taille',       mid:'165 cm',           right:'08/12/2025' },
     { left:'IMC',          mid:'22,8',             right:'08/12/2025' },
   ],
-  problems: [],
-  history: [
-    { left:'Infection urinaire (résolue)', right:'08/12/2025' },
-  ],
+  // Lignes {id, name, code, since} / {id, name, code, status, resolvedOn} —
+  // voir diagnostics.jsx (sommaireDxSeed, mergeSommaireDx). La mise en forme
+  // {left, mid, right, title} est calculée à l'affichage par
+  // sommaireDxRowView, jamais stockée : dxView plus bas fusionne cette base
+  // avec ce que la note en cours documente (E2).
+  problems: DX_SEED.problems,
+  history: DX_SEED.history,
   allergies: [
     { name:'Aucune allergie connue', type:'none', muted:true },
   ],
@@ -66,12 +74,65 @@ function Summary() {
   var [showPrint, setShowPrint] = React.useState(false);
   var [dragSrc, setDragSrc] = React.useState(null);
   var [pending, setPending] = React.useState({}); // { sectionId: [{id,type,label}] } — éléments en attente venant de la note
+  // Fils de diagnostic de la note en cours ({dxKey, number, name, code,
+  // documentAs, status, replaces…} — un par fil, voir diagnosticThreads),
+  // publiés par NoteEditor.jsx (note:diagnostics-change) à chaque frappe.
+  var [dxOverlay, setDxOverlay] = React.useState(function() { return window.__NOTE_DX_OVERLAY || []; });
+
+  // Publie la base du dossier (SANS la superposition de la note en cours) —
+  // c'est ce que /dx (getSommaireDiagnostics, diagnostics.jsx) lit pour
+  // proposer les problèmes/antécédents déjà connus.
+  React.useEffect(function() {
+    window.__SOMMAIRE_DX_BASE = { problems: data.problems, history: data.history };
+    window.dispatchEvent(new Event('sommaire:diagnostics-change'));
+  }, [data.problems, data.history]);
+
+  // Pont déclaratif avec la note (D1/D2/D3, E2) : `note:diagnostics-change`
+  // met à jour l'aperçu « en attente » (dxView plus bas) à chaque frappe ;
+  // `note:diagnostics-commit`, envoyé à la complétion (NoteEditor.jsx), fusionne
+  // définitivement dans la base et vide la superposition. Remplace l'ancien
+  // note:add-problem (une seule ligne, jamais de lien vers les Antécédents,
+  // jamais annulé si le diagnostic est retiré de la note).
+  React.useEffect(function() {
+    function onChange(e) { setDxOverlay((e.detail && e.detail.threads) || []); }
+    function onCommit(e) {
+      var threads = (e.detail && e.detail.threads) || [];
+      var today = e.detail && e.detail.today;
+      setData(function(prev) {
+        var merged = window.commitSommaireDx({ problems: prev.problems, history: prev.history }, threads, { today: today });
+        return Object.assign({}, prev, merged);
+      });
+      setDxOverlay([]);
+    }
+    window.addEventListener('note:diagnostics-change', onChange);
+    window.addEventListener('note:diagnostics-commit', onCommit);
+    return function() {
+      window.removeEventListener('note:diagnostics-change', onChange);
+      window.removeEventListener('note:diagnostics-commit', onCommit);
+    };
+  }, []);
+
+  // Vue fusionnée Problèmes/Antécédents : base + effet de la note en cours,
+  // avec les lignes touchées marquées « en attente » (pending/pendingNote —
+  // voir mergeSommaireDx, diagnostics.jsx). Ni `data` ni `dxOverlay` ne sont
+  // mutés : supprimer la région dans la note fait revenir la ligne à son
+  // état d'origine dès le prochain rendu.
+  var dxView = React.useMemo(function() {
+    return window.mergeSommaireDx({ problems: data.problems, history: data.history }, dxOverlay, { today: window.fmtSommaireDate(new Date()) });
+  }, [data.problems, data.history, dxOverlay]);
+
+  // Items d'une section pour l'affichage — Problèmes/Antécédents passent par
+  // dxView (mis en forme left/mid/right/title par sommaireDxRowView) ; les
+  // autres sections lisent `data` directement, comme avant.
+  function sectionItems(id) {
+    if (id === 'problems' || id === 'history') return dxView[id].map(window.sommaireDxRowView);
+    return data[id] || [];
+  }
 
   // Chaque élément ajouté dans la note clinique apparaît « en attente » dans la
   // section correspondante du Sommaire (mappage type de chip → section).
-  // Un diagnostic n'y figure PAS tant qu'il n'a pas été promu en problème
-  // (bouton dédié dans la note, voir note:add-problem) — contrairement aux
-  // autres types, il n'a pas d'aperçu « en attente ».
+  // Un diagnostic suit son propre mécanisme (dxOverlay/dxView ci-dessus),
+  // pas cette liste générique.
   React.useEffect(function() {
     var MAP = { prescription:'meds', problem:'problems', lab:'results', imaging:'results' };
     function onItems(e) {
@@ -93,6 +154,18 @@ function Summary() {
       var arr = prev[section] ? prev[section].slice() : [];
       if (section === 'allergies') {
         arr = arr.filter(function(a){ return a.type !== 'none'; });
+      }
+      // Ajout manuel (modale « + », pas /dx) — même forme de ligne que la
+      // base (id/name/code + since ou status/resolvedOn) pour que mergeSommaireDx
+      // puisse la retrouver plus tard si la note documente le même diagnostic.
+      if (section === 'problems' || section === 'history') {
+        var somId = 'som-manuel-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+        var somName = item.name || item.left || '';
+        var row = section === 'problems'
+          ? { id: somId, name: somName, code: item.code || null, since: item.right || item.since || null }
+          : { id: somId, name: somName, code: item.code || null, status: item.status || null, resolvedOn: item.right || item.resolvedOn || null };
+        arr.push(row);
+        return Object.assign({}, prev, { [section]: arr });
       }
       if (section === 'vitals' && item.poids) {
         var next = [];
@@ -117,24 +190,6 @@ function Summary() {
       return Object.assign({}, prev, { [section]: prev[section].filter(function(i){ return i !== item; }) });
     });
   }
-
-  // A diagnostic promoted from a clinical note ("Promouvoir en problème") is
-  // added to the Problèmes list. Dispatched as a window event by the editor.
-  React.useEffect(function() {
-    function onAddProblem(e) {
-      var name = ((e.detail && e.detail.name) || '').trim();
-      if (!name) return;
-      setData(function(prev) {
-        var arr = (prev.problems || []).slice();
-        var exists = arr.some(function(p) { return (p.name || p.left) === name; });
-        if (exists) return prev;
-        arr.push({ left: name, name: name, right: '' });
-        return Object.assign({}, prev, { problems: arr });
-      });
-    }
-    window.addEventListener('note:add-problem', onAddProblem);
-    return function() { window.removeEventListener('note:add-problem', onAddProblem); };
-  }, []);
 
   // Drag-to-reorder
   function onDragStart(e, idx) { setDragSrc(idx); e.dataTransfer.effectAllowed = 'move'; }
@@ -167,7 +222,7 @@ function Summary() {
   function ActiveModal() {
     if (!modal) return null;
     var s = modal.section, type = modal.type;
-    var items = data[s] || [];
+    var items = sectionItems(s);
     var close = function(){ setModal(null); };
     var add   = function(item){ addItem(s, item); };
 
@@ -212,7 +267,7 @@ function Summary() {
       {/* Sections */}
       <div style={suS.scroll}>
         {orderedCfg.map(function(cfg, idx) {
-          var items = data[cfg.id] || [];
+          var items = sectionItems(cfg.id);
           return (
             <SummaryBox
               key={cfg.id}
@@ -320,10 +375,14 @@ function SummaryRow({ r, sId }) {
     return <div style={{ ...suS.row }}><span style={{ ...suS.rLeft, color:'rgba(0,0,0,0.45)', fontStyle:'italic', maxWidth:220 }}>{r.name}</span></div>;
   }
   return (
-    <div style={suS.row}>
+    <div style={suS.row} title={r.title || undefined}>
       <span style={suS.rLeft}>{r.left || r.name}</span>
       {r.mid && <span style={suS.rMid}>{r.mid}</span>}
       {r.right && <span style={suS.rRight}>{r.right}</span>}
+      {/* Ligne touchée par la note en cours, pas encore complétée — voir
+          mergeSommaireDx (diagnostics.jsx) et note:diagnostics-change
+          (NoteEditor.jsx). pendingNote explique CE QUI a changé au survol. */}
+      {r.pending && <span style={suS.pendingTag} title={r.pendingNote || undefined}>En attente</span>}
     </div>
   );
 }
