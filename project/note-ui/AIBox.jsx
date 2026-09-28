@@ -1,6 +1,6 @@
 /* global React */
 
-const GABARITS = ['Gabarit de texte', 'Première visite', 'Suivi', 'Consultation SOAP', 'Note de décharge'];
+const GABARITS = ['Canevas', 'Première visite', 'Suivi', 'Consultation SOAP', 'Note de décharge'];
 
 const SAMPLE_TRANSCRIPT = `Patiente de 35 ans, consulte pour brûlures mictionnelles depuis 3 jours. Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Examen : apyrétique, abdomen souple, sensibilité sus-pubienne légère. Bandelette urinaire : leucocytes positifs, nitrites positifs.`;
 
@@ -11,7 +11,7 @@ function fmtTimer(s) {return `${pad2(Math.floor(s / 3600))}:${pad2(Math.floor(s 
 
 function AIBox({ onAddToNote }) {
   const [aiState, setAiState] = React.useState('idle');
-  const [gabarit, setGabarit] = React.useState('Gabarit de texte');
+  const [gabarit, setGabarit] = React.useState('Canevas');
   const [gabaritOpen, setGabaritOpen] = React.useState(false);
   const [recSec, setRecSec] = React.useState(0);
   const [showPreview, setShowPreview] = React.useState(false);
@@ -77,6 +77,9 @@ function AIBox({ onAddToNote }) {
   const isGenerated = aiState === 'generated';
 
   const showTranscriptChip = aiState !== 'idle';
+  // Le canevas ne sert qu'à générer la note depuis une transcription : caché
+  // tant qu'aucun enregistrement n'a été lancé.
+  const showCanevas = aiState !== 'idle';
   const genBtnPrimary = isReady || isGenerated;
   const genBtnDim = aiState === 'idle' || isLoading || isGenerating;
   const recBtnDim = isLoading || isGenerating;
@@ -124,7 +127,8 @@ function AIBox({ onAddToNote }) {
       {/* Idle / Loading / Ready / Generating / Generated toolbar */}
       {!(isRecording || isPaused) &&
       <div style={aiS.aiRow}>
-          {/* Gabarit dropdown */}
+          {/* Canevas dropdown */}
+          {showCanevas &&
           <div style={aiS.gabaritWrap}>
             <button
             style={{ ...aiS.gabaritBtn, ...(gabaritOpen ? aiS.gabaritBtnOpen : {}) }}
@@ -149,6 +153,7 @@ function AIBox({ onAddToNote }) {
               </>
           }
           </div>
+          }
 
           {/* Transcript chip */}
           {showTranscriptChip &&
