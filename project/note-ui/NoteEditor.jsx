@@ -756,7 +756,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             <div style={neStyles.assistRow}>
               <span className="material-icons-outlined" style={neStyles.docIcon}>insert_drive_file</span>
               <span style={neStyles.assistChip}>
-                <span className="material-icons" style={{ fontSize: 20, color: '#5b54b8' }}>check</span>
+                <span className="material-icons" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
                 Rédaction assistée
               </span>
             </div>
@@ -840,7 +840,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                   ? <button
                       className="ct-toolsbtn"
                       title="Outils cliniques"
-                      style={pickerOpen ? { background: '#eef1fb', color: 'var(--brand-primary, #1a5fd4)' } : undefined}
+                      style={pickerOpen ? { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' } : undefined}
                       onClick={function(e) {
                         var r = e.currentTarget.getBoundingClientRect();
                         if (pickerOpen) { setPickerOpen(false); } else { setPickerAnchor(r); setPickerOpen(true); }
@@ -1181,13 +1181,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     id: 'chip-inline-editor',
     style: {
       position: 'fixed', top: edTop, left: edLeft, width: 260, zIndex: 85,
-      background: '#fff', border: '1px solid #c5cae9', borderRadius: 10,
-      boxShadow: '0 6px 24px rgba(37,36,94,0.18)', overflow: 'hidden',
-      fontFamily: "'Inter', sans-serif"
+      background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)',
+      boxShadow: 'var(--mat-sys-level3)', overflow: 'hidden',
+      fontFamily: 'var(--font-mat-sys-plain-family)'
     }
   },
-    React.createElement('div', { style: { padding: '7px 12px 6px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', gap: 8 } },
-      React.createElement('span', { style: { fontSize: 10, fontWeight: 700, letterSpacing: 0.6, color: '#6967d1', textTransform: 'uppercase', flexShrink: 0 } }, FIELD_LABELS[field] || field),
+    React.createElement('div', { style: { padding: '7px 12px 6px', borderBottom: '1px solid var(--mat-sys-outline-variant)', display: 'flex', alignItems: 'center', gap: 8 } },
+      React.createElement('span', { style: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', color: 'var(--mat-sys-primary)', textTransform: 'uppercase', flexShrink: 0 } }, FIELD_LABELS[field] || field),
       React.createElement('input', {
         ref: inputRef,
         value: query,
@@ -1199,12 +1199,12 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
           else if (e.key === 'Enter') { e.preventDefault(); if (suggestions[activeIdx]) handleSelect(suggestions[activeIdx]); else if (query.trim()) handleSelect(query.trim()); }
         },
         placeholder: 'Rechercher…',
-        style: { flex: 1, border: 'none', outline: 'none', font: "400 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.85)', background: 'transparent' }
+        style: { flex: 1, border: 'none', outline: 'none', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface)', background: 'transparent' }
       })
     ),
     React.createElement('div', { style: { maxHeight: 224, overflowY: 'auto', padding: '4px 0' } },
       suggestions.length === 0
-        ? React.createElement('div', { style: { padding: '10px 14px', fontSize: 13, color: 'rgba(0,0,0,0.38)' } }, 'Aucune suggestion')
+        ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, 'Aucune suggestion')
         : suggestions.map(function(s, i) {
             var isActive = i === activeIdx;
             return React.createElement('div', {
@@ -1212,9 +1212,9 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
               onMouseEnter: function() { setActiveIdx(i); },
               onMouseDown: function(e) { e.preventDefault(); handleSelect(s); },
               style: {
-                padding: '9px 14px', cursor: 'pointer', fontSize: 14,
-                color: isActive ? '#fff' : 'rgba(0,0,0,0.82)',
-                background: isActive ? '#4b3fa6' : 'transparent',
+                padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', font: 'var(--mat-sys-body-medium)',
+                color: isActive ? 'var(--mat-sys-on-primary)' : 'var(--mat-sys-on-surface)',
+                background: isActive ? 'var(--mat-sys-primary)' : 'transparent',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }
             },
@@ -1244,14 +1244,14 @@ function FloatField({ label, children, width, flex, error, input, type, select, 
     <div style={{
       ...neFieldStyles.wrap,
       ...(flex ? { flex: 1, minWidth: 200 } : { width }),
-      ...(error ? { border: '1px solid #d32f2f' } : {}),
+      ...(error ? { border: '1px solid var(--mat-sys-error)' } : {}),
       ...(isBuiltIn && focused ? neFieldStyles.wrapFocused : {})
     }}>
       {label &&
       <span style={{
         ...neFieldStyles.label,
         ...(floated ? neFieldStyles.labelFloating : neFieldStyles.labelResting),
-        ...(isBuiltIn && focused ? { color: '#6967d1' } : {})
+        ...(isBuiltIn && focused ? { color: 'var(--mat-sys-primary)' } : {})
       }}>{label}</span>}
       <div style={neFieldStyles.inner}>
         {select ? (
@@ -1280,47 +1280,50 @@ function FloatField({ label, children, width, flex, error, input, type, select, 
 }
 
 const neFieldStyles = {
-  wrap: { position: 'relative', border: '1px solid #c4c4c4', borderRadius: 6, height: 52, display: 'flex', alignItems: 'center', padding: '0 14px', background: '#fff' },
-  wrapFocused: { border: '1px solid #6967d1', boxShadow: '0 0 0 1px #6967d1' },
-  label: { position: 'absolute', left: 12, padding: '0 5px', background: '#fff', color: 'rgba(0,0,0,0.6)', fontFamily: "'Inter', sans-serif", pointerEvents: 'none', transformOrigin: 'left center', transition: 'top 0.16s ease, font-size 0.16s ease, color 0.16s ease' },
-  labelFloating: { top: -8, fontSize: 12 },
-  labelResting: { top: 15, fontSize: 16, color: 'rgba(0,0,0,0.55)' },
-  inner: { display: 'flex', alignItems: 'center', width: '100%', gap: 8 },
-  input: { border: 'none', outline: 'none', background: 'transparent', width: '100%', font: "400 15px 'Inter', sans-serif", color: 'rgba(0,0,0,0.85)', padding: 0 }
+  // DS3 : champ 44 px, coin 8 px, contour --mat-sys-outline (4:1), focus 2 px primary
+  wrap: { position: 'relative', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', height: 44, display: 'flex', alignItems: 'center', padding: '0 var(--ds-spacing-12)', background: 'var(--mat-sys-surface-container-lowest)' },
+  wrapFocused: { border: '1px solid var(--mat-sys-primary)', boxShadow: '0 0 0 1px var(--mat-sys-primary)' },
+  label: { position: 'absolute', left: 'var(--ds-spacing-xs)', padding: '0 var(--ds-spacing-xxs)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface-variant)', fontFamily: 'var(--font-mat-sys-plain-family)', pointerEvents: 'none', transformOrigin: 'left center', transition: 'top var(--motion-duration) var(--motion-ease), font-size var(--motion-duration) var(--motion-ease), line-height var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease)' },
+  // label-medium quand flottant, body-large au repos
+  labelFloating: { top: -9, fontSize: 12, lineHeight: '16px', fontWeight: 500, letterSpacing: 'var(--mat-sys-label-medium-tracking)' },
+  labelResting: { top: 9, fontSize: 16, lineHeight: '24px', fontWeight: 400, letterSpacing: 'var(--mat-sys-body-large-tracking)' },
+  inner: { display: 'flex', alignItems: 'center', width: '100%', gap: 'var(--ds-spacing-xs)' },
+  input: { border: 'none', outline: 'none', background: 'transparent', width: '100%', font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 0 }
 };
 
 const neStyles = {
-  card: { background: '#fff', borderRadius: 8, padding: '16px 20px 18px', boxShadow: '0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)', fontFamily: "'Inter', sans-serif" },
+  // DS3 : carte statique = container-lowest sur surface, élévation 1 (ombre noire neutre), grille 4 pt
+  card: { background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-s) var(--ds-spacing-m)', boxShadow: 'var(--mat-sys-level1)', fontFamily: 'var(--font-mat-sys-plain-family)' },
   // Cadre le corps éditable de la note (NoteBody) — un trait au-dessus, un en
   // dessous — repris de la maquette Figma (« redaction » y démarre par cette
   // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
-  noteDiv: { height: 1, background: 'var(--border-subtle, #e5e5ec)', margin: '12px 0' },
-  topRow: { display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 18 },
-  titleRow: { display: 'flex', alignItems: 'center', gap: 12, marginTop: 2 },
-  statusBadge: { background: '#e8e6f5', color: '#4b3fa6', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 14, padding: '4px 12px', borderRadius: 8 },
-  assistRow: { display: 'flex', alignItems: 'center', gap: 14 },
-  assistChip: { display: 'inline-flex', alignItems: 'center', gap: 8, background: '#e8e6f5', color: '#3a3370', fontFamily: "'Inter',sans-serif", fontWeight: 600, fontSize: 16, padding: '9px 18px', borderRadius: 10 },
-  overline: { fontSize: 11, fontWeight: 500, letterSpacing: 1, textTransform: 'uppercase', color: 'rgba(0,0,0,0.5)' },
-  title: { fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 22, color: 'rgba(0,0,0,0.88)', marginTop: 2 },
-  docIcon: { fontSize: 24, color: 'rgba(0,0,0,0.45)', marginTop: 6 },
-  fieldsRow: { display: 'flex', gap: 14, alignItems: 'center', marginBottom: 22 },
-  tagToggle: { width: 46, height: 52, flexShrink: 0, border: 'none', background: 'transparent', borderRadius: 8, color: 'rgba(0,0,0,0.5)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background .15s ease, color .15s ease' },
-  tagToggleOn: { background: '#e8e6f5', color: '#4b3fa6' },
-  fieldValue: { fontSize: 15, color: 'rgba(0,0,0,0.82)' },
-  fieldIcon: { marginLeft: 'auto', fontSize: 20, color: 'rgba(0,0,0,0.5)' },
-  aiBox: { position: 'relative', border: '1px solid #c9c9e8', borderRadius: 10, padding: '18px 16px 14px', marginTop: 6 },
-  aiLegend: { position: 'absolute', top: -11, left: 14, display: 'flex', alignItems: 'center', gap: 5, background: '#fff', padding: '0 6px' },
-  aiSparkle: { fontSize: 18, color: '#6967d1' },
-  aiLabel: { fontSize: 14, fontWeight: 600, color: '#6967d1' },
-  aiRow: { display: 'flex', alignItems: 'center', gap: 12 },
-  gabaritBtn: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '9px 10px 9px 16px', cursor: 'pointer', minWidth: 180, font: "400 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.7)', justifyContent: 'space-between' },
-  gabaritCaret: { fontSize: 22, color: 'rgba(0,0,0,0.6)' },
-  aiActionBtn: { display: 'inline-flex', alignItems: 'center', gap: 8, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '9px 16px', cursor: 'pointer', font: "500 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.8)' },
-  aiActionIcon: { fontSize: 20, color: 'rgba(0,0,0,0.6)' },
-  infoIcon: { fontSize: 22, color: 'rgba(0,0,0,0.4)', cursor: 'pointer' },
-  chipsRow: { flex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  toolsIconBtn: { width: 36, height: 36, border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 8, background: '#fff', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  chip: { display: 'inline-flex', alignItems: 'center', border: '1.5px solid rgba(0,0,0,0.18)', borderRadius: 20, padding: '6px 14px', cursor: 'pointer', whiteSpace: 'nowrap', font: "500 13px 'Inter', sans-serif", color: 'rgba(0,0,0,0.72)', background: '#fff', flexShrink: 0 },
+  noteDiv: { height: 1, background: 'var(--mat-sys-outline-variant)', margin: 'var(--ds-spacing-12) 0' },
+  topRow: { display: 'flex', alignItems: 'flex-start', gap: 'var(--ds-spacing-12)', marginBottom: 'var(--ds-spacing-s)' },
+  titleRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xxs)' },
+  statusBadge: { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-label-large-bold)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', borderRadius: 'var(--mat-sys-corner-small)' },
+  assistRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)' },
+  assistChip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-body-large-bold)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-s)', borderRadius: 'var(--mat-sys-corner-small)' },
+  overline: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', textTransform: 'uppercase', color: 'var(--mat-sys-on-surface-variant)' },
+  title: { font: 'var(--mat-sys-headline-small)', color: 'var(--mat-sys-on-surface)', margin: 0 },
+  docIcon: { fontSize: 24, color: 'var(--mat-sys-on-surface-variant)', marginTop: 'var(--ds-spacing-xs)' },
+  fieldsRow: { display: 'flex', gap: 'var(--ds-spacing-12)', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
+  tagToggle: { width: 44, height: 44, flexShrink: 0, border: 'none', background: 'transparent', borderRadius: 'var(--mat-sys-corner-small)', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease)' },
+  tagToggleOn: { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' },
+  fieldValue: { font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)' },
+  fieldIcon: { marginLeft: 'auto', fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' },
+  aiBox: { position: 'relative', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 'var(--mat-sys-corner-medium)', padding: 'var(--ds-spacing-m) var(--ds-spacing-s) var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xs)' },
+  aiLegend: { position: 'absolute', top: -11, left: 'var(--ds-spacing-s)', display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)', background: 'var(--mat-sys-surface-container-lowest)', padding: '0 var(--ds-spacing-xs)' },
+  aiSparkle: { fontSize: 18, color: 'var(--mat-sys-primary)' },
+  aiLabel: { font: 'var(--mat-sys-label-large-bold)', color: 'var(--mat-sys-primary)' },
+  aiRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)' },
+  gabaritBtn: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', background: 'var(--mat-sys-surface-container-lowest)', height: 40, padding: '0 var(--ds-spacing-xs) 0 var(--ds-spacing-s)', cursor: 'pointer', minWidth: 180, font: 'var(--mat-sys-body-medium)', letterSpacing: 'var(--mat-sys-body-medium-tracking)', color: 'var(--mat-sys-on-surface)', justifyContent: 'space-between' },
+  gabaritCaret: { fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' },
+  aiActionBtn: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', background: 'var(--mat-sys-surface-container-lowest)', height: 40, padding: '0 var(--ds-spacing-s)', cursor: 'pointer', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)' },
+  aiActionIcon: { fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' },
+  infoIcon: { fontSize: 22, color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer' },
+  chipsRow: { flex: 1, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--ds-spacing-xs)' },
+  toolsIconBtn: { width: 40, height: 40, border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', background: 'var(--mat-sys-surface-container-lowest)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  chip: { display: 'inline-flex', alignItems: 'center', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', cursor: 'pointer', whiteSpace: 'nowrap', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)', background: 'var(--mat-sys-surface-container-lowest)', flexShrink: 0 },
 };
 
 window.NoteEditor = NoteEditor;
@@ -1359,7 +1362,7 @@ function TagInput({ tags, onChange }) {
       <div
         style={{ ...tagStyles.wrap, ...(focused ? tagStyles.wrapFocused : {}) }}
         onMouseDown={function(e) { if (e.target === e.currentTarget || e.target.dataset.tagshell) { inputRef.current && inputRef.current.focus(); } }}>
-        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: '#6967d1' } : {}) }}>Étiquettes</span>
+        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: 'var(--mat-sys-primary)' } : {}) }}>Étiquettes</span>
         <div style={tagStyles.inner} data-tagshell="1">
           <span className="material-icons-outlined" style={tagStyles.icon}>sell</span>
           {tags.map(function(t, i) {
@@ -1386,10 +1389,10 @@ function TagInput({ tags, onChange }) {
             {suggestions.map(function(s) {
               return (
                 <div key={s} style={tagStyles.menuItem}
-                  onMouseEnter={function(e) { e.currentTarget.style.background = '#f3f2fb'; }}
+                  onMouseEnter={function(e) { e.currentTarget.style.background = 'var(--mat-sys-secondary-container)'; }}
                   onMouseLeave={function(e) { e.currentTarget.style.background = 'transparent'; }}
                   onMouseDown={function(e) { e.preventDefault(); addTag(s); inputRef.current && inputRef.current.focus(); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 16, color: 'rgba(0,0,0,0.4)' }}>sell</span>
+                  <span className="material-icons-outlined" style={{ fontSize: 16, color: 'var(--mat-sys-on-surface-variant)' }}>sell</span>
                   {s}
                 </div>);
             })}
@@ -1399,16 +1402,16 @@ function TagInput({ tags, onChange }) {
 }
 
 const tagStyles = {
-  row: { marginTop: -6, marginBottom: 22 },
-  wrap: { position: 'relative', border: '1px solid #c4c4c4', borderRadius: 6, minHeight: 52, display: 'flex', alignItems: 'center', padding: '7px 12px', background: '#fff' },
-  wrapFocused: { border: '1px solid #6967d1', boxShadow: '0 0 0 1px #6967d1' },
-  inner: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8, width: '100%' },
-  icon: { fontSize: 22, color: 'rgba(0,0,0,0.45)', marginRight: 2 },
-  chip: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid #d2d2dd', borderRadius: 6, padding: '4px 4px 4px 12px', font: "500 14px 'Inter', sans-serif", color: 'rgba(0,0,0,0.82)', background: '#fff' },
-  chipX: { border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 2, borderRadius: 4 },
-  input: { border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 120, font: "400 15px 'Inter', sans-serif", color: 'rgba(0,0,0,0.85)', padding: '4px 0' },
-  menu: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: '#fff', border: '1px solid #e3e3ea', borderRadius: 8, boxShadow: '0 8px 20px rgba(37,36,94,0.16)', padding: '4px 0', zIndex: 30 },
-  menuItem: { display: 'flex', alignItems: 'center', gap: 9, padding: '8px 14px', fontSize: 14, color: 'rgba(0,0,0,0.8)', cursor: 'pointer', fontFamily: "'Inter', sans-serif" }
+  row: { marginTop: -6, marginBottom: 'var(--ds-spacing-m)' },
+  wrap: { position: 'relative', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', minHeight: 44, display: 'flex', alignItems: 'center', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', background: 'var(--mat-sys-surface-container-lowest)' },
+  wrapFocused: { border: '1px solid var(--mat-sys-primary)', boxShadow: '0 0 0 1px var(--mat-sys-primary)' },
+  inner: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--ds-spacing-xs)', width: '100%' },
+  icon: { fontSize: 22, color: 'var(--mat-sys-on-surface-variant)', marginRight: 2 },
+  chip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-12)', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)', background: 'var(--mat-sys-surface-container-lowest)' },
+  chipX: { border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--mat-sys-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 2, borderRadius: 'var(--mat-sys-corner-extra-small)' },
+  input: { border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 120, font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 'var(--ds-spacing-xxs) 0' },
+  menu: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', padding: 'var(--ds-spacing-xxs) 0', zIndex: 30 },
+  menuItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', font: 'var(--mat-sys-body-large)', color: 'var(--mat-sys-on-surface)', cursor: 'pointer' }
 };
 
 // ---------------------------------------------------------
