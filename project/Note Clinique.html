@@ -352,6 +352,14 @@ const DOC_KIND_LABEL = {
 function docPillLabel(kind, done, total) {
   return (DOC_KIND_LABEL[kind] || kind) + ' : ' + done + ' sur ' + total + ' complété' + (done > 1 ? 's' : '');
 }
+// Éléments partageables au patient par le portail : consignes au patient,
+// imagerie, laboratoire et références à un spécialiste. Le compteur monte dès
+// l'ajout dans la note (pas à la transmission) et, comme les autres pastilles,
+// la pastille n'existe pas tant qu'il vaut 0.
+const PORTAL_KINDS = ['instructions', 'imaging', 'lab', 'referral'];
+function portalSharedCount(summary) {
+  return summary.reduce(function (n, s) { return PORTAL_KINDS.indexOf(s.kind) >= 0 ? n + s.total : n; }, 0);
+}
 function portalPillLabel(shared) {
   return 'Portail patient : ' + shared + (shared > 1 ? ' éléments partagés' : ' élément partagé');
 }
@@ -513,14 +521,16 @@ function App() {
                   </div>
                 );
               })}
-              {/* Portail patient : pastille figée à 0, en attente de la
-                  fonctionnalité de partage (PLAN §M.2/M.3) — pas de
-                  pastille pré-facturation tant qu'aucune donnée de
-                  facturation n'existe dans le prototype. */}
-              <div role="img" aria-label={portalPillLabel(0)} title={portalPillLabel(0)} style={docPillStyle(true)}>
+              {/* Portail patient : nombre d'éléments partageables présents dans
+                  la note (consignes, imagerie, laboratoire, références —
+                  PORTAL_KINDS). Cachée à 0 comme les autres pastilles, et quand
+                  le patient n'a pas le portail. Pas de pastille pré-facturation
+                  tant qu'aucune donnée de facturation n'existe (PLAN §M.2/M.3). */}
+              {t.portalActive !== false && portalSharedCount(docStatusSummary) > 0 &&
+              <div role="img" aria-label={portalPillLabel(portalSharedCount(docStatusSummary))} title={portalPillLabel(portalSharedCount(docStatusSummary))} style={docPillStyle(true)}>
                 <span className="material-symbols-outlined" aria-hidden="true" style={docPillIcon}>verified_user</span>
-                0
-              </div>
+                {portalSharedCount(docStatusSummary)}
+              </div>}
               <div style={{ flex: 1 }} />
               <button className="ds-btn ds-btn--tonal"
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
