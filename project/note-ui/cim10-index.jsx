@@ -247,14 +247,14 @@ function buildCim10Index(rows, hier) {
     n.canRefine = n.hasChildren;
     n.level = (n.kind === 'category' && n.hasChildren) ? 'category' : 'code';
   });
-  // Un chapitre se choisit tel quel (définition la plus générale d'un
-  // diagnostic : un nom, sans code), puis se précise. Il n'est PAS
+  // Un chapitre ou un bloc se choisit tel quel (définition générale d'un
+  // diagnostic : un nom, sans code), puis se précise. Ils ne sont PAS
   // `selectable` — ce champ reste réservé aux vrais codes (stats, descCount,
   // recherche) — mais `pickable` : c'est ce que lit le sélecteur /dx.
-  chapters.forEach(function (c) {
-    c.pickable = true;
-    c.canRefine = c.hasChildren;
-    c.level = 'chapter';
+  chapters.concat(blocks).forEach(function (g) {
+    g.pickable = true;
+    g.canRefine = g.hasChildren;
+    g.level = g.kind; // 'chapter' | 'block'
   });
 
   // Chapitre/bloc sans aucun descendant sélectionnable : ne devrait pas

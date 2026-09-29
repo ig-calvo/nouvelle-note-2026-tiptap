@@ -38,7 +38,10 @@ const DX_COPY = {
     browseRoot: 'CIM-10',
     plusPrecis: function (code) { return 'Codes plus précis — ' + code; },
     memeCategorie: function (code) { return 'Même catégorie — ' + code; },
-    dansChapitre: function (roman) { return 'Dans le chapitre ' + roman; }
+    dansGroupe: function (node) {
+      if (node && node.kind === 'block') return 'Dans le bloc ' + node.crumb;
+      return 'Dans le chapitre ' + ((node && node.roman) || '');
+    }
   },
   browse: 'Parcourir la CIM-10 par chapitre',
   loading: 'Chargement de la CIM-10…',
@@ -268,8 +271,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     const untouched = intent.kind === 'edit' && term === (r.name || '');
     const rid = window.dxRegionCimId(r);
     if (cim && rid && (intent.kind === 'refine' || untouched)) {
-      const rnode = cim.node(rid);
-      sections.push(dxSec('near', r.code ? DX_COPY.sec.plusPrecis(r.code) : DX_COPY.sec.dansChapitre((rnode && rnode.roman) || ''),
+      sections.push(dxSec('near', r.code ? DX_COPY.sec.plusPrecis(r.code) : DX_COPY.sec.dansGroupe(cim.node(rid)),
         cim.children(rid).map(dxCimItem)));
     }
     if (!untouched) {

@@ -350,26 +350,35 @@ function diagRelabelPatches(allOccurrences, editedId, to, opts) {
 // soit chargé, on retombe sur l'attribut `level` posé à la création.
 function diagCanRefine(attrs) {
   const a = attrs || {};
-  if (!a.code && a.level !== 'chapter') return false;
+  if (!a.code && a.level !== 'chapter' && a.level !== 'block') return false;
   if (window.CIM10 && window.CIM10.ready()) {
     const id = dxRegionCimId(a);
     return !!id && window.CIM10.canRefine(id);
   }
-  return a.level === 'category' || a.level === 'chapter';
+  return a.level === 'category' || a.level === 'chapter' || a.level === 'block';
 }
 
 // Nœud CIM-10 d'où « Préciser » / la modification d'une région démarre : son
-// code, ou — pour un diagnostic défini par un simple chapitre (level
-// 'chapter', sans code) — l'id du chapitre, retrouvé par son libellé (le nom
-// d'une région ne change qu'avec son level, voir diagRelabelPatches). null
-// pour un texte libre, un diagnostic SNOMED, ou tant que la CIM-10 charge.
+// code, ou — pour un diagnostic défini par un simple chapitre ou bloc (level
+// 'chapter' / 'block', sans code) — l'id du nœud, retrouvé par son libellé
+// (unique parmi les blocs comme parmi les chapitres ; le nom d'une région ne
+// change qu'avec son level, voir diagRelabelPatches). null pour un texte
+// libre, un diagnostic SNOMED, ou tant que la CIM-10 charge.
 function dxRegionCimId(region) {
   const r = region || {};
   if (r.source === 'snomed') return null;
   if (r.code) return r.code;
-  if (r.level !== 'chapter' || !window.CIM10 || !window.CIM10.ready()) return null;
-  const ch = window.CIM10.children('root').filter(function (n) { return n.kind === 'chapter' && n.libelle === r.name; })[0];
-  return ch ? ch.id : null;
+  if ((r.level !== 'chapter' && r.level !== 'block') || !window.CIM10 || !window.CIM10.ready()) return null;
+  const chapters = window.CIM10.children('root').filter(function (n) { return n.kind === 'chapter'; });
+  if (r.level === 'chapter') {
+    const ch = chapters.filter(function (n) { return n.libelle === r.name; })[0];
+    return ch ? ch.id : null;
+  }
+  for (let i = 0; i < chapters.length; i++) {
+    const bl = window.CIM10.children(chapters[i].id).filter(function (n) { return n.kind === 'block' && n.libelle === r.name; })[0];
+    if (bl) return bl.id;
+  }
+  return null;
 }
 
 // Ce qu'affiche la pastille de code de l'en-tête : le code CIM-10 tel quel,

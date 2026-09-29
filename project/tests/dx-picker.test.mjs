@@ -279,16 +279,36 @@ test('un chapitre se choisit tel quel (sans code, level « chapter ») ET se par
   assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'ch:X' });
 });
 
-test('les blocs et « Fréquents » restent non sélectionnables : Entrée comme → descendent', () => {
+test('un bloc se choisit aussi tel quel (sans code, level « block ») et se parcourt ; seul « Fréquents » reste non sélectionnable', () => {
   const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'ch:X' }, stack: [], activeIndex: null, actionFocus: 0 };
   const model = w.dxBuildModel(st, '', ctxWith(null));
   const block = model.flat[0];
-  assert.equal(block.selectable, false);
-  const r = w.dxStep(st, { type: 'key', key: 'Enter' }, model);
-  assert.deepEqual(r.state.view, { kind: 'browse', nodeId: block.ref.id });
-  assert.equal(r.effects.some((e) => e.type === 'commit'), false);
+  assert.equal(block.ref.id, 'bl:J00-J06');
+  assert.equal(block.selectable, true);
+  assert.ok(block.nav, 'navigable aussi (chevron)');
+  const picked = w.dxStep(st, { type: 'key', key: 'Enter' }, model);
+  assert.deepEqual(picked.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'cim10', name: block.label, code: null, level: 'block' } } }]);
+  const drilled = w.dxStep(st, { type: 'key', key: 'ArrowRight' }, model);
+  assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'bl:J00-J06' });
   const root = w.dxBuildModel({ intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'root' }, stack: [], activeIndex: null, actionFocus: 0 }, '', ctxWith(null));
   assert.equal(root.flat.find((it) => it.ref.id === 'fav').selectable, false);
+});
+
+test('un diagnostic défini par un bloc se précise : démarre DANS le bloc, propose ses catégories', () => {
+  w.CIM10 = cim;
+  try {
+    const block = cim.node('bl:J40-J47');
+    const region = { id: 'd1', dxKey: 'n:d1', name: block.libelle, code: null, level: 'block', source: 'cim10' };
+    assert.equal(w.dxRegionCimId(region), 'bl:J40-J47');
+    assert.equal(w.diagCanRefine(region), true);
+    const st = w.dxInitState({ kind: 'refine', region: region });
+    assert.deepEqual(st.view, { kind: 'browse', nodeId: 'bl:J40-J47' });
+    assert.deepEqual(w.dxBuildModel(st, '', ctxWith(null)).flat.map((it) => it.code), ['J40', 'J41', 'J42', 'J44', 'J45']);
+    const edit = w.dxBuildModel(w.dxInitState({ kind: 'edit', region: region }), region.name, ctxWith(null));
+    assert.equal(edit.sections[0].title, 'Dans le bloc J40-J47');
+    // Le même libellé avec un autre level (renommé/re-choisi) ne se précise plus comme un bloc.
+    assert.equal(w.dxRegionCimId(Object.assign({}, region, { level: 'chapter' })), null);
+  } finally { delete w.CIM10; }
 });
 
 test('un diagnostic défini par un chapitre se précise : démarre DANS le chapitre (retrouvé par son libellé)', () => {
