@@ -754,14 +754,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         {smartActive
           ? (
             <div style={neStyles.assistRow}>
-              <span className="material-icons-outlined" style={neStyles.docIcon}>insert_drive_file</span>
               <span style={neStyles.assistChip}>
                 <span className="material-icons" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
                 Rédaction assistée
               </span>
             </div>
           )
-          : <span className="material-icons-outlined" style={neStyles.docIcon}>insert_drive_file</span>
+          : null
         }
       </div>
 
@@ -777,12 +776,18 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
         <FloatField label="Raison de consultation" flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
-        <DsDateField label="Date" width={210} value={noteDate} onChange={setNoteDate} />
-        <DsTimeField label="Heure" width={170} value={noteTime} onChange={setNoteTime} />
-        <FloatField label="Type de visite" width={260} select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
+        {/* Date, heure et type restent groupés : quand la carte est trop étroite
+            (≈ 760 px dans l'app), le groupe passe sous la raison de consultation
+            au lieu d'écraser le sélecteur de type. */}
+        <div style={neStyles.fieldsGroup}>
+          <DsDateField label="Date" width={190} value={noteDate} onChange={setNoteDate} />
+          <DsTimeField label="Heure" width={140} value={noteTime} onChange={setNoteTime} />
+          <FloatField label="Type de visite" width={230} select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
+        </div>
         <button
           type="button"
           title={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
+          aria-label={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
           aria-pressed={showTags}
           onClick={function() { setShowTags(function(v) { return !v; }); }}
           style={Object.assign({}, neStyles.tagToggle, showTags ? neStyles.tagToggleOn : {})}>
@@ -1243,7 +1248,7 @@ function FloatField({ label, children, width, flex, error, input, type, select, 
   return (
     <div style={{
       ...neFieldStyles.wrap,
-      ...(flex ? { flex: 1, minWidth: 200 } : { width }),
+      ...(flex ? { flex: '1 1 240px', minWidth: 200 } : { width, flexShrink: 0 }),
       ...(error ? { border: '1px solid var(--mat-sys-error)' } : {}),
       ...(isBuiltIn && focused ? neFieldStyles.wrapFocused : {})
     }}>
@@ -1583,9 +1588,9 @@ const neStyles = {
   assistChip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-body-large-bold)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-s)', borderRadius: 'var(--mat-sys-corner-small)' },
   overline: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', textTransform: 'uppercase', color: 'var(--mat-sys-on-surface-variant)' },
   title: { font: 'var(--mat-sys-headline-small)', color: 'var(--mat-sys-on-surface)', margin: 0 },
-  docIcon: { fontSize: 24, color: 'var(--mat-sys-on-surface-variant)', marginTop: 'var(--ds-spacing-xs)' },
-  fieldsRow: { display: 'flex', gap: 'var(--ds-spacing-12)', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
-  tagToggle: { width: 44, height: 44, flexShrink: 0, border: 'none', background: 'transparent', borderRadius: 'var(--mat-sys-corner-small)', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease)' },
+  fieldsRow: { display: 'flex', flexWrap: 'wrap', gap: 'var(--ds-spacing-12)', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
+  fieldsGroup: { display: 'flex', gap: 'var(--ds-spacing-12)', flexShrink: 0 },
+  tagToggle: { width: 44, height: 44, flexShrink: 0, marginLeft: 'auto', border: 'none', background: 'transparent', borderRadius: 'var(--mat-sys-corner-small)', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease)' },
   tagToggleOn: { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' },
   fieldValue: { font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)' },
   fieldIcon: { marginLeft: 'auto', fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' },
