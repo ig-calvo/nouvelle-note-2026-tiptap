@@ -395,7 +395,7 @@ function diagCodeLabel(attrs) {
 // ---------------------------------------------------------
 const DX_DOC_BUTTON = {
   none_unlinked: { mod: 'none', icon: 'add_task', label: 'Documenter', title: 'Documenter ce diagnostic au sommaire' },
-  none_linked: { mod: 'none', icon: 'add_task', label: 'Non documenté', title: 'Le sommaire reste tel quel — modifier' },
+  none_linked: { mod: 'none', icon: 'add_task', label: 'Impression de diagnostic', title: 'Le sommaire reste tel quel — modifier' },
   probleme: { mod: 'probleme', icon: 'hub', label: 'Problème', title: 'Documenté comme problème — modifier' },
   antecedent: { mod: 'antecedent', icon: 'assignment', label: 'Antécédent', title: 'Documenté comme antécédent — modifier' },
   'antecedent-resolu': { mod: 'antecedent', icon: 'assignment', label: 'Antécédent · résolu', title: 'Cessé : classé aux antécédents — modifier' },
@@ -415,13 +415,15 @@ function diagDocMenuItems(ctx) {
       : ('Ajouter aux ' + (kind === 'probleme' ? 'problèmes' : 'antécédents') + ' du sommaire');
   }
   return [
+    // Remplace provisoirement « Non documenté » (même valeur null : le sommaire
+    // n'est pas touché) ; en tête de liste.
+    { value: null, icon: 'print', label: 'Impression de diagnostic', selected: !documentAs, disabled: false,
+      desc: linked ? 'Laisser le sommaire tel quel' : (documentAs ? 'Retirer du sommaire' : 'Ne pas ajouter au sommaire') },
     { value: 'probleme', icon: 'hub', label: 'Problème', selected: documentAs === 'probleme' && !ceased,
       disabled: ceased, desc: ceased ? 'Diagnostic cessé dans cette note' : desc('probleme', baseKind === 'problems') },
     { value: 'antecedent', icon: 'assignment', label: ceased ? 'Antécédent · résolu' : 'Antécédent',
       selected: documentAs === 'antecedent' || ceased, disabled: false,
       desc: ceased ? 'Classé aux antécédents, résolu' : desc('antecedent', baseKind === 'history') },
-    { value: null, icon: 'remove_done', label: 'Non documenté', selected: !documentAs, disabled: false,
-      desc: linked ? 'Laisser le sommaire tel quel' : (documentAs ? 'Retirer du sommaire' : 'Ne pas ajouter au sommaire') },
   ];
 }
 
