@@ -1588,7 +1588,8 @@ const neStyles = {
   assistChip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-body-large-bold)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-s)', borderRadius: 'var(--mat-sys-corner-small)' },
   overline: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', textTransform: 'uppercase', color: 'var(--mat-sys-on-surface-variant)' },
   title: { font: 'var(--mat-sys-headline-small)', color: 'var(--mat-sys-on-surface)', margin: 0 },
-  fieldsRow: { display: 'flex', flexWrap: 'wrap', gap: 'var(--ds-spacing-12)', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
+  // Entre deux lignes (carte étroite) : 12 + 8 = 20 px — le libellé flottant du deuxième rang mord déjà sur l'interligne.
+  fieldsRow: { display: 'flex', flexWrap: 'wrap', columnGap: 'var(--ds-spacing-12)', rowGap: 'calc(var(--ds-spacing-12) + var(--ds-spacing-xs))', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
   // Sur une seule ligne le groupe garde sa largeur naturelle (la raison prend 3× plus de
   // place libre) ; passé sous la raison, il occupe toute la ligne et le type de visite s'étire.
   fieldsGroup: { display: 'flex', gap: 'var(--ds-spacing-12)', flex: '1 1 584px', minWidth: 584 },
