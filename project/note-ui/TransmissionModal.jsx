@@ -492,7 +492,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       <button key={d.id}
         style={Object.assign({}, tx.sideRow, sel ? tx.sideRowSel : {})}
         onClick={function () { setSelectedId(d.id); }}>
-        <span className="material-icons-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
+        <span className="material-symbols-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
