@@ -350,9 +350,35 @@ function diagRelabelPatches(allOccurrences, editedId, to, opts) {
 // soit chargé, on retombe sur l'attribut `level` posé à la création.
 function diagCanRefine(attrs) {
   const a = attrs || {};
-  if (!a.code) return false;
-  if (window.CIM10 && window.CIM10.ready()) return window.CIM10.canRefine(a.code);
-  return a.level === 'category';
+  if (!a.code && a.level !== 'chapter') return false;
+  if (window.CIM10 && window.CIM10.ready()) {
+    const id = dxRegionCimId(a);
+    return !!id && window.CIM10.canRefine(id);
+  }
+  return a.level === 'category' || a.level === 'chapter';
+}
+
+// Nœud CIM-10 d'où « Préciser » / la modification d'une région démarre : son
+// code, ou — pour un diagnostic défini par un simple chapitre (level
+// 'chapter', sans code) — l'id du chapitre, retrouvé par son libellé (le nom
+// d'une région ne change qu'avec son level, voir diagRelabelPatches). null
+// pour un texte libre, un diagnostic SNOMED, ou tant que la CIM-10 charge.
+function dxRegionCimId(region) {
+  const r = region || {};
+  if (r.source === 'snomed') return null;
+  if (r.code) return r.code;
+  if (r.level !== 'chapter' || !window.CIM10 || !window.CIM10.ready()) return null;
+  const ch = window.CIM10.children('root').filter(function (n) { return n.kind === 'chapter' && n.libelle === r.name; })[0];
+  return ch ? ch.id : null;
+}
+
+// Ce qu'affiche la pastille de code de l'en-tête : le code CIM-10 tel quel,
+// l'identifiant SNOMED CT préfixé (un nombre nu ne dit pas de quel système il
+// vient), rien pour un texte libre ou un chapitre.
+function diagCodeLabel(attrs) {
+  const a = attrs || {};
+  if (!a.code) return '';
+  return a.source === 'snomed' ? ('SNOMED ' + a.code) : a.code;
 }
 
 // ---------------------------------------------------------
@@ -558,7 +584,7 @@ Object.assign(window, {
   newDiagId: newDiagId, diagnosticThreads: diagnosticThreads, listDiagnostics: listDiagnostics,
   diagPlacement: diagPlacement, dxSommaireTargetId: dxSommaireTargetId, normalizeDiagAttrs: normalizeDiagAttrs,
   makeDiagRegionAttrs: makeDiagRegionAttrs, prepareDiagDoc: prepareDiagDoc, rebaseDiagDocForNewNote: rebaseDiagDocForNewNote,
-  diagRelabelPatches: diagRelabelPatches, diagCanRefine: diagCanRefine,
+  diagRelabelPatches: diagRelabelPatches, diagCanRefine: diagCanRefine, dxRegionCimId: dxRegionCimId, diagCodeLabel: diagCodeLabel,
   diagDocButton: diagDocButton, diagDocMenuItems: diagDocMenuItems,
   getSommaireDiagnostics: getSommaireDiagnostics, sommaireDxSeed: sommaireDxSeed, dxFindLinkableRow: dxFindLinkableRow,
   fmtSommaireDate: fmtSommaireDate, mergeSommaireDx: mergeSommaireDx, commitSommaireDx: commitSommaireDx,

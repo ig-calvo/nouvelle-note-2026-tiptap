@@ -727,7 +727,7 @@
 .dx-item__chev { border: 0; background: transparent; cursor: pointer; padding: 2px; display: inline-flex; color: var(--fg-3); border-radius: 50%; flex-shrink: 0; margin-left: 2px; }
 .dx-item__chev:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent); color: var(--fg-1); }
 .dx-item__chev .material-icons-outlined { font-size: 18px; }
-.dx-item--free { border-top: 1px solid var(--mat-sys-secondary-container); }
+.dx-item--free { border-bottom: 1px solid var(--mat-sys-secondary-container); }
 .dx-item--free .dx-item__lead .material-icons-outlined { color: var(--brand-primary, var(--mat-sys-primary)); }
 .dx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .dx-empty__hint { margin-top: 4px; font-size: 12px; color: var(--fg-3); }

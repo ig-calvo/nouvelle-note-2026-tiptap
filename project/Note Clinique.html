@@ -225,6 +225,16 @@
     // lit que CIM10_DATA) de continuer à fonctionner.
     window.dispatchEvent(new Event('cim10:ready'));
   });
+  // Dictionnaire SNOMED CT (note-ui/snomed-index.jsx) : un seul fichier, source
+  // de suggestions en plus de la CIM-10 — un échec ne bloque rien (le /dx
+  // fonctionne sans, SNOMED.ready() reste faux).
+  fetch('note-ui/snomed-diagnostics.json' + v).then(function (r) {
+    if (!r.ok) throw new Error('note-ui/snomed-diagnostics.json : HTTP ' + r.status);
+    return r.json();
+  }).then(function (d) { window.SNOMED_DATA = d; }).catch(function (err) {
+    window.SNOMED_ERROR = (err && err.message) || String(err);
+    console.error('SNOMED CT non chargé :', window.SNOMED_ERROR);
+  }).then(function () { window.dispatchEvent(new Event('snomed:ready')); });
 })();
 </script>
 <!-- Chargeur JSX avec anti-cache : ajoute un horodatage à chaque rechargement
@@ -250,6 +260,7 @@
     'note-ui/note-sections.jsx',
     'note-ui/diagnostics.jsx',
     'note-ui/cim10-index.jsx',
+    'note-ui/snomed-index.jsx',
     'note-ui/dx-picker.jsx',
     'note-ui/editor-schema.jsx',
     'note-ui/review-mode.jsx',

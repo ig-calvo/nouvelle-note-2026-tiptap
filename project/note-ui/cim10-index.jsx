@@ -247,6 +247,15 @@ function buildCim10Index(rows, hier) {
     n.canRefine = n.hasChildren;
     n.level = (n.kind === 'category' && n.hasChildren) ? 'category' : 'code';
   });
+  // Un chapitre se choisit tel quel (définition la plus générale d'un
+  // diagnostic : un nom, sans code), puis se précise. Il n'est PAS
+  // `selectable` — ce champ reste réservé aux vrais codes (stats, descCount,
+  // recherche) — mais `pickable` : c'est ce que lit le sélecteur /dx.
+  chapters.forEach(function (c) {
+    c.pickable = true;
+    c.canRefine = c.hasChildren;
+    c.level = 'chapter';
+  });
 
   // Chapitre/bloc sans aucun descendant sélectionnable : ne devrait pas
   // arriver avec les données livrées, signalé sans jamais planter.
@@ -285,7 +294,8 @@ function buildCim10Index(rows, hier) {
       libelle: n.libelle, alias: n.alias || null,
       label: (preferAlias && n.alias) ? n.alias : n.libelle,
       crumb: n.crumb, hasChildren: n.hasChildren, childCount: n.childCount, descCount: n.descCount,
-      selectable: n.selectable, level: n.level || null, canRefine: n.canRefine, depth: n.depth,
+      selectable: n.selectable, pickable: !!(n.selectable || n.pickable),
+      level: n.level || null, canRefine: n.canRefine, depth: n.depth,
       path: pathAncestors(n.id),
     };
     return extra ? Object.assign(base, {

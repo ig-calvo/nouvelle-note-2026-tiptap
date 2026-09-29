@@ -423,7 +423,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
     const head = ['div', { class: 'dxr-head', contenteditable: 'false' },
       ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
       ['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]];
-    if (a.code) head.push(['span', { class: 'dxr-code' }, a.code]);
+    if (a.code) head.push(['span', { class: 'dxr-code' }, window.diagCodeLabel(a)]);
     if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, 'Cessé']);
     if (a.replaces) head.push(['span', { class: 'dxr-sub' }, 'remplace : ' + a.replaces.name]);
     if (window.diagCanRefine(a)) {
@@ -503,7 +503,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         nameEl.setAttribute('data-diag-id', a.id || '');
         nameEl.setAttribute('data-dx-code', a.code || '');
         nameEl.textContent = a.name || 'Diagnostic';
-        codeEl.textContent = a.code || '';
+        codeEl.textContent = window.diagCodeLabel(a);
         codeEl.hidden = !a.code;
         statusEl.hidden = a.status !== 'cesse';
         subEl.hidden = !a.replaces;
@@ -549,10 +549,13 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
     };
   },
   // Entrée sur le dernier paragraphe vide de la région → sort en insérant un
-  // nouveau paragraphe APRÈS (jamais de suppression ici, même si la région
-  // n'a qu'un seul paragraphe : une région Reprendre/Cesser/Remplacer n'a
-  // souvent aucun texte à ajouter, et Entrée est la touche la plus naturelle
-  // à taper ensuite — elle ne doit jamais effacer la région ni son numéro).
+  // nouveau paragraphe APRÈS. Comme une liste à puces, la ligne vide qui a
+  // servi à « sortir » ne reste pas dans la région : on la retire dès que la
+  // région a un autre paragraphe. Quand c'est son SEUL paragraphe, on ne
+  // supprime rien : une région Reprendre/Cesser/Remplacer n'a souvent aucun
+  // texte à ajouter, et Entrée est la touche la plus naturelle à taper
+  // ensuite — elle ne doit jamais effacer la région ni son numéro (et la
+  // région exige au moins un paragraphe).
   // Backspace en tête d'une région réduite à un seul paragraphe vide →
   // suppression explicite de toute la région, elle continue de fonctionner.
   addKeyboardShortcuts() {
@@ -567,8 +570,15 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (regionDepth < 0 || $from.node(regionDepth).type.name !== 'diagnosticRegion') return false;
         const region = $from.node(regionDepth);
         if ($from.index(regionDepth) !== region.childCount - 1) return false;
-        const regionEnd = $from.after(regionDepth);
-        return editor.chain()
+        const chain = editor.chain();
+        let regionEnd = $from.after(regionDepth);
+        if (region.childCount > 1) {
+          // Le paragraphe vide est le dernier enfant : après sa suppression la
+          // région se ferme là où il commençait (+1 pour le jeton de fermeture).
+          chain.deleteRange({ from: $from.before(), to: $from.after() });
+          regionEnd = $from.before() + 1;
+        }
+        return chain
           .insertContentAt(regionEnd, { type: 'paragraph' })
           .setTextSelection(regionEnd + 1)
           .run();
