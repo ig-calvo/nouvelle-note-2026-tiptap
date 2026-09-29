@@ -275,7 +275,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       return {
         threads: editor ? window.getDiagModel(editor).threads : [],
         sommaire: window.getSommaireDiagnostics ? window.getSommaireDiagnostics() : [],
-        cim: window.CIM10 || null
+        cim: window.CIM10 || null,
+        snomed: window.SNOMED || null
       };
     }
 

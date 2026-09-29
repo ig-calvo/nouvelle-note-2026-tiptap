@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPrototype, readProjectJSON } from './harness.mjs';
 
-const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/cim10-index.jsx', 'note-ui/dx-picker.jsx']);
+const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/cim10-index.jsx', 'note-ui/snomed-index.jsx', 'note-ui/dx-picker.jsx']);
 const cimData = readProjectJSON('note-ui/cim10-fr-clinique.json');
 const cimHier = readProjectJSON('note-ui/cim10-hierarchy.json');
 // Façade minimale (ready() en plus du builder brut) — dxBuildModel exige
@@ -266,15 +266,50 @@ test('une catégorie CIM-10 (H66) est sélectionnable ET navigable (D4) : Entré
   assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'H66' });
 });
 
-test('un chapitre (non sélectionnable) ne se choisit jamais : Entrée comme → descendent tous les deux', () => {
+test('un chapitre se choisit tel quel (sans code, level « chapter ») ET se parcourt : Entrée le choisit, → descend', () => {
   const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'root' }, stack: [], activeIndex: null, actionFocus: 0 };
   const model = w.dxBuildModel(st, '', ctxWith(null));
   const chapterX = model.flat.find((it) => it.ref && it.ref.id === 'ch:X');
-  assert.equal(chapterX.selectable, false);
+  assert.equal(chapterX.selectable, true);
+  assert.ok(chapterX.nav, 'navigable aussi (chevron)');
   const withIdx = Object.assign({}, st, { activeIndex: chapterX.idx });
-  const r = w.dxStep(withIdx, { type: 'key', key: 'Enter' }, model);
-  assert.deepEqual(r.state.view, { kind: 'browse', nodeId: 'ch:X' });
+  const picked = w.dxStep(withIdx, { type: 'key', key: 'Enter' }, model);
+  assert.deepEqual(picked.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'cim10', name: chapterX.label, code: null, level: 'chapter' } } }]);
+  const drilled = w.dxStep(withIdx, { type: 'key', key: 'ArrowRight' }, model);
+  assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'ch:X' });
+});
+
+test('les blocs et « Fréquents » restent non sélectionnables : Entrée comme → descendent', () => {
+  const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'ch:X' }, stack: [], activeIndex: null, actionFocus: 0 };
+  const model = w.dxBuildModel(st, '', ctxWith(null));
+  const block = model.flat[0];
+  assert.equal(block.selectable, false);
+  const r = w.dxStep(st, { type: 'key', key: 'Enter' }, model);
+  assert.deepEqual(r.state.view, { kind: 'browse', nodeId: block.ref.id });
   assert.equal(r.effects.some((e) => e.type === 'commit'), false);
+  const root = w.dxBuildModel({ intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'root' }, stack: [], activeIndex: null, actionFocus: 0 }, '', ctxWith(null));
+  assert.equal(root.flat.find((it) => it.ref.id === 'fav').selectable, false);
+});
+
+test('un diagnostic défini par un chapitre se précise : démarre DANS le chapitre (retrouvé par son libellé)', () => {
+  w.CIM10 = cim;
+  try {
+    const chapter = cim.node('ch:X');
+    const region = { id: 'd1', dxKey: 'n:d1', name: chapter.libelle, code: null, level: 'chapter', source: 'cim10' };
+    assert.equal(w.dxRegionCimId(region), 'ch:X');
+    assert.equal(w.diagCanRefine(region), true);
+    const st = w.dxInitState({ kind: 'refine', region: region });
+    assert.deepEqual(st.view, { kind: 'browse', nodeId: 'ch:X' });
+    const model = w.dxBuildModel(st, '', ctxWith(null));
+    assert.equal(model.flat[0].ref.id, 'bl:J00-J06');
+    // Modifier sans toucher au nom : propose le contenu du chapitre, sans texte libre.
+    const edit = w.dxBuildModel(w.dxInitState({ kind: 'edit', region: region }), region.name, ctxWith(null));
+    assert.equal(edit.sections[0].title, 'Dans le chapitre X');
+    assert.equal(edit.freeText, null);
+    // Un texte libre du même nom, ou un chapitre renommé (level remis à null) ne se précise pas.
+    assert.equal(w.dxRegionCimId(Object.assign({}, region, { level: null })), null);
+    assert.equal(w.diagCanRefine(Object.assign({}, region, { level: null })), false);
+  } finally { delete w.CIM10; }
 });
 
 test('Entrée à la racine sans rien (terme vide, rien à sélectionner) est absorbée sans effet', () => {
@@ -349,7 +384,7 @@ test('le fil d’Ariane (jump) remplace la vue SANS empiler ; drill (chevron/Ent
   assert.equal(drilled.state.stack.length, 1);
   const model2 = w.dxBuildModel(drilled.state, '', ctxWith(null));
   const chapterX = model2.flat.find((it) => it.ref && it.ref.id === 'ch:X');
-  const drilled2 = w.dxStep(drilled.state, { type: 'activate', index: chapterX.idx }, model2);
+  const drilled2 = w.dxStep(drilled.state, { type: 'drill', nodeId: chapterX.ref.id }, model2);
   assert.equal(drilled2.state.stack.length, 2);
   const jumped = w.dxStep(drilled2.state, { type: 'jump', nodeId: 'root' }, w.dxBuildModel(drilled2.state, '', ctxWith(null)));
   assert.equal(jumped.state.stack.length, 2); // inchangé : jump ne pousse rien
@@ -392,4 +427,56 @@ test('reprendre un fil de la note donne bien le même numéro (intégration diag
   // Une nouvelle occurrence créée avec ce target garderait dxKey n:d1, donc
   // le même number lors du prochain diagnosticThreads(doc) — déjà couvert
   // par tests/diagnostics.test.mjs (numéro par 1re occurrence du fil).
+});
+
+// ---------------------------------------------------------------------------
+// SNOMED CT — deuxième dictionnaire, après la CIM-10 (snomed-index.jsx)
+// ---------------------------------------------------------------------------
+const SNOMED_MINI = {
+  _meta: { tags: ['finding', 'disorder'] },
+  concepts: [
+    ['76581006', 'Cholecystitis', 0, 1],
+    ['41591006', 'Disorder of form of thought', 0, 0],
+    ['195967001', 'Asthma', 0, 1],
+  ],
+};
+const snomedFacade = () => Object.assign({ ready: () => true }, w.buildSnomedIndex(SNOMED_MINI));
+
+test('SNOMED : une section « SNOMED CT » suit la CIM-10, avant « Parcourir », avec des lignes sélectionnables', () => {
+  const ctx = Object.assign(ctxWith(null), { snomed: snomedFacade() });
+  const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'cholecystitis', ctx);
+  const keys = model.sections.map((s) => s.key);
+  assert.ok(keys.indexOf('snomed') > keys.indexOf('cim'));
+  assert.ok(keys.indexOf('snomed') < keys.indexOf('browse'));
+  const item = model.flat.find((it) => it.kind === 'snomed');
+  assert.deepEqual([item.label, item.code, item.selectable, item.nav], ['Cholecystitis', '76581006', true, null]);
+  assert.equal(item.sub, 'SNOMED CT · 76581006');
+});
+
+test('SNOMED : choisir un concept crée le diagnostic avec source « snomed » et le conceptId en code', () => {
+  const ctx = Object.assign(ctxWith(null), { snomed: snomedFacade() });
+  const st = w.dxInitState({ kind: 'nouveau' });
+  const model = w.dxBuildModel(st, 'cholecystitis', ctx);
+  const item = model.flat.find((it) => it.kind === 'snomed');
+  const r = w.dxStep(st, { type: 'activate', index: item.idx }, model);
+  assert.deepEqual(r.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'snomed', name: 'Cholecystitis', code: '76581006', level: null } } }]);
+  const attrs = w.makeDiagRegionAttrs(r.effects[0].payload, { id: 'd9', now: '2026-09-28T12:00:00Z' });
+  assert.deepEqual([attrs.name, attrs.code, attrs.source, attrs.level], ['Cholecystitis', '76581006', 'snomed', null]);
+  assert.equal(w.diagCodeLabel(attrs), 'SNOMED 76581006');
+  assert.equal(w.diagCodeLabel({ code: 'J45.9', source: 'cim10' }), 'J45.9');
+  assert.equal(w.diagCodeLabel({ code: null, source: 'libre' }), '');
+});
+
+test('SNOMED : jamais proposé en « Préciser » ; absent sans données ; un concept déjà dans la note est exclu', () => {
+  const ctx = Object.assign(ctxWith(null), { snomed: snomedFacade() });
+  const refine = w.dxInitState({ kind: 'refine', region: { name: 'Otite moyenne', code: 'H66', level: 'category' } });
+  assert.equal(w.dxBuildModel(refine, 'asthma', ctx).sections.some((s) => s.key === 'snomed'), false);
+  const noData = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'asthma', ctxWith(null));
+  assert.equal(noData.sections.some((s) => s.key === 'snomed'), false);
+  const inNote = doc(DX({ id: 'd1', dxKey: 'n:d1', name: 'Asthma', code: '195967001', source: 'snomed' }));
+  const dedup = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'asthma', Object.assign(ctxWith(inNote), { snomed: snomedFacade() }));
+  assert.equal(dedup.flat.some((it) => it.kind === 'snomed' && it.code === '195967001'), false);
+  // Un diagnostic SNOMED ne se « précise » pas dans la CIM-10, même avec un code numérique.
+  const region = { name: 'Asthma', code: '195967001', source: 'snomed' };
+  assert.equal(w.dxRegionCimId(region), null);
 });

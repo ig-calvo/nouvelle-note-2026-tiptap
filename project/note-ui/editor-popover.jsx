@@ -437,14 +437,14 @@ function DxRow({ item, term, active, actionFocus, onEvent }) {
       onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'activate', index: it.idx }); }}>
       <span className="dx-item__lead">
         {it.kind === 'note' ? <span className="dx-num">{it.lead}</span>
-          : it.kind === 'sommaire' ? <span className="material-icons-outlined">{it.lead}</span>
+          : (it.kind === 'sommaire' || it.kind === 'snomed') ? <span className="material-icons-outlined">{it.lead}</span>
           : isNav ? <span className="material-icons-outlined">account_tree</span>
           : it.lead ? <span className="dx-code">{it.lead}</span> : null}
       </span>
       <div className="dx-item__body">
         <div className="dx-item__name">
           <DxHighlight text={it.label} term={term} />
-          {it.code && it.kind !== 'cim' && <span className="dx-item__code"> · {it.code}</span>}
+          {it.code && it.kind !== 'cim' && it.kind !== 'snomed' && <span className="dx-item__code"> · {it.code}</span>}
         </div>
         {it.sub && <div className="dx-item__sub">{it.sub}</div>}
         {it.tags.map(function (t) { return <span key={t.kind} className={'dx-tag dx-tag--' + t.kind}>{t.text}</span>; })}
@@ -476,24 +476,6 @@ function DxRow({ item, term, active, actionFocus, onEvent }) {
 function DxList({ model, activeIndex, actionFocus, onEvent }) {
   return (
     <div className="dx-menu__scroll">
-      {model.empty &&
-        <div className="dx-empty">
-          <div>{model.empty.text}</div>
-          {model.empty.hint && <div className="dx-empty__hint">{model.empty.hint}</div>}
-        </div>
-      }
-      {model.sections.map((sec) => (
-        <div key={sec.key} className="dx-sec-block">
-          {sec.title && <div className="dx-sec">{sec.title}</div>}
-          {sec.items.map((it) => (
-            <DxRow key={it.key} item={it} term={model.term}
-              active={it.idx === activeIndex} actionFocus={it.idx === activeIndex ? actionFocus : 0}
-              onEvent={onEvent} />
-          ))}
-          {sec.note && <div className="dx-sec-note">{sec.note}</div>}
-          {sec.more > 0 && <div className="dx-more">{window.DX_COPY.more(sec.more)}</div>}
-        </div>
-      ))}
       {model.freeText && (function () {
         const copy = window.DX_COPY.freeText[model.freeText.kind](model.freeText.name, model.freeText.hadCode);
         const isActive = activeIndex === model.minIndex;
@@ -509,6 +491,24 @@ function DxList({ model, activeIndex, actionFocus, onEvent }) {
           </div>
         );
       })()}
+      {model.empty &&
+        <div className="dx-empty">
+          <div>{model.empty.text}</div>
+          {model.empty.hint && <div className="dx-empty__hint">{model.empty.hint}</div>}
+        </div>
+      }
+      {model.sections.map((sec) => (
+        <div key={sec.key} className="dx-sec-block">
+          {sec.title && <div className="dx-sec">{sec.title}</div>}
+          {sec.items.map((it) => (
+            <DxRow key={it.key} item={it} term={model.term}
+              active={it.idx === activeIndex} actionFocus={it.idx === activeIndex ? actionFocus : 0}
+              onEvent={onEvent} />
+          ))}
+          {sec.note && <div className="dx-sec-note">{sec.note}</div>}
+          {sec.more > 0 && <div className="dx-more">{(sec.key === 'snomed' ? window.DX_COPY.moreSnomed : window.DX_COPY.more)(sec.more)}</div>}
+        </div>
+      ))}
     </div>
   );
 }
@@ -574,10 +574,14 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
     if (window.CIM10 && window.CIM10.whenReady && !window.CIM10.ready()) {
       window.CIM10.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
     }
+    // Même chose pour SNOMED CT (snomed-index.jsx, événement snomed:ready).
+    if (window.SNOMED && window.SNOMED.whenReady && !window.SNOMED.ready()) {
+      window.SNOMED.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
+    }
     return () => { cancelled = true; };
   }, []);
 
-  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null });
+  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null, snomed: window.SNOMED || null });
   const activeIndex = window.dxActiveIndex(dxState, model);
 
   function applyResult(result) {
@@ -613,7 +617,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
         <input
           autoFocus
           value={term}
-          placeholder={mode === 'refine' ? 'Rechercher un code plus précis…' : 'Renommer ou choisir un code CIM-10…'}
+          placeholder={mode === 'refine' ? 'Rechercher un code plus précis…' : 'Renommer ou choisir un code CIM-10 ou SNOMED CT…'}
           onChange={(e) => onChangeTerm(e.target.value)}
           onKeyDown={onKeyDown} />
       </div>

@@ -27,23 +27,25 @@ function dxNorm(s) {
 function dxCodeKey(s) { return (s || '').toLowerCase().replace(/\./g, ''); }
 
 const DX_COPY = {
-  placeholder: 'Rechercher un diagnostic, un problème ou un code CIM-10…',
+  placeholder: 'Rechercher un diagnostic, un problème, un code CIM-10 ou SNOMED CT…',
   sec: {
     note: 'Dans cette note',
     somProblemes: 'Problèmes au sommaire',
     somAntecedents: 'Antécédents au sommaire',
     frequents: 'Fréquents',
     cim: 'CIM-10',
+    snomed: 'SNOMED CT (termes en anglais)',
     browseRoot: 'CIM-10',
     plusPrecis: function (code) { return 'Codes plus précis — ' + code; },
-    memeCategorie: function (code) { return 'Même catégorie — ' + code; }
+    memeCategorie: function (code) { return 'Même catégorie — ' + code; },
+    dansChapitre: function (roman) { return 'Dans le chapitre ' + roman; }
   },
   browse: 'Parcourir la CIM-10 par chapitre',
   loading: 'Chargement de la CIM-10…',
   freeText: {
     nouveau: function (term) { return { title: 'Nouveau diagnostic : ' + term, sub: 'Texte libre, sans code CIM-10' }; },
     remplacer: function (term) { return { title: 'Remplacer par : ' + term, sub: null }; },
-    edit: function (term, hadCode) { return { title: 'Renommer : ' + term, sub: hadCode ? 'Le code CIM-10 sera retiré' : null }; }
+    edit: function (term, hadCode) { return { title: 'Renommer : ' + term, sub: hadCode ? 'Le code sera retiré' : null }; }
   },
   banner: {
     remplacer: function (target) { return 'Remplacer n° ' + target.number + ' « ' + target.name + ' » par…'; },
@@ -63,6 +65,7 @@ const DX_COPY = {
     replace: 'Rechercher le nouveau diagnostic ou parcourir la CIM-10.'
   },
   more: function (n) { return '+' + n + ' autres résultats — préciser la recherche ou parcourir la CIM-10.'; },
+  moreSnomed: function (n) { return '+' + n + ' autres résultats SNOMED CT — préciser la recherche.'; },
   foot: {
     nav: '↑↓ naviguer · ↵ choisir · → parcourir · ← retour · Échap fermer',
     note: '↑↓ naviguer · ↵ reprendre · → autres actions · Échap fermer',
@@ -114,7 +117,18 @@ function dxCimItem(n) {
   return {
     key: 'cim:' + n.id, idx: 0, kind: 'cim', label: n.label, code: n.code || null,
     lead: n.roman || n.range || n.code || '', sub: (n.alias && n.alias !== n.label) ? n.libelle : null,
-    tags: [], actions: [], selectable: !!n.selectable, nav: n.hasChildren ? n.id : null, ref: n
+    tags: [], actions: [], selectable: !!(n.pickable || n.selectable), nav: n.hasChildren ? n.id : null, ref: n
+  };
+}
+// Concept SNOMED CT (snomed-index.jsx) : mêmes règles qu'une ligne CIM-10
+// sélectionnable, mais plate (aucune navigation) — le concept est identifié
+// par son conceptId, gardé dans `code` (source:'snomed' le distingue d'un code
+// CIM-10, voir diagCodeLabel).
+function dxSnomedItem(r) {
+  return {
+    key: 'snomed:' + r.id, idx: 0, kind: 'snomed', label: r.label, code: r.id,
+    lead: 'sell', sub: 'SNOMED CT · ' + r.id,
+    tags: [], actions: [], selectable: true, nav: null, ref: r
   };
 }
 function dxNavItem(id, label) {
@@ -146,13 +160,20 @@ function dxMatch(q, label, code) {
 // Ajoute la ou les sections CIM-10 (Fréquents + CIM-10, ou juste CIM-10 pour
 // Remplacer/Préciser) — `taken` exclut un code déjà utilisé ailleurs (pas
 // deux fois la même identité sous deux numéros différents).
-function dxPushCim(sections, cim, term, taken, includeFrequent) {
+function dxPushCim(sections, cim, term, taken, includeFrequent, snomed) {
   if (!cim) { sections.push(dxSec('cim', DX_COPY.sec.cim, [], DX_COPY.loading)); return; }
   if (term && term.length >= 2) {
     const res = cim.search(term, { maxGroups: 4 });
     const rows = res.rows.filter(function (r) { return r.selectable && !(r.code && taken.has(r.code)); });
     sections.push(dxSec('cim', DX_COPY.sec.cim, rows.map(dxCimItem),
       rows.length ? null : DX_COPY.empty.cim(term), res.moreGroups));
+    // SNOMED CT juste après la CIM-10, avant « Parcourir » : section absente
+    // (pas de message « aucun résultat ») quand rien ne correspond.
+    if (snomed) {
+      const sres = snomed.search(term, { limit: 6 });
+      const srows = sres.rows.filter(function (r) { return !taken.has(r.id); });
+      sections.push(dxSec('snomed', DX_COPY.sec.snomed, srows.map(dxSnomedItem), null, sres.more));
+    }
   } else {
     if (includeFrequent) {
       const freq = cim.children('fav').filter(function (n) { return !(n.code && taken.has(n.code)); }).slice(0, 8);
@@ -188,6 +209,7 @@ function dxBuildModel(state, rawTerm, ctx) {
   const threads = ctx.threads || [];
   const sommaire = ctx.sommaire || [];
   const cim = (ctx.cim && ctx.cim.ready && ctx.cim.ready()) ? ctx.cim : null;
+  const snomed = (ctx.snomed && ctx.snomed.ready && ctx.snomed.ready()) ? ctx.snomed : null;
   const intent = state.intent, view = state.view;
   const sections = [];
   let banner = null, crumbs = null, freeText = null, empty = null;
@@ -223,7 +245,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     const somAnt = sommaire.filter(function (r) { return r.sommaireKind === 'antecedent' && !linked.has(r.sommaireId); })
       .map(dxSommaireItem).filter(function (it) { return dxMatch(q, it.label, it.code); });
     sections.push(dxSec('somAnt', DX_COPY.sec.somAntecedents, somAnt));
-    dxPushCim(sections, cim, term, taken, true);
+    dxPushCim(sections, cim, term, taken, true, snomed);
     if (term) freeText = { name: term, kind: 'nouveau' };
     const hits = sections.reduce(function (n, sec) { return n + sec.items.length; }, 0);
     if (term.length >= 2 && !hits) empty = { text: DX_COPY.empty.none(term), hint: DX_COPY.empty.noneHint };
@@ -237,18 +259,22 @@ function dxBuildModel(state, rawTerm, ctx) {
         sections.push(dxSec('near', t.level === 'category' ? DX_COPY.sec.plusPrecis(t.code) : DX_COPY.sec.memeCategorie(base), list.map(dxCimItem)));
       }
     }
-    dxPushCim(sections, cim, term, dxTakenCodes([], [], [t.code]), false);
+    dxPushCim(sections, cim, term, dxTakenCodes([], [], [t.code]), false, snomed);
     if (term) freeText = { name: term, kind: 'remplacer' };
     if (!term) { const hits = sections.reduce(function (n, sec) { return n + sec.items.length; }, 0); if (!hits) empty = { text: DX_COPY.empty.replace }; }
   } else if (intent.kind === 'edit' || intent.kind === 'refine') {
     const r = intent.region;
     banner = { kind: intent.kind, region: r };
     const untouched = intent.kind === 'edit' && term === (r.name || '');
-    if (cim && r.code && (intent.kind === 'refine' || untouched)) {
-      sections.push(dxSec('near', DX_COPY.sec.plusPrecis(r.code), cim.children(r.code).map(dxCimItem)));
+    const rid = window.dxRegionCimId(r);
+    if (cim && rid && (intent.kind === 'refine' || untouched)) {
+      const rnode = cim.node(rid);
+      sections.push(dxSec('near', r.code ? DX_COPY.sec.plusPrecis(r.code) : DX_COPY.sec.dansChapitre((rnode && rnode.roman) || ''),
+        cim.children(rid).map(dxCimItem)));
     }
     if (!untouched) {
-      dxPushCim(sections, cim, term, dxTakenCodes([], [], [r.code]), false);
+      // « Préciser » descend dans la CIM-10 : pas de SNOMED, plat, à cet endroit.
+      dxPushCim(sections, cim, term, dxTakenCodes([], [], [r.code]), false, intent.kind === 'refine' ? null : snomed);
       if (term) freeText = { name: term, kind: 'edit', hadCode: !!r.code };
     }
   }
@@ -295,7 +321,7 @@ function dxInitState(intent) {
   const isRefine = intent.kind === 'refine';
   return {
     intent: intent,
-    view: isRefine ? { kind: 'browse', nodeId: intent.region.code } : { kind: 'root' },
+    view: isRefine ? { kind: 'browse', nodeId: window.dxRegionCimId(intent.region) } : { kind: 'root' },
     stack: [],
     activeIndex: null, // résolu à l'affichage par dxActiveIndex (= model.defaultIndex tant qu'inconnu)
     actionFocus: 0
@@ -340,7 +366,8 @@ function dxStep(state, event, model) {
   }
   function commitPick(item, freeName) {
     const pick = item
-      ? { source: 'cim10', name: item.label, code: item.code, level: (item.ref && item.ref.level) || null }
+      ? { source: item.kind === 'snomed' ? 'snomed' : 'cim10', name: item.label, code: item.code,
+          level: item.kind === 'snomed' ? null : ((item.ref && item.ref.level) || null) }
       : { source: 'libre', name: freeName, code: null, level: null };
     if (s.intent.kind === 'remplacer') effects.push({ type: 'commit', payload: { action: 'remplacer', target: s.intent.target, pick: pick } });
     else if (s.intent.kind === 'edit' || s.intent.kind === 'refine') effects.push({ type: 'relabel', to: pick });
@@ -349,7 +376,7 @@ function dxStep(state, event, model) {
   function activate(item, action) {
     if (!item) return;
     if (item.kind === 'nav' || (!item.selectable && item.nav)) { drillTo(item.nav); return; }
-    if (item.kind === 'cim') { commitPick(item, null); return; }
+    if (item.kind === 'cim' || item.kind === 'snomed') { commitPick(item, null); return; }
     const a = action || item.actions[0] || 'reprendre';
     if (a === 'remplacer') { startReplace(item.ref); return; }
     if (a === 'cesser') { effects.push({ type: 'commit', payload: { action: 'cesser', target: item.ref } }); return; }
