@@ -782,7 +782,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <div style={neStyles.fieldsGroup}>
           <DsDateField label="Date" width={190} value={noteDate} onChange={setNoteDate} />
           <DsTimeField label="Heure" width={140} value={noteTime} onChange={setNoteTime} />
-          <FloatField label="Type de visite" width={230} select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
+          <FloatField label="Type de visite" width={230} grow select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
         </div>
         <button
           type="button"
@@ -1231,7 +1231,7 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
   );
 }
 
-function FloatField({ label, children, width, flex, error, input, type, select, options, value: controlledValue, onValueChange, onFocus: onFocusProp }) {
+function FloatField({ label, children, width, flex, grow, error, input, type, select, options, value: controlledValue, onValueChange, onFocus: onFocusProp }) {
   const [focused, setFocused] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState('');
   const value = controlledValue !== undefined ? controlledValue : internalValue;
@@ -1248,7 +1248,7 @@ function FloatField({ label, children, width, flex, error, input, type, select, 
   return (
     <div style={{
       ...neFieldStyles.wrap,
-      ...(flex ? { flex: '1 1 240px', minWidth: 200 } : { width, flexShrink: 0 }),
+      ...(flex ? { flex: '3 1 240px', minWidth: 200 } : grow ? { flex: '1 1 ' + width + 'px', minWidth: width } : { width, flexShrink: 0 }),
       ...(error ? { border: '1px solid var(--mat-sys-error)' } : {}),
       ...(isBuiltIn && focused ? neFieldStyles.wrapFocused : {})
     }}>
@@ -1589,7 +1589,9 @@ const neStyles = {
   overline: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', textTransform: 'uppercase', color: 'var(--mat-sys-on-surface-variant)' },
   title: { font: 'var(--mat-sys-headline-small)', color: 'var(--mat-sys-on-surface)', margin: 0 },
   fieldsRow: { display: 'flex', flexWrap: 'wrap', gap: 'var(--ds-spacing-12)', alignItems: 'center', marginBottom: 'var(--ds-spacing-m)' },
-  fieldsGroup: { display: 'flex', gap: 'var(--ds-spacing-12)', flexShrink: 0 },
+  // Sur une seule ligne le groupe garde sa largeur naturelle (la raison prend 3× plus de
+  // place libre) ; passé sous la raison, il occupe toute la ligne et le type de visite s'étire.
+  fieldsGroup: { display: 'flex', gap: 'var(--ds-spacing-12)', flex: '1 1 584px', minWidth: 584 },
   tagToggle: { width: 44, height: 44, flexShrink: 0, marginLeft: 'auto', border: 'none', background: 'transparent', borderRadius: 'var(--mat-sys-corner-small)', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', transition: 'background var(--motion-duration) var(--motion-ease), color var(--motion-duration) var(--motion-ease)' },
   tagToggleOn: { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' },
   fieldValue: { font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)' },
