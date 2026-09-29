@@ -1273,7 +1273,7 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
           </React.Fragment>
         ) : input ? (
           <input
-            style={{ ...neFieldStyles.input, colorScheme: 'light' }}
+            style={neFieldStyles.input}
             type={type || 'text'}
             value={value}
             onChange={handleChange}
@@ -1655,7 +1655,7 @@ function TagInput({ tags, onChange }) {
             return (
               <span key={t + i} style={tagStyles.chip}>
                 {t}
-                <button type="button" style={tagStyles.chipX} title="Retirer" onClick={function() { removeTag(i); }}>
+                <button type="button" className="ds-tb-btn" style={tagStyles.chipX} title={"Retirer l’étiquette " + t} aria-label={"Retirer l’étiquette " + t} onClick={function() { removeTag(i); }}>
                   <span className="material-icons" style={{ fontSize: 16 }}>close</span>
                 </button>
               </span>);
@@ -1693,8 +1693,8 @@ const tagStyles = {
   wrapFocused: { border: '1px solid var(--mat-sys-primary)', boxShadow: '0 0 0 1px var(--mat-sys-primary)' },
   inner: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 'var(--ds-spacing-xs)', width: '100%' },
   icon: { fontSize: 22, color: 'var(--mat-sys-on-surface-variant)', marginRight: 2 },
-  chip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-12)', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)', background: 'var(--mat-sys-surface-container-lowest)' },
-  chipX: { border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--mat-sys-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 2, borderRadius: 'var(--mat-sys-corner-extra-small)' },
+  chip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', minHeight: 32, border: '1px solid var(--mat-sys-outline)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-xxs) var(--ds-spacing-12)', font: 'var(--mat-sys-label-large)', letterSpacing: 'var(--mat-sys-label-large-tracking)', color: 'var(--mat-sys-on-surface)', background: 'var(--mat-sys-surface-container-lowest)' },
+  chipX: { position: 'relative', width: 24, height: 24, border: 'none', cursor: 'pointer', color: 'var(--mat-sys-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 'var(--mat-sys-corner-small)' },
   input: { border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 120, font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 'var(--ds-spacing-xxs) 0' },
   menu: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', padding: 'var(--ds-spacing-xxs) 0', zIndex: 30 },
   menuItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', font: 'var(--mat-sys-body-large)', color: 'var(--mat-sys-on-surface)', cursor: 'pointer' }

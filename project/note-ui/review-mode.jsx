@@ -71,7 +71,7 @@ function reviewMarkAttrs() {
   return {
     authorId: { default: null },
     authorName: { default: '' },
-    color: { default: '#1975d1' },
+    color: { default: 'var(--mat-sys-primary)' },
     ts: { default: null }
   };
 }
@@ -83,7 +83,7 @@ function reviewMarkParseHTML(tag) {
       return {
         authorId: dom.getAttribute('data-author-id'),
         authorName: dom.getAttribute('data-author-name') || '',
-        color: dom.getAttribute('data-color') || '#1975d1',
+        color: dom.getAttribute('data-color') || 'var(--mat-sys-primary)',
         ts: dom.getAttribute('data-ts') ? Number(dom.getAttribute('data-ts')) : null
       };
     }
@@ -95,7 +95,7 @@ function reviewMarkRenderHTML(cls, verb) {
     const title = verb + ' par ' + (mark.attrs.authorName || '?') + (mark.attrs.ts ? ' — ' + fmtReviewDate(mark.attrs.ts) : '');
     return ['span', {
       class: cls,
-      style: '--rvw-c:' + (mark.attrs.color || '#1975d1'),
+      style: '--rvw-c:' + (mark.attrs.color || 'var(--mat-sys-primary)'),
       'data-author-id': mark.attrs.authorId,
       'data-author-name': mark.attrs.authorName,
       'data-color': mark.attrs.color,
@@ -426,10 +426,10 @@ function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAl
               <div style={rvwS.menuBg} onClick={function () { setMenuOpen(false); }} />
               <div style={rvwS.countMenu}>
                 <button type="button" style={rvwS.countMenuItem} onClick={function () { onAcceptAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: '#1F8A5B' }}>done_all</span> Tout accepter
+                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#1f8a5b, #a5e9cb)' }}>done_all</span> Tout accepter
                 </button>
                 <button type="button" style={rvwS.countMenuItem} onClick={function () { onRejectAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: '#b3261e' }}>remove_done</span> Tout refuser
+                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#b3261e, #e9a9a5)' }}>remove_done</span> Tout refuser
                 </button>
               </div>
             </React.Fragment>}
@@ -458,30 +458,30 @@ function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCance
 
 const rvwS = {
   headerRow: { display: 'flex', alignItems: 'center', gap: 8 },
-  toggleBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '7px 12px', font: "500 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.72)', cursor: 'pointer', whiteSpace: 'nowrap' },
-  toggleBtnOn: { background: '#ebf6ff', border: '1px solid #1975d1', color: '#1975d1' },
-  countBtn: { display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid #c9c9d6', borderRadius: 8, background: '#fff', padding: '7px 8px 7px 12px', font: "500 13px 'Inter',sans-serif", color: 'rgba(0,0,0,0.72)', cursor: 'pointer', whiteSpace: 'nowrap' },
+  toggleBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', padding: '7px 12px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', cursor: 'pointer', whiteSpace: 'nowrap' },
+  toggleBtnOn: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-primary)', color: 'var(--mat-sys-primary)' },
+  countBtn: { display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', padding: '7px 8px 7px 12px', font: "500 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', cursor: 'pointer', whiteSpace: 'nowrap' },
   menuBg: { position: 'fixed', inset: 0, zIndex: 199 },
-  countMenu: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, background: '#fff', border: '1px solid #e3e3ea', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', zIndex: 200, minWidth: 180, padding: '5px 0' },
-  countMenuItem: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent', padding: '9px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.8)', cursor: 'pointer', textAlign: 'left' },
+  countMenu: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', zIndex: 200, minWidth: 180, padding: '5px 0' },
+  countMenuItem: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent', padding: '9px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer', textAlign: 'left' },
 
-  popover: { position: 'fixed', zIndex: 90, background: '#fff', border: '1px solid #e3e3ea', borderRadius: 10, boxShadow: '0 8px 24px rgba(37,36,94,0.18)', padding: '12px 14px', fontFamily: "'Inter',sans-serif" },
+  popover: { position: 'fixed', zIndex: 90, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, boxShadow: '0 8px 24px rgba(37,36,94,0.18)', padding: '12px 14px', fontFamily: "'Inter',sans-serif" },
   popHead: { display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
   popDot: { width: 10, height: 10, borderRadius: '50%', marginTop: 4, flexShrink: 0 },
-  popTitle: { font: "600 13px 'Inter',sans-serif", color: 'rgba(0,0,0,0.85)' },
-  popSub: { font: "400 11.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.5)' },
-  popText: { font: "400 13px/1.5 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)', background: '#f7f7fb', borderRadius: 6, padding: '6px 8px', marginBottom: 10, wordBreak: 'break-word' },
+  popTitle: { font: "600 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
+  popSub: { font: "400 11.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' },
+  popText: { font: "400 13px/1.5 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', background: 'var(--mat-sys-surface-container-low)', borderRadius: 6, padding: '6px 8px', marginBottom: 10, wordBreak: 'break-word' },
   popActions: { display: 'flex', gap: 8 },
-  popBtnReject: { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, border: '1px solid #e0b3ae', borderRadius: 8, background: '#fff', color: '#b3261e', padding: '7px 0', font: "500 13px 'Inter',sans-serif", cursor: 'pointer' },
+  popBtnReject: { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, border: '1px solid #e0b3ae', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#b3261e, #e9a9a5)', padding: '7px 0', font: "500 13px 'Inter',sans-serif", cursor: 'pointer' },
   popBtnAccept: { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, border: 0, borderRadius: 8, background: '#1F8A5B', color: '#fff', padding: '7px 0', font: "500 13px 'Inter',sans-serif", cursor: 'pointer' },
 
   dialogScrim: { position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(20,20,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'snm-fade 160ms ease-out' },
-  dialogBox: { width: 440, maxWidth: 'calc(100vw - 32px)', background: '#fff', borderRadius: 14, padding: '22px 24px', boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter',sans-serif", animation: 'snm-pop 180ms ease-out' },
-  dialogTitle: { font: "600 17px 'Poppins',sans-serif", color: 'rgba(0,0,0,0.88)', marginBottom: 8 },
-  dialogText: { font: "400 14px/1.55 'Inter',sans-serif", color: 'rgba(0,0,0,0.65)', margin: '0 0 20px' },
+  dialogBox: { width: 440, maxWidth: 'calc(100vw - 32px)', background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 14, padding: '22px 24px', boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter',sans-serif", animation: 'snm-pop 180ms ease-out' },
+  dialogTitle: { font: "600 17px 'Poppins',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)', marginBottom: 8 },
+  dialogText: { font: "400 14px/1.55 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent)', margin: '0 0 20px' },
   dialogActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' },
-  dialogBtnGhost: { border: 0, background: 'transparent', color: 'rgba(0,0,0,0.6)', borderRadius: 8, padding: '9px 14px', font: "500 13.5px 'Inter',sans-serif", cursor: 'pointer' },
-  dialogBtnOutline: { border: '1px solid #c9c9d6', background: '#fff', color: '#25245E', borderRadius: 8, padding: '9px 16px', font: "600 13.5px 'Inter',sans-serif", cursor: 'pointer' },
+  dialogBtnGhost: { border: 0, background: 'transparent', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', borderRadius: 8, padding: '9px 14px', font: "500 13.5px 'Inter',sans-serif", cursor: 'pointer' },
+  dialogBtnOutline: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)', borderRadius: 8, padding: '9px 16px', font: "600 13.5px 'Inter',sans-serif", cursor: 'pointer' },
   dialogBtnPrimary: { border: 0, background: '#25245E', color: '#fff', borderRadius: 8, padding: '9px 16px', font: "600 13.5px 'Inter',sans-serif", cursor: 'pointer' }
 };
 

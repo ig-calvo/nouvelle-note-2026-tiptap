@@ -15,9 +15,9 @@
 // calculée dans buildTransmissionDocs (NoteEditor.jsx), pas ici : le panneau
 // ne connaît pas le modèle Tiptap.
 const DAP_VARIANT = {
-  nouvelle:       { icon: 'info', color: '#1975d1' },
-  renouvellement: { icon: 'history', color: '#a15c00' },
-  cessation:      { icon: 'cancel', color: '#b3261e' },
+  nouvelle:       { icon: 'info', color: 'var(--mat-sys-primary)' },
+  renouvellement: { icon: 'history', color: 'light-dark(#a15c00, #e9cca5)' },
+  cessation:      { icon: 'cancel', color: 'light-dark(#b3261e, #e9a9a5)' },
 };
 
 // Section repliable de la colonne « contenu ».
@@ -26,7 +26,7 @@ function DapSection({ label, count, open, onToggle, onAdd, children }) {
     <div style={dap.section}>
       <div style={dap.sectionHead}>
         <button style={dap.sectionToggle} onClick={onToggle} aria-expanded={open}>
-          <span className="material-icons" style={{ fontSize: 20, color: 'rgba(0,0,0,0.4)' }}>
+          <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' }}>
             {open ? 'expand_more' : 'chevron_right'}
           </span>
           {label}{typeof count === 'number' ? ' (' + count + ')' : ''}
@@ -56,7 +56,7 @@ function DapContentRow({ it, meta, readOnly }) {
       <span className="material-icons-outlined"
         style={{ fontSize: 18, color: vis.color, flexShrink: 0, marginTop: 1 }}>{vis.icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={Object.assign({}, dap.contentItemLabel, it.ceased ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.4)' } : {})}>{it.label}</div>
+        <div style={Object.assign({}, dap.contentItemLabel, it.ceased ? { textDecoration: 'line-through', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' } : {})}>{it.label}</div>
         {it.sub ? <div style={dap.contentItemSub}>{it.sub}</div> : null}
       </div>
       {hover && !readOnly &&
@@ -97,7 +97,7 @@ function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
         <div style={dap.recipientName}>
           {r.name}
           <span className="material-icons"
-            style={{ fontSize: 15, marginLeft: 5, color: r.favorite ? '#e0637a' : 'rgba(0,0,0,0.18)' }}>
+            style={{ fontSize: 15, marginLeft: 5, color: r.favorite ? 'light-dark(#e0637a, #e9a5b2)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent)' }}>
             {r.favorite ? 'favorite' : 'favorite_border'}
           </span>
         </div>
@@ -269,9 +269,9 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
                   return (
                     <button key={name} style={dap.pickerRow}
                       onClick={function () { setAttachments(attachments.concat([name])); setAttachPickerOpen(false); }}>
-                      <span className="material-icons-outlined" style={{ fontSize: 17, color: '#1975d1' }}>attach_file</span>
+                      <span className="material-icons-outlined" style={{ fontSize: 17, color: 'var(--mat-sys-primary)' }}>attach_file</span>
                       <span style={dap.pickerName}>{name}</span>
-                      <span className="material-icons" style={{ fontSize: 17, color: '#1975d1', marginLeft: 'auto' }}>add</span>
+                      <span className="material-icons" style={{ fontSize: 17, color: 'var(--mat-sys-primary)', marginLeft: 'auto' }}>add</span>
                     </button>
                   );
                 })}
@@ -297,7 +297,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 
           {doc.recipients.length === 0 && !readOnly &&
             <div style={dap.emptyBox}>
-              <span className="material-icons-outlined" style={{ fontSize: 22, color: '#a15c00' }}>warning</span>
+              <span className="material-icons-outlined" style={{ fontSize: 22, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
               <div style={dap.emptyTitle}>Aucun destinataire</div>
               <div style={dap.emptyText}>
                 Ajouter une pharmacie ou un professionnel de la santé pour transmettre {meta.nounPhrase}
@@ -325,24 +325,24 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
               <div style={dap.suggestTitle}>
                 {showSuggestions
                   ? <React.Fragment>
-                      <span className="material-icons" style={{ fontSize: 15, color: '#5b54b8' }}>auto_awesome</span>
+                      <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
                       SUGGESTION {meta.suggestions.length}
                       <button style={dap.suggestHideBtn} title="Masquer les suggestions"
                         onClick={function () { setSuggestHidden(true); }}>
                         <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
                       </button>
                     </React.Fragment>
-                  : <span style={{ color: 'rgba(0,0,0,0.5)' }}>Ajouter un destinataire</span>}
+                  : <span style={{ color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>Ajouter un destinataire</span>}
               </div>
               {meta.suggestions.filter(function (s) { return !doc.recipients.some(function (r) { return r.name === s.name; }); }).map(function (s) {
                 return (
                   <button key={s.name} style={dap.suggestRow} onClick={function () { onAddRecipient(s); setRecipientPickerOpen(false); }}>
-                    {s.favorite ? <span className="material-icons" style={{ fontSize: 15, color: '#e0637a' }}>favorite</span> : <span style={{ width: 15 }} />}
+                    {s.favorite ? <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#e0637a, #e9a5b2)' }}>favorite</span> : <span style={{ width: 15 }} />}
                     <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                       <div style={dap.suggestName}>{s.name}</div>
                       <div style={dap.suggestMeta}>{[s.phone, s.fax].filter(Boolean).join(' · ')}</div>
                     </div>
-                    <span className="material-icons" style={{ fontSize: 18, color: '#1975d1' }}>add</span>
+                    <span className="material-icons" style={{ fontSize: 18, color: 'var(--mat-sys-primary)' }}>add</span>
                   </button>
                 );
               })}
@@ -369,12 +369,12 @@ const dap = {
   statusBar: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18, position: 'relative', flexWrap: 'wrap' },
   statusBadge: {
     fontSize: 12, fontWeight: 700, borderRadius: 7, padding: '5px 10px',
-    background: '#f1f1f6', color: 'rgba(0,0,0,0.5)',
+    background: 'var(--mat-sys-surface-container)', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)',
   },
-  statusBadgeOn: { background: '#e6f5ee', color: '#2e9b7a' },
+  statusBadgeOn: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
   iconBtn: {
-    width: 36, height: 36, borderRadius: 8, border: '1px solid #e2e2ec', background: '#fff',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(0,0,0,0.6)',
+    width: 36, height: 36, borderRadius: 8, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)',
   },
   splitBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 4, border: 0, borderRadius: 9,
@@ -390,17 +390,17 @@ const dap = {
   ddScrim: { position: 'fixed', inset: 0, zIndex: 10 },
   splitMenu: {
     position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 11, minWidth: 220,
-    background: '#fff', border: '1px solid #e2e2ec', borderRadius: 10,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
     boxShadow: '0 10px 28px rgba(20,20,50,0.18)', padding: '5px 0',
   },
   splitMenuItem: {
     display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
-    padding: '10px 14px', font: "500 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.8)', cursor: 'pointer',
+    padding: '10px 14px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer',
   },
 
   docTitle: {
     fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16,
-    color: 'rgba(0,0,0,0.85)', marginRight: 4, whiteSpace: 'nowrap',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)', marginRight: 4, whiteSpace: 'nowrap',
     overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 320,
   },
   cols: { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr', gap: 22, alignItems: 'start' },
@@ -408,22 +408,22 @@ const dap = {
   col: { minWidth: 0 },
   colLabel: {
     display: 'flex', alignItems: 'center', gap: 6,
-    fontSize: 12, fontWeight: 700, color: 'rgba(0,0,0,0.5)', letterSpacing: 0.3,
+    fontSize: 12, fontWeight: 700, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', letterSpacing: 0.3,
     textTransform: 'uppercase', marginBottom: 10,
   },
 
   section: { marginBottom: 14 },
   sectionHead: {
     display: 'flex', alignItems: 'center', gap: 4,
-    background: '#f4f4f8', borderRadius: 8, padding: '7px 8px 7px 4px', marginBottom: 8,
+    background: 'var(--mat-sys-surface-container-low)', borderRadius: 8, padding: '7px 8px 7px 4px', marginBottom: 8,
   },
   sectionToggle: {
     display: 'inline-flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0,
     border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left',
-    font: "600 13px 'Inter',sans-serif", color: 'rgba(0,0,0,0.7)',
+    font: "600 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)',
   },
   sectionAdd: {
-    border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)',
+    border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)',
     display: 'inline-flex', alignItems: 'center', padding: 2, flexShrink: 0,
   },
   sectionBody: { padding: '0 2px' },
@@ -431,99 +431,99 @@ const dap = {
   contentList: { display: 'flex', flexDirection: 'column', gap: 8 },
   contentItem: {
     display: 'flex', alignItems: 'flex-start', gap: 9, position: 'relative',
-    background: '#fbfbfe', border: '1px solid #eeeef6', borderRadius: 9, padding: '9px 11px',
+    background: 'light-dark(#fbfbfe, #24244c)', border: '1px solid light-dark(#eeeef6, #272749)', borderRadius: 9, padding: '9px 11px',
   },
-  contentItemHover: { background: '#f5f5fb', border: '1px solid #e2e2ef' },
-  contentItemLabel: { fontSize: 14, fontWeight: 600, color: 'rgba(0,0,0,0.82)', lineHeight: 1.35 },
-  contentItemSub: { fontSize: 12.5, color: 'rgba(0,0,0,0.5)', marginTop: 1, lineHeight: 1.3 },
+  contentItemHover: { background: 'light-dark(#f5f5fb, #24244c)', border: '1px solid light-dark(#e2e2ef, #282848)' },
+  contentItemLabel: { fontSize: 14, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.35 },
+  contentItemSub: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 1, lineHeight: 1.3 },
   rowActions: { display: 'inline-flex', gap: 2, flexShrink: 0, alignSelf: 'center' },
   rowActionBtn: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    width: 26, height: 26, borderRadius: 7, color: 'rgba(0,0,0,0.45)',
+    width: 26, height: 26, borderRadius: 7, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)',
   },
 
-  attachEmpty: { fontSize: 12.5, color: 'rgba(0,0,0,0.42)', padding: '2px 2px 4px' },
+  attachEmpty: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 42%, transparent)', padding: '2px 2px 4px' },
   attachRow: { display: 'flex', flexWrap: 'wrap', gap: 7 },
   attachChip: {
     display: 'inline-flex', alignItems: 'center', gap: 3,
-    background: '#ecebfa', border: '1px solid #d5d3f2', borderRadius: 8,
-    padding: '5px 5px 5px 10px', font: "500 12.5px 'Inter',sans-serif", color: '#25245E',
+    background: 'light-dark(#ecebfa, #27244c)', border: '1px solid light-dark(#d5d3f2, #27244c)', borderRadius: 8,
+    padding: '5px 5px 5px 10px', font: "500 12.5px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)',
   },
   attachChipX: {
-    border: 0, background: 'transparent', cursor: 'pointer', color: '#25245E',
+    border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--mat-sys-on-surface)',
     display: 'inline-flex', alignItems: 'center', padding: 1, opacity: 0.7,
   },
 
-  pickerBox: { border: '1px solid #e2e2ec', borderRadius: 10, overflow: 'hidden', marginTop: 8 },
+  pickerBox: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, overflow: 'hidden', marginTop: 8 },
   pickerRow: {
     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-    border: 0, borderBottom: '1px solid #f2f2f8', background: '#fff',
+    border: 0, borderBottom: '1px solid light-dark(#f2f2f8, #272749)', background: 'var(--mat-sys-surface-container-lowest)',
     padding: '9px 11px', cursor: 'pointer',
   },
-  pickerName: { font: "500 13px 'Inter',sans-serif", color: 'rgba(0,0,0,0.78)' },
+  pickerName: { font: "500 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)' },
 
   emptyBox: {
     display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4,
-    border: '1px solid #f3ddb0', background: '#fdf6e6', borderRadius: 10, padding: '16px 14px', marginBottom: 10,
+    border: '1px solid light-dark(#f3ddb0, #4c3f24)', background: 'light-dark(#fdf6e6, #4c4024)', borderRadius: 10, padding: '16px 14px', marginBottom: 10,
   },
-  emptyReadonly: { fontSize: 12.5, color: 'rgba(0,0,0,0.45)', lineHeight: 1.45, marginBottom: 10 },
-  emptyTitle: { font: "600 13.5px 'Inter',sans-serif", color: '#7a5200' },
-  emptyText: { fontSize: 12.5, color: '#7a5200', lineHeight: 1.45, maxWidth: 260 },
+  emptyReadonly: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', lineHeight: 1.45, marginBottom: 10 },
+  emptyTitle: { font: "600 13.5px 'Inter',sans-serif", color: 'light-dark(#7a5200, #e9d2a5)' },
+  emptyText: { fontSize: 12.5, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.45, maxWidth: 260 },
   emptyLink: {
     border: 0, background: 'transparent', cursor: 'pointer', marginTop: 4,
-    font: "600 13px 'Inter',sans-serif", color: '#1975d1',
+    font: "600 13px 'Inter',sans-serif", color: 'var(--mat-sys-primary)',
   },
 
   addRecipientBtn: {
-    marginLeft: 4, width: 20, height: 20, borderRadius: 6, border: 0, background: '#eef1fb',
-    color: '#25245E', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+    marginLeft: 4, width: 20, height: 20, borderRadius: 6, border: 0, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))',
+    color: 'var(--mat-sys-on-surface)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
   },
   warnBanner: {
-    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #f3ddb0', background: '#fdf6e6',
+    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid light-dark(#f3ddb0, #4c3f24)', background: 'light-dark(#fdf6e6, #4c4024)',
     borderRadius: 9, padding: '9px 11px', marginBottom: 10,
   },
-  warnText: { fontSize: 12.5, color: '#7a5200', lineHeight: 1.4 },
+  warnText: { fontSize: 12.5, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.4 },
   recipientCard: {
-    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #e2e2ec', borderRadius: 9,
+    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 9,
     padding: '10px 11px', marginBottom: 8, position: 'relative',
   },
-  recipientName: { display: 'flex', alignItems: 'center', fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)' },
-  recipientAddr: { fontSize: 12, color: 'rgba(0,0,0,0.5)', marginTop: 2, lineHeight: 1.35 },
-  recipientMeta: { display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 12, color: 'rgba(0,0,0,0.55)', marginTop: 3 },
+  recipientName: { display: 'flex', alignItems: 'center', fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
+  recipientAddr: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 2, lineHeight: 1.35 },
+  recipientMeta: { display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginTop: 3 },
   recipientMetaItem: { display: 'inline-flex', alignItems: 'center', gap: 3 },
 
   channelGroup: { display: 'inline-flex', gap: 6, flexShrink: 0 },
   channelBtn: {
-    width: 32, height: 32, borderRadius: 8, border: '1px solid #e2e2ec', background: '#fff',
+    width: 32, height: 32, borderRadius: 8, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'rgba(0,0,0,0.55)',
+    cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)',
   },
-  channelBtnOn: { background: '#1975d1', border: '1px solid #1975d1', color: '#fff' },
+  channelBtnOn: { background: 'var(--mat-sys-primary)', border: '1px solid var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)' },
   removeBadge: {
     position: 'absolute', top: -7, right: -7, width: 22, height: 22, borderRadius: '50%',
-    border: '1px solid #e2e2ec', background: '#fff', boxShadow: '0 2px 6px rgba(20,20,50,0.16)',
+    border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', boxShadow: '0 2px 6px rgba(20,20,50,0.16)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'rgba(0,0,0,0.55)', padding: 0,
+    cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', padding: 0,
   },
 
-  suggestBox: { border: '1px solid #e2e2ec', borderRadius: 10, marginTop: 6, padding: '6px 0', background: '#fcfcfe' },
+  suggestBox: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, marginTop: 6, padding: '6px 0', background: 'light-dark(#fcfcfe, #24244c)' },
   suggestTitle: {
-    display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: '#5b54b8',
+    display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'light-dark(#5b54b8, #b3b0de)',
     padding: '6px 12px 6px', letterSpacing: 0.3, textTransform: 'uppercase',
   },
   suggestHideBtn: {
     marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer',
-    color: 'rgba(0,0,0,0.4)', display: 'inline-flex', alignItems: 'center', padding: 0,
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', display: 'inline-flex', alignItems: 'center', padding: 0,
   },
   suggestRow: {
     display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent',
     padding: '8px 12px', cursor: 'pointer',
   },
-  suggestName: { fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.8)' },
-  suggestMeta: { fontSize: 11.5, color: 'rgba(0,0,0,0.48)' },
+  suggestName: { fontSize: 13, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' },
+  suggestMeta: { fontSize: 11.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 48%, transparent)' },
 
-  zoomBtn: { marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)' },
-  previewWrap: { border: '1px solid #ececf2', borderRadius: 12, padding: 14, background: '#f4f4f8', overflow: 'auto' },
+  zoomBtn: { marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' },
+  previewWrap: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 12, padding: 14, background: 'var(--mat-sys-surface-container-low)', overflow: 'auto' },
 };
 
 window.DocumentActionPanel = DocumentActionPanel;

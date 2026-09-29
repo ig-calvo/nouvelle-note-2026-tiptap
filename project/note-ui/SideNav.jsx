@@ -36,7 +36,7 @@ function SideNav({ collapsed = false }) {
   const Person = ({ name, indent = 58 }) =>
   <div style={{ ...snStyles.person, paddingLeft: indent }}>
       <span style={snStyles.avatar}>
-        <span className="material-icons" style={{ fontSize: 15, color: "#8a5cb8" }}>person</span>
+        <span className="material-icons" style={{ fontSize: 15, color: "light-dark(#8a5cb8, #c7b1dd)" }}>person</span>
       </span>
       <span style={snStyles.personName}>{name}</span>
     </div>;
@@ -93,7 +93,7 @@ function SideNav({ collapsed = false }) {
 
 const snStyles = {
   bar: {
-    width: 246, background: "#fff", borderRight: "1px solid #ececec",
+    width: 246, background: "var(--mat-sys-surface-container-lowest)", borderRight: "1px solid var(--mat-sys-outline-variant)",
     fontFamily: "'Inter', sans-serif", flexShrink: 0,
     position: "relative", display: "flex", flexDirection: "column",
     minHeight: 0, transition: "width 0.15s ease"
@@ -107,27 +107,27 @@ const snStyles = {
     transition: "background 0.12s"
   },
   itemCollapsed: { padding: 0, justifyContent: "center" },
-  icon: { fontSize: 22, color: "rgba(0,0,0,0.6)", width: 24, textAlign: "center", flexShrink: 0 },
-  label: { fontSize: 15, fontWeight: 400, color: "rgba(0,0,0,0.82)" },
-  divider: { borderTop: "1px solid #eee", margin: "8px 14px" },
+  icon: { fontSize: 22, color: "color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)", width: 24, textAlign: "center", flexShrink: 0 },
+  label: { fontSize: 15, fontWeight: 400, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)" },
+  divider: { borderTop: "1px solid var(--mat-sys-outline-variant)", margin: "8px 14px" },
   roomHead: {
     display: "flex", alignItems: "center",
     padding: "4px 18px 4px 58px", cursor: "pointer"
   },
-  roomName: { fontSize: 14, fontWeight: 600, color: "rgba(0,0,0,0.7)" },
-  roomCaret: { marginLeft: "auto", fontSize: 22, color: "#1975d1" },
+  roomName: { fontSize: 14, fontWeight: 600, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)" },
+  roomCaret: { marginLeft: "auto", fontSize: 22, color: "var(--mat-sys-primary)" },
   person: {
     display: "flex", alignItems: "center", gap: 12,
     padding: "5px 18px 5px 58px", cursor: "pointer"
   },
   avatar: {
-    width: 24, height: 24, borderRadius: "50%", background: "#ece3f5",
+    width: 24, height: 24, borderRadius: "50%", background: "var(--mat-sys-secondary-container)",
     display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0
   },
-  personName: { fontSize: 14, color: "rgba(0,0,0,0.8)" },
+  personName: { fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)" },
   sectionLabel: {
     padding: "6px 18px 4px", fontSize: 13,
-    color: "rgba(0,0,0,0.6)", fontWeight: 400
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)", fontWeight: 400
   },
   chatFab: {
     position: "absolute", left: 150, bottom: 18,

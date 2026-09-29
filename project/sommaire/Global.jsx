@@ -36,7 +36,7 @@ function ReorderBoxes({ onClose }) {
                     onDrop={(e) => { e.preventDefault(); if (dragIdx != null) move(dragIdx, i); setDragIdx(null); setOverIdx(null); }}
                     style={{
                       display: "flex", alignItems: "center", gap: 12, padding: "11px 12px",
-                      border: "1px solid var(--s-line)", borderRadius: 9, background: dragIdx === i ? "#eef0fb" : "#fff",
+                      border: "1px solid var(--s-line)", borderRadius: 9, background: dragIdx === i ? "light-dark(#eef0fb, #242b4c)" : "#fff",
                       cursor: "grab", boxShadow: overIdx === i && dragIdx !== i ? "inset 0 2px 0 var(--s-action)" : "none"
                     }}>
                     <span className="material-icons-outlined" style={{ color: "var(--s-ink-4)", cursor: "grab" }}>drag_indicator</span>
@@ -170,8 +170,8 @@ function PrintSummary({ onClose }) {
                     </label>);
                 })}
               </div>
-              <div style={{ flex: 1, background: "#f7f7fb", borderRadius: 10, padding: 18, border: "1px solid var(--s-line)" }}>
-                <div style={{ background: "#fff", borderRadius: 6, boxShadow: "0 1px 3px rgba(0,0,0,.1)", padding: "18px 20px", minHeight: 280 }}>
+              <div style={{ flex: 1, background: "var(--mat-sys-surface-container-low)", borderRadius: 10, padding: 18, border: "1px solid var(--s-line)" }}>
+                <div style={{ background: "var(--mat-sys-surface-container-lowest)", borderRadius: 6, boxShadow: "0 1px 3px rgba(0,0,0,.1)", padding: "18px 20px", minHeight: 280 }}>
                   <div style={{ fontFamily: "var(--font-h)", fontWeight: 700, fontSize: 16 }}>Sommaire du dossier — Julie Tremblay</div>
                   <div style={{ fontSize: 11, color: "var(--s-ink-3)", marginBottom: 14 }}>Imprimé le {window.fmtDate(window.todayISO())}</div>
                   {selected.length === 0 && <div className="empty-state">Aucune boîte sélectionnée.</div>}
@@ -179,7 +179,7 @@ function PrintSummary({ onClose }) {
                     const meta = BOX_META[id]; const rows = deriveRows(id, state);
                     return (
                       <div key={id} style={{ marginBottom: 13 }}>
-                        <div style={{ fontFamily: "var(--font-h)", fontWeight: 600, fontSize: 12.5, color: "var(--s-summary)", borderBottom: "1px solid var(--s-line)", paddingBottom: 3, marginBottom: 5 }}>{meta.label}</div>
+                        <div style={{ fontFamily: "var(--font-h)", fontWeight: 600, fontSize: 12.5, color: "var(--s-summary-text)", borderBottom: "1px solid var(--s-line)", paddingBottom: 3, marginBottom: 5 }}>{meta.label}</div>
                         {rows.map((r, i) =>
                           <div key={i} style={{ display: "flex", gap: 8, fontSize: 11.5, color: "var(--s-ink-2)", padding: "1px 0" }}>
                             {r.med && <span style={{ width: 7, height: 7, borderRadius: "50%", background: dotColor(r.dot), marginTop: 4, flexShrink: 0 }} />}

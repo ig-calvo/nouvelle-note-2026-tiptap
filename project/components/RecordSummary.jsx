@@ -47,7 +47,7 @@ const RS_ITEMS = [
   { dot: "#2e7d32", text: "Amlodipine 5 mg — 1 co DIE" },
   { dot: "#2e7d32", text: "Rosuvastatine 10 mg — 1 co HS" },
   { dot: "#e0a800", text: "Acétaminophène 650 mg — 1 co PO PRN" },
-  { dot: "#1975d1", text: "Multivitamines (Centrum) — DIE" }]
+  { dot: "var(--mat-sys-primary)", text: "Multivitamines (Centrum) — DIE" }]
 
 },
 {
@@ -127,13 +127,13 @@ function RecordSummary() {
           {dsqStatus === "connecting" &&
           <>
               <span style={rsStyles.spinner} />
-              <span style={{ color: "rgba(0,0,0,0.68)" }}>Connexion en cours…</span>
+              <span style={{ color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)" }}>Connexion en cours…</span>
             </>
           }
           {dsqStatus === "connected" &&
           <>
-              <span className="material-icons" style={{ fontSize: 14, color: "#2e7d32" }}>check_circle</span>
-              <span style={{ color: "#2e7d32" }}>Connecté · Visualiseur disponible</span>
+              <span className="material-icons" style={{ fontSize: 14, color: "light-dark(#2e7d32, #ade1b0)" }}>check_circle</span>
+              <span style={{ color: "light-dark(#2e7d32, #ade1b0)" }}>Connecté · Visualiseur disponible</span>
             </>
           }
         </div>
@@ -196,7 +196,7 @@ function StatusDot({ status }) {
 
 const rsStyles = {
   panel: {
-    width: 260, background: "#fff", borderRadius: 4, overflow: "hidden",
+    width: 260, background: "var(--mat-sys-surface-container-lowest)", borderRadius: 4, overflow: "hidden",
     boxShadow: "0 2px 4px 0 rgba(37,36,94,0.14), 0 0 5px 0 rgba(37,36,94,0.12)",
     fontFamily: "'Inter',sans-serif",
     height: "fit-content", flexShrink: 0
@@ -209,12 +209,12 @@ const rsStyles = {
   hdrIcon: { marginLeft: "auto", fontSize: 20, color: "#a6a7e5", cursor: "pointer" },
   dsqBlock: {
     padding: "10px 14px",
-    borderBottom: "1px solid rgba(0,0,0,0.08)",
+    borderBottom: "1px solid color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)",
     cursor: "pointer"
   },
   dsqRow: { display: "flex", alignItems: "center", gap: 8 },
-  dsqIcon: { fontSize: 18, color: "rgba(0,0,0,0.68)" },
-  dsqLabel: { fontSize: 13, color: "rgba(0,0,0,0.87)", fontWeight: 500 },
+  dsqIcon: { fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)" },
+  dsqLabel: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 87%, transparent)", fontWeight: 500 },
   dsqStatusLine: {
     display: "flex", alignItems: "center", gap: 6,
     marginTop: 6, paddingLeft: 26, fontSize: 12
@@ -222,16 +222,16 @@ const rsStyles = {
   spinner: {
     width: 12, height: 12, borderRadius: "50%",
     border: "2px solid rgba(25,117,209,0.25)",
-    borderTopColor: "#1975d1",
+    borderTopColor: "var(--mat-sys-primary)",
     animation: "rsSpin 0.8s linear infinite",
     display: "inline-block"
   },
   dsqLink: {
-    color: "#1975d1", fontSize: 12, fontWeight: 500,
+    color: "var(--mat-sys-primary)", fontSize: 12, fontWeight: 500,
     paddingLeft: 26, marginTop: 4, cursor: "pointer"
   },
   section: {
-    borderBottom: "1px solid rgba(0,0,0,0.08)"
+    borderBottom: "1px solid color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)"
   },
   sectionHead: {
     display: "flex", alignItems: "center", gap: 10,
@@ -239,13 +239,13 @@ const rsStyles = {
     minHeight: 36, boxSizing: "border-box",
     cursor: "pointer"
   },
-  ico: { fontSize: 18, color: "rgba(0,0,0,0.68)", width: 20 },
+  ico: { fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)", width: 20 },
   label: {
-    fontSize: 13, color: "rgba(0,0,0,0.87)", fontWeight: 500,
+    fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 87%, transparent)", fontWeight: 500,
     fontFamily: "'Poppins',sans-serif"
   },
   plus: {
-    marginLeft: "auto", fontSize: 18, color: "rgba(0,0,0,0.54)",
+    marginLeft: "auto", fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)",
     cursor: "pointer"
   },
   rows: {
@@ -254,14 +254,14 @@ const rsStyles = {
   },
   dataRow: {
     display: "flex", alignItems: "baseline", gap: 8,
-    fontSize: 12, color: "rgba(0,0,0,0.78)"
+    fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)"
   },
   dataLeft: { flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  dataMid: { color: "rgba(0,0,0,0.87)", fontVariantNumeric: "tabular-nums" },
-  dataRight: { color: "rgba(0,0,0,0.54)", fontSize: 11, fontVariantNumeric: "tabular-nums" },
+  dataMid: { color: "color-mix(in srgb, var(--mat-sys-on-surface) 87%, transparent)", fontVariantNumeric: "tabular-nums" },
+  dataRight: { color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", fontSize: 11, fontVariantNumeric: "tabular-nums" },
   medRow: {
     display: "flex", alignItems: "center", gap: 8,
-    fontSize: 12, color: "rgba(0,0,0,0.78)",
+    fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)",
     lineHeight: 1.4
   },
   medDot: {

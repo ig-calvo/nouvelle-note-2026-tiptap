@@ -64,7 +64,7 @@ var SECTION_CFG = [
   { id:'programs', icon:'assignment_turned_in', label:'Programmes de suivi', add:true,  list:true },
 ];
 
-var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'#1565c0' };
+var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 
 function Summary() {
   var [data, setData] = React.useState(INIT_DATA);
@@ -259,7 +259,7 @@ function Summary() {
 
       {reorder && (
         <div style={suS.reorderBar}>
-          <span style={{ fontSize:12, color:'#25245E' }}>Glissez pour réorganiser</span>
+          <span style={{ fontSize:12, color:'var(--mat-sys-on-surface)' }}>Glissez pour réorganiser</span>
           <button style={suS.saveBtn} onClick={function(){ setReorder(false); }}>Sauvegarder</button>
         </div>
       )}
@@ -310,7 +310,7 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
       onDragEnd={reorder ? onDragEnd : undefined}
     >
       <div style={suS.sHead}>
-        {reorder && <span className="material-icons" style={{ fontSize:16, color:'rgba(0,0,0,0.3)', cursor:'grab', marginRight:4 }}>drag_indicator</span>}
+        {reorder && <span className="material-icons" style={{ fontSize:16, color:'color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)', cursor:'grab', marginRight:4 }}>drag_indicator</span>}
         <span
           draggable={!reorder}
           onDragStart={!reorder ? onNoteDragStart : undefined}
@@ -339,8 +339,8 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
           {items.length > 6 && <div style={suS.more}>+{items.length-6} de plus</div>}
           {pending.map(function(p, i){ return (
             <div key={'p'+i} style={suS.row}>
-              <span className="material-icons-outlined" style={{ fontSize:13, color:'#c07a00', flexShrink:0, width:14 }}>schedule</span>
-              <span style={{ ...suS.rLeft, color:'rgba(0,0,0,0.5)', fontStyle:'italic', maxWidth:130 }}>{p.label}</span>
+              <span className="material-icons-outlined" style={{ fontSize:13, color:'light-dark(#c07a00, #e9d0a5)', flexShrink:0, width:14 }}>schedule</span>
+              <span style={{ ...suS.rLeft, color:'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', fontStyle:'italic', maxWidth:130 }}>{p.label}</span>
               <span style={suS.pendingTag}>En attente</span>
             </div>
           ); })}
@@ -372,7 +372,7 @@ function SummaryRow({ r, sId }) {
     );
   }
   if (sId === 'allergies' && r.muted) {
-    return <div style={{ ...suS.row }}><span style={{ ...suS.rLeft, color:'rgba(0,0,0,0.45)', fontStyle:'italic', maxWidth:220 }}>{r.name}</span></div>;
+    return <div style={{ ...suS.row }}><span style={{ ...suS.rLeft, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontStyle:'italic', maxWidth:220 }}>{r.name}</span></div>;
   }
   return (
     <div style={suS.row} title={r.title || undefined}>
@@ -389,7 +389,7 @@ function SummaryRow({ r, sId }) {
 
 var suS = {
   panel:{
-    width:300, background:'#fff', borderRadius:8,
+    width:300, background:'var(--mat-sys-surface-container-lowest)', borderRadius:8,
     boxShadow:'0 2px 4px 0 rgba(37,36,94,0.14), 0 0 5px 0 rgba(37,36,94,0.12)',
     fontFamily:"'Inter',sans-serif", flexShrink:0,
     display:'flex', flexDirection:'column',
@@ -404,7 +404,7 @@ var suS = {
   headerTitle:{ flex:1, fontSize:15, fontWeight:700, fontFamily:"'Poppins',sans-serif" },
   hBtn:{ background:'none', border:0, cursor:'pointer', padding:3, color:'rgba(255,255,255,0.85)', display:'flex' },
   reorderBar:{
-    background:'#ECF3F7', padding:'7px 14px',
+    background:'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', padding:'7px 14px',
     display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0,
   },
   saveBtn:{
@@ -412,24 +412,24 @@ var suS = {
     padding:'4px 12px', cursor:'pointer', fontSize:12, fontWeight:600,
   },
   scroll:{ overflowY:'auto', flex:1 },
-  section:{ borderBottom:'1px solid #ededed' },
-  sectionDrag:{ cursor:'grab', background:'#fafafd' },
+  section:{ borderBottom:'1px solid var(--mat-sys-outline-variant)' },
+  sectionDrag:{ cursor:'grab', background:'light-dark(#fafafd, #24244c)' },
   sHead:{
     display:'flex', alignItems:'center', gap:7,
     padding:'9px 12px', minHeight:40, boxSizing:'border-box',
   },
-  sIcon:{ fontSize:17, color:'rgba(0,0,0,0.55)', width:20, flexShrink:0 },
+  sIcon:{ fontSize:17, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', width:20, flexShrink:0 },
   labelBtn:{ background:'none', border:0, padding:0, cursor:'pointer', flex:1, textAlign:'left' },
-  sLabel:{ fontSize:13, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:'rgba(0,0,0,0.85)' },
-  addBtn:{ background:'none', border:0, cursor:'pointer', padding:2, color:'#1975d1', display:'flex', alignItems:'center', marginLeft:'auto', flexShrink:0 },
+  sLabel:{ fontSize:13, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
+  addBtn:{ background:'none', border:0, cursor:'pointer', padding:2, color:'var(--mat-sys-primary)', display:'flex', alignItems:'center', marginLeft:'auto', flexShrink:0 },
   rows:{ padding:'0 12px 10px 39px', display:'flex', flexDirection:'column', gap:6 },
   row:{ display:'flex', alignItems:'center', gap:5, fontSize:12 },
   dot:{ width:7, height:7, borderRadius:'50%', flexShrink:0 },
-  rLeft:{ color:'rgba(0,0,0,0.78)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:108, fontSize:12 },
-  rMid:{ color:'rgba(0,0,0,0.52)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:12 },
-  rRight:{ color:'rgba(0,0,0,0.45)', fontSize:11, fontVariantNumeric:'tabular-nums', flexShrink:0 },
-  more:{ fontSize:11, color:'#1975d1', cursor:'pointer' },
-  pendingTag:{ fontSize:9, fontWeight:700, color:'#c07a00', background:'#fdf3e2', borderRadius:4, padding:'1px 5px', letterSpacing:0.3, textTransform:'uppercase', marginLeft:'auto', flexShrink:0, whiteSpace:'nowrap' },
+  rLeft:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:108, fontSize:12 },
+  rMid:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 52%, transparent)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:12 },
+  rRight:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize:11, fontVariantNumeric:'tabular-nums', flexShrink:0 },
+  more:{ fontSize:11, color:'var(--mat-sys-primary)', cursor:'pointer' },
+  pendingTag:{ fontSize:9, fontWeight:700, color:'light-dark(#c07a00, #e9d0a5)', background:'light-dark(#fdf3e2, #4c3d24)', borderRadius:4, padding:'1px 5px', letterSpacing:0.3, textTransform:'uppercase', marginLeft:'auto', flexShrink:0, whiteSpace:'nowrap' },
 };
 
 window.Summary = Summary;

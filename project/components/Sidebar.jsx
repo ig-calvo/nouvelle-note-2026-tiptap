@@ -47,7 +47,7 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
       <span className="material-icons-outlined" style={sbStyles.icon}>{it.icon}</span>
       <span style={sbStyles.label}>{it.label}</span>
       {it.badge && (
-        <span style={{ ...sbStyles.badge, background: it.badgeKind === "red" ? "#b00020" : "#1975d1" }}>
+        <span style={{ ...sbStyles.badge, background: it.badgeKind === "red" ? "#b00020" : "var(--mat-sys-primary)" }}>
           {it.badge}
         </span>
       )}
@@ -60,7 +60,7 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
       <div style={sbStyles.divider} />
       {admin.map(renderRow)}
       <div style={sbStyles.divider} />
-      <div style={{ ...sbStyles.item, color: "rgba(0,0,0,0.68)" }}>
+      <div style={{ ...sbStyles.item, color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)" }}>
         <span className="material-icons-outlined" style={sbStyles.icon}>help_outline</span>
         <span style={sbStyles.label}>Besoin d'aide ?</span>
       </div>
@@ -71,9 +71,9 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
       <div style={sbStyles.item}>
         <span className="material-icons-outlined" style={sbStyles.icon}>schedule</span>
         <span style={sbStyles.label}>Anglais</span>
-        <span className="material-icons" style={{ marginLeft: "auto", color: "#1975d1", fontSize: 20 }}>arrow_drop_down</span>
+        <span className="material-icons" style={{ marginLeft: "auto", color: "var(--mat-sys-primary)", fontSize: 20 }}>arrow_drop_down</span>
       </div>
-      <div style={{ ...sbStyles.item, paddingLeft: 48, color: "rgba(0,0,0,0.54)", fontSize: 13, minHeight: 28 }}>
+      <div style={{ ...sbStyles.item, paddingLeft: 48, color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", fontSize: 13, minHeight: 28 }}>
         Aucun patient
       </div>
 
@@ -85,8 +85,8 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
           className="material-icons"
           style={{
             ...sbStyles.icon,
-            background: "#e8e0f2",
-            color: "#8a5cb8",
+            background: "light-dark(#e8e0f2, #36244c)",
+            color: "light-dark(#8a5cb8, #c7b1dd)",
             borderRadius: "50%",
             padding: 3,
             fontSize: 14,
@@ -94,7 +94,7 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
         >
           person
         </span>
-        <span style={{ ...sbStyles.label, color: "#1975d1", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <span style={{ ...sbStyles.label, color: "var(--mat-sys-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {formatSidebarName(patientName)}
         </span>
       </div>
@@ -104,9 +104,9 @@ function Sidebar({ active = "pending", onSelect = () => {}, patientName = "Jean-
 
 const sbStyles = {
   bar: {
-    width: 205, background: "#fff", borderRight: "1px solid #e8e8e8",
+    width: 205, background: "var(--mat-sys-surface-container-lowest)", borderRight: "1px solid var(--mat-sys-outline-variant)",
     padding: "4px 0",
-    fontFamily: "'Inter', sans-serif", fontSize: 13, color: "rgba(0,0,0,0.85)",
+    fontFamily: "'Inter', sans-serif", fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)",
     flexShrink: 0, overflowY: "auto", overflowX: "hidden",
     boxSizing: "border-box",
   },
@@ -116,16 +116,16 @@ const sbStyles = {
     minHeight: 32, boxSizing: "border-box",
   },
   itemActive: { background: "rgba(25,117,209,0.08)", fontWeight: 500 },
-  icon: { fontSize: 18, color: "rgba(0,0,0,0.68)", width: 20, textAlign: "center" },
-  label: { fontSize: 13, fontWeight: 400, color: "rgba(0,0,0,0.85)" },
+  icon: { fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)", width: 20, textAlign: "center" },
+  label: { fontSize: 13, fontWeight: 400, color: "color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)" },
   badge: {
     marginLeft: "auto", color: "#fff", borderRadius: 10, fontSize: 11, fontWeight: 500,
     padding: "1px 7px", minWidth: 18, textAlign: "center", lineHeight: "16px",
   },
-  divider: { borderTop: "1px solid #ebebeb", margin: "6px 0" },
+  divider: { borderTop: "1px solid var(--mat-sys-outline-variant)", margin: "6px 0" },
   sectionLabel: {
     padding: "4px 14px 2px", fontSize: 12,
-    color: "rgba(0,0,0,0.68)", fontWeight: 400,
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)", fontWeight: 400,
   },
 };
 

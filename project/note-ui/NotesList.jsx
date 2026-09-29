@@ -102,20 +102,18 @@ function roChipLabel(entity) {
 }
 
 function roChipStyle(type) {
-  var isRx = type === 'prescription';
-  var isLab = type === 'lab';
-  var isImg = type === 'imaging';
-  var isRef = type === 'referral';
+  var isOrder = type === 'prescription' || type === 'lab' || type === 'imaging' || type === 'referral';
+  // Même habillage que .chip / .chip--rx (editor.css) : coin small, pas d'ombre ;
+  // ordres = fond lowest + bordure outline, autres = tonal primary.
   return {
-    display: 'inline-flex', alignItems: 'center', gap: 5,
-    padding: isRx || isLab || isImg || isRef ? '2px 8px 2px 6px' : '2px 9px 2px 7px',
-    borderRadius: isRx || isLab || isImg || isRef ? 7 : 6,
-    background: isRx || isLab || isImg || isRef ? '#fff' : 'var(--brand-primary-container, #e8e8ff)',
-    border: isRx || isLab || isImg || isRef ? '1px solid #b9b9d0' : '1px solid var(--brand-primary, #3f3ec8)',
-    color: isRx || isLab || isImg || isRef ? 'rgba(0,0,0,0.8)' : 'var(--brand-primary, #3f3ec8)',
+    display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)',
+    padding: isOrder ? '2px 8px 2px 6px' : '2px 9px 2px 7px',
+    borderRadius: 'var(--mat-sys-corner-small)',
+    background: isOrder ? 'var(--mat-sys-surface-container-lowest)' : 'var(--brand-primary-container)',
+    border: isOrder ? '1px solid var(--mat-sys-outline)' : '1px solid var(--brand-primary)',
+    color: isOrder ? 'var(--mat-sys-on-surface)' : 'var(--brand-primary)',
     fontSize: 14, fontWeight: 500, verticalAlign: 'baseline',
     whiteSpace: 'nowrap', margin: '0 2px', lineHeight: 1.5,
-    boxShadow: '0 1px 2px rgba(37,36,94,0.06)',
   };
 }
 
@@ -125,11 +123,11 @@ function ChipPill({ attrs, keyProp }) {
   var isPrx = type === 'prescription';
   var iconMap = { lab: 'science', imaging: 'radiology', referral: 'person_add', problem: 'flag', instructions: 'menu_book', diagnostic: 'local_hospital', file: 'attach_file' };
   var label = roChipLabel(attrs);
-  var iconColor = type === 'lab' ? '#1975d1' : type === 'imaging' ? '#7a3ec2' : type === 'referral' ? '#2e7d32' : '#25245E';
+  var iconColor = type === 'lab' ? 'var(--mat-sys-primary)' : type === 'imaging' ? 'var(--mat-sys-tertiary)' : type === 'referral' ? 'var(--mat-sys-secondary)' : 'var(--mat-sys-on-surface-variant)';
   return (
     <span key={keyProp} style={roChipStyle(type)}>
       {isPrx
-        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 500, fontSize: 16, color: '#25245E', lineHeight: 1 }}>℞</span>
+        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--mat-sys-on-surface)', lineHeight: 1 }}>℞</span>
         : <span className="material-symbols-outlined" style={{ fontSize: 14, color: iconColor }}>{iconMap[type] || 'bookmark'}</span>
       }
       <span>{label}</span>
@@ -382,7 +380,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '24px 0', textAlign: 'center', color: 'rgba(0,0,0,0.45)', fontSize: 14 }}>Aucune note ne correspond aux filtres actifs.</div>
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14 }}>Aucune note ne correspond aux filtres actifs.</div>
       )}
       {filtered.map((n, i) => {
         const origIdx = NOTE_ITEMS.indexOf(n);
@@ -393,8 +391,8 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
         return (
           <div key={origIdx} style={{
             ...nlStyles.note,
-            borderTop: i > 0 ? '1px solid #eee' : 'none',
-            borderLeft: epTotal > 1 ? '3px solid var(--brand-primary, rgb(46,56,166))' : 'none',
+            borderTop: i > 0 ? '1px solid var(--mat-sys-outline-variant)' : 'none',
+            borderLeft: epTotal > 1 ? '3px solid var(--brand-primary, var(--mat-sys-primary))' : 'none',
             paddingLeft: epTotal > 1 ? 14 : 0,
           }}>
             {/* Left meta column */}
@@ -567,7 +565,7 @@ function AuthorChip({ name, icon, active, onToggle }) {
       }}
       onClick={onToggle}
     >
-      {icon && <span className="material-icons-outlined" style={{ ...nlStyles.chipIcon, color: active ? '#1975d1' : 'rgba(0,0,0,0.5)' }}>{icon}</span>}
+      {icon && <span className="material-icons-outlined" style={{ ...nlStyles.chipIcon, color: active ? 'var(--mat-sys-primary)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>{icon}</span>}
       <span>{name}</span>
     </span>
   );
@@ -575,57 +573,57 @@ function AuthorChip({ name, icon, active, onToggle }) {
 
 const nlStyles = {
   card: {
-    background: "#fff", borderRadius: 8, padding: "18px 22px 22px",
+    background: "var(--mat-sys-surface-container-lowest)", borderRadius: 8, padding: "18px 22px 22px",
     boxShadow: "0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)",
     fontFamily: "'Inter', sans-serif",
   },
   title: {
     fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 22,
-    color: "rgba(0,0,0,0.88)", marginBottom: 16,
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)", marginBottom: 16,
   },
   filterRow: { display: "flex", gap: 18, flexWrap: "wrap", alignItems: "flex-end", marginBottom: 16 },
   filterField: { display: "flex", flexDirection: "column", gap: 4 },
-  filterLabel: { fontSize: 13, color: "rgba(0,0,0,0.55)" },
+  filterLabel: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" },
   filterBox: {
     display: "flex", alignItems: "center",
     border: "1px solid #c4c4c4", borderRadius: 6,
     height: 40, padding: "0 8px 0 12px",
   },
-  filterValue: { fontSize: 14, color: "rgba(0,0,0,0.78)" },
-  filterIcon: { marginLeft: "auto", fontSize: 20, color: "rgba(0,0,0,0.5)" },
-  chipRow: { display: "flex", gap: 12, marginBottom: 8, paddingBottom: 16, borderBottom: "1px solid #eee", flexWrap: "wrap", alignItems: "center" },
-  chipDivider: { width: 1, height: 22, background: "#d8d8e4", margin: "0 2px" },
+  filterValue: { fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)" },
+  filterIcon: { marginLeft: "auto", fontSize: 20, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)" },
+  chipRow: { display: "flex", gap: 12, marginBottom: 8, paddingBottom: 16, borderBottom: "1px solid var(--mat-sys-outline-variant)", flexWrap: "wrap", alignItems: "center" },
+  chipDivider: { width: 1, height: 22, background: "var(--mat-sys-outline-variant)", margin: "0 2px" },
   authorChip: {
     display: "inline-flex", alignItems: "center", gap: 6,
     border: "1px solid #c9c9e0", borderRadius: 20, padding: "5px 12px 5px 8px",
-    fontSize: 14, color: "rgba(0,0,0,0.78)", cursor: "pointer",
+    fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)", cursor: "pointer",
     userSelect: "none", transition: "background 0.12s, border-color 0.12s",
   },
   authorChipActive: {
-    background: "#e8f0fb", borderColor: "#1975d1", color: "#1975d1",
+    background: "color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))", borderColor: "var(--mat-sys-primary)", color: "var(--mat-sys-primary)",
   },
   note: { display: "flex", gap: 28, paddingTop: 18, paddingBottom: 18 },
   episodeChip: {
     display: "inline-flex", alignItems: "center", gap: 5, alignSelf: "flex-start", marginTop: 2,
-    background: "var(--brand-primary-container, #e5e2f3)", color: "var(--brand-primary, rgb(46,56,166))",
+    background: "var(--brand-primary-container, light-dark(#e5e2f3, #2b244c))", color: "var(--brand-primary, var(--mat-sys-primary))",
     borderRadius: 20, padding: "3px 10px 3px 8px", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap",
   },
   episodeIcon: { fontSize: 14 },
   metaCol: { width: 220, flexShrink: 0 },
   dateRow: { display: "flex", alignItems: "center", gap: 8, marginBottom: 6 },
-  noteFileIcon: { fontSize: 18, color: "rgba(0,0,0,0.45)" },
-  dateText: { fontSize: 12, color: "rgba(0,0,0,0.5)", letterSpacing: 0.4, fontWeight: 500 },
-  author: { fontSize: 15, fontWeight: 600, color: "rgba(0,0,0,0.85)" },
-  clinic: { fontSize: 14, color: "rgba(0,0,0,0.7)", marginTop: 2 },
-  role: { fontSize: 14, color: "#1975d1", fontWeight: 500, marginTop: 2 },
+  noteFileIcon: { fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" },
+  dateText: { fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)", letterSpacing: 0.4, fontWeight: 500 },
+  author: { fontSize: 15, fontWeight: 600, color: "color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)" },
+  clinic: { fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)", marginTop: 2 },
+  role: { fontSize: 14, color: "var(--mat-sys-primary)", fontWeight: 500, marginTop: 2 },
   body: { flex: 1, minWidth: 0 },
   bodyHead: { display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 },
-  mode: { fontSize: 11, fontWeight: 500, letterSpacing: 0.8, color: "rgba(0,0,0,0.5)" },
-  noteTitle: { fontSize: 17, fontWeight: 600, color: "rgba(0,0,0,0.85)", marginTop: 2 },
+  mode: { fontSize: 11, fontWeight: 500, letterSpacing: 0.8, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)" },
+  noteTitle: { fontSize: 17, fontWeight: 600, color: "color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)", marginTop: 2 },
   actionIcons: { display: "flex", alignItems: "center", gap: 10 },
-  actionIcon: { fontSize: 20, color: "rgba(0,0,0,0.5)", cursor: "pointer" },
+  actionIcon: { fontSize: 20, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)", cursor: "pointer" },
   checkoutBtn: {
-    background: "#e8f0fb", border: 0, borderRadius: 6, color: "#1975d1",
+    background: "color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))", border: 0, borderRadius: 6, color: "var(--mat-sys-primary)",
     padding: "6px 12px", cursor: "pointer", fontWeight: 600, fontSize: 13,
     fontFamily: "'Inter', sans-serif",
   },
@@ -633,7 +631,7 @@ const nlStyles = {
     width: 28, height: 28, border: 0, background: "transparent", cursor: "pointer",
     display: "inline-flex", alignItems: "center", justifyContent: "center", padding: 0,
   },
-  caretIcon: { fontSize: 20, color: "rgba(0,0,0,0.45)" },
+  caretIcon: { fontSize: 20, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" },
   detailsSection: { marginBottom: 16 },
   // Titres de section — étiquette discrète (majuscules, gris, poids medium),
   // même traitement que .ql-editor h1/h2/h3 (editor.css), pour qu'une note
@@ -641,26 +639,26 @@ const nlStyles = {
   roHeading1: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 16,
     lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)", margin: '14px 0 6px',
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '14px 0 6px',
   },
   roHeading2: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
     lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)", margin: '12px 0 5px',
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '12px 0 5px',
   },
   roHeading3: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 12,
     lineHeight: '16px', letterSpacing: 0.4, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)", margin: '10px 0 4px',
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '10px 0 4px',
   },
   detailsLabel: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
     lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)",
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)",
     marginBottom: 8,
   },
   detailsText: {
-    fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25,
+    fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", lineHeight: 1.5, letterSpacing: 0.25,
   },
   refBtn: {
     position: 'fixed', transform: 'translateX(-50%)', zIndex: 500,
@@ -672,77 +670,77 @@ const nlStyles = {
   diagRow: { display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, marginTop: 2 },
   diagChip: {
     display: 'inline-flex', alignItems: 'center', gap: 5,
-    background: '#e8f0fb', border: '1px solid #b3ccf0', borderRadius: 20,
-    padding: '4px 12px 4px 8px', fontSize: 13, color: '#1a5fd4', fontWeight: 500,
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', border: '1px solid #b3ccf0', borderRadius: 20,
+    padding: '4px 12px 4px 8px', fontSize: 13, color: 'var(--mat-sys-primary)', fontWeight: 500,
   },
-  diagChipIcon: { fontSize: 14, color: '#1a5fd4' },
+  diagChipIcon: { fontSize: 14, color: 'var(--mat-sys-primary)' },
   roDiag: { margin: '8px 0', border: '1px solid #b3ccf0', borderRadius: 10, overflow: 'hidden' },
-  roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: '#e8f0fb', padding: '6px 12px' },
-  roDiagIcon: { fontSize: 16, color: '#1a5fd4' },
-  roDiagName: { fontSize: 12, fontWeight: 500, color: '#1a5fd4' },
-  roDiagNameCesse: { textDecoration: 'line-through', textDecorationColor: '#b04a4a' },
+  roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', padding: '6px 12px' },
+  roDiagIcon: { fontSize: 16, color: 'var(--mat-sys-primary)' },
+  roDiagName: { fontSize: 12, fontWeight: 500, color: 'var(--mat-sys-primary)' },
+  roDiagNameCesse: { textDecoration: 'line-through', textDecorationColor: 'light-dark(#b04a4a, #deb0b0)' },
   roDiagNum: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8,
-    background: '#1a5fd4', color: '#fff', fontSize: 10, fontWeight: 700, flexShrink: 0,
+    background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', fontSize: 10, fontWeight: 700, flexShrink: 0,
   },
-  roDiagCode: { fontSize: 11, fontWeight: 500, color: 'rgba(0,0,0,0.5)', fontVariantNumeric: 'tabular-nums' },
+  roDiagCode: { fontSize: 11, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', fontVariantNumeric: 'tabular-nums' },
   roDiagStatus: {
     fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
-    color: '#7a1f26', background: '#ecdfe0', borderRadius: 4, padding: '2px 6px',
+    color: 'light-dark(#7a1f26, #e8a6ab)', background: 'light-dark(#ecdfe0, #462a2c)', borderRadius: 4, padding: '2px 6px',
   },
-  roDiagSub: { fontSize: 11, fontStyle: 'italic', color: 'rgba(0,0,0,0.55)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  roDiagBody: { background: '#f5f9ff', padding: '8px 12px', fontSize: 14, color: 'rgba(0,0,0,0.82)', lineHeight: 1.5, letterSpacing: 0.25 },
+  roDiagSub: { fontSize: 11, fontStyle: 'italic', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  roDiagBody: { background: 'light-dark(#f5f9ff, #24344c)', padding: '8px 12px', fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.5, letterSpacing: 0.25 },
   roDxref: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     minWidth: 20, height: 18, padding: '0 5px', margin: '0 1px', borderRadius: 9,
-    background: 'var(--brand-primary-container, #e3ecfa)', color: 'var(--brand-primary, #1a5fd4)',
+    background: 'var(--brand-primary-container, light-dark(#e3ecfa, #24344c))', color: 'var(--brand-primary, var(--mat-sys-primary))',
     fontWeight: 700, fontSize: 11, lineHeight: 1, verticalAlign: 1,
   },
-  roRef: { margin: '8px 0', padding: '9px 14px', borderLeft: '3px solid #b0a99a', background: '#faf9f6', borderRadius: '0 8px 8px 0' },
+  roRef: { margin: '8px 0', padding: '9px 14px', borderLeft: '3px solid #b0a99a', background: 'light-dark(#faf9f6, #484028)', borderRadius: '0 8px 8px 0' },
   roRefHeader: { display: 'flex', alignItems: 'center', gap: 6, marginBottom: 3 },
-  roRefIcon: { fontSize: 15, color: '#8a7f68' },
-  roRefSource: { fontSize: 12, fontWeight: 500, color: '#756b56', letterSpacing: '0.02em' },
-  roRefBody: { fontSize: 14, fontStyle: 'italic', color: 'rgba(0,0,0,0.68)', lineHeight: 1.5 },
+  roRefIcon: { fontSize: 15, color: 'var(--mat-sys-on-surface-variant)' },
+  roRefSource: { fontSize: 12, fontWeight: 500, color: 'var(--mat-sys-on-surface-variant)', letterSpacing: '0.02em' },
+  roRefBody: { fontSize: 14, fontStyle: 'italic', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)', lineHeight: 1.5 },
   roSplit: { margin: '14px 0 6px' },
   roSplitLabel: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
     lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)", marginBottom: 3,
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", marginBottom: 3,
   },
-  roSplitRule: { height: 0, borderTop: '1px solid var(--brand-primary, rgb(46,56,166))', opacity: 0.35 },
+  roSplitRule: { height: 0, borderTop: '1px solid var(--brand-primary, var(--mat-sys-primary))', opacity: 0.35 },
   conclPreview: { marginBottom: 8 },
   // Aperçu borné à 3 lignes : c'est un résumé de journal, pas la note.
   // Déplier la note reste le geste pour tout lire.
   conclPreviewText: {
-    fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25,
+    fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", lineHeight: 1.5, letterSpacing: 0.25,
     display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden',
   },
   conclEmpty: {
     display: 'inline-flex', alignItems: 'center', gap: 4,
-    fontSize: 13, fontStyle: 'italic', color: "rgba(0,0,0,0.45)",
+    fontSize: 13, fontStyle: 'italic', color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)",
   },
-  conclEmptyIcon: { fontSize: 16, color: "rgba(0,0,0,0.35)" },
+  conclEmptyIcon: { fontSize: 16, color: "color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)" },
   conclLabelWrap: { marginTop: 4, marginBottom: 4 },
   conclLabel: {
     fontSize: 12, fontWeight: 500, letterSpacing: 0.4,
-    color: "rgba(0,0,0,0.45)", marginBottom: 4,
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)", marginBottom: 4,
   },
   conclLabelOpen: {
     fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
     lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
-    color: "rgba(0,0,0,0.54)",
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)",
     marginBottom: 8, marginTop: 12,
   },
-  conclText: { fontSize: 14, color: "rgba(0,0,0,0.82)", lineHeight: 1.5, letterSpacing: 0.25, marginBottom: 14 },
+  conclText: { fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", lineHeight: 1.5, letterSpacing: 0.25, marginBottom: 14 },
   fileRow: { display: "flex", gap: 12, flexWrap: "wrap" },
   fileChip: {
     display: "inline-flex", alignItems: "center", gap: 6,
-    border: "1px solid #d8d8e4", borderRadius: 20, padding: "5px 14px 5px 10px",
+    border: "1px solid var(--mat-sys-outline-variant)", borderRadius: 20, padding: "5px 14px 5px 10px",
   },
-  clipIcon: { fontSize: 16, color: "rgba(0,0,0,0.5)" },
-  fileName: { fontSize: 13, color: "#1975d1", fontWeight: 500 },
-  fileSize: { fontSize: 12, color: "rgba(0,0,0,0.45)" },
+  clipIcon: { fontSize: 16, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)" },
+  fileName: { fontSize: 13, color: "var(--mat-sys-primary)", fontWeight: 500 },
+  fileSize: { fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" },
 };
 
 window.NotesList = NotesList;

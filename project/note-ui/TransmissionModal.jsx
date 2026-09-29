@@ -19,7 +19,7 @@
 // QuickSendModal.jsx puisse résoudre les mêmes suggestions.
 const TX_META = {
   prescription: {
-    icon: 'medication', accent: '#1975d1', nounPhrase: "l'ordonnance",
+    icon: 'medication', accent: 'var(--mat-sys-primary)', nounPhrase: "l'ordonnance",
     attachments: ['Liste de médicaments active', 'Note clinique'],
     attachmentsOn: ['Liste de médicaments active'],
     noteLabel: 'Note pour le pharmacien',
@@ -72,7 +72,7 @@ const TX_META = {
     ],
   },
   instructions: {
-    icon: 'menu_book', accent: '#1975d1', nounPhrase: 'le document',
+    icon: 'menu_book', accent: 'var(--mat-sys-primary)', nounPhrase: 'le document',
     attachments: ['Note clinique'],
     attachmentsOn: [],
     noteLabel: 'Note pour le patient',
@@ -101,7 +101,7 @@ function txStatus(doc) {
 }
 const TX_STATUS_LABEL = { todo: 'À compléter', ready: 'Prêt', done: 'Finalisé' };
 const TX_STATUS_ICON = { todo: 'warning_amber', ready: 'check_circle', done: 'done_all' };
-const TX_STATUS_COLOR = { todo: '#a15c00', ready: '#1975d1', done: '#2e9b7a' };
+const TX_STATUS_COLOR = { todo: '#a15c00', ready: 'var(--mat-sys-primary)', done: '#2e9b7a' };
 
 // Panneau de l'item « Note » — faire suivre la note + signature. Distinct de
 // DocumentActionPanel : pas de destinataire/aperçu, la « complétion » ferme
@@ -128,9 +128,9 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
       <div style={{ position: 'relative' }}>
         <button style={Object.assign({}, nap.ddBtn, open ? nap.ddBtnOpen : {})}
           onClick={function () { setDdOpen(open ? null : key); }}>
-          {leadIcon ? <span className="material-icons-outlined" style={{ fontSize: 18, color: '#6a6a86' }}>{leadIcon}</span> : null}
+          {leadIcon ? <span className="material-icons-outlined" style={{ fontSize: 18, color: 'var(--mat-sys-on-surface-variant)' }}>{leadIcon}</span> : null}
           <span style={nap.ddText}>{value}</span>
-          <span className="material-icons" style={{ fontSize: 22, color: 'rgba(0,0,0,0.4)' }}>arrow_drop_down</span>
+          <span className="material-icons" style={{ fontSize: 22, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' }}>arrow_drop_down</span>
         </button>
         {open &&
           <React.Fragment>
@@ -141,7 +141,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
                 return (
                   <button key={i} style={Object.assign({}, nap.ddOption, sel ? nap.ddOptionSel : {})}
                     onClick={function () { onPick(i); setDdOpen(null); }}>
-                    <span className="material-icons" style={{ fontSize: 18, color: sel ? '#1975d1' : 'transparent' }}>check</span>
+                    <span className="material-icons" style={{ fontSize: 18, color: sel ? 'var(--mat-sys-primary)' : 'transparent' }}>check</span>
                     <span>{o}</span>
                   </button>
                 );
@@ -157,7 +157,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
     <React.Fragment>
       <div style={nap.noteTile}>
         <span style={nap.noteTileIcon}>
-          <span className="material-icons-outlined" style={{ fontSize: 20, color: '#25245E' }}>description</span>
+          <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>description</span>
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={nap.noteTileTitle}>{(noteInfo && noteInfo.title) || 'Note clinique'}</div>
@@ -168,7 +168,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
 
       {pendingDocs.length > 0 &&
         <div style={nap.warnBanner}>
-          <span className="material-icons-outlined" style={{ fontSize: 19, color: '#a15c00', flexShrink: 0, marginTop: 1 }}>warning</span>
+          <span className="material-icons-outlined" style={{ fontSize: 19, color: 'light-dark(#a15c00, #e9cca5)', flexShrink: 0, marginTop: 1 }}>warning</span>
           <div style={nap.warnText}>
             Cette note contient {pendingDocs.length} document{pendingDocs.length > 1 ? 's' : ''} non transmis
             {' '}({pendingDocs.map(function (d) { return d.title; }).join(', ')}) — sélectionnez-les dans la liste à gauche pour les compléter.
@@ -371,18 +371,18 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
           </div>
           <div style={tx.headCounts}>
-            {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: '#fdf1de' })}>{counts.todo} À compléter</span>}
-            {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: '#e9f2fc' })}>{counts.ready} Prêt</span>}
-            {counts.done > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.done, background: '#e6f5ee' })}>{counts.done} Finalisé</span>}
+            {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: 'light-dark(#fdf1de, #4c3d24)' })}>{counts.todo} À compléter</span>}
+            {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))' })}>{counts.ready} Prêt</span>}
+            {counts.done > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' })}>{counts.done} Finalisé</span>}
           </div>
           <button style={tx.closeBtn} onClick={onClose} aria-label="Fermer">
-            <span className="material-icons" style={{ fontSize: 24, color: 'rgba(0,0,0,0.55)' }}>close</span>
+            <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>close</span>
           </button>
         </div>
 
         <div style={tx.patientRow}>
           <span style={tx.patientAvatar}>
-            <span className="material-icons" style={{ color: '#8a5cb8', fontSize: 16 }}>person</span>
+            <span className="material-icons" style={{ color: 'light-dark(#8a5cb8, #c7b1dd)', fontSize: 16 }}>person</span>
           </span>
           <span style={tx.patientName}>{patientName}</span>
           <span style={tx.patientMeta}>{[patientSub, patientRamq].join(' · ')}</span>
@@ -395,7 +395,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               <button
                 style={Object.assign({}, tx.sideRow, isNoteSelected ? tx.sideRowSel : {})}
                 onClick={function () { setSelectedId(NOTE_ITEM_ID); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 18, color: '#25245E', flexShrink: 0, marginTop: 1 }}>description</span>
+                <span className="material-icons-outlined" style={{ fontSize: 18, color: 'var(--mat-sys-on-surface)', flexShrink: 0, marginTop: 1 }}>description</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={tx.sideRowTitle}>{(noteInfo && noteInfo.title) || 'Note clinique'}</div>
                   <div style={tx.sideRowSub}>Faire suivre et signer</div>
@@ -450,7 +450,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
             <div style={tx.footerSummary}>
               {readyCount > 0 &&
                 <React.Fragment>
-                  <span className="material-icons-outlined" style={{ fontSize: 18, color: 'rgba(0,0,0,0.45)' }}>outbox</span>
+                  <span className="material-icons-outlined" style={{ fontSize: 18, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>outbox</span>
                   {readyCount} document{readyCount > 1 ? 's' : ''} prêt{readyCount > 1 ? 's' : ''} à transmettre
                 </React.Fragment>
               }
@@ -514,73 +514,73 @@ const tx = {
   },
   shell: {
     position: 'relative', width: '100%', maxWidth: 1440, height: '95vh', maxHeight: 'calc(100vh - 12px)',
-    background: '#fff', zIndex: 4000, borderRadius: '20px 20px 0 0',
+    background: 'var(--mat-sys-surface-container-lowest)', zIndex: 4000, borderRadius: '20px 20px 0 0',
     boxShadow: '0 -12px 40px rgba(20,20,50,0.28)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
     fontFamily: "'Inter', sans-serif", animation: 'sheet-up 320ms cubic-bezier(.16,1,.3,1)',
   },
   dragHandle: {
-    width: 44, height: 5, borderRadius: 3, background: '#e0e0ea',
+    width: 44, height: 5, borderRadius: 3, background: 'var(--mat-sys-surface-container)',
     margin: '10px auto 0', flexShrink: 0,
   },
   head: {
     display: 'flex', alignItems: 'center', gap: 16,
-    padding: '12px 26px 16px', borderBottom: '1px solid #ececf2', flexShrink: 0,
+    padding: '12px 26px 16px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
   },
-  headNote: { fontWeight: 400, color: 'rgba(0,0,0,0.5)' },
-  headTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'rgba(0,0,0,0.88)' },
+  headNote: { fontWeight: 400, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' },
+  headTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
   headCounts: { display: 'flex', gap: 8, flex: 1 },
   pill: { fontSize: 12.5, fontWeight: 700, borderRadius: 20, padding: '5px 12px' },
   closeBtn: { border: 0, background: 'transparent', cursor: 'pointer', padding: 2, display: 'inline-flex' },
 
   patientRow: {
     display: 'flex', alignItems: 'center', gap: 10,
-    padding: '9px 26px', borderBottom: '1px solid #ececf2', flexShrink: 0,
-    background: '#faf9fc',
+    padding: '9px 26px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
+    background: 'light-dark(#faf9fc, #32254b)',
   },
   patientAvatar: {
-    width: 26, height: 26, borderRadius: '50%', background: '#ece3f5',
+    width: 26, height: 26, borderRadius: '50%', background: 'var(--mat-sys-secondary-container)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  patientName: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: 'rgba(0,0,0,0.85)' },
-  patientMeta: { fontSize: 13, color: 'rgba(0,0,0,0.55)' },
+  patientName: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
+  patientMeta: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
 
   bodyRow: { flex: 1, display: 'flex', overflow: 'hidden' },
 
   sidebar: {
-    width: 280, flexShrink: 0, borderRight: '1px solid #ececf2',
+    width: 280, flexShrink: 0, borderRight: '1px solid var(--mat-sys-outline-variant)',
     overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 18,
   },
   sideGroup: { display: 'flex', flexDirection: 'column', gap: 6 },
-  sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
+  sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
   sideRow: {
     display: 'flex', alignItems: 'flex-start', gap: 9, width: '100%',
     border: 0, borderLeft: '3px solid transparent', background: 'transparent',
     borderRadius: 10, padding: '9px 8px 9px 6px',
     cursor: 'pointer', textAlign: 'left',
   },
-  sideRowSel: { background: '#eef1fb', borderLeft: '3px solid #25245E' },
-  sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)' },
-  sideRowTitleSel: { color: '#25245E' },
-  sideRowSub: { fontSize: 12, color: 'rgba(0,0,0,0.5)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDest: { fontSize: 12, color: 'rgba(0,0,0,0.45)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDestNone: { fontSize: 12, color: '#a15c00', marginTop: 1 },
+  sideRowSel: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderLeft: '3px solid var(--mat-sys-on-surface-variant)' },
+  sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
+  sideRowTitleSel: { color: 'var(--mat-sys-on-surface)' },
+  sideRowSub: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDest: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDestNone: { fontSize: 12, color: 'light-dark(#a15c00, #e9cca5)', marginTop: 1 },
   addDocBtn: {
-    display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed #cfcfe0', borderRadius: 9,
-    background: 'transparent', color: 'rgba(0,0,0,0.5)', font: "500 13px 'Inter',sans-serif",
+    display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed var(--mat-sys-outline-variant)', borderRadius: 9,
+    background: 'transparent', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', font: "500 13px 'Inter',sans-serif",
     padding: '9px 10px', cursor: 'pointer', marginTop: 'auto',
   },
 
   panel: { flex: 1, overflowY: 'auto', padding: '18px 28px 28px' },
-  panelEmpty: { color: 'rgba(0,0,0,0.45)', fontSize: 14, padding: 30, textAlign: 'center' },
+  panelEmpty: { color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14, padding: 30, textAlign: 'center' },
 
   footer: {
     display: 'flex', alignItems: 'center', gap: 12,
-    padding: '14px 26px', borderTop: '1px solid #ececf2', flexShrink: 0,
+    padding: '14px 26px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
   },
-  footerSummary: { flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'rgba(0,0,0,0.55)', fontWeight: 500 },
+  footerSummary: { flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', fontWeight: 500 },
   secondaryBtn: {
-    border: '1.5px solid #25245E', borderRadius: 9, background: '#fff', color: '#25245E',
+    border: '1.5px solid var(--mat-sys-on-surface-variant)', borderRadius: 9, background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)',
     font: "600 13.5px 'Inter',sans-serif", padding: '10px 16px', cursor: 'pointer',
   },
   primaryBtn: {
@@ -594,49 +594,49 @@ const tx = {
 const nap = {
   noteTile: {
     display: 'flex', alignItems: 'center', gap: 11,
-    border: '1px solid #e2e2ec', borderRadius: 10, background: '#f7f9fc', padding: '11px 13px',
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, background: 'light-dark(#f7f9fc, #24344c)', padding: '11px 13px',
   },
   noteTileIcon: {
-    width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: '#eef1fb',
+    width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   },
-  noteTileTitle: { fontSize: 14, fontWeight: 600, color: 'rgba(0,0,0,0.82)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  noteTileMeta: { fontSize: 12.5, color: 'rgba(0,0,0,0.5)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  noteTileTitle: { fontSize: 14, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  noteTileMeta: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   noteTileBadge: {
-    flexShrink: 0, fontSize: 11, fontWeight: 600, color: '#25245E',
-    background: '#eef1fb', borderRadius: 6, padding: '3px 8px', letterSpacing: 0.2,
+    flexShrink: 0, fontSize: 11, fontWeight: 600, color: 'var(--mat-sys-on-surface)',
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderRadius: 6, padding: '3px 8px', letterSpacing: 0.2,
   },
   warnBanner: {
     display: 'flex', alignItems: 'flex-start', gap: 9, marginTop: 14,
-    border: '1px solid #f3ddb0', background: '#fdf6e6', borderRadius: 10, padding: '10px 12px',
+    border: '1px solid light-dark(#f3ddb0, #4c3f24)', background: 'light-dark(#fdf6e6, #4c4024)', borderRadius: 10, padding: '10px 12px',
   },
-  warnText: { fontSize: 13, color: '#7a5200', lineHeight: 1.45 },
+  warnText: { fontSize: 13, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.45 },
 
   fieldBlock: { marginTop: 18, maxWidth: 460 },
-  fieldLabel: { fontSize: 12, fontWeight: 600, color: 'rgba(0,0,0,0.55)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 },
-  subLabel: { fontSize: 11.5, fontWeight: 500, color: 'rgba(0,0,0,0.5)', marginBottom: 5 },
+  fieldLabel: { fontSize: 12, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 },
+  subLabel: { fontSize: 11.5, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginBottom: 5 },
   sigRow: { display: 'flex', gap: 12 },
 
   ddBtn: {
     width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-    border: '1.5px solid #d8d8e4', borderRadius: 9, background: '#fff',
+    border: '1.5px solid var(--mat-sys-outline-variant)', borderRadius: 9, background: 'var(--mat-sys-surface-container-lowest)',
     padding: '9px 10px 9px 12px', cursor: 'pointer', textAlign: 'left',
-    font: "500 14px 'Inter',sans-serif", color: 'rgba(0,0,0,0.82)',
+    font: "500 14px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)',
   },
-  ddBtnOpen: { border: '1.5px solid #1975d1', boxShadow: '0 0 0 3px rgba(25,117,209,0.13)' },
+  ddBtnOpen: { border: '1.5px solid var(--mat-sys-primary)', boxShadow: '0 0 0 3px rgba(25,117,209,0.13)' },
   ddText: { flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   ddScrim: { position: 'fixed', inset: 0, zIndex: 10 },
   ddList: {
     position: 'absolute', top: 'calc(100% + 5px)', left: 0, right: 0, zIndex: 11,
-    background: '#fff', border: '1px solid #e2e2ec', borderRadius: 10,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
     boxShadow: '0 10px 28px rgba(20,20,50,0.16)', padding: '5px 0', maxHeight: 240, overflowY: 'auto',
   },
   ddOption: {
     width: '100%', display: 'flex', alignItems: 'center', gap: 9,
     border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left',
-    padding: '9px 13px', font: "500 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.78)',
+    padding: '9px 13px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)',
   },
-  ddOptionSel: { color: '#1975d1', background: '#f5f8fe' },
+  ddOptionSel: { color: 'var(--mat-sys-primary)', background: 'light-dark(#f5f8fe, #24324c)' },
 
   completeBtn: {
     marginTop: 26, border: 0, borderRadius: 9, background: '#25245E', color: '#fff',

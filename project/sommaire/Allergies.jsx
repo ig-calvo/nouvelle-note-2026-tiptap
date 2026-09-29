@@ -123,7 +123,7 @@ function AllergyConsult({ onClose }) {
               <span className="material-icons-outlined">edit</span>
             </button>
             <button className="icon-btn" title="Supprimer" onClick={(e) => { e.stopPropagation(); del(a.id); }}>
-              <span className="material-icons-outlined" style={{ color: "#b00020" }}>delete_outline</span>
+              <span className="material-icons-outlined" style={{ color: "light-dark(#b00020, #e9a5b1)" }}>delete_outline</span>
             </button>
           </div>))}
     </>);
@@ -169,7 +169,7 @@ function AllergyEditRow({ entry, onDone }) {
   };
 
   return (
-    <div className="list-li" style={{ flexDirection: "column", alignItems: "stretch", gap: 0, background: "#f7f8fc", borderRadius: 10, padding: 14, margin: "4px 0" }}>
+    <div className="list-li" style={{ flexDirection: "column", alignItems: "stretch", gap: 0, background: "var(--mat-sys-surface-container-low)", borderRadius: 10, padding: 14, margin: "4px 0" }}>
       <div className="field-row">
         <div className="field" style={{ flex: 2 }}><label>Terme</label><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></div>
         <div className="field"><label>Type</label>

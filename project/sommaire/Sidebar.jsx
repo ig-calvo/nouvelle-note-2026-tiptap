@@ -102,7 +102,7 @@ function SummaryRow({ row, onRemoveTemp }) {
   }
   return (
     <div className="srow">
-      <span className="r-left" style={row.muted ? { fontStyle: "italic", color: "rgba(0,0,0,.4)" } : null}>{row.left}</span>
+      <span className="r-left" style={row.muted ? { fontStyle: "italic", color: "color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)" } : null}>{row.left}</span>
       {row.tag && <span className={"r-tag tag " + row.tag}>{row.tag === "intolerance" ? "Intol." : "Allergie"}</span>}
       {row.mid && <span className="r-mid">{row.mid}</span>}
       {row.right && <span className="r-right">{row.right}</span>}
@@ -110,7 +110,7 @@ function SummaryRow({ row, onRemoveTemp }) {
 }
 
 function dotColor(k) {
-  return { active: "#2e7d32", echue: "#e0a800", cessee: "#b00020", texte: "#1975d1" }[k] || "#999";
+  return { active: "#2e7d32", echue: "#e0a800", cessee: "#b00020", texte: "var(--mat-sys-primary)" }[k] || "#999";
 }
 
 function Sidebar({ onOpen }) {

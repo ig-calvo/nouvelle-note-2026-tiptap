@@ -63,12 +63,12 @@ const tbStyles = {
   },
   searchWrap: { position: "relative", display: "flex", alignItems: "center", marginLeft: 8 },
   search: {
-    background: "#fff", border: "1px solid #d0d0e0", color: "rgba(0,0,0,0.75)",
+    background: "var(--mat-sys-surface-container-lowest)", border: "1px solid var(--mat-sys-outline-variant)", color: "color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent)",
     borderRadius: 8, padding: "0 38px 0 16px", height: 38, width: 360,
     font: "400 15px 'Inter', sans-serif", outline: "none"
   },
   searchIcon: {
-    position: "absolute", right: 12, color: "rgba(0,0,0,0.5)",
+    position: "absolute", right: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)",
     fontSize: 22, pointerEvents: "none"
   },
   right: {
