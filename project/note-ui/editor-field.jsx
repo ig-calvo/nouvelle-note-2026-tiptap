@@ -1148,7 +1148,7 @@ function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
         {ADD_FILE_SOURCES.map(function (opt) {
           return (
             <div key={opt.key} style={afmS.item}
-              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))'; }}
+              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
               onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
               onClick={function () { onSelect(opt.key); }}>
               <span className="material-icons-outlined" style={afmS.itemIcon}>{opt.icon}</span>
@@ -1210,7 +1210,7 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
         {templates.map(function (it) {
           return (
             <div key={it.key} style={afmS.item}
-              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))'; }}
+              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
               onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
               onClick={function () { onSelect(it.noteTemplate); }}>
               <span className="material-symbols-outlined" style={afmS.itemIcon}>{it.icon}</span>
@@ -1275,7 +1275,7 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
           : diagnostics.map(function (d) {
             return (
               <div key={d.dxKey} style={afmS.item}
-                onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))'; }}
+                onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
                 onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
                 onClick={function () { onSelect(d); }}>
                 <span style={afmS.dxrefBadge}>{d.number}</span>
@@ -1366,22 +1366,24 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
 
 const ddmS = {
   panel: {
-    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)',
-    borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.20)', padding: '6px 0',
+    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-low)',
+    borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', padding: 'var(--ds-spacing-xxs) 0',
     fontFamily: "var(--font-body, 'Inter', sans-serif)", outline: 'none',
     animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
   },
-  heading: { padding: '4px 14px 6px', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' },
-  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer' },
-  itemActive: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))' },
-  itemDisabled: { opacity: 0.45, cursor: 'default' },
+  // Panneau et items alignés sur ds-popover-list : items 48 px, padding 8/12, gap 12,
+  // survol / actif = state layer on-surface 8 %, désactivé = 38 %, en-tête label-medium.
+  heading: { padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', color: 'var(--mat-sys-on-surface-variant)' },
+  item: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', minHeight: 48, padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', font: 'var(--mat-sys-body-medium)' },
+  itemActive: { background: 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)' },
+  itemDisabled: { opacity: 0.38, cursor: 'default' },
   foot: { padding: '6px 14px 2px', borderTop: '1px solid var(--mat-sys-surface-container-low)', marginTop: 4, fontSize: 11, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' }
 };
 
 const afmS = {
   panel: {
-    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)',
-    borderRadius: 12, boxShadow: '0 14px 40px rgba(37,36,94,0.20)',
+    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-low)',
+    borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
     fontFamily: "var(--font-body, 'Inter', sans-serif)",
     animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
@@ -1390,7 +1392,7 @@ const afmS = {
   iconBtn: { width: 32, height: 32, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' },
   title: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 600, color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))', fontFamily: "var(--font-head, 'Poppins', sans-serif)" },
   list: { padding: '6px 0' },
-  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
+  item: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', minHeight: 48, padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', transition: 'background var(--motion-duration) var(--motion-ease)' },
   itemIcon: { fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', flexShrink: 0 },
   itemLabel: { fontSize: 14, color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))', flex: 1 },
   itemDesc: { fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', marginTop: 1 },

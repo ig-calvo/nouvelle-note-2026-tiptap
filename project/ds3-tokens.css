@@ -11,7 +11,11 @@
   --mat-sys-primary: light-dark(#2e38a6, #b5b9e3);
   --mat-sys-on-primary: light-dark(#ffffff, #141a52);
   --mat-sys-primary-container: light-dark(#d6d9f5, #1e267b);
+  --mat-sys-secondary: light-dark(#524785, #c3bfd9);
   --mat-sys-secondary-container: light-dark(#dedbef, #3a3167);
+  --mat-sys-tertiary: light-dark(#3d6d8f, #bfced9);
+  --mat-sys-error-container: light-dark(#ecdfe0, #7a1f26);
+  --mat-sys-on-error-container: light-dark(#7a1f26, #ecdfe0);
   --mat-sys-on-secondary-container: light-dark(#3a3167, #dedbef);
   --mat-sys-surface: light-dark(#f8f7fd, #0e0e0f);
   --mat-sys-surface-container-lowest: light-dark(#ffffff, #09090a);

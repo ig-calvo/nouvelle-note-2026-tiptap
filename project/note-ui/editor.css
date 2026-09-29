@@ -47,7 +47,7 @@
 .note-field .ql-editor a:hover { text-decoration-color: currentColor; }
 
 /* Inline chips */
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: 6px; background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 500; font-size: 14px; cursor: pointer; vertical-align: baseline; white-space: nowrap; transition: background 150ms, box-shadow 150ms; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: var(--mat-sys-corner-small); background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 500; font-size: 14px; letter-spacing: var(--mat-sys-label-large-tracking); cursor: pointer; vertical-align: baseline; white-space: nowrap; transition: background var(--motion-duration) var(--motion-ease); }
 
 /* Live "/command" highlight while the slash menu is open (décoration posée
    par le plugin @tiptap/suggestion — decorationClass: 'slash-pending') */
@@ -574,8 +574,10 @@
   line-height: 1.5;
 }
 
-.chip:hover { background: rgb(222,221,255); box-shadow: var(--elev-1); }
-.chip.open { background: rgb(222,221,255); box-shadow: 0 0 0 2px rgba(46,56,166,0.14); }
+/* États DS3 (ds-chip-trigger) : survol = accent 8 %, ouvert = accent 12 % — pas d'ombre ; chip sélectionné au clavier = anneau 3 px. */
+.chip:hover { background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--brand-primary-container)); }
+.chip.open { background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--brand-primary-container)); }
+.chip.ProseMirror-selectednode { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 2px; }
 .chip .chip-icon { font-size: 14px !important; color: var(--brand-primary); }
 
 /* ============================================================
@@ -600,13 +602,13 @@
 }
 
 /* Inline order chip (℞/lab/img · Name dose · [detail box] · free text) */
-.chip--rx { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); color: var(--fg-1); border-radius: 6px; padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; box-shadow: 0 1px 2px rgba(37,36,94,0.05); }
-.chip--rx:hover { background: light-dark(#f7f7fd, #24244c); box-shadow: var(--elev-1); }
+.chip--rx { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; }
+.chip--rx:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
 /* Cessation d'une médication au dossier — distincte d'une nouvelle Rx */
-.chip--rx.chip--ceased { background: light-dark(#fbf1f1, #4c2424); border-color: #e3bcbc; }
-.chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: light-dark(#b04a4a, #deb0b0); }
-.chip--rx.chip--ceased .chip-rx-poso { color: light-dark(#a13d3d, #e0aeae); font-weight: 500; }
-.chip--rx.open { background: light-dark(#f2f1fc, #28244c); box-shadow: 0 0 0 2px rgba(46,56,166,0.14); }
+.chip--rx.chip--ceased { background: var(--mat-sys-error-container); border-color: var(--mat-sys-error); }
+.chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: var(--mat-sys-error); }
+.chip--rx.chip--ceased .chip-rx-poso { color: var(--mat-sys-on-error-container); font-weight: 500; }
+.chip--rx.open { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, var(--mat-sys-surface-container-lowest)); }
 /* Même gabarit pour les 4 types (℞ · science · radiology · person_add) : le
    caractère ℞ (police texte) et les glyphes d'icône (police symboles) n'ont
    pas la même métrique naturelle à taille égale — sans cette boîte fixe,
@@ -619,7 +621,7 @@
 .chip--rx .chip-rx-icon { font-family: var(--font-display); font-weight: 500; font-size: 16px; color: var(--mat-sys-on-surface); line-height: 1; }
 .chip--rx .chip-rx-glyph { font-size: 16px !important; line-height: 1; color: var(--mat-sys-on-surface); }
 .chip--lab .chip-rx-glyph { color: var(--mat-sys-primary); }
-.chip--img .chip-rx-glyph { color: light-dark(#7a3ec2, #c4aae4); }
+.chip--img .chip-rx-glyph { color: var(--mat-sys-tertiary); }
 .chip--rx .chip-rx-name { font-weight: 500; font-size: 14px; color: var(--fg-1); padding: 0 0 0 2px; }
 .chip--rx .chip-rx-head { display: inline; }
 /* La dose fait partie de l'en-tête « Nom dose » — cliquable pour édition inline */
@@ -640,7 +642,7 @@
 .chip--rx .chip-rx-glyph { cursor: pointer; }
 .chip--rx .chip-rx-glyph:hover { opacity: 0.75; }
 /* Referral chip accent colour */
-.chip--ref .chip-rx-glyph { color: light-dark(#2e7d32, #ade1b0); }
+.chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
 
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
@@ -648,7 +650,7 @@
 .rx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid var(--mat-sys-secondary-container); margin-bottom: 4px; }
 .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 6px; }
 .rx-item { display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
-.rx-item.is-active { background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest)); }
+.rx-item.is-active { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
 .rx-item__body { flex: 1; min-width: 0; }
 .rx-item__name { font-size: 15px; font-weight: 600; color: var(--fg-1); }
 .rx-sec-count { color: var(--fg-3); font-weight: 500; }
@@ -704,7 +706,7 @@
 .dx-sec-note { padding: 4px 16px 10px; font-size: 12px; color: var(--fg-3); }
 .dx-more { padding: 6px 16px 10px; font-size: 12px; color: var(--fg-3); font-style: italic; }
 .dx-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 110ms; }
-.dx-item.is-active { background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest)); }
+.dx-item.is-active { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
 .dx-item--branch { color: var(--fg-3); }
 .dx-item__lead { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
 .dx-item__lead .material-icons-outlined { font-size: 17px; color: var(--fg-3); }
@@ -768,7 +770,7 @@
   padding: 11px 14px; border-radius: 12px; color: color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent);
   font-family: var(--font-body); transition: background 110ms;
 }
-.addmenu-item:hover { background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest)); }
+.addmenu-item:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
 .addmenu-item .ic { font-size: 23px; color: color-mix(in srgb, var(--mat-sys-on-surface) 58%, transparent); flex-shrink: 0; }
 .addmenu-item .lbl { flex: 1; font-size: 16px; }
 .addmenu-item .kbd { font-size: 14px; color: color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent); }

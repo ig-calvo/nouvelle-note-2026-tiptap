@@ -102,20 +102,18 @@ function roChipLabel(entity) {
 }
 
 function roChipStyle(type) {
-  var isRx = type === 'prescription';
-  var isLab = type === 'lab';
-  var isImg = type === 'imaging';
-  var isRef = type === 'referral';
+  var isOrder = type === 'prescription' || type === 'lab' || type === 'imaging' || type === 'referral';
+  // Même habillage que .chip / .chip--rx (editor.css) : coin small, pas d'ombre ;
+  // ordres = fond lowest + bordure outline, autres = tonal primary.
   return {
-    display: 'inline-flex', alignItems: 'center', gap: 5,
-    padding: isRx || isLab || isImg || isRef ? '2px 8px 2px 6px' : '2px 9px 2px 7px',
-    borderRadius: isRx || isLab || isImg || isRef ? 7 : 6,
-    background: isRx || isLab || isImg || isRef ? '#fff' : 'var(--brand-primary-container, light-dark(#e8e8ff, #24244c))',
-    border: isRx || isLab || isImg || isRef ? '1px solid #b9b9d0' : '1px solid var(--brand-primary, light-dark(#3f3ec8, #a8a8e6))',
-    color: isRx || isLab || isImg || isRef ? 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' : 'var(--brand-primary, light-dark(#3f3ec8, #a8a8e6))',
+    display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)',
+    padding: isOrder ? '2px 8px 2px 6px' : '2px 9px 2px 7px',
+    borderRadius: 'var(--mat-sys-corner-small)',
+    background: isOrder ? 'var(--mat-sys-surface-container-lowest)' : 'var(--brand-primary-container)',
+    border: isOrder ? '1px solid var(--mat-sys-outline)' : '1px solid var(--brand-primary)',
+    color: isOrder ? 'var(--mat-sys-on-surface)' : 'var(--brand-primary)',
     fontSize: 14, fontWeight: 500, verticalAlign: 'baseline',
     whiteSpace: 'nowrap', margin: '0 2px', lineHeight: 1.5,
-    boxShadow: '0 1px 2px rgba(37,36,94,0.06)',
   };
 }
 
@@ -125,7 +123,7 @@ function ChipPill({ attrs, keyProp }) {
   var isPrx = type === 'prescription';
   var iconMap = { lab: 'science', imaging: 'radiology', referral: 'person_add', problem: 'flag', instructions: 'menu_book', diagnostic: 'local_hospital', file: 'attach_file' };
   var label = roChipLabel(attrs);
-  var iconColor = type === 'lab' ? '#1975d1' : type === 'imaging' ? '#7a3ec2' : type === 'referral' ? '#2e7d32' : '#25245E';
+  var iconColor = type === 'lab' ? 'var(--mat-sys-primary)' : type === 'imaging' ? 'var(--mat-sys-tertiary)' : type === 'referral' ? 'var(--mat-sys-secondary)' : 'var(--mat-sys-on-surface-variant)';
   return (
     <span key={keyProp} style={roChipStyle(type)}>
       {isPrx
