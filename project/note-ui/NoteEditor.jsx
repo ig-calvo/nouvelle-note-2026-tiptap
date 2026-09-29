@@ -1273,7 +1273,7 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
           </React.Fragment>
         ) : input ? (
           <input
-            style={{ ...neFieldStyles.input, colorScheme: 'light' }}
+            style={neFieldStyles.input}
             type={type || 'text'}
             value={value}
             onChange={handleChange}
