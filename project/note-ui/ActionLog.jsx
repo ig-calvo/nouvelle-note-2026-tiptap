@@ -22,7 +22,8 @@ function formatLogTimestamp(iso) {
 // de la police de symboles, d'où la branche à part plutôt qu'un seul <span>.
 function ActionLogIcon({ entry }) {
   if (entry.isRx) return <span className="action-log__icon action-log__icon--rx">℞</span>;
-  return <span className={'material-icons-outlined action-log__icon' + (entry.colorClass ? ' ' + entry.colorClass : '')}>{entry.icon}</span>;
+  // Police Material Symbols : « radiology » (imagerie) n'existe pas dans Material Icons Outlined.
+  return <span className={'material-symbols-outlined action-log__icon' + (entry.colorClass ? ' ' + entry.colorClass : '')}>{entry.icon}</span>;
 }
 
 // Renvoie vers l'élément source dans la note (scroll + flash bref) — pas de
