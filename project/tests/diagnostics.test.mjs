@@ -231,8 +231,10 @@ test('diagCanRefine retombe sur `level` tant que la CIM-10 n’est pas chargée'
   assert.equal(w.diagCanRefine({ code: null, level: 'category' }), false);
 });
 
-test('diagDocMenuItems : Problème désactivé si cessé ; « Non documenté » explique le sommaire selon le lien', () => {
+test('diagDocMenuItems : « Impression de diagnostic » (valeur null) en tête ; Problème désactivé si cessé ; explique le sommaire selon le lien', () => {
   const unlinked = w.diagDocMenuItems({ documentAs: null, linked: false });
+  assert.equal(unlinked[0].value, null);
+  assert.equal(unlinked[0].label, 'Impression de diagnostic');
   assert.equal(unlinked.find((i) => i.value === null).desc, 'Ne pas ajouter au sommaire');
 
   const linkedUndoc = w.diagDocMenuItems({ documentAs: null, linked: true });
