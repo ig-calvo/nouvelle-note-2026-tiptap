@@ -11,26 +11,26 @@ const { useState: useStateP, useEffect: useEffectP, useRef: useRefP } = React;
 // ─────────────────────────────────────────────────────────
 const rxS = {
   panel: { width: 600, maxWidth: 'calc(100vw - 24px)', maxHeight: 'calc(100vh - 24px)', display: 'flex', flexDirection: 'column', padding: 0 },
-  head: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid #eceef3', flexShrink: 0 },
-  rxIcon: { fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 22, fontWeight: 700, color: '#232428', width: 32, textAlign: 'center', flexShrink: 0 },
-  molName: { font: "500 15px 'Poppins', sans-serif", color: '#232428', whiteSpace: 'nowrap' },
-  ramq: { display: 'inline-flex', alignItems: 'center', gap: 3, font: "500 12px 'Inter', sans-serif", color: '#484c51', whiteSpace: 'nowrap' },
-  alertChip: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid #c3ccd5', borderRadius: 8, padding: '4px 8px', flexShrink: 0 },
-  alertBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '12px 18px 0', padding: '8px 14px', background: '#f8f7fd', border: '1px solid #c3ccd5', borderRadius: 8 },
-  pedsBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '8px 18px 0', padding: '8px 14px', background: '#f5f0fa', border: '1px solid #d9c9ea', borderRadius: 8 },
-  pedsApply: { flexShrink: 0, border: '1px solid #8a5cb8', background: '#fff', color: '#8a5cb8', borderRadius: 6, padding: '6px 12px', font: "600 12px 'Inter',sans-serif", cursor: 'pointer' },
-  closeBtn: { width: 36, height: 36, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: '#484c51', flexShrink: 0 },
+  head: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
+  rxIcon: { fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 22, fontWeight: 700, color: 'var(--mat-sys-on-surface)', width: 32, textAlign: 'center', flexShrink: 0 },
+  molName: { font: "500 15px 'Poppins', sans-serif", color: 'var(--mat-sys-on-surface)', whiteSpace: 'nowrap' },
+  ramq: { display: 'inline-flex', alignItems: 'center', gap: 3, font: "500 12px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap' },
+  alertChip: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, padding: '4px 8px', flexShrink: 0 },
+  alertBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '12px 18px 0', padding: '8px 14px', background: 'light-dark(#f8f7fd, #2b244c)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8 },
+  pedsBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '8px 18px 0', padding: '8px 14px', background: 'light-dark(#f5f0fa, #38244c)', border: '1px solid light-dark(#d9c9ea, #38244c)', borderRadius: 8 },
+  pedsApply: { flexShrink: 0, border: '1px solid light-dark(#8a5cb8, #c7b1dd)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#8a5cb8, #c7b1dd)', borderRadius: 6, padding: '6px 12px', font: "600 12px 'Inter',sans-serif", cursor: 'pointer' },
+  closeBtn: { width: 36, height: 36, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
   body: { padding: '16px 18px 4px', overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
-  sec: { font: "700 11px 'Inter', sans-serif", letterSpacing: '0.7px', textTransform: 'uppercase', color: '#2e38a6', margin: '6px 0 16px' },
+  sec: { font: "700 11px 'Inter', sans-serif", letterSpacing: '0.7px', textTransform: 'uppercase', color: 'var(--mat-sys-primary)', margin: '6px 0 16px' },
   row: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 },
-  foot: { display: 'flex', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid #eceef3', flexShrink: 0 },
-  btnCancel: { border: '1px solid #c3ccd5', background: '#fff', color: '#3a3167', borderRadius: 8, padding: '9px 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
-  btnSave: { border: 0, background: '#dedbef', color: '#3a3167', borderRadius: 8, padding: '9px 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
-  fieldWrap: { position: 'relative', border: '1.5px solid #c3ccd5', borderRadius: 8, height: 44, display: 'flex', alignItems: 'center', background: '#fff', boxSizing: 'border-box' },
-  flabel: { position: 'absolute', top: -8, left: 10, background: '#fff', padding: '0 4px', font: "500 11px 'Inter', sans-serif", color: '#6b6f76', lineHeight: '16px', pointerEvents: 'none', whiteSpace: 'nowrap' },
-  input: { border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 12px', font: "400 14px 'Inter', sans-serif", color: '#232428' },
-  select: { appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 30px 0 12px', font: "400 14px 'Inter', sans-serif", color: '#232428', cursor: 'pointer' },
-  chev: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#6b6f76', fontSize: 20 },
+  foot: { display: 'flex', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
+  btnCancel: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
+  btnSave: { border: 0, background: 'light-dark(#dedbef, #2a244c)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
+  fieldWrap: { position: 'relative', border: '1.5px solid var(--mat-sys-outline-variant)', borderRadius: 8, height: 44, display: 'flex', alignItems: 'center', background: 'var(--mat-sys-surface-container-lowest)', boxSizing: 'border-box' },
+  flabel: { position: 'absolute', top: -8, left: 10, background: 'var(--mat-sys-surface-container-lowest)', padding: '0 4px', font: "500 11px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface-variant)', lineHeight: '16px', pointerEvents: 'none', whiteSpace: 'nowrap' },
+  input: { border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 12px', font: "400 14px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface)' },
+  select: { appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 30px 0 12px', font: "400 14px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer' },
+  chev: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--mat-sys-on-surface-variant)', fontSize: 20 },
 };
 
 function _rxOpts(list, val) {
@@ -40,12 +40,12 @@ function _rxOpts(list, val) {
 function RxFF({ label, required, value, onChange, placeholder, flex, width, suffix }) {
   const [foc, setFoc] = useStateP(false);
   return (
-    <div style={Object.assign({}, rxS.fieldWrap, foc ? { borderColor: '#2e38a6' } : {}, width ? { width: width, flex: '0 0 auto' } : { flex: flex || 1 })}>
-      <span style={Object.assign({}, rxS.flabel, foc ? { color: '#2e38a6' } : {})}>{label}{required ? <span style={{ color: '#cc3340' }}> *</span> : null}</span>
+    <div style={Object.assign({}, rxS.fieldWrap, foc ? { borderColor: 'var(--mat-sys-primary)' } : {}, width ? { width: width, flex: '0 0 auto' } : { flex: flex || 1 })}>
+      <span style={Object.assign({}, rxS.flabel, foc ? { color: 'var(--mat-sys-primary)' } : {})}>{label}{required ? <span style={{ color: 'light-dark(#cc3340, #e9a5ab)' }}> *</span> : null}</span>
       <input style={rxS.input} value={value == null ? '' : value} placeholder={placeholder || ''}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onChange && onChange(e.target.value)} />
-      {suffix ? <span style={{ padding: '0 12px 0 2px', font: "400 14px 'Inter',sans-serif", color: '#484c51', whiteSpace: 'nowrap', flexShrink: 0 }}>{suffix}</span> : null}
+      {suffix ? <span style={{ padding: '0 12px 0 2px', font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap', flexShrink: 0 }}>{suffix}</span> : null}
     </div>
   );
 }
@@ -53,8 +53,8 @@ function RxSel({ label, required, value, onChange, options, placeholder, flex, w
   const [foc, setFoc] = useStateP(false);
   const opts = _rxOpts(options, value);
   return (
-    <div style={Object.assign({}, rxS.fieldWrap, foc ? { borderColor: '#2e38a6' } : {}, width ? { width: width, flex: '0 0 auto' } : { flex: flex || 1 })}>
-      <span style={Object.assign({}, rxS.flabel, foc ? { color: '#2e38a6' } : {})}>{label}{required ? <span style={{ color: '#cc3340' }}> *</span> : null}</span>
+    <div style={Object.assign({}, rxS.fieldWrap, foc ? { borderColor: 'var(--mat-sys-primary)' } : {}, width ? { width: width, flex: '0 0 auto' } : { flex: flex || 1 })}>
+      <span style={Object.assign({}, rxS.flabel, foc ? { color: 'var(--mat-sys-primary)' } : {})}>{label}{required ? <span style={{ color: 'light-dark(#cc3340, #e9a5ab)' }}> *</span> : null}</span>
       <select style={rxS.select} value={value == null ? '' : value}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onChange && onChange(e.target.value)}>
@@ -68,8 +68,8 @@ function RxSel({ label, required, value, onChange, options, placeholder, flex, w
 function RxSwitch({ on, onToggle }) {
   return (
     <button type="button" onClick={onToggle} title="Ne pas substituer"
-      style={{ width: 44, height: 24, borderRadius: 12, border: 0, background: on ? '#2e38a6' : '#c3ccd5', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 120ms' }}>
-      <span style={{ position: 'absolute', top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'left 120ms', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+      style={{ width: 44, height: 24, borderRadius: 12, border: 0, background: on ? 'var(--mat-sys-primary)' : 'var(--mat-sys-outline-variant)', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 120ms' }}>
+      <span style={{ position: 'absolute', top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'var(--mat-sys-surface-container-lowest)', transition: 'left 120ms', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
     </button>
   );
 }
@@ -81,12 +81,12 @@ function RxSourceToggle({ value, onChange }) {
     { k: 'manual', icon: 'edit', title: 'Saisie manuelle' },
   ];
   return (
-    <div style={{ display: 'inline-flex', flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid #c3ccd5' }}>
+    <div style={{ display: 'inline-flex', flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--mat-sys-outline-variant)' }}>
       {opts.map((o, i) => {
         const on = value === o.k;
         return (
           <button key={o.k} type="button" title={o.title} onClick={() => onChange && onChange(o.k)}
-            style={{ width: 42, height: 40, border: 0, borderLeft: i ? '1px solid #c3ccd5' : '0', background: on ? '#dedbef' : '#fff', color: on ? '#3a3167' : '#6b6f76', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+            style={{ width: 42, height: 40, border: 0, borderLeft: i ? '1px solid var(--mat-sys-outline-variant)' : '0', background: on ? 'light-dark(#dedbef, #2a244c)' : '#fff', color: on ? 'light-dark(#3a3167, #bab3db)' : 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
             <span className="material-icons-outlined" style={{ fontSize: 20 }}>{o.icon}</span>
           </button>
         );
@@ -135,10 +135,10 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
           <button style={rxS.closeBtn} onClick={onClose}><span className="material-icons-outlined">close</span></button>
         </div>
         <div style={rxS.alertBand}>
-          <span className="material-icons-outlined" style={{ fontSize: 20, color: '#39604d', flexShrink: 0 }}>verified_user</span>
+          <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#39604d, #b9d5c7)', flexShrink: 0 }}>verified_user</span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-            <span style={{ font: "500 14px 'Inter',sans-serif", color: '#232428' }}>Aucune alerte</span>
-            <span style={{ font: "400 12px 'Inter',sans-serif", color: '#6b6f76' }}>
+            <span style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>Aucune alerte</span>
+            <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
               Créatinine sérique : N/A&nbsp;&nbsp;·&nbsp;&nbsp;eGFR : N/A&nbsp;&nbsp;·&nbsp;&nbsp;
               Poids : {pedsW ? pedsW.kg + ' kg (pesée du ' + pedsW.weighedOn + ')' : 'N/A'}
             </span>
@@ -146,14 +146,14 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
         </div>
         {peds &&
           <div style={rxS.pedsBand}>
-            <span className="material-icons-outlined" style={{ fontSize: 20, color: '#8a5cb8', flexShrink: 0 }}>child_care</span>
+            <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#8a5cb8, #c7b1dd)', flexShrink: 0 }}>child_care</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
-              <span style={{ font: "500 13px 'Inter',sans-serif", color: '#232428' }}>
+              <span style={{ font: "500 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>
                 {peds.mgPerKg} mg/kg/dose × {pedsW.kg} kg = {Math.round(pedsCalc.raw)} mg → suggéré {pedsCalc.suggested} mg
                 {peds.freq ? ' ' + peds.freq : ''}
                 {pedsCalc.wasCapped ? ' (plafonné à la dose adulte)' : ''}
               </span>
-              <span style={{ font: "400 12px 'Inter',sans-serif", color: '#6b6f76' }}>Dose max : {peds.maxMgPerDose} mg/dose — à valider cliniquement.</span>
+              <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>Dose max : {peds.maxMgPerDose} mg/dose — à valider cliniquement.</span>
             </div>
             <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>Appliquer</button>
           </div>}
@@ -161,12 +161,12 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
           <div style={rxS.sec}>Médicament et posologie</div>
           <div style={rxS.row}>
             <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={2} />
-            <span style={rxS.ramq}>RAMQ <span className="material-icons-outlined" style={{ fontSize: 16, color: '#cc3340' }}>do_not_disturb_on</span></span>
+            <span style={rxS.ramq}>RAMQ <span className="material-icons-outlined" style={{ fontSize: 16, color: 'light-dark(#cc3340, #e9a5ab)' }}>do_not_disturb_on</span></span>
             <RxSourceToggle value={d.source || 'sub'} onChange={(v) => up('source', v)} />
           </div>
           <div style={rxS.row}>
             <RxFF label="Dose visée" required value={d.dose} onChange={(v) => up('dose', v)} suffix={d.unit || 'mg'} flex={1.2} />
-            <span className="material-icons-outlined" style={{ color: '#6b6f76', fontSize: 22, flexShrink: 0 }}>link</span>
+            <span className="material-icons-outlined" style={{ color: 'var(--mat-sys-on-surface-variant)', fontSize: 22, flexShrink: 0 }}>link</span>
             <RxFF label="Dose" value={d.qtyDose} onChange={(v) => up('qtyDose', v)} placeholder="1" flex={0.9} />
             <RxFF label="Forme et teneur" value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1.9} />
           </div>
@@ -174,8 +174,8 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
             <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={['PO', 'IM', 'IV', 'SC', 'Inhalé', 'SL', 'Top.', 'Rect.']} flex={1.2} />
             <RxSel label="Site" value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder="Site" flex={1.2} />
             <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={['DIE', 'BID', 'TID', 'QID', 'HS', 'q4-6h PRN', 'QID PRN', 'AC', 'PC']} flex={1.6} />
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 14px 'Inter',sans-serif", color: '#232428', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <input type="checkbox" checked={!!d.prn} onChange={(e) => up('prn', e.target.checked)} style={{ width: 18, height: 18, accentColor: '#2e38a6' }} />
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <input type="checkbox" checked={!!d.prn} onChange={(e) => up('prn', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--mat-sys-primary)' }} />
               PRN
             </label>
           </div>
@@ -357,7 +357,7 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
                   <div className="desc">{it.desc}</div>
                 </div>
                 {it.ctPicker || it.notePicker || it.diagRefPicker
-                  ? <span className="material-icons-outlined" style={{fontSize:16,color:'rgba(0,0,0,0.35)',marginLeft:'auto'}}>chevron_right</span>
+                  ? <span className="material-icons-outlined" style={{fontSize:16,color:'color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)',marginLeft:'auto'}}>chevron_right</span>
                   : !it.noKbd && <span className="kbd">{it.kbdNoSlash ? it.kbd : '/' + it.kbd}</span>
                 }
               </div>

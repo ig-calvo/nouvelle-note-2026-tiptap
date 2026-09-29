@@ -40,7 +40,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
       <div className="banner-collapse" style={pbStyles.collapsedCard}>
         <div style={pbStyles.collapsedLeft}>
           <span style={pbStyles.avatarSm}>
-            <span className="material-icons" style={{ color: "#8a5cb8", fontSize: 16 }}>person</span>
+            <span className="material-icons" style={{ color: "light-dark(#8a5cb8, #c7b1dd)", fontSize: 16 }}>person</span>
           </span>
           <div style={pbStyles.collapsedStack}>
             <span style={pbStyles.collapsedName}>{patientName}</span>
@@ -49,7 +49,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
               <span style={pbStyles.collapsedRamq}>{patientRamq}</span>
               <span style={pbStyles.collapsedExp}>EXP. 03/28</span>
               <span style={pbStyles.collapsedFileChip}>
-                <span className="material-icons-outlined" style={{ fontSize: 14, color: "rgba(0,0,0,0.55)" }}>folder_open</span>
+                <span className="material-icons-outlined" style={{ fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" }}>folder_open</span>
                 654189
               </span>
               <span style={pbStyles.collapsedLangChip}>FR</span>
@@ -70,11 +70,11 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>local_pharmacy</span>
           </button>
           <button style={pbStyles.consentBadge} aria-label="consentement valide">
-            <span className="material-icons" style={{ fontSize: 18, color: "#1565c0" }}>thumb_up</span>
+            <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>thumb_up</span>
           </button>
           {portalActive &&
             <button style={pbStyles.portalBadge} aria-label="portail patient actif" title="Portail patient actif">
-              <span className="material-icons" style={{ fontSize: 18, color: "#1565c0" }}>verified_user</span>
+              <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>verified_user</span>
             </button>}
           <button style={pbStyles.iconBtn} aria-label="imprimer">
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>print</span>
@@ -83,7 +83,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>description</span>
           </button>
           <button style={{ ...pbStyles.iconBtn, border: 0 }} aria-label="étendre" onClick={() => setPhase('expanded')}>
-            <span className="material-icons" style={{ ...pbStyles.iconBtnIc, color: "rgba(0,0,0,0.45)" }}>keyboard_arrow_down</span>
+            <span className="material-icons" style={{ ...pbStyles.iconBtnIc, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" }}>keyboard_arrow_down</span>
           </button>
         </div>
       </div>
@@ -98,7 +98,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
       {/* Identity */}
       <div style={pbStyles.identCol}>
         <span style={pbStyles.avatar}>
-          <span className="material-icons" style={{ color: "#8a5cb8", fontSize: 22 }}>person</span>
+          <span className="material-icons" style={{ color: "light-dark(#8a5cb8, #c7b1dd)", fontSize: 22 }}>person</span>
         </span>
         <div data-comment-anchor="8227936f7b-div-10-9" style={{ flex: 1 }}>
           <div style={pbStyles.name}>{patientName}</div>
@@ -109,7 +109,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
           </div>
           <div style={pbStyles.fileRow}>
             <span style={pbStyles.fileChip}>
-              <span className="material-icons-outlined" style={{ fontSize: 16, color: "rgba(0,0,0,0.6)" }}>folder_open</span>
+              <span className="material-icons-outlined" style={{ fontSize: 16, color: "color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)" }}>folder_open</span>
               654189
             </span>
             <span style={pbStyles.langChip}>FR</span>
@@ -172,12 +172,12 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
       {/* Consentement + portail patient */}
       <div style={pbStyles.statusStack}>
         <div style={pbStyles.statusRow}>
-          <span className="material-icons" style={{ fontSize: 20, color: "#39ab49" }}>thumb_up</span>
+          <span className="material-icons" style={{ fontSize: 20, color: "light-dark(#39ab49, #abe3b3)" }}>thumb_up</span>
           <span style={pbStyles.consentText}>Consentement valide</span>
         </div>
         {portalActive &&
           <div style={pbStyles.statusRow}>
-            <span className="material-icons" style={{ fontSize: 18, color: "#1565c0" }}>verified_user</span>
+            <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>verified_user</span>
             <span style={pbStyles.portalText}>Portail patient actif</span>
           </div>}
       </div>
@@ -188,7 +188,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
 
 const pbStyles = {
   card: {
-    background: "#fff", borderRadius: 8,
+    background: "var(--mat-sys-surface-container-lowest)", borderRadius: 8,
     boxShadow: "0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)",
     fontFamily: "'Inter', sans-serif",
     padding: "16px 18px",
@@ -196,50 +196,50 @@ const pbStyles = {
     position: "relative",
   },
   identCol: { display: "flex", gap: 12, flex: 1, minWidth: 220 },
-  avatar: { width: 34, height: 34, borderRadius: "50%", background: "#ece3f5", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 },
-  name: { fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 17, color: "rgba(0,0,0,0.88)" },
-  sub: { fontSize: 13, color: "rgba(0,0,0,0.55)", marginTop: 1 },
+  avatar: { width: 34, height: 34, borderRadius: "50%", background: "var(--mat-sys-secondary-container)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 },
+  name: { fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 17, color: "color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)" },
+  sub: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)", marginTop: 1 },
   ramqRow: { display: "flex", alignItems: "center", gap: 8, marginTop: 5 },
-  ramq: { fontSize: 13, color: "rgba(0,0,0,0.8)", fontWeight: 600, letterSpacing: 0.3, fontVariantNumeric: "tabular-nums" },
-  exp: { fontSize: 12, color: "#d32f2f", fontWeight: 600, letterSpacing: 0.3 },
+  ramq: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)", fontWeight: 600, letterSpacing: 0.3, fontVariantNumeric: "tabular-nums" },
+  exp: { fontSize: 12, color: "light-dark(#d32f2f, #e9a5a5)", fontWeight: 600, letterSpacing: 0.3 },
   fileRow: { display: "flex", alignItems: "center", gap: 8, marginTop: 8 },
-  fileChip: { display: "inline-flex", alignItems: "center", gap: 5, border: "1px solid #e0e0e0", borderRadius: 6, padding: "3px 9px", fontSize: 13, color: "rgba(0,0,0,0.7)" },
-  langChip: { border: "1px solid #e0e0e0", borderRadius: 6, padding: "3px 9px", fontSize: 13, color: "rgba(0,0,0,0.7)", fontWeight: 500 },
+  fileChip: { display: "inline-flex", alignItems: "center", gap: 5, border: "1px solid var(--mat-sys-outline-variant)", borderRadius: 6, padding: "3px 9px", fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)" },
+  langChip: { border: "1px solid var(--mat-sys-outline-variant)", borderRadius: 6, padding: "3px 9px", fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)", fontWeight: 500 },
   contactCol: { display: "flex", flexDirection: "column", gap: 8, width: 280, flexShrink: 0, paddingTop: 2 },
   clinicCol: { display: "flex", flexDirection: "column", gap: 10, flex: 1, minWidth: 240, paddingTop: 2 },
   contactRow: { display: "flex", alignItems: "center", gap: 8 },
-  contactIcon: { fontSize: 20, color: "rgba(0,0,0,0.5)", flexShrink: 0, alignSelf: "flex-start", marginTop: 1 },
-  muted: { fontSize: 13, color: "rgba(0,0,0,0.55)" },
-  link: { fontSize: 13, color: "#1975d1", fontWeight: 500 },
-  email: { fontSize: 13, color: "#1975d1", fontWeight: 500 },
-  greenCheck: { fontSize: 16, color: "#39ab49" },
-  clinicName: { fontSize: 14, color: "rgba(0,0,0,0.82)", fontWeight: 500 },
+  contactIcon: { fontSize: 20, color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)", flexShrink: 0, alignSelf: "flex-start", marginTop: 1 },
+  muted: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" },
+  link: { fontSize: 13, color: "var(--mat-sys-primary)", fontWeight: 500 },
+  email: { fontSize: 13, color: "var(--mat-sys-primary)", fontWeight: 500 },
+  greenCheck: { fontSize: 16, color: "light-dark(#39ab49, #abe3b3)" },
+  clinicName: { fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", fontWeight: 500 },
   addrRow: { display: "flex", alignItems: "center", gap: 6 },
-  sendIcon: { fontSize: 16, color: "#1975d1" },
+  sendIcon: { fontSize: 16, color: "var(--mat-sys-primary)" },
   statusStack: { position: "absolute", bottom: 14, right: 18, display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 },
   statusRow: { display: "flex", alignItems: "center", gap: 8 },
-  consentText: { fontSize: 14, color: "#2e7d32", fontWeight: 500 },
-  portalText: { fontSize: 13, color: "#1565c0", fontWeight: 500 },
+  consentText: { fontSize: 14, color: "light-dark(#2e7d32, #ade1b0)", fontWeight: 500 },
+  portalText: { fontSize: 13, color: "var(--mat-sys-primary)", fontWeight: 500 },
   actions: { display: "flex", alignItems: "center", gap: 6, flexShrink: 0 },
   calBtn: { width: 40, height: 40, borderRadius: 8, border: 0, background: "#23235a", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
   ghostBtn: { width: 40, height: 40, borderRadius: 8, border: 0, background: "transparent", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
-  ghostIcon: { fontSize: 24, color: "rgba(0,0,0,0.55)" },
-  collapsedCard: { background: "#fff", borderRadius: 8, boxShadow: "0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)", fontFamily: "'Inter', sans-serif", padding: "10px 16px", display: "flex", alignItems: "center", gap: 16 },
+  ghostIcon: { fontSize: 24, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" },
+  collapsedCard: { background: "var(--mat-sys-surface-container-lowest)", borderRadius: 8, boxShadow: "0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)", fontFamily: "'Inter', sans-serif", padding: "10px 16px", display: "flex", alignItems: "center", gap: 16 },
   collapsedLeft: { display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 },
-  avatarSm: { width: 28, height: 28, borderRadius: "50%", background: "#ece3f5", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  avatarSm: { width: 28, height: 28, borderRadius: "50%", background: "var(--mat-sys-secondary-container)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   collapsedStack: { display: "flex", flexDirection: "column", gap: 3, minWidth: 0 },
   collapsedMeta: { display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  collapsedName: { fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 14, color: "rgba(0,0,0,0.88)", whiteSpace: "nowrap" },
-  collapsedSub: { fontSize: 13, color: "rgba(0,0,0,0.55)", whiteSpace: "nowrap" },
-  collapsedRamq: { fontSize: 13, fontWeight: 700, color: "rgba(0,0,0,0.8)", letterSpacing: 0.3, whiteSpace: "nowrap" },
-  collapsedExp: { fontSize: 12, color: "rgba(0,0,0,0.45)", fontWeight: 600, letterSpacing: 0.2, whiteSpace: "nowrap" },
-  collapsedFileChip: { display: "inline-flex", alignItems: "center", gap: 4, border: "1px solid #e0e0e0", borderRadius: 6, padding: "2px 8px", fontSize: 13, color: "rgba(0,0,0,0.7)", whiteSpace: "nowrap" },
-  collapsedLangChip: { border: "1px solid #e0e0e0", borderRadius: 6, padding: "2px 8px", fontSize: 13, color: "rgba(0,0,0,0.7)", fontWeight: 500, whiteSpace: "nowrap" },
+  collapsedName: { fontFamily: "'Poppins',sans-serif", fontWeight: 700, fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)", whiteSpace: "nowrap" },
+  collapsedSub: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)", whiteSpace: "nowrap" },
+  collapsedRamq: { fontSize: 13, fontWeight: 700, color: "color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)", letterSpacing: 0.3, whiteSpace: "nowrap" },
+  collapsedExp: { fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)", fontWeight: 600, letterSpacing: 0.2, whiteSpace: "nowrap" },
+  collapsedFileChip: { display: "inline-flex", alignItems: "center", gap: 4, border: "1px solid var(--mat-sys-outline-variant)", borderRadius: 6, padding: "2px 8px", fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)", whiteSpace: "nowrap" },
+  collapsedLangChip: { border: "1px solid var(--mat-sys-outline-variant)", borderRadius: 6, padding: "2px 8px", fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)", fontWeight: 500, whiteSpace: "nowrap" },
   collapsedActions: { display: "flex", alignItems: "center", gap: 4, flexShrink: 0 },
-  iconBtn: { width: 34, height: 34, borderRadius: 7, border: "1px solid #e5e5e5", background: "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
-  iconBtnIc: { fontSize: 20, color: "rgba(0,0,0,0.55)" },
-  consentBadge: { width: 34, height: 34, borderRadius: 7, border: "1.5px solid #1565c0", background: "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
-  portalBadge: { width: 34, height: 34, borderRadius: 7, border: "1.5px solid #1565c0", background: "#fff", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: 34, height: 34, borderRadius: 7, border: "1px solid var(--mat-sys-outline-variant)", background: "var(--mat-sys-surface-container-lowest)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
+  iconBtnIc: { fontSize: 20, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" },
+  consentBadge: { width: 34, height: 34, borderRadius: 7, border: "1.5px solid var(--mat-sys-primary)", background: "var(--mat-sys-surface-container-lowest)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
+  portalBadge: { width: 34, height: 34, borderRadius: 7, border: "1.5px solid var(--mat-sys-primary)", background: "var(--mat-sys-surface-container-lowest)", cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" },
 };
 
 window.PatientBanner = PatientBanner;

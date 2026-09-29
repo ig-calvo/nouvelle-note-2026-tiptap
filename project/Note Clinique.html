@@ -18,22 +18,24 @@
 </script>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 <style>
-  /* DS3 token bridge — needed by editor components */
+  /* DS3 token bridge — needed by editor components. Chaque alias historique
+     pointe sur le rôle DS3 correspondant (ds3-tokens.css), donc suit le mode
+     clair / sombre sans que les composants n'en aient conscience. */
   :root {
-    --brand-primary: rgb(46, 56, 166);
-    --brand-primary-hover: rgb(41, 52, 166);
-    --brand-primary-container: rgb(229, 226, 243);
-    --surface-2: #fff;
-    --surface-1: rgb(252,252,253);
-    --fg-1: rgb(13,13,26);
-    --fg-2: rgb(50,49,53);
-    --fg-3: rgb(74,73,80);
-    --fg-4: rgb(107,107,107);
-    --bg-alt: rgb(250,250,252);
-    --bg-subtle: rgb(245,245,250);
-    --border-default: rgb(180,180,180);
-    --border-subtle: rgb(217,217,217);
-    --divider: rgb(229,226,243);
+    --brand-primary: var(--mat-sys-primary);
+    --brand-primary-hover: light-dark(rgb(41, 52, 166), #cfd2ee);
+    --brand-primary-container: var(--mat-sys-primary-container);
+    --surface-2: var(--mat-sys-surface-container-lowest);
+    --surface-1: var(--mat-sys-surface-container-low);
+    --fg-1: var(--mat-sys-on-surface);
+    --fg-2: var(--mat-sys-on-surface);
+    --fg-3: var(--mat-sys-on-surface-variant);
+    --fg-4: light-dark(rgb(107,107,107), #adabba);
+    --bg-alt: var(--mat-sys-surface-container-low);
+    --bg-subtle: var(--mat-sys-surface-container);
+    --border-default: var(--mat-sys-outline);
+    --border-subtle: var(--mat-sys-outline-variant);
+    --divider: var(--mat-sys-outline-variant);
     --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px;
     --elev-1: 0 1px 2px 0 rgba(37,36,94,0.12);
     --elev-2: 0 2px 6px -1px rgba(37,36,94,0.14), 0 1px 2px 0 rgba(37,36,94,0.12);
@@ -44,10 +46,10 @@
     --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
     --motion-ease: cubic-bezier(0.2, 0, 0, 1);
   }
-  html, body { margin: 0; padding: 0; background: #eef0f3; font-family: 'Inter', sans-serif; height: 100%; }
+  html, body { margin: 0; padding: 0; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); font-family: 'Inter', sans-serif; height: 100%; }
   * { box-sizing: border-box; }
   #root { height: 100vh; overflow: auto; }
-  .app { display: flex; flex-direction: column; height: 100vh; min-width: 1180px; background: #f4f5f7; overflow: hidden; }
+  .app { display: flex; flex-direction: column; height: 100vh; min-width: 1180px; background: var(--mat-sys-surface); overflow: hidden; }
   .main-row { display: flex; flex: 1; min-height: 0; }
   .content {
     flex: 1;
@@ -57,7 +59,7 @@
     gap: 16px;
     min-width: 0;
     overflow: hidden;
-    background: #f4f5f7;
+    background: var(--mat-sys-surface);
     align-items: stretch;
   }
   /* Colonne centrale : bannière patient épinglée + zone défilante.
@@ -286,11 +288,11 @@
 (function () {
   function showBanner(message) {
     var div = document.createElement('div');
-    div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;padding:32px;font-family:sans-serif;text-align:center;';
+    div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--mat-sys-surface-container-lowest);display:flex;align-items:center;justify-content:center;padding:32px;font-family:sans-serif;text-align:center;';
     div.innerHTML =
-      '<div style="max-width:480px;"><h2 style="color:#b3261e;margin-bottom:8px;">Le prototype n’a pas pu charger Tiptap</h2>' +
-      '<p style="color:#444;margin-bottom:6px;">' + String(message).replace(/</g, '&lt;') + '</p>' +
-      '<p style="color:#777;font-size:13px;">Vérifiez votre connexion internet (esm.sh) et rechargez la page.</p></div>';
+      '<div style="max-width:480px;"><h2 style="color:light-dark(#b3261e, #e9a9a5);margin-bottom:8px;">Le prototype n’a pas pu charger Tiptap</h2>' +
+      '<p style="color:var(--mat-sys-on-surface);margin-bottom:6px;">' + String(message).replace(/</g, '&lt;') + '</p>' +
+      '<p style="color:var(--mat-sys-on-surface-variant);font-size:13px;">Vérifiez votre connexion internet (esm.sh) et rechargez la page.</p></div>';
     (document.body || document.documentElement).appendChild(div);
   }
   window.addEventListener('tiptap:error', function (e) {
@@ -314,7 +316,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "ftBarPosition": "haut",
   "reviewingMode": false,
   "reviewAuthor": "me",
-  "checkoutSuggestions": false
+  "checkoutSuggestions": false,
+  "themeMode": "clair"
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -327,11 +330,11 @@ class AppErrorBoundary extends React.Component {
   render() {
     if (this.state.error) {
       return (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: 'sans-serif', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'var(--mat-sys-surface-container-lowest)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: 'sans-serif', textAlign: 'center' }}>
           <div style={{ maxWidth: 480 }}>
-            <h2 style={{ color: '#b3261e', marginBottom: 8 }}>Le prototype a rencontré une erreur</h2>
-            <p style={{ color: '#444', marginBottom: 6 }}>{String(this.state.error && this.state.error.message || this.state.error)}</p>
-            <p style={{ color: '#777', fontSize: 13 }}>Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.</p>
+            <h2 style={{ color: 'light-dark(#b3261e, #e9a9a5)', marginBottom: 8 }}>Le prototype a rencontré une erreur</h2>
+            <p style={{ color: 'var(--mat-sys-on-surface)', marginBottom: 6 }}>{String(this.state.error && this.state.error.message || this.state.error)}</p>
+            <p style={{ color: 'var(--mat-sys-on-surface-variant)', fontSize: 13 }}>Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.</p>
           </div>
         </div>
       );
@@ -358,6 +361,15 @@ function docPillStyle(done) {
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  // Mode clair / sombre : mêmes classes que le DS (omnimed-light / omnimed-dark
+  // sur <html>) — elles posent `color-scheme`, ce qui retourne tous les jetons.
+  React.useEffect(function () {
+    var root = document.documentElement;
+    var dark = t.themeMode === 'sombre';
+    root.classList.toggle('omnimed-dark', dark);
+    root.classList.toggle('omnimed-light', !dark);
+  }, [t.themeMode]);
   const [navCollapsed, setNavCollapsed] = React.useState(function () {
     return window.innerWidth <= 1500;
   });
@@ -536,6 +548,13 @@ function App() {
         <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
         <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général" />
+        <TweakRadio label="Mode"
+                    value={t.themeMode || 'clair'}
+                    options={[
+                      { value: 'clair', label: 'Clair' },
+                      { value: 'sombre', label: 'Sombre' },
+                    ]}
+                    onChange={(v) => setTweak('themeMode', v)} />
         <TweakToggle label="Outils cliniques" value={t.showClinicalTools !== false}
                      onChange={(v) => setTweak('showClinicalTools', v)} />
         <TweakToggle label="Portail patient actif" value={t.portalActive !== false}

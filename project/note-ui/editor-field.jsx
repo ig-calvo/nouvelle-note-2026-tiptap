@@ -460,7 +460,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   var MOCK_PHOTO_URL = 'data:image/svg+xml;utf8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200">' +
     '<rect width="900" height="1200" fill="#eef0f6"/>' +
-    '<rect x="60" y="60" width="780" height="1080" fill="#fff" stroke="#c9c9d6" stroke-width="2"/>' +
+    '<rect x="60" y="60" width="780" height="1080" fill="#fff" stroke="var(--mat-sys-outline-variant)" stroke-width="2"/>' +
     '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">Photo reçue</text>' +
     '</svg>'
   );
@@ -835,7 +835,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               title="Plus d'options"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => { cancelChipMenuClose(); setChipMore({ cid: chipMenu.cid, rect: chipMenu.rect }); setChipMenu(null); }}>
-              <span className="material-icons-outlined" style={{ fontSize: 20, color: '#303336' }}>more_vert</span>
+              <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>more_vert</span>
             </button>
           </div>
         );
@@ -857,7 +857,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               <div style={cmS.confirmHead}>
                 <span style={cmS.confirmTitle}>Supprimer {noun}&nbsp;?</span>
                 <button style={cmS.confirmClose} title="Annuler" onClick={() => setChipDelete(null)}>
-                  <span className="material-icons" style={{ fontSize: 20, color: 'rgba(0,0,0,0.5)' }}>close</span>
+                  <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
               <p style={cmS.confirmBody}>
@@ -884,19 +884,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const W = 220;
         const top = r.bottom + 8;
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
-        const item = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 0, background: 'transparent', borderRadius: 8, padding: '9px 12px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: '#303336', textAlign: 'left' };
+        const item = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 0, background: 'transparent', borderRadius: 8, padding: '9px 12px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', textAlign: 'left' };
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipMore(null)} />
-            <div style={{ position: 'fixed', top: top, left: left, width: W, zIndex: 210, background: '#fff', border: '1px solid #e2e2ec', borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.22)', padding: 6, fontFamily: "'Inter',sans-serif", animation: 'pop-in 130ms ease-out' }}>
+            <div style={{ position: 'fixed', top: top, left: left, width: W, zIndex: 210, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.22)', padding: 6, fontFamily: "'Inter',sans-serif", animation: 'pop-in 130ms ease-out' }}>
               <button style={item} onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4fb'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { keepChipAsText(chipMore.cid); setChipMore(null); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 20, color: '#5b5f66' }}>notes</span>
+                <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>notes</span>
                 Convertir en texte
               </button>
-              <button style={Object.assign({}, item, { color: '#ba1a1a' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+              <button style={Object.assign({}, item, { color: 'light-dark(#ba1a1a, #e9a5a5)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { setChipDelete({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 20, color: '#ba1a1a' }}>delete</span>
+                <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#ba1a1a, #e9a5a5)' }}>delete</span>
                 Supprimer
               </button>
             </div>
@@ -1051,43 +1051,43 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 // Styles du menu de survol des chips (bouton segmenté Material 3) + confirmation
 const cmS = {
   bar: {
-    display: 'inline-flex', alignItems: 'center', background: '#fff',
+    display: 'inline-flex', alignItems: 'center', background: 'var(--mat-sys-surface-container-lowest)',
     borderRadius: 8, boxShadow: '0 4px 14px rgba(37,36,94,0.16)',
     fontFamily: "'Inter', sans-serif", userSelect: 'none'
   },
   segStart: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     height: 40, padding: '0 14px', boxSizing: 'border-box',
-    border: '1px solid #c3ccd5', borderRadius: '8px 0 0 8px',
-    background: '#fff', cursor: 'pointer',
-    font: "500 14px 'Inter',sans-serif", color: '#303336', letterSpacing: 0.25
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: '8px 0 0 8px',
+    background: 'var(--mat-sys-surface-container-lowest)', cursor: 'pointer',
+    font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', letterSpacing: 0.25
   },
   segMid: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
     height: 40, padding: '0 14px', marginLeft: -1, boxSizing: 'border-box',
-    border: '1px solid #c3ccd5', borderRadius: 0,
-    background: '#fff', cursor: 'pointer',
-    font: "500 14px 'Inter',sans-serif", color: '#303336', letterSpacing: 0.25
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 0,
+    background: 'var(--mat-sys-surface-container-lowest)', cursor: 'pointer',
+    font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', letterSpacing: 0.25
   },
   segEnd: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     height: 40, width: 44, marginLeft: -1, boxSizing: 'border-box',
-    border: '1px solid #c3ccd5', borderRadius: '0 8px 8px 0',
-    background: '#fff', cursor: 'pointer'
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: '0 8px 8px 0',
+    background: 'var(--mat-sys-surface-container-lowest)', cursor: 'pointer'
   },
   confirm: {
-    background: '#fff', border: '1px solid #e2e2ec', borderRadius: 12,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 12,
     boxShadow: '0 14px 40px rgba(37,36,94,0.22)', padding: '14px 16px 16px',
     fontFamily: "'Inter', sans-serif", animation: 'pop-in 130ms ease-out'
   },
   confirmHead: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
-  confirmTitle: { font: "600 15px 'Poppins',sans-serif", color: 'rgba(0,0,0,0.85)' },
+  confirmTitle: { font: "600 15px 'Poppins',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
   confirmClose: { border: 0, background: 'transparent', cursor: 'pointer', padding: 0, display: 'inline-flex', marginTop: -2 },
-  confirmBody: { fontSize: 13, color: 'rgba(0,0,0,0.6)', lineHeight: 1.45, margin: '8px 0 14px' },
+  confirmBody: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', lineHeight: 1.45, margin: '8px 0 14px' },
   confirmActions: { display: 'flex', gap: 8, justifyContent: 'flex-end' },
   btnKeep: {
-    border: '1px solid #d0d0e0', borderRadius: 8, background: '#fff',
-    padding: '8px 14px', cursor: 'pointer', font: "600 13px 'Inter',sans-serif", color: '#25245E'
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)',
+    padding: '8px 14px', cursor: 'pointer', font: "600 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)'
   },
   btnDelete: {
     border: 0, borderRadius: 8, background: '#ba1a1a',
@@ -1148,7 +1148,7 @@ function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
         {ADD_FILE_SOURCES.map(function (opt) {
           return (
             <div key={opt.key} style={afmS.item}
-              onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
               onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
               onClick={function () { onSelect(opt.key); }}>
               <span className="material-icons-outlined" style={afmS.itemIcon}>{opt.icon}</span>
@@ -1210,7 +1210,7 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
         {templates.map(function (it) {
           return (
             <div key={it.key} style={afmS.item}
-              onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+              onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
               onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
               onClick={function () { onSelect(it.noteTemplate); }}>
               <span className="material-symbols-outlined" style={afmS.itemIcon}>{it.icon}</span>
@@ -1271,11 +1271,11 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
       </div>
       <div style={afmS.list}>
         {(diagnostics || []).length === 0
-          ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
+          ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
           : diagnostics.map(function (d) {
             return (
               <div key={d.dxKey} style={afmS.item}
-                onMouseEnter={function (e) { e.currentTarget.style.background = '#eef1fb'; }}
+                onMouseEnter={function (e) { e.currentTarget.style.background = 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)'; }}
                 onMouseLeave={function (e) { e.currentTarget.style.background = 'transparent'; }}
                 onClick={function () { onSelect(d); }}>
                 <span style={afmS.dxrefBadge}>{d.number}</span>
@@ -1350,12 +1350,12 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
             onMouseDown={function (e) { e.preventDefault(); }}
             onClick={function () { pick(i); }}
             style={Object.assign({}, ddmS.item, it.disabled ? ddmS.itemDisabled : {}, (i === active && !it.disabled) ? ddmS.itemActive : {})}>
-            <span className="material-icons-outlined" style={{ fontSize: 18, color: it.selected ? '#1a5fd4' : 'rgba(0,0,0,0.5)', flexShrink: 0 }}>{it.icon}</span>
+            <span className="material-icons-outlined" style={{ fontSize: 18, color: it.selected ? 'var(--mat-sys-primary)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', flexShrink: 0 }}>{it.icon}</span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: it.selected ? 600 : 400, color: 'rgba(0,0,0,0.85)' }}>{it.label}</div>
-              <div style={{ fontSize: 11.5, color: 'rgba(0,0,0,0.5)' }}>{it.desc}</div>
+              <div style={{ fontSize: 13.5, fontWeight: it.selected ? 600 : 400, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' }}>{it.label}</div>
+              <div style={{ fontSize: 11.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>{it.desc}</div>
             </span>
-            {it.selected && <span className="material-icons-outlined" style={{ fontSize: 16, color: '#1a5fd4', flexShrink: 0 }}>check</span>}
+            {it.selected && <span className="material-icons-outlined" style={{ fontSize: 16, color: 'var(--mat-sys-primary)', flexShrink: 0 }}>check</span>}
           </div>
         );
       })}
@@ -1366,34 +1366,36 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
 
 const ddmS = {
   panel: {
-    position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
-    borderRadius: 10, boxShadow: '0 14px 40px rgba(37,36,94,0.20)', padding: '6px 0',
+    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-low)',
+    borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', padding: 'var(--ds-spacing-xxs) 0',
     fontFamily: "var(--font-body, 'Inter', sans-serif)", outline: 'none',
     animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
   },
-  heading: { padding: '4px 14px 6px', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(0,0,0,0.4)' },
-  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', cursor: 'pointer' },
-  itemActive: { background: '#eef1fb' },
-  itemDisabled: { opacity: 0.45, cursor: 'default' },
-  foot: { padding: '6px 14px 2px', borderTop: '1px solid #f0f0f6', marginTop: 4, fontSize: 11, color: 'rgba(0,0,0,0.4)' }
+  // Panneau et items alignés sur ds-popover-list : items 48 px, padding 8/12, gap 12,
+  // survol / actif = state layer on-surface 8 %, désactivé = 38 %, en-tête label-medium.
+  heading: { padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', color: 'var(--mat-sys-on-surface-variant)' },
+  item: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', minHeight: 48, padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', font: 'var(--mat-sys-body-medium)' },
+  itemActive: { background: 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)' },
+  itemDisabled: { opacity: 0.38, cursor: 'default' },
+  foot: { padding: '6px 14px 2px', borderTop: '1px solid var(--mat-sys-surface-container-low)', marginTop: 4, fontSize: 11, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' }
 };
 
 const afmS = {
   panel: {
-    position: 'fixed', zIndex: 3000, background: '#fff', border: '1px solid #ececf2',
-    borderRadius: 12, boxShadow: '0 14px 40px rgba(37,36,94,0.20)',
+    position: 'fixed', zIndex: 3000, background: 'var(--mat-sys-surface-container-low)',
+    borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
     fontFamily: "var(--font-body, 'Inter', sans-serif)",
     animation: 'medmenu-in 140ms var(--motion-ease, cubic-bezier(0.2,0,0,1))'
   },
-  header: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid #f0f0f6', flexShrink: 0 },
-  iconBtn: { width: 32, height: 32, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(0,0,0,0.45)' },
-  title: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 600, color: 'var(--fg-1, rgba(0,0,0,0.82))', fontFamily: "var(--font-head, 'Poppins', sans-serif)" },
+  header: { display: 'flex', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid var(--mat-sys-surface-container-low)', flexShrink: 0 },
+  iconBtn: { width: 32, height: 32, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' },
+  title: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: 600, color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))', fontFamily: "var(--font-head, 'Poppins', sans-serif)" },
   list: { padding: '6px 0' },
-  item: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', cursor: 'pointer', transition: 'background 110ms' },
-  itemIcon: { fontSize: 20, color: 'rgba(0,0,0,0.5)', flexShrink: 0 },
-  itemLabel: { fontSize: 14, color: 'var(--fg-1, rgba(0,0,0,0.82))', flex: 1 },
-  itemDesc: { fontSize: 12, color: 'var(--fg-3, rgba(0,0,0,0.5))', marginTop: 1 },
+  item: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', minHeight: 48, padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', transition: 'background var(--motion-duration) var(--motion-ease)' },
+  itemIcon: { fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', flexShrink: 0 },
+  itemLabel: { fontSize: 14, color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))', flex: 1 },
+  itemDesc: { fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', marginTop: 1 },
   dxrefBadge: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 18, height: 18, borderRadius: '50%', background: '#000', color: '#fff',
@@ -1404,7 +1406,7 @@ const afmS = {
   // quand même être repris par un renvoi (il reste dans la note).
   ceasedTag: {
     fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
-    color: '#7a1f26', background: '#ecdfe0', borderRadius: 4, padding: '2px 6px', flexShrink: 0
+    color: 'light-dark(#7a1f26, #e8a6ab)', background: 'light-dark(#ecdfe0, #462a2c)', borderRadius: 4, padding: '2px 6px', flexShrink: 0
   }
 };
 

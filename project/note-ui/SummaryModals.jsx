@@ -56,7 +56,7 @@ function PrefToggle({ label, value, onChange }) {
   return (
     <div style={smS.prefRow}>
       <span style={smS.prefLabel}>{label}</span>
-      <button style={{ ...smS.toggle, background: value ? '#1975d1' : '#ccc' }} onClick={function(){ onChange(!value); }}>
+      <button style={{ ...smS.toggle, background: value ? 'var(--mat-sys-primary)' : 'var(--mat-sys-outline-variant)' }} onClick={function(){ onChange(!value); }}>
         <span style={{ ...smS.toggleThumb, left: value ? 22 : 3 }} />
       </button>
     </div>
@@ -76,14 +76,14 @@ function SearchBox({ value, onChange, placeholder, suggestions, onSelect, noneBt
   return (
     <div style={{ position:'relative' }}>
       <div style={smS.searchBox}>
-        <span className="material-icons" style={{ fontSize:18, color:'rgba(0,0,0,0.4)', marginRight:6 }}>search</span>
+        <span className="material-icons" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', marginRight:6 }}>search</span>
         <input style={smS.searchInner} value={value}
           onChange={function(e){ onChange(e.target.value); setOpen(true); }}
           onBlur={function(){ setTimeout(function(){ setOpen(false); }, 160); }}
           placeholder={placeholder||'Rechercher…'} />
         {noneBtn && (
           <button style={smS.noneBtn} title="Ajouter la mention Aucun" onClick={function(){ noneBtn(); }}>
-            <span className="material-icons-outlined" style={{ fontSize:18, color:'#1975d1' }}>block</span>
+            <span className="material-icons-outlined" style={{ fontSize:18, color:'var(--mat-sys-primary)' }}>block</span>
           </button>
         )}
       </div>
@@ -227,7 +227,7 @@ function VitalsAddModal({ onClose, onAdd }) {
       <VRow label="Date d'observation :">
         <div style={{ ...smS.searchBox, width:160, gap:6 }}>
           <input style={smS.searchInner} value={obsDate} onChange={function(e){ setObsDate(e.target.value); }} />
-          <span className="material-icons-outlined" style={{ fontSize:18, color:'rgba(0,0,0,0.45)' }}>calendar_today</span>
+          <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
         <input style={{ ...vStyles.vInput, width:80, marginLeft:8 }} value={obsTime} onChange={function(e){ setObsTime(e.target.value); }} placeholder="hh:mm" />
       </VRow>
@@ -276,12 +276,12 @@ function VitalsAddModal({ onClose, onAdd }) {
       <div style={vStyles.sectionHead}>Indicateurs calculés</div>
       <div style={vStyles.sectionBody}>
         <VRow label="IMC :">
-          <span className="material-icons" style={{ fontSize:20, color:'#1975d1', marginRight:8 }}>info</span>
-          {bmi && <span style={{ fontSize:14, fontWeight:700, color:'#25245E' }}>{bmi}</span>}
+          <span className="material-icons" style={{ fontSize:20, color:'var(--mat-sys-primary)', marginRight:8 }}>info</span>
+          {bmi && <span style={{ fontSize:14, fontWeight:700, color:'var(--mat-sys-on-surface)' }}>{bmi}</span>}
         </VRow>
         <VRow label="Surface corporelle :">
-          <span className="material-icons" style={{ fontSize:20, color:'#1975d1', marginRight:8 }}>info</span>
-          {bsa && <span style={{ fontSize:14, fontWeight:700, color:'#25245E', marginRight:6 }}>{bsa}</span>}
+          <span className="material-icons" style={{ fontSize:20, color:'var(--mat-sys-primary)', marginRight:8 }}>info</span>
+          {bsa && <span style={{ fontSize:14, fontWeight:700, color:'var(--mat-sys-on-surface)', marginRight:6 }}>{bsa}</span>}
           <VUnit>m²</VUnit>
         </VRow>
       </div>
@@ -297,18 +297,18 @@ function VitalsAddModal({ onClose, onAdd }) {
 }
 
 var vStyles = {
-  vRow:{ display:'flex', alignItems:'center', padding:'6px 0', borderBottom:'1px solid #f2f2f2', gap:6 },
-  vLabel:{ width:200, flexShrink:0, fontSize:14, color:'rgba(0,0,0,0.72)' },
+  vRow:{ display:'flex', alignItems:'center', padding:'6px 0', borderBottom:'1px solid var(--mat-sys-outline-variant)', gap:6 },
+  vLabel:{ width:200, flexShrink:0, fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)' },
   vControls:{ display:'flex', alignItems:'center', gap:4, flex:1 },
-  vInput:{ border:'1px solid #c8c8d0', borderRadius:4, padding:'5px 8px', fontSize:14, fontFamily:"'Inter',sans-serif", color:'rgba(0,0,0,0.75)', width:110, textAlign:'right' },
-  vUnit:{ fontSize:14, color:'rgba(0,0,0,0.55)', flexShrink:0 },
-  vSelect:{ border:'1px solid #c8c8d0', borderRadius:4, padding:'5px 8px', fontSize:13, fontFamily:"'Inter',sans-serif", color:'rgba(0,0,0,0.75)', background:'#fff', marginLeft:6 },
-  sectionHead:{ fontSize:16, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:'rgba(0,0,0,0.85)', padding:'14px 0 6px', borderBottom:'1px solid #ddd', marginBottom:4 },
+  vInput:{ border:'1px solid #c8c8d0', borderRadius:4, padding:'5px 8px', fontSize:14, fontFamily:"'Inter',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent)', width:110, textAlign:'right' },
+  vUnit:{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', flexShrink:0 },
+  vSelect:{ border:'1px solid #c8c8d0', borderRadius:4, padding:'5px 8px', fontSize:13, fontFamily:"'Inter',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent)', background:'var(--mat-sys-surface-container-lowest)', marginLeft:6 },
+  sectionHead:{ fontSize:16, fontWeight:600, fontFamily:"'Poppins',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)', padding:'14px 0 6px', borderBottom:'1px solid var(--mat-sys-outline-variant)', marginBottom:4 },
   sectionBody:{ marginBottom:8 },
 };
 
 // ── Médicaments ───────────────────────────────────────────────────────────────
-var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'#1565c0' };
+var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 var MEDS_TABS = [{ id:'profil',label:'Profil' },{ id:'renouvelables',label:'Renouvelables' },{ id:'ordonnance',label:'Ordonnance' },{ id:'archive',label:'Archive' }];
 
 function MedsModal({ items, onClose }) {
@@ -342,12 +342,12 @@ function MedsModal({ items, onClose }) {
                   <div style={smS.medsSub}>{m.detail}</div>
                 </div>
                 {m.date && <span style={smS.medsDate}>{m.date}</span>}
-                <span className="material-icons" style={{ fontSize:18, color: m.pinned?'#f59e0b':'rgba(0,0,0,0.2)', cursor:'pointer' }}>star</span>
+                <span className="material-icons" style={{ fontSize:18, color: m.pinned?'#f59e0b':'color-mix(in srgb, var(--mat-sys-on-surface) 20%, transparent)', cursor:'pointer' }}>star</span>
               </div>
             );
           })}
-          <div style={{ marginTop:16, borderTop:'1px solid #eee', paddingTop:14 }}>
-            <div style={{ display:'flex', marginBottom:10, border:'1px solid #d0d0d8', borderRadius:7, overflow:'hidden', width:'fit-content' }}>
+          <div style={{ marginTop:16, borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14 }}>
+            <div style={{ display:'flex', marginBottom:10, border:'1px solid var(--mat-sys-outline-variant)', borderRadius:7, overflow:'hidden', width:'fit-content' }}>
               {['prescrire','inscrire'].map(function(m){
                 return <button key={m} style={{ ...smS.modeBtn, ...(mode===m?smS.modeBtnOn:{}) }} onClick={function(){ setMode(m); }}>{m==='prescrire'?'Prescrire':'Inscrire une médication'}</button>;
               })}
@@ -449,12 +449,12 @@ function HabitsModal({ items, onClose, onAdd }) {
       {items.map(function(it,i){
         return (
           <div key={i} style={smS.listRow}>
-            <span className="material-icons-outlined" style={{ fontSize:18, color:'rgba(0,0,0,0.45)', marginRight:8 }}>{CAT_ICON[it.name]||'more_horiz'}</span>
+            <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginRight:8 }}>{CAT_ICON[it.name]||'more_horiz'}</span>
             <div style={{ flex:1 }}>
               <span style={smS.listName}>{it.name || it.left}</span>
               {(it.detail||it.mid) && <span style={{ ...smS.listSub, marginLeft:8 }}>{it.detail||it.mid}</span>}
             </div>
-            <span className="material-icons" style={{ fontSize:16, color:'rgba(0,0,0,0.25)', cursor:'pointer' }}>star</span>
+            <span className="material-icons" style={{ fontSize:16, color:'color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent)', cursor:'pointer' }}>star</span>
           </div>
         );
       })}
@@ -488,7 +488,7 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
           <span className="material-icons-outlined" style={{ fontSize:16, marginRight:5 }}>sort</span>
           Trier la liste des {title.toLowerCase()}
         </button>
-        {sortMode && <span style={{ fontSize:12, color:'#1975d1', marginLeft:10 }}>Mode tri actif</span>}
+        {sortMode && <span style={{ fontSize:12, color:'var(--mat-sys-primary)', marginLeft:10 }}>Mode tri actif</span>}
       </div>
       {list.length === 0 && <EmptyMsg>Aucun élément</EmptyMsg>}
       {list.map(function(r,i){
@@ -500,7 +500,7 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
                 <button style={smS.arrowBtn} onClick={function(){ move(i,1); }}>▼</button>
               </div>
             ) : (
-              <span className="material-icons" style={{ fontSize:15, color:'rgba(0,0,0,0.25)', cursor:'pointer', marginRight:8 }}>star</span>
+              <span className="material-icons" style={{ fontSize:15, color:'color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent)', cursor:'pointer', marginRight:8 }}>star</span>
             )}
             <div style={{ flex:1 }}>
               <div style={smS.listName}>{r.left||r.name}</div>
@@ -514,7 +514,7 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
           </div>
         );
       })}
-      <div style={{ borderTop:'1px solid #eee', paddingTop:14, marginTop:12 }}>
+      <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:12 }}>
         <div style={smS.row2}>
           <MField label="Ajouter"><MInput value={query} onChange={setQuery} placeholder="Rechercher…" /></MField>
           <MField label="Date"><MDate value={date} onChange={setDate} /></MField>
@@ -541,7 +541,7 @@ function FamilyModal({ items, onClose, onAdd }) {
       {items.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
-            <span className="material-icons" style={{ fontSize:15, color:'rgba(0,0,0,0.25)', cursor:'pointer', marginRight:8 }}>star</span>
+            <span className="material-icons" style={{ fontSize:15, color:'color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent)', cursor:'pointer', marginRight:8 }}>star</span>
             <div style={{ flex:1 }}>
               <span style={smS.listName}>{r.left||r.name}</span>
               {(r.mid) && <span style={{ ...smS.listSub, marginLeft:8 }}>{r.mid}</span>}
@@ -550,7 +550,7 @@ function FamilyModal({ items, onClose, onAdd }) {
         );
       })}
       {showAdd && (
-        <div style={{ borderTop:'1px solid #eee', paddingTop:14, marginTop:8 }}>
+        <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:8 }}>
           <MField label="Type de relation *">
             <select style={smS.input} value={relation} onChange={function(e){ setRelation(e.target.value); }}>
               <option value="">Sélectionner…</option>
@@ -588,7 +588,7 @@ function ImmunModal({ items, onClose, onAdd }) {
       {items.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
-            <span className="material-icons" style={{ fontSize:15, color:'rgba(0,0,0,0.25)', cursor:'pointer', marginRight:8 }}>star</span>
+            <span className="material-icons" style={{ fontSize:15, color:'color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent)', cursor:'pointer', marginRight:8 }}>star</span>
             <div style={{ flex:1 }}>
               <span style={smS.listName}>{r.left}</span>
               {r.mid && <span style={{ ...smS.listSub, marginLeft:8 }}>{r.mid}</span>}
@@ -597,7 +597,7 @@ function ImmunModal({ items, onClose, onAdd }) {
           </div>
         );
       })}
-      <div style={{ borderTop:'1px solid #eee', paddingTop:14, marginTop:8 }}>
+      <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:8 }}>
         <MField label="Rechercher un vaccin">
           <SearchBox value={query} onChange={setQuery} placeholder="Rechercher un vaccin…" suggestions={VACCINE_SUGG} onSelect={setQuery}
             noneBtn={function(){ onAdd({ left:'Aucun vaccin connu', right:'' }); }} />
@@ -629,7 +629,7 @@ function TasksModal({ items, onClose, onAdd }) {
   return (
     <ModalShell title="Ajouter une tâche" onClose={onClose} width={620}>
       <div style={{ marginBottom:14 }}>
-        <button style={{ background:'none', border:0, padding:0, cursor:'pointer', color:'#1975d1', fontSize:14, fontWeight:600 }}>
+        <button style={{ background:'none', border:0, padding:0, cursor:'pointer', color:'var(--mat-sys-primary)', fontSize:14, fontWeight:600 }}>
           Sélectionner une tâche rapide…
         </button>
       </div>
@@ -649,7 +649,7 @@ function TasksModal({ items, onClose, onAdd }) {
             onChange={function(e){ setDate(e.target.value); }}
             placeholder="AAAA/MM/JJ"
           />
-          <span className="material-icons-outlined" style={{ fontSize:20, color:'rgba(0,0,0,0.5)', cursor:'pointer' }}>calendar_today</span>
+          <span className="material-icons-outlined" style={{ fontSize:20, color:'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', cursor:'pointer' }}>calendar_today</span>
         </div>
       </div>
 
@@ -671,7 +671,7 @@ function TasksModal({ items, onClose, onAdd }) {
       ].map(function(row) {
         return (
           <div key={row.label} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
-            <span style={{ fontSize:14, color:'rgba(0,0,0,0.7)', width:130, flexShrink:0 }}>{row.label}</span>
+            <span style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', width:130, flexShrink:0 }}>{row.label}</span>
             <div style={{ flex:1 }}>{row.ctrl}</div>
           </div>
         );
@@ -701,7 +701,7 @@ function ProgramsModal({ items, onClose, onAdd }) {
           {items.map(function(it, i) {
             return (
               <div key={i} style={smS.listRow}>
-                <span className="material-icons-outlined" style={{ fontSize:18, color:'#1975d1', marginRight:8 }}>assignment_turned_in</span>
+                <span className="material-icons-outlined" style={{ fontSize:18, color:'var(--mat-sys-primary)', marginRight:8 }}>assignment_turned_in</span>
                 <div style={{ flex:1 }}>
                   <span style={smS.listName}>{it.name||it.left}</span>
                   {it.right && <span style={{ ...smS.listMeta, marginLeft:8 }}>{it.right}</span>}
@@ -715,14 +715,14 @@ function ProgramsModal({ items, onClose, onAdd }) {
         </div>
       )}
 
-      <div style={{ borderTop: items.length > 0 ? '1px solid #eee' : 'none', paddingTop: items.length > 0 ? 16 : 0 }}>
-        <div style={{ fontSize:14, color:'rgba(0,0,0,0.72)', marginBottom:8 }}>Quelle est la date d'inscription ?</div>
+      <div style={{ borderTop: items.length > 0 ? '1px solid var(--mat-sys-outline-variant)' : 'none', paddingTop: items.length > 0 ? 16 : 0 }}>
+        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>Quelle est la date d'inscription ?</div>
         <div style={{ ...smS.searchBox, width:200, marginBottom:16 }}>
           <input style={{ ...smS.searchInner }} value={date} onChange={function(e){ setDate(e.target.value); }} />
-          <span className="material-icons-outlined" style={{ fontSize:18, color:'rgba(0,0,0,0.45)' }}>calendar_today</span>
+          <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
 
-        <div style={{ fontSize:14, color:'rgba(0,0,0,0.72)', marginBottom:8 }}>Créer l'inscription dans quel programme ?</div>
+        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>Créer l'inscription dans quel programme ?</div>
         <select style={{ ...smS.input, width:'auto', minWidth:240 }} value={program} onChange={function(e){ setProgram(e.target.value); }}>
           <option value="">Choisir un programme…</option>
           {PROGRAMS_LIST.map(function(p){ return <option key={p} value={p}>{p}</option>; })}
@@ -783,7 +783,7 @@ function ResultsModal({ items, onClose, onAdd }) {
                 <div style={{ flex:1 }}>
                   <span style={smS.listName}>{it.name||it.left}</span>
                   {it.result && <span style={{ ...smS.listSub, marginLeft:8 }}>{it.result}</span>}
-                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: it.normality==='Normal'?'#1b8a3f':it.normality==='Anormal'?'#c62828':'#c07a00' }}>{it.normality}</span>}
+                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: it.normality==='Normal'?'light-dark(#1b8a3f, #a5e9bb)':it.normality==='Anormal'?'light-dark(#c62828, #e9a5a5)':'light-dark(#c07a00, #e9d0a5)' }}>{it.normality}</span>}
                 </div>
                 {it.right && <span style={smS.listMeta}>{it.right}</span>}
               </div>
@@ -794,7 +794,7 @@ function ResultsModal({ items, onClose, onAdd }) {
       <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
         <div style={{ position:'relative', flex:2, minWidth:200 }}>
           <input
-            style={{ ...smS.input, borderColor:'#1975d1', borderWidth:2 }}
+            style={{ ...smS.input, borderColor:'var(--mat-sys-primary)', borderWidth:2 }}
             value={test}
             onChange={function(e){ setTest(e.target.value); setShowDrop(true); }}
             onBlur={function(){ setTimeout(function(){ setShowDrop(false); }, 160); }}
@@ -817,7 +817,7 @@ function ResultsModal({ items, onClose, onAdd }) {
         </select>
         <div style={{ ...smS.searchBox, flex:1, minWidth:150 }}>
           <input style={smS.searchInner} value={sampDate} onChange={function(e){ setSampDate(e.target.value); }} placeholder="Date de prélèvement" />
-          <span className="material-icons-outlined" style={{ fontSize:18, color:'rgba(0,0,0,0.45)' }}>calendar_today</span>
+          <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
       </div>
       <MFooter>
@@ -863,58 +863,58 @@ function PrintModal({ sections, onClose }) {
 // ── Styles ────────────────────────────────────────────────────────────────────
 var smS = {
   overlay:{ position:'fixed', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 },
-  modal:{ background:'#fff', borderRadius:10, boxShadow:'0 8px 32px rgba(37,36,94,0.22)', maxHeight:'85vh', display:'flex', flexDirection:'column', overflow:'hidden' },
-  mHeader:{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'18px 20px 14px', borderBottom:'1px solid #eee', flexShrink:0 },
-  mTitle:{ fontSize:16, fontWeight:700, fontFamily:"'Poppins',sans-serif", color:'rgba(0,0,0,0.88)' },
-  closeBtn:{ background:'none', border:0, cursor:'pointer', padding:4, color:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', flexShrink:0 },
+  modal:{ background:'var(--mat-sys-surface-container-lowest)', borderRadius:10, boxShadow:'0 8px 32px rgba(37,36,94,0.22)', maxHeight:'85vh', display:'flex', flexDirection:'column', overflow:'hidden' },
+  mHeader:{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', padding:'18px 20px 14px', borderBottom:'1px solid var(--mat-sys-outline-variant)', flexShrink:0 },
+  mTitle:{ fontSize:16, fontWeight:700, fontFamily:"'Poppins',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
+  closeBtn:{ background:'none', border:0, cursor:'pointer', padding:4, color:'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', display:'flex', alignItems:'center', flexShrink:0 },
   mBody:{ padding:'16px 20px 20px', overflowY:'auto', flex:1 },
   field:{ marginBottom:12 },
-  fieldLabel:{ display:'block', fontSize:12, color:'rgba(0,0,0,0.6)', marginBottom:4, fontWeight:600, letterSpacing:0.2 },
-  input:{ width:'100%', border:'1px solid #d0d0d8', borderRadius:6, padding:'8px 10px', fontSize:14, fontFamily:"'Inter',sans-serif", color:'rgba(0,0,0,0.82)', outline:'none', boxSizing:'border-box' },
+  fieldLabel:{ display:'block', fontSize:12, color:'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', marginBottom:4, fontWeight:600, letterSpacing:0.2 },
+  input:{ width:'100%', border:'1px solid var(--mat-sys-outline-variant)', borderRadius:6, padding:'8px 10px', fontSize:14, fontFamily:"'Inter',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', outline:'none', boxSizing:'border-box' },
   row2:{ display:'flex', gap:14 },
-  helpText:{ fontSize:11, color:'rgba(0,0,0,0.45)', marginTop:3 },
-  searchBox:{ display:'flex', alignItems:'center', border:'1px solid #d0d0d8', borderRadius:6, padding:'7px 8px' },
-  searchInner:{ flex:1, border:'none', outline:'none', fontSize:14, fontFamily:"'Inter',sans-serif", color:'rgba(0,0,0,0.82)', background:'transparent' },
+  helpText:{ fontSize:11, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginTop:3 },
+  searchBox:{ display:'flex', alignItems:'center', border:'1px solid var(--mat-sys-outline-variant)', borderRadius:6, padding:'7px 8px' },
+  searchInner:{ flex:1, border:'none', outline:'none', fontSize:14, fontFamily:"'Inter',sans-serif", color:'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', background:'transparent' },
   noneBtn:{ background:'none', border:0, cursor:'pointer', padding:2, display:'flex', alignItems:'center', marginLeft:4 },
-  dropList:{ position:'absolute', top:'100%', left:0, right:0, background:'#fff', border:'1px solid #d0d0d8', borderRadius:6, zIndex:20, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', maxHeight:180, overflowY:'auto' },
-  dropItem:{ padding:'8px 12px', fontSize:14, cursor:'pointer', color:'rgba(0,0,0,0.82)' },
+  dropList:{ position:'absolute', top:'100%', left:0, right:0, background:'var(--mat-sys-surface-container-lowest)', border:'1px solid var(--mat-sys-outline-variant)', borderRadius:6, zIndex:20, boxShadow:'0 4px 12px rgba(0,0,0,0.1)', maxHeight:180, overflowY:'auto' },
+  dropItem:{ padding:'8px 12px', fontSize:14, cursor:'pointer', color:'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
   radioGroup:{ display:'flex', gap:20, alignItems:'center', padding:'6px 0' },
-  radioLabel:{ fontSize:14, color:'rgba(0,0,0,0.78)', cursor:'pointer', display:'flex', alignItems:'center' },
-  footer:{ display:'flex', justifyContent:'flex-end', gap:10, paddingTop:14, borderTop:'1px solid #eee', marginTop:14 },
-  primaryBtn:{ background:'#1975d1', color:'#fff', border:0, borderRadius:7, padding:'9px 18px', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center' },
-  ghostBtn:{ background:'none', border:'1px solid #d0d0d8', borderRadius:7, padding:'8px 14px', fontSize:13, cursor:'pointer', color:'rgba(0,0,0,0.7)', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center' },
-  tabs:{ display:'flex', borderBottom:'1px solid #eee', marginBottom:12 },
-  tab:{ padding:'8px 14px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.6)', fontFamily:"'Inter',sans-serif", borderBottom:'2px solid transparent', marginBottom:-1 },
-  tabActive:{ color:'#1975d1', borderBottomColor:'#1975d1', fontWeight:600 },
-  listSection:{ fontSize:11, fontWeight:700, letterSpacing:0.6, textTransform:'uppercase', color:'rgba(0,0,0,0.45)', marginBottom:6, marginTop:4 },
-  listRow:{ display:'flex', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #f2f2f2' },
-  listName:{ fontSize:14, color:'rgba(0,0,0,0.82)', fontWeight:500 },
-  listSub:{ fontSize:13, color:'rgba(0,0,0,0.55)' },
-  listMeta:{ fontSize:12, color:'rgba(0,0,0,0.45)', flexShrink:0 },
-  iconActionBtn:{ background:'none', border:0, cursor:'pointer', padding:4, color:'rgba(0,0,0,0.4)', display:'flex' },
-  emptyMsg:{ fontSize:14, color:'rgba(0,0,0,0.45)', padding:'14px 0', textAlign:'center' },
-  calcRow:{ display:'flex', gap:20, background:'#ECF3F7', borderRadius:8, padding:'10px 14px', marginBottom:4 },
+  radioLabel:{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', cursor:'pointer', display:'flex', alignItems:'center' },
+  footer:{ display:'flex', justifyContent:'flex-end', gap:10, paddingTop:14, borderTop:'1px solid var(--mat-sys-outline-variant)', marginTop:14 },
+  primaryBtn:{ background:'var(--mat-sys-primary)', color:'var(--mat-sys-on-primary)', border:0, borderRadius:7, padding:'9px 18px', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center' },
+  ghostBtn:{ background:'none', border:'1px solid var(--mat-sys-outline-variant)', borderRadius:7, padding:'8px 14px', fontSize:13, cursor:'pointer', color:'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', fontFamily:"'Inter',sans-serif", display:'flex', alignItems:'center' },
+  tabs:{ display:'flex', borderBottom:'1px solid var(--mat-sys-outline-variant)', marginBottom:12 },
+  tab:{ padding:'8px 14px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', fontFamily:"'Inter',sans-serif", borderBottom:'2px solid transparent', marginBottom:-1 },
+  tabActive:{ color:'var(--mat-sys-primary)', borderBottomColor:'var(--mat-sys-primary)', fontWeight:600 },
+  listSection:{ fontSize:11, fontWeight:700, letterSpacing:0.6, textTransform:'uppercase', color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginBottom:6, marginTop:4 },
+  listRow:{ display:'flex', alignItems:'center', padding:'8px 0', borderBottom:'1px solid var(--mat-sys-outline-variant)' },
+  listName:{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', fontWeight:500 },
+  listSub:{ fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
+  listMeta:{ fontSize:12, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', flexShrink:0 },
+  iconActionBtn:{ background:'none', border:0, cursor:'pointer', padding:4, color:'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', display:'flex' },
+  emptyMsg:{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', padding:'14px 0', textAlign:'center' },
+  calcRow:{ display:'flex', gap:20, background:'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderRadius:8, padding:'10px 14px', marginBottom:4 },
   calcItem:{ display:'flex', flexDirection:'column', gap:2 },
-  calcLabel:{ fontSize:11, color:'rgba(0,0,0,0.55)' },
-  calcVal:{ fontSize:16, fontWeight:700, color:'#25245E' },
-  unitBtn:{ padding:'7px 16px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.6)', fontFamily:"'Inter',sans-serif" },
+  calcLabel:{ fontSize:11, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
+  calcVal:{ fontSize:16, fontWeight:700, color:'var(--mat-sys-on-surface)' },
+  unitBtn:{ padding:'7px 16px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', fontFamily:"'Inter',sans-serif" },
   unitBtnOn:{ background:'#25245E', color:'#fff', fontWeight:600 },
-  dotsBtn:{ background:'none', border:0, cursor:'pointer', padding:6, color:'rgba(0,0,0,0.55)', marginLeft:'auto', display:'flex' },
-  vitalsBar:{ background:'#ECF3F7', borderRadius:7, padding:'7px 12px', marginBottom:10, display:'flex', gap:18, fontSize:13, color:'rgba(0,0,0,0.6)' },
-  medsRow:{ display:'flex', alignItems:'center', padding:'9px 0', borderBottom:'1px solid #f2f2f2', gap:10 },
+  dotsBtn:{ background:'none', border:0, cursor:'pointer', padding:6, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginLeft:'auto', display:'flex' },
+  vitalsBar:{ background:'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderRadius:7, padding:'7px 12px', marginBottom:10, display:'flex', gap:18, fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)' },
+  medsRow:{ display:'flex', alignItems:'center', padding:'9px 0', borderBottom:'1px solid var(--mat-sys-outline-variant)', gap:10 },
   medsStatusDot:{ width:8, height:8, borderRadius:'50%', flexShrink:0 },
-  medsName:{ fontSize:14, fontWeight:600, color:'rgba(0,0,0,0.85)' },
-  medsSub:{ fontSize:13, color:'rgba(0,0,0,0.55)' },
-  medsDate:{ fontSize:12, color:'rgba(0,0,0,0.45)', flexShrink:0 },
-  modeBtn:{ padding:'7px 14px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'rgba(0,0,0,0.6)', fontFamily:"'Inter',sans-serif" },
+  medsName:{ fontSize:14, fontWeight:600, color:'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
+  medsSub:{ fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
+  medsDate:{ fontSize:12, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', flexShrink:0 },
+  modeBtn:{ padding:'7px 14px', border:0, background:'none', cursor:'pointer', fontSize:13, color:'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', fontFamily:"'Inter',sans-serif" },
   modeBtnOn:{ background:'#25245E', color:'#fff', fontWeight:600 },
-  prefSection:{ fontSize:12, fontWeight:700, color:'#25245E', textTransform:'uppercase', letterSpacing:0.5, margin:'14px 0 8px' },
-  prefRow:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid #f5f5f5' },
-  prefLabel:{ fontSize:14, color:'rgba(0,0,0,0.78)' },
+  prefSection:{ fontSize:12, fontWeight:700, color:'var(--mat-sys-on-surface)', textTransform:'uppercase', letterSpacing:0.5, margin:'14px 0 8px' },
+  prefRow:{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'8px 0', borderBottom:'1px solid var(--mat-sys-outline-variant)' },
+  prefLabel:{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)' },
   toggle:{ width:44, height:24, borderRadius:12, border:0, cursor:'pointer', position:'relative', transition:'background 0.2s', flexShrink:0 },
-  toggleThumb:{ position:'absolute', top:3, width:18, height:18, borderRadius:'50%', background:'#fff', transition:'left 0.18s' },
-  arrowBtn:{ background:'none', border:'1px solid #d0d0d8', borderRadius:3, cursor:'pointer', fontSize:10, padding:'1px 5px', lineHeight:1.3 },
-  printRow:{ display:'flex', alignItems:'center', padding:'8px 0', borderBottom:'1px solid #f5f5f5', fontSize:14, color:'rgba(0,0,0,0.78)', cursor:'pointer' },
+  toggleThumb:{ position:'absolute', top:3, width:18, height:18, borderRadius:'50%', background:'var(--mat-sys-surface-container-lowest)', transition:'left 0.18s' },
+  arrowBtn:{ background:'none', border:'1px solid var(--mat-sys-outline-variant)', borderRadius:3, cursor:'pointer', fontSize:10, padding:'1px 5px', lineHeight:1.3 },
+  printRow:{ display:'flex', alignItems:'center', padding:'8px 0', borderBottom:'1px solid var(--mat-sys-outline-variant)', fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', cursor:'pointer' },
 };
 
 Object.assign(window, {

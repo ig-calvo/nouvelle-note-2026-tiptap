@@ -170,7 +170,7 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
                 onMouseDown={function (e) { e.stopPropagation(); }}
                 onClick={function (e) { toggleFav(tool.id, e); }}
                 title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
-                <span className="material-icons" style={{ fontSize: 20, color: isFav ? '#e8112d' : 'rgba(0,0,0,0.28)' }}>
+                <span className="material-icons" style={{ fontSize: 20, color: isFav ? 'light-dark(#e8112d, #e9a5ae)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent)' }}>
                   {isFav ? 'favorite' : 'favorite_border'}
                 </span>
               </button>
@@ -196,10 +196,9 @@ const ctpS = {
     position: 'fixed',
     zIndex: 3000,
     width: 480,
-    background: '#fff',
-    border: '1px solid #ececf2',
-    borderRadius: 12,
-    boxShadow: '0 14px 40px rgba(37,36,94,0.20)',
+    background: 'var(--mat-sys-surface-container-low)',
+    borderRadius: 'var(--mat-sys-corner-small)',
+    boxShadow: 'var(--mat-sys-level2)',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -210,7 +209,7 @@ const ctpS = {
     display: 'flex',
     alignItems: 'center',
     padding: '10px 12px',
-    borderBottom: '1px solid #f0f0f6',
+    borderBottom: '1px solid var(--mat-sys-surface-container-low)',
     flexShrink: 0,
   },
   iconBtn: {
@@ -218,12 +217,12 @@ const ctpS = {
     background: 'transparent', borderRadius: 8,
     cursor: 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    color: 'rgba(0,0,0,0.45)',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)',
   },
   title: {
     flex: 1, textAlign: 'center',
     fontSize: 14, fontWeight: 600,
-    color: 'var(--fg-1, rgba(0,0,0,0.82))',
+    color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))',
     fontFamily: "var(--font-head, 'Poppins', sans-serif)",
   },
   searchOuter: {
@@ -238,10 +237,10 @@ const ctpS = {
     borderRadius: 8,
     padding: '0 8px 0 10px',
     transition: 'border-color 120ms',
-    background: '#fff',
+    background: 'var(--mat-sys-surface-container-lowest)',
   },
   searchBoxFocused: {
-    border: '1.5px solid var(--brand-primary, #1a5fd4)',
+    border: '1.5px solid var(--brand-primary, var(--mat-sys-primary))',
   },
   searchLabel: {
     position: 'absolute',
@@ -249,22 +248,22 @@ const ctpS = {
     top: '50%',
     transform: 'translateY(-50%)',
     fontSize: 13.5,
-    color: '#8888a0',
+    color: 'var(--mat-sys-on-surface-variant)',
     pointerEvents: 'none',
     transition: 'all 120ms',
-    background: '#fff',
+    background: 'var(--mat-sys-surface-container-lowest)',
     padding: '0 3px',
   },
   searchLabelFloat: {
     top: 0,
     left: 32,
     fontSize: 11,
-    color: 'var(--brand-primary, #1a5fd4)',
+    color: 'var(--brand-primary, var(--mat-sys-primary))',
     transform: 'translateY(-50%)',
   },
   searchLeadIcon: {
     fontSize: 18,
-    color: '#8888a0',
+    color: 'var(--mat-sys-on-surface-variant)',
     flexShrink: 0,
     marginRight: 6,
   },
@@ -274,7 +273,7 @@ const ctpS = {
     outline: 'none',
     padding: '11px 4px',
     fontSize: 13.5,
-    color: 'var(--fg-1, rgba(0,0,0,0.82))',
+    color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))',
     background: 'transparent',
     fontFamily: "var(--font-body, 'Inter', sans-serif)",
   },
@@ -284,7 +283,7 @@ const ctpS = {
     cursor: 'pointer',
     display: 'inline-flex',
     alignItems: 'center',
-    color: '#9494aa',
+    color: 'var(--mat-sys-on-surface-variant)',
     padding: 2,
     flexShrink: 0,
   },
@@ -299,19 +298,19 @@ const ctpS = {
     alignItems: 'center',
     gap: 5,
     padding: '5px 12px',
-    border: '1.5px solid #dcdce8',
+    border: '1.5px solid var(--mat-sys-outline-variant)',
     borderRadius: 20,
     background: 'transparent',
     cursor: 'pointer',
     fontSize: 12.5,
     fontWeight: 500,
-    color: 'rgba(0,0,0,0.54)',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)',
     fontFamily: "var(--font-body, 'Inter', sans-serif)",
   },
   tabActive: {
-    borderColor: 'var(--brand-primary, #1a5fd4)',
-    background: '#eef1fb',
-    color: 'var(--brand-primary, #1a5fd4)',
+    borderColor: 'var(--brand-primary, var(--mat-sys-primary))',
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))',
+    color: 'var(--brand-primary, var(--mat-sys-primary))',
   },
   list: {
     flex: 1,
@@ -327,21 +326,21 @@ const ctpS = {
     transition: 'background 110ms',
   },
   itemHov: {
-    background: '#eef1fb',
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))',
   },
   itemDisabled: {
     cursor: 'default',
   },
   itemLabelDisabled: {
-    color: 'var(--fg-3, rgba(0,0,0,0.4))',
+    color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent))',
   },
   soonBadge: {
     flexShrink: 0,
     fontSize: 11,
     fontWeight: 600,
     letterSpacing: 0.2,
-    color: 'rgba(0,0,0,0.42)',
-    background: 'rgba(0,0,0,0.06)',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 42%, transparent)',
+    background: 'color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent)',
     borderRadius: 20,
     padding: '3px 9px',
   },
@@ -358,14 +357,14 @@ const ctpS = {
   itemLabel: {
     flex: 1,
     fontSize: 14,
-    color: 'var(--fg-1, rgba(0,0,0,0.82))',
+    color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))',
     lineHeight: 1.4,
   },
   empty: {
     padding: '24px 18px',
     textAlign: 'center',
     fontSize: 13,
-    color: 'var(--fg-3, #9494aa)',
+    color: 'var(--fg-3, var(--mat-sys-on-surface-variant))',
   },
 };
 

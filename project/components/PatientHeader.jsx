@@ -7,7 +7,7 @@ function PatientHeader({
     <div style={phStyles.card}>
       <div style={phStyles.row}>
         <div style={phStyles.avatar}>
-          <span className="material-icons" style={{ color: "#8a5cb8", fontSize: 18 }}>person</span>
+          <span className="material-icons" style={{ color: "light-dark(#8a5cb8, #c7b1dd)", fontSize: 18 }}>person</span>
         </div>
         <div style={phStyles.ident}>
           <div style={phStyles.name}>{name}</div>
@@ -57,7 +57,7 @@ function InfoRow({ icon, text }) {
 function IconBtn({ icon, chevron }) {
   return (
     <button style={phStyles.iconBtn}>
-      <span className="material-icons" style={{ color: chevron ? "#1975d1" : "rgba(0,0,0,0.68)", fontSize: 20 }}>
+      <span className="material-icons" style={{ color: chevron ? "var(--mat-sys-primary)" : "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)", fontSize: 20 }}>
         {icon}
       </span>
     </button>
@@ -66,25 +66,25 @@ function IconBtn({ icon, chevron }) {
 
 const phStyles = {
   card: {
-    background: "#fff", borderRadius: 4, position: "relative",
+    background: "var(--mat-sys-surface-container-lowest)", borderRadius: 4, position: "relative",
     boxShadow: "0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)",
     fontFamily: "'Inter', sans-serif", marginBottom: 14,
     padding: "14px 20px 12px",
   },
   row: { display: "flex", alignItems: "flex-start", gap: 16 },
   avatar: {
-    width: 30, height: 30, borderRadius: "50%", background: "#e8e0f2",
+    width: 30, height: 30, borderRadius: "50%", background: "light-dark(#e8e0f2, #36244c)",
     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
     marginTop: 2,
   },
   ident: { width: 240, flexShrink: 0 },
   name: {
     fontFamily: "'Poppins',sans-serif", fontWeight: 600, fontSize: 14,
-    color: "rgba(0,0,0,0.87)",
+    color: "color-mix(in srgb, var(--mat-sys-on-surface) 87%, transparent)",
   },
-  sub: { fontSize: 12, color: "rgba(0,0,0,0.54)", marginTop: 2 },
+  sub: { fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", marginTop: 2 },
   ramq: {
-    fontSize: 12, color: "rgba(0,0,0,0.68)", marginTop: 6,
+    fontSize: 12, color: "color-mix(in srgb, var(--mat-sys-on-surface) 68%, transparent)", marginTop: 6,
     fontVariantNumeric: "tabular-nums",
   },
   midCol: {
@@ -92,8 +92,8 @@ const phStyles = {
     paddingTop: 4, minWidth: 200, flex: 1,
   },
   infoRow: { display: "flex", alignItems: "center", gap: 8 },
-  infoIcon: { fontSize: 18, color: "rgba(0,0,0,0.54)", width: 20, flexShrink: 0 },
-  infoText: { fontSize: 13, color: "rgba(0,0,0,0.78)" },
+  infoIcon: { fontSize: 18, color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", width: 20, flexShrink: 0 },
+  infoText: { fontSize: 13, color: "color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)" },
   actions: {
     display: "flex", alignItems: "center", gap: 6,
     padding: "4px 6px",
