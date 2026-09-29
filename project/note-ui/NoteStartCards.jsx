@@ -17,9 +17,9 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
   const draftList = drafts || [];
 
   const cards = [
-    { key: 'nouvelle', icon: 'note_add', iconColor: 'rgba(0,0,0,0.78)', overline: 'Note clinique', title: 'Nouvelle note' },
-    hasLastNote && { key: 'derniere', icon: 'post_add', iconColor: 'rgba(0,0,0,0.78)', overline: 'Note médicale', title: 'Depuis la dernière note' },
-    { key: 'intelligente', icon: 'auto_awesome', iconColor: '#6967d1', overline: 'Rédaction assistée', title: 'Note intelligente' },
+    { key: 'nouvelle', icon: 'note_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: 'Note clinique', title: 'Nouvelle note' },
+    hasLastNote && { key: 'derniere', icon: 'post_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: 'Note médicale', title: 'Depuis la dernière note' },
+    { key: 'intelligente', icon: 'auto_awesome', iconColor: 'light-dark(#6967d1, #aaa9e5)', overline: 'Rédaction assistée', title: 'Note intelligente' },
   ].filter(function (c) { return c && !(hideSmart && c.key === 'intelligente'); });
 
   function pickDraft(id) {
@@ -57,7 +57,7 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
               if (draftList.length === 1) { pickDraft(draftList[0].id); }
               else { setDraftMenuOpen(function (o) { return !o; }); }
             }}>
-            <span className="material-icons-outlined" style={Object.assign({}, nscStyles.icon, { color: '#b3742e' })}>edit_note</span>
+            <span className="material-icons-outlined" style={Object.assign({}, nscStyles.icon, { color: 'light-dark(#b3742e, #e8c9a6)' })}>edit_note</span>
             <span style={nscStyles.textCol}>
               <span style={nscStyles.overline}>{draftList.length > 1 ? draftList.length + ' brouillons' : 'Brouillon'}</span>
               <span style={nscStyles.title}>Continuer la note</span>
@@ -88,7 +88,7 @@ const nscStyles = {
   row: { display: 'flex', gap: 16, alignItems: 'stretch', flexWrap: 'wrap' },
   card: {
     flex: '0 1 300px', display: 'flex', alignItems: 'center', gap: 16,
-    background: '#fff', border: '1px solid #e3e3ec', borderRadius: 10,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
     padding: '16px 22px', cursor: 'pointer', textAlign: 'left',
     boxShadow: '0 1px 2px 0 rgba(37,36,94,.06)',
     transition: 'border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease',
@@ -97,18 +97,18 @@ const nscStyles = {
   cardHover: { borderColor: '#bdbce0', boxShadow: '0 3px 10px 0 rgba(37,36,94,.12)', transform: 'translateY(-1px)' },
   icon: { fontSize: 30, flexShrink: 0 },
   textCol: { display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 },
-  overline: { fontSize: 13, color: 'rgba(0,0,0,0.55)', fontWeight: 400 },
-  title: { fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 21, color: 'rgba(0,0,0,0.82)', lineHeight: 1.1 },
-  caret: { marginLeft: 'auto', fontSize: 22, color: 'rgba(0,0,0,0.35)', flexShrink: 0 },
+  overline: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', fontWeight: 400 },
+  title: { fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 21, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.1 },
+  caret: { marginLeft: 'auto', fontSize: 22, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)', flexShrink: 0 },
   ddBg: { position: 'fixed', inset: 0, zIndex: 200 },
   dropdown: {
     position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, zIndex: 201,
-    background: '#fff', border: '1px solid #d9d9e6', borderRadius: 10,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
     boxShadow: '0 8px 24px rgba(0,0,0,0.12)', padding: '6px 0', maxHeight: 260, overflowY: 'auto',
   },
   ddItem: { display: 'flex', flexDirection: 'column', gap: 2, padding: '9px 16px', cursor: 'pointer' },
-  ddTitle: { fontSize: 14, color: 'rgba(0,0,0,0.82)', fontWeight: 500 },
-  ddMeta: { fontSize: 12, color: 'rgba(0,0,0,0.5)' },
+  ddTitle: { fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', fontWeight: 500 },
+  ddMeta: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' },
 };
 
 window.NoteStartCards = NoteStartCards;

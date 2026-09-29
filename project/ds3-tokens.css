@@ -1,9 +1,11 @@
-/* Jetons Omnimed Design System 3 (DS3) — sous-ensemble utilisé par la carte Note.
+/* Jetons Omnimed Design System 3 (DS3) — sous-ensemble utilisé par le prototype.
    Valeurs relues dans tokens.json du DS3 (clair / sombre via light-dark()).
-   `color-scheme: light` garde le rendu actuel ; retirer pour suivre le mode sombre
-   (classes omnimed-light / omnimed-dark sur <html> dans le DS). */
+   Le mode se choisit par les classes omnimed-light / omnimed-dark sur <html>,
+   comme dans le DS (elles posent `color-scheme`, ce qui retourne chaque jeton) ;
+   le tweak « Mode » de Note Clinique.html les bascule. */
+:root, :root.omnimed-light { color-scheme: light; }
+:root.omnimed-dark { color-scheme: dark; }
 :root {
-  color-scheme: light;
 
   /* Rôles de couleur */
   --mat-sys-primary: light-dark(#2e38a6, #b5b9e3);
@@ -14,7 +16,9 @@
   --mat-sys-surface: light-dark(#f8f7fd, #0e0e0f);
   --mat-sys-surface-container-lowest: light-dark(#ffffff, #09090a);
   --mat-sys-surface-container-low: light-dark(#f2f1f9, #17171a);
+  --mat-sys-surface-container: light-dark(#eceaf6, #1e1d20);
   --mat-sys-surface-container-high: light-dark(#e6e4f1, #2a292e);
+  --mat-sys-surface-container-highest: light-dark(#e1dfec, #36353b);
   --mat-sys-on-surface: light-dark(#17171a, #e1dfec);
   --mat-sys-on-surface-variant: light-dark(#484c51, #dee5ed);
   --mat-sys-outline: light-dark(#798086, #9299a0);

@@ -116,7 +116,7 @@ function Prescripteur({ onClose, onPrescribe }) {
                 {t.label}
                 {t.id === "renouv" && renouv.filter((m) => m.status === "echue").length > 0 &&
                   <span className="tab-badge">{renouv.filter((m) => m.status === "echue").length}</span>}
-                {t.id === "ordo" && ordo.length > 0 && <span className="tab-badge" style={{ background: "#1975d1" }}>{ordo.length}</span>}
+                {t.id === "ordo" && ordo.length > 0 && <span className="tab-badge" style={{ background: "var(--mat-sys-primary)" }}>{ordo.length}</span>}
               </button>)}
           </div>
 
@@ -155,7 +155,7 @@ function Prescripteur({ onClose, onPrescribe }) {
                     <div className="ll-title">{o.name}{o.dose ? " " + o.dose : ""}</div>
                     <div className="ll-sub">{o.sig}{o.instructions ? " · " + o.instructions : ""} · {o.mode === "inscrire" ? "Inscription (sans prescrire)" : "Prescription"}</div>
                   </div>
-                  <button className="icon-btn" title="Retirer" onClick={() => removeOrdo(i)}><span className="material-icons-outlined" style={{ color: "#b00020" }}>delete_outline</span></button>
+                  <button className="icon-btn" title="Retirer" onClick={() => removeOrdo(i)}><span className="material-icons-outlined" style={{ color: "light-dark(#b00020, #e9a5b1)" }}>delete_outline</span></button>
                 </div>)}
               {ordo.length > 0 &&
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 14 }}>
@@ -169,7 +169,7 @@ function Prescripteur({ onClose, onPrescribe }) {
                 <div key={m.id} className="list-li">
                   <span className="med-dot-lg" style={{ background: dotColor(m.status) }} />
                   <div className="ll-main">
-                    <div className="ll-title" style={{ color: "rgba(0,0,0,.5)" }}>{m.name}{m.dose ? " " + m.dose : ""}</div>
+                    <div className="ll-title" style={{ color: "color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)" }}>{m.name}{m.dose ? " " + m.dose : ""}</div>
                     <div className="ll-sub">{m.sig} · {m.status === "archive" ? "Archivé" : "Cessé"}</div>
                   </div>
                   <button className="btn btn-outline btn-sm" onClick={() => renew(m.id)}><span className="material-icons-outlined">restart_alt</span>Réactiver</button>
@@ -251,7 +251,7 @@ function Prescrire({ onClose }) {
                 <label>Favoris (prescriptions pré-construites)</label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {MED_FAVS.map((f) =>
-                    <button key={f.label} className="search-item" style={{ border: "1px solid var(--s-line)", borderRadius: 8, background: "#fff", textAlign: "left", cursor: "pointer" }} onClick={() => pickFav(f)}>
+                    <button key={f.label} className="search-item" style={{ border: "1px solid var(--s-line)", borderRadius: 8, background: "var(--mat-sys-surface-container-lowest)", textAlign: "left", cursor: "pointer" }} onClick={() => pickFav(f)}>
                       <span className="material-icons" style={{ color: "var(--s-star)", fontSize: 17 }}>star</span>
                       <span style={{ flex: 1 }}><b>{f.name} {f.dose}</b> — {f.label}</span>
                     </button>)}
@@ -283,7 +283,7 @@ function Prescrire({ onClose }) {
     </Sheet>);
 }
 
-const menuStyle = { position: "absolute", top: 38, right: 0, background: "#fff", borderRadius: 10, boxShadow: "0 8px 24px rgba(20,20,45,.22)", border: "1px solid var(--s-line)", padding: "8px 0", width: 250, zIndex: 20 };
+const menuStyle = { position: "absolute", top: 38, right: 0, background: "var(--mat-sys-surface-container-lowest)", borderRadius: 10, boxShadow: "0 8px 24px rgba(20,20,45,.22)", border: "1px solid var(--s-line)", padding: "8px 0", width: 250, zIndex: 20 };
 const menuTitle = { fontFamily: "var(--font-h)", fontWeight: 600, fontSize: 12, textTransform: "uppercase", letterSpacing: ".6px", color: "var(--s-ink-3)", padding: "4px 14px 8px" };
 const menuRow = { display: "flex", alignItems: "center", gap: 9, padding: "8px 14px", fontSize: 13, cursor: "pointer", color: "var(--s-ink)" };
 

@@ -88,7 +88,7 @@ function Report4a({ actionLog, consentLog }) {
                     {e.details?.contactType ? ` · ${e.details.contactType}` : ""}
                   </div>
                 </div>
-                {e.removedFromNote && <span className="tag" style={{ background: "#ffeee8", color: "#b00020" }}>retiré</span>}
+                {e.removedFromNote && <span className="tag" style={{ background: "light-dark(#ffeee8, #4c2f24)", color: "light-dark(#b00020, #e9a5b1)" }}>retiré</span>}
               </div>))}
         </>)}
     </div>);
@@ -152,7 +152,7 @@ function Report4b({ actionLog, consentLog }) {
                       <div className="ll-sub">
                         {fmtTs(e.timestamp)} · {ACTION_LABELS[e.action] || e.action}
                         {e.details?.noteTitle ? ` · ${e.details.noteTitle}` : ""}
-                        {hasConsent && <span style={{ marginLeft: 6, color: "#2e7d32", fontWeight: 600 }}>✓ Consentement</span>}
+                        {hasConsent && <span style={{ marginLeft: 6, color: "light-dark(#2e7d32, #ade1b0)", fontWeight: 600 }}>✓ Consentement</span>}
                       </div>
                     </div>
                   </div>);
@@ -258,7 +258,7 @@ function Report4c({ actionLog, consentLog }) {
               <div key={i} className="list-li" style={{ alignItems: "flex-start" }}>
                 <span className="material-icons-outlined" style={{ fontSize: 18, color: "#e0a800", marginTop: 2 }}>flag</span>
                 <div className="ll-main">
-                  <div className="ll-title" style={{ color: "#b00020" }}>{SUSPICION_LABELS[f.reason]}</div>
+                  <div className="ll-title" style={{ color: "light-dark(#b00020, #e9a5b1)" }}>{SUSPICION_LABELS[f.reason]}</div>
                   <div className="ll-sub">
                     <b>{f.user}</b> (ID {f.userId}) · Dossier {f.patientDossier} · {f.patientName} · né(e) {fmtDate(f.dob)}
                   </div>

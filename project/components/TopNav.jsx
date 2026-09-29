@@ -42,12 +42,12 @@ const topNavStyles = {
   },
   searchWrap: { position: "relative", display: "flex", alignItems: "center" },
   search: {
-    background: "#fff", border: "1px solid #d0d0e0", color: "rgba(0,0,0,0.75)",
+    background: "var(--mat-sys-surface-container-lowest)", border: "1px solid var(--mat-sys-outline-variant)", color: "color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent)",
     borderRadius: 48, padding: "0 32px 0 14px", height: 26, width: 260,
     font: "400 13px 'Inter', sans-serif", outline: "none",
   },
   searchIcon: {
-    position: "absolute", right: 8, color: "rgba(0,0,0,0.54)",
+    position: "absolute", right: 8, color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)",
     fontSize: 18, pointerEvents: "none",
   },
   right: {

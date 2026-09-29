@@ -143,6 +143,6 @@ function ResultChart({ result }) {
     </div>);
 }
 
-const resFilterStyle = { position: "absolute", top: 38, right: 0, background: "#fff", borderRadius: 10, boxShadow: "0 8px 24px rgba(20,20,45,.22)", border: "1px solid var(--s-line)", padding: "10px 0 4px", width: 230, zIndex: 20 };
+const resFilterStyle = { position: "absolute", top: 38, right: 0, background: "var(--mat-sys-surface-container-lowest)", borderRadius: 10, boxShadow: "0 8px 24px rgba(20,20,45,.22)", border: "1px solid var(--s-line)", padding: "10px 0 4px", width: 230, zIndex: 20 };
 
 Object.assign(window, { ResultsList });

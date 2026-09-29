@@ -92,7 +92,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
         <div style={qs.head}>
           <div style={qs.title}>Envoi rapide</div>
           <button style={qs.closeBtn} onClick={onCancel} aria-label="Fermer">
-            <span className="material-icons" style={{ fontSize: 24, color: 'rgba(0,0,0,0.55)' }}>close</span>
+            <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>close</span>
           </button>
         </div>
 
@@ -120,11 +120,11 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                 return (
                   <div key={it.id || i} style={qs.itemRow}>
                     <span className="material-icons-outlined"
-                      style={{ fontSize: 18, color: it.ceased ? '#b3261e' : meta.accent, flexShrink: 0, marginTop: 1 }}>
+                      style={{ fontSize: 18, color: it.ceased ? 'light-dark(#b3261e, #e9a9a5)' : meta.accent, flexShrink: 0, marginTop: 1 }}>
                       {it.ceased ? 'cancel' : meta.icon}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={Object.assign({}, qs.itemLabel, it.ceased ? { textDecoration: 'line-through', color: 'rgba(0,0,0,0.4)' } : {})}>{it.label}</div>
+                      <div style={Object.assign({}, qs.itemLabel, it.ceased ? { textDecoration: 'line-through', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' } : {})}>{it.label}</div>
                       {it.sub ? <div style={qs.itemSub}>{it.sub}</div> : null}
                     </div>
                   </div>
@@ -142,7 +142,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
 
             {noRecipient &&
               <div style={qs.warnBanner}>
-                <span className="material-icons-outlined" style={{ fontSize: 18, color: '#a15c00' }}>warning</span>
+                <span className="material-icons-outlined" style={{ fontSize: 18, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
                 <span style={qs.warnText}>Ajouter un destinataire pour transmettre {meta.nounPhrase}.</span>
               </div>
             }
@@ -170,7 +170,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
               <div style={qs.pickerBox}>
                 {showSuggestions &&
                   <div style={qs.pickerHead}>
-                    <span className="material-icons" style={{ fontSize: 15, color: '#5b54b8' }}>auto_awesome</span>
+                    <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
                     SUGGESTION {meta.suggestions.length}
                     <button style={qs.pickerHideBtn} title="Masquer les suggestions"
                       onClick={function () { setSuggestHidden(true); }}>
@@ -184,13 +184,13 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                       <button key={s.name} style={qs.pickerRow}
                         onClick={function () { addRecipient(s); setPickerOpen(false); }}>
                         {s.favorite
-                          ? <span className="material-icons" style={{ fontSize: 15, color: '#e0637a' }}>favorite</span>
+                          ? <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#e0637a, #e9a5b2)' }}>favorite</span>
                           : <span style={{ width: 15 }} />}
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                           <div style={qs.pickerName}>{s.name}</div>
                           <div style={qs.pickerMeta}>{[s.phone, s.fax].filter(Boolean).join(' · ')}</div>
                         </div>
-                        <span className="material-icons" style={{ fontSize: 18, color: '#1975d1' }}>add</span>
+                        <span className="material-icons" style={{ fontSize: 18, color: 'var(--mat-sys-primary)' }}>add</span>
                       </button>
                     );
                   })}
@@ -212,7 +212,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                       <button key={name} type="button" role="checkbox" aria-checked={on}
                         style={Object.assign({}, qs.attachChip, on ? qs.attachChipOn : {})}
                         onClick={function () { toggleAttachment(name); }}>
-                        <span className="material-icons" style={{ fontSize: 17, color: on ? '#25245E' : 'rgba(0,0,0,0.35)' }}>
+                        <span className="material-icons" style={{ fontSize: 17, color: on ? 'var(--mat-sys-on-surface)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)' }}>
                           {on ? 'check_box' : 'check_box_outline_blank'}
                         </span>
                         {name}
@@ -237,7 +237,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
 
         <div style={qs.footer}>
           <div style={qs.summary}>
-            <span className="material-icons-outlined" style={{ fontSize: 17, color: 'rgba(0,0,0,0.45)' }}>description</span>
+            <span className="material-icons-outlined" style={{ fontSize: 17, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>description</span>
             {summary}
           </div>
           {onOpenFull &&
@@ -269,7 +269,7 @@ const qs = {
   },
   dialog: {
     width: 660, maxWidth: 'calc(100vw - 40px)', maxHeight: '88vh',
-    background: '#fff', borderRadius: 18, boxShadow: '0 18px 48px rgba(20,20,50,0.32)',
+    background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 18, boxShadow: '0 18px 48px rgba(20,20,50,0.32)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
     fontFamily: "'Inter', sans-serif", animation: 'snm-pop 160ms cubic-bezier(.2,.8,.3,1)',
   },
@@ -277,96 +277,96 @@ const qs = {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '20px 24px 14px', flexShrink: 0,
   },
-  title: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'rgba(0,0,0,0.88)' },
+  title: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
   closeBtn: { border: 0, background: 'transparent', cursor: 'pointer', padding: 2, display: 'inline-flex' },
 
   body: { padding: '0 24px 8px', overflowY: 'auto', flex: 1 },
-  card: { border: '1px solid #e6e6ef', borderRadius: 12, padding: '16px 18px 18px' },
+  card: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 12, padding: '16px 18px 18px' },
 
   docHead: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18, flexWrap: 'wrap' },
-  docTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16, color: 'rgba(0,0,0,0.85)' },
-  badge: { fontSize: 11.5, fontWeight: 700, borderRadius: 7, padding: '4px 9px', background: '#fdf3e2', color: '#8a6212' },
-  badgeOn: { background: '#e6f5ee', color: '#2e9b7a' },
+  docTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
+  badge: { fontSize: 11.5, fontWeight: 700, borderRadius: 7, padding: '4px 9px', background: 'light-dark(#fdf3e2, #4c3d24)', color: 'light-dark(#8a6212, #e9d2a5)' },
+  badgeOn: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
 
   sectionLabel: {
     display: 'flex', alignItems: 'center', gap: 4,
-    fontSize: 11.5, fontWeight: 700, color: 'rgba(0,0,0,0.5)', letterSpacing: 0.3,
+    fontSize: 11.5, fontWeight: 700, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', letterSpacing: 0.3,
     textTransform: 'uppercase', margin: '18px 0 10px',
   },
   iconAdd: {
-    border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.45)',
+    border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)',
     display: 'inline-flex', alignItems: 'center', padding: 2, borderRadius: 6,
   },
 
   itemList: { display: 'flex', flexDirection: 'column', gap: 8 },
   itemRow: {
     display: 'flex', alignItems: 'flex-start', gap: 9,
-    background: '#f8f8fc', border: '1px solid #eeeef6', borderRadius: 9, padding: '9px 12px',
+    background: 'var(--mat-sys-surface-container-low)', border: '1px solid light-dark(#eeeef6, #272749)', borderRadius: 9, padding: '9px 12px',
   },
-  itemLabel: { fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)', lineHeight: 1.35 },
-  itemSub: { fontSize: 12.5, color: 'rgba(0,0,0,0.55)', marginTop: 2, lineHeight: 1.4 },
+  itemLabel: { fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.35 },
+  itemSub: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginTop: 2, lineHeight: 1.4 },
 
   warnBanner: {
     display: 'flex', alignItems: 'flex-start', gap: 8,
-    background: '#fdf3e2', borderRadius: 9, padding: '10px 12px',
+    background: 'light-dark(#fdf3e2, #4c3d24)', borderRadius: 9, padding: '10px 12px',
   },
-  warnText: { fontSize: 12.5, color: '#8a6212', lineHeight: 1.4 },
+  warnText: { fontSize: 12.5, color: 'light-dark(#8a6212, #e9d2a5)', lineHeight: 1.4 },
 
   recipientCard: {
     display: 'flex', alignItems: 'center', gap: 10,
-    border: '1px solid #e6e6ef', borderRadius: 9, padding: '10px 12px', marginBottom: 8,
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 9, padding: '10px 12px', marginBottom: 8,
   },
-  recipientName: { display: 'flex', alignItems: 'center', fontSize: 13.5, fontWeight: 600, color: 'rgba(0,0,0,0.82)' },
-  recipientMeta: { fontSize: 12.5, color: 'rgba(0,0,0,0.55)', marginTop: 2 },
+  recipientName: { display: 'flex', alignItems: 'center', fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
+  recipientMeta: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginTop: 2 },
   removeBtn: {
-    border: 0, background: 'transparent', cursor: 'pointer', color: 'rgba(0,0,0,0.4)',
+    border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)',
     display: 'inline-flex', padding: 3, borderRadius: 6, flexShrink: 0,
   },
 
-  pickerBox: { border: '1px solid #e6e6ef', borderRadius: 10, overflow: 'hidden', marginTop: 4 },
+  pickerBox: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, overflow: 'hidden', marginTop: 4 },
   pickerHead: {
-    display: 'flex', alignItems: 'center', gap: 6, background: '#f7f7fc',
-    padding: '7px 12px', font: "700 11.5px 'Inter',sans-serif", color: '#5b54b8', letterSpacing: 0.3,
+    display: 'flex', alignItems: 'center', gap: 6, background: 'light-dark(#f7f7fc, #24244c)',
+    padding: '7px 12px', font: "700 11.5px 'Inter',sans-serif", color: 'light-dark(#5b54b8, #b3b0de)', letterSpacing: 0.3,
   },
   pickerHideBtn: {
     marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer',
-    color: 'rgba(0,0,0,0.4)', display: 'inline-flex', alignItems: 'center', padding: 0,
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', display: 'inline-flex', alignItems: 'center', padding: 0,
   },
   pickerRow: {
     display: 'flex', alignItems: 'center', gap: 9, width: '100%',
-    border: 0, borderBottom: '1px solid #f2f2f8', background: '#fff',
+    border: 0, borderBottom: '1px solid light-dark(#f2f2f8, #272749)', background: 'var(--mat-sys-surface-container-lowest)',
     padding: '10px 12px', cursor: 'pointer',
   },
-  pickerName: { fontSize: 13, fontWeight: 600, color: 'rgba(0,0,0,0.8)' },
-  pickerMeta: { fontSize: 12, color: 'rgba(0,0,0,0.5)', marginTop: 1 },
+  pickerName: { fontSize: 13, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' },
+  pickerMeta: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 1 },
 
   attachRow: { display: 'flex', flexWrap: 'wrap', gap: 8 },
   attachChip: {
     display: 'inline-flex', alignItems: 'center', gap: 6,
-    border: '1px solid #e2e2ec', borderRadius: 9, background: '#fff',
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 9, background: 'var(--mat-sys-surface-container-lowest)',
     padding: '7px 12px 7px 8px', font: "500 13px 'Inter',sans-serif",
-    color: 'rgba(0,0,0,0.7)', cursor: 'pointer',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', cursor: 'pointer',
   },
-  attachChipOn: { background: '#ecebfa', border: '1px solid #d5d3f2', color: '#25245E' },
+  attachChipOn: { background: 'light-dark(#ecebfa, #27244c)', border: '1px solid light-dark(#d5d3f2, #27244c)', color: 'var(--mat-sys-on-surface)' },
 
   noteWrap: { marginTop: 16 },
   noteField: {
     width: '100%', boxSizing: 'border-box', minHeight: 44, resize: 'vertical',
-    border: '1px solid #dcdce8', borderRadius: 9, padding: '11px 12px',
-    font: "400 13.5px 'Inter',sans-serif", color: 'rgba(0,0,0,0.8)', outline: 'none',
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 9, padding: '11px 12px',
+    font: "400 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', outline: 'none',
   },
-  noteCount: { fontSize: 11.5, color: 'rgba(0,0,0,0.4)', marginTop: 4 },
+  noteCount: { fontSize: 11.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', marginTop: 4 },
 
   footer: {
     display: 'flex', alignItems: 'center', gap: 12,
-    padding: '14px 24px 18px', borderTop: '1px solid #f0f0f6', flexShrink: 0,
+    padding: '14px 24px 18px', borderTop: '1px solid var(--mat-sys-surface-container-low)', flexShrink: 0,
   },
-  summary: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'rgba(0,0,0,0.5)' },
-  linkBtn: { border: 0, background: 'transparent', cursor: 'pointer', font: "600 12.5px 'Inter',sans-serif", color: '#1975d1', padding: 0 },
+  summary: { display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' },
+  linkBtn: { border: 0, background: 'transparent', cursor: 'pointer', font: "600 12.5px 'Inter',sans-serif", color: 'var(--mat-sys-primary)', padding: 0 },
   printBtn: {
-    width: 38, height: 38, borderRadius: 9, border: '1px solid #e2e2ec', background: '#fff',
+    width: 38, height: 38, borderRadius: 9, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'rgba(0,0,0,0.6)',
+    cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)',
   },
   primaryBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 7, border: 0, borderRadius: 9,

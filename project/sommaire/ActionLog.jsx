@@ -87,7 +87,7 @@ function ActionLogPanel({ onClose }) {
               const removed = entry.removedFromNote;
               return (
                 <div key={entry.id} className="list-li" style={{ opacity: removed ? 0.55 : 1 }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 18, color: removed ? "#999" : "var(--s-action)", flexShrink: 0 }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 18, color: removed ? "var(--mat-sys-on-surface-variant)" : "var(--s-action)", flexShrink: 0 }}>
                     {icon}
                   </span>
                   <div className="ll-main">
@@ -102,7 +102,7 @@ function ActionLogPanel({ onClose }) {
                     </div>
                   </div>
                   {removed &&
-                    <span className="tag" style={{ background: "#ffeee8", color: "#b00020", flexShrink: 0 }}>retiré</span>}
+                    <span className="tag" style={{ background: "light-dark(#ffeee8, #4c2f24)", color: "light-dark(#b00020, #e9a5b1)", flexShrink: 0 }}>retiré</span>}
                 </div>);
             })}
           </div>
