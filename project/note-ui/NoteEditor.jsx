@@ -1,6 +1,6 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, transmitRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
+  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
@@ -725,7 +725,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   React.useEffect(function() {
     if (completeRef) completeRef.current = openFinalize;
     if (saveDraftRef) saveDraftRef.current = saveDraft;
-    if (transmitRef) transmitRef.current = function() { openTransmission(); };
     // « Prescrire » / « Transmettre » sur un chip ouvre l'envoi rapide,
     // restreint à ce document (voir QuickSendModal).
     function onOpenCheckout(e) { openQuickSend(e && e.detail && e.detail.cid); }

@@ -422,7 +422,6 @@ function App() {
   const [docStatusSummary, setDocStatusSummary] = React.useState([]);
   const noteCompleteRef = React.useRef(null);
   const noteSaveDraftRef = React.useRef(null);
-  const noteTransmitRef = React.useRef(null);
 
   React.useEffect(() => {
     function handler(e) { setDocStatusSummary(e.detail || []); }
@@ -523,7 +522,6 @@ function App() {
               onLinkEpisode={handleLinkEpisode}
               onSmartPick={() => setSmartModal(true)}
               saveDraftRef={noteSaveDraftRef}
-              transmitRef={noteTransmitRef}
               ftBarStyle={t.ftBarStyle || 'haut'}
               ftBarPosition={t.ftBarPosition || 'haut'}
               reviewingMode={t.reviewingMode === true}
@@ -558,11 +556,7 @@ function App() {
               <button className="ds-btn ds-btn--tonal"
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
               <button className="ds-btn ds-btn--filled"
-                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Compléter</button>
-              <button className="ds-btn ds-btn--icon" title="Transmission des documents" aria-label="Transmission des documents"
-                onClick={() => { if (noteTransmitRef.current) noteTransmitRef.current(); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 20 }}>send</span>
-              </button>
+                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Finaliser</button>
             </div>
             }
           </div>
