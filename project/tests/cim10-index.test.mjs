@@ -92,6 +92,16 @@ test("children('ch:X') donne les 6 blocs du chapitre X, non sélectionnables", (
   assert.ok(blocks.every((b) => b.selectable === false));
 });
 
+test("chapitres et blocs sont choisissables (pickable, level, canRefine) sans devenir `selectable` — ce champ reste réservé aux vrais codes", () => {
+  const ch = ix.node('ch:X'), bl = ix.node('bl:J40-J47');
+  assert.deepEqual([ch.pickable, ch.selectable, ch.level, ch.canRefine], [true, false, 'chapter', true]);
+  assert.deepEqual([bl.pickable, bl.selectable, bl.level, bl.canRefine], [true, false, 'block', true]);
+  assert.equal(ix.node('J45').pickable, true); // un vrai code l'est aussi
+  assert.equal(ix.node('fav').pickable, false); // « Fréquents » n'est qu'un regroupement
+  assert.equal(ix.levelOf('bl:J40-J47'), 'block');
+  assert.equal(ix.canRefine('ch:X'), true);
+});
+
 test("children('bl:J40-J47') donne les catégories dans l'ordre du code", () => {
   assert.deepEqual(ix.children('bl:J40-J47').map((r) => r.code), ['J40', 'J41', 'J42', 'J44', 'J45']);
 });
@@ -128,11 +138,13 @@ test('resolve(code) tombe sur le plus proche existant, ou null si rien ne corres
   assert.equal(ix.resolve('Q99.9'), null);
 });
 
-test('levelOf : category seulement pour une catégorie avec enfants', () => {
+test('levelOf : category seulement pour une catégorie avec enfants ; chapter/block pour les regroupements choisissables', () => {
   assert.equal(ix.levelOf('H66'), 'category');
   assert.equal(ix.levelOf('I10'), 'code');
   assert.equal(ix.levelOf('H66.0'), 'code');
-  assert.equal(ix.levelOf('bl:H65-H75'), null);
+  assert.equal(ix.levelOf('bl:H65-H75'), 'block');
+  assert.equal(ix.levelOf('ch:VIII'), 'chapter');
+  assert.equal(ix.levelOf('fav'), null);
   assert.equal(ix.levelOf('XYZ'), null);
 });
 
