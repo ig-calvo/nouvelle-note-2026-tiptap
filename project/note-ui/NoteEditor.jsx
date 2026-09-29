@@ -1697,7 +1697,7 @@ const tagStyles = {
   chipX: { position: 'relative', width: 24, height: 24, border: 'none', cursor: 'pointer', color: 'var(--mat-sys-on-surface-variant)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: 0, borderRadius: 'var(--mat-sys-corner-small)' },
   input: { border: 'none', outline: 'none', background: 'transparent', flex: 1, minWidth: 120, font: 'var(--mat-sys-body-large)', letterSpacing: 'var(--mat-sys-body-large-tracking)', color: 'var(--mat-sys-on-surface)', padding: 'var(--ds-spacing-xxs) 0' },
   menu: { position: 'absolute', top: 'calc(100% + 4px)', left: 0, minWidth: 240, background: 'var(--mat-sys-surface-container-low)', borderRadius: 'var(--mat-sys-corner-small)', boxShadow: 'var(--mat-sys-level2)', padding: 'var(--ds-spacing-xxs) 0', zIndex: 30 },
-  menuItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', font: 'var(--mat-sys-body-large)', color: 'var(--mat-sys-on-surface)', cursor: 'pointer' }
+  menuItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', minHeight: 48, boxSizing: 'border-box', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', font: 'var(--mat-sys-body-large)', color: 'var(--mat-sys-on-surface)', cursor: 'pointer' }
 };
 
 // ---------------------------------------------------------

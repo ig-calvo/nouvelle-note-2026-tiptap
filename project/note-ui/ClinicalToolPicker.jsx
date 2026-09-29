@@ -321,6 +321,8 @@ const ctpS = {
     display: 'flex',
     alignItems: 'center',
     gap: 4,
+    minHeight: 48,
+    boxSizing: 'border-box',
     padding: '8px 14px 8px 10px',
     cursor: 'pointer',
     transition: 'background 110ms',
