@@ -217,7 +217,6 @@ function DocView({ doc, blocks, dxModel }) {
         <div key={'db-' + bi} style={nlStyles.roDiag}>
           <div style={nlStyles.roDiagHeader}>
             {entry && <span style={nlStyles.roDiagNum}>{entry.number}</span>}
-            <span className="material-icons-outlined" style={nlStyles.roDiagIcon}>local_hospital</span>
             <span style={Object.assign({}, nlStyles.roDiagName, isCesse ? nlStyles.roDiagNameCesse : null)}>{a.name}</span>
             {a.code && <span style={nlStyles.roDiagCode}>{a.code}</span>}
             {isCesse && <span style={nlStyles.roDiagStatus}>Cessé</span>}
@@ -225,7 +224,12 @@ function DocView({ doc, blocks, dxModel }) {
           </div>
           <div style={nlStyles.roDiagBody}>
             {bodyParas.map(function(p, pi) {
-              return <p key={pi} style={{ margin: '0 0 4px' }}>{(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}</p>;
+              return (
+                <p key={pi} style={nlStyles.roDiagLine}>
+                  <span className="material-icons-outlined" aria-hidden="true" style={nlStyles.roDiagArrow}>subdirectory_arrow_right</span>
+                  {(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}
+                </p>
+              );
             })}
           </div>
         </div>
@@ -674,15 +678,17 @@ const nlStyles = {
     padding: '4px 12px 4px 8px', fontSize: 13, color: 'var(--mat-sys-primary)', fontWeight: 500,
   },
   diagChipIcon: { fontSize: 14, color: 'var(--mat-sys-primary)' },
-  roDiag: { margin: '8px 0', border: '1px solid #b3ccf0', borderRadius: 10, overflow: 'hidden' },
-  roDiagHeader: { display: 'flex', alignItems: 'center', gap: 7, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', padding: '6px 12px' },
-  roDiagIcon: { fontSize: 16, color: 'var(--mat-sys-primary)' },
-  roDiagName: { fontSize: 12, fontWeight: 500, color: 'var(--mat-sys-primary)' },
+  // Même rendu que le style « actuel » de l'éditeur (editor.css, .diag-style-actuel
+  // .dxr-*) : pas de boîte, pastille noire numérotée, nom en petites capitales
+  // espacées, corps décalé avec une flèche « ↳ » sur chaque ligne.
+  roDiag: { margin: '14px 0 12px' },
+  roDiagHeader: { display: 'flex', flexWrap: 'wrap', rowGap: 2, alignItems: 'center', gap: 6, padding: '6px 10px 4px 12px' },
+  roDiagName: { fontSize: 12, fontWeight: 500, color: 'light-dark(#4a6f94, #b4c7da)', letterSpacing: '0.07em', textTransform: 'uppercase', padding: '1px 4px' },
   roDiagNameCesse: { textDecoration: 'line-through', textDecorationColor: 'light-dark(#b04a4a, #deb0b0)' },
   roDiagNum: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    minWidth: 16, height: 16, padding: '0 4px', borderRadius: 8,
-    background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', fontSize: 10, fontWeight: 700, flexShrink: 0,
+    width: 18, height: 18, borderRadius: '50%',
+    background: '#000', color: '#fff', fontSize: 11, fontWeight: 600, lineHeight: 1, flexShrink: 0,
   },
   roDiagCode: { fontSize: 11, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', fontVariantNumeric: 'tabular-nums' },
   roDiagStatus: {
@@ -690,7 +696,9 @@ const nlStyles = {
     color: 'light-dark(#7a1f26, #e8a6ab)', background: 'light-dark(#ecdfe0, #462a2c)', borderRadius: 4, padding: '2px 6px',
   },
   roDiagSub: { fontSize: 11, fontStyle: 'italic', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  roDiagBody: { background: 'light-dark(#f5f9ff, #24344c)', padding: '8px 12px', fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.5, letterSpacing: 0.25 },
+  roDiagBody: { padding: '1px 12px 8px 28px', fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.5, letterSpacing: 0.25 },
+  roDiagLine: { position: 'relative', margin: '0 0 1px' },
+  roDiagArrow: { position: 'absolute', left: -16, top: 4, width: 18, fontSize: 15, lineHeight: 1, color: '#9dbbd6', display: 'flex', justifyContent: 'center', userSelect: 'none', pointerEvents: 'none' },
   roDxref: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     minWidth: 20, height: 18, padding: '0 5px', margin: '0 1px', borderRadius: 9,
