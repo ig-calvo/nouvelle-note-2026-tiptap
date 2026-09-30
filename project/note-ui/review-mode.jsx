@@ -507,7 +507,7 @@ function PendingCompleteDialog({ summary, onAcceptAllAndComplete, onReview, onCo
       <div style={rvwS.dialogBox} role="dialog" aria-label="Ajouts en attente">
         <div style={rvwS.dialogTitle}>Ajouts en attente</div>
         <p style={rvwS.dialogText}>
-          Il reste {pendingSummaryText(summary)} proposés par un gabarit, ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.
+          Il reste {pendingSummaryText(summary)} proposés ({summary.sources.length ? summary.sources.join(', ') : 'gabarit'}), ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.
         </p>
         <div style={rvwS.dialogActions}>
           <button type="button" style={rvwS.dialogBtnGhost} onClick={onCompleteWithout}>Finaliser sans eux</button>

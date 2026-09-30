@@ -579,6 +579,15 @@ const ORDER_DEFS = {
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q) { return _searchList(REF_ITEMS, REF_FAVS, q); } },
 };
 
+// Éléments structurés que l'Assistant IA propose pour la transcription
+// d'exemple (AIBox.jsx : brûlures mictionnelles, bandelette positive) — tweak
+// « IA : éléments structurés proposés ». Items du catalogue seulement ;
+// contenu SIMULÉ, à valider cliniquement (ID-10). `cat-44` = Nitrofurantoïne.
+const AI_SAMPLE_PROPOSALS = [
+  { kind: 'lab', key: 'srum' },
+  { kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } },
+];
+
 // Valeurs proposées pour les champs d'une puce — UNE source pour le
 // formulaire (ChipPopover, editor-popover.jsx) et l'éditeur inline d'un champ
 // (ChipInlineEditor, NoteEditor.jsx), D-04 : pas deux systèmes pour la même
@@ -861,4 +870,4 @@ const SCENARIOS = [
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchRequests, FIELD_OPTIONS };
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

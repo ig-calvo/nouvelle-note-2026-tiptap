@@ -2,6 +2,8 @@
 
 Sources : notes et transcription de la rencontre « Inline entity générique » (Xavier Boilard, Alex Montambeault, Antoine Cloutier, Vanessa Bois, Ignacio Calvo) et [la présentation](https://claude.ai/artifact/95ZBSFhJmiAfD5P9W7KRTa).
 
+**Statut (2026-09-30) : lots 0 à 9 livrés**, en PR empilées à fusionner dans l'ordre — ig-calvo/nouvelle-note-2026-tiptap #15 (lot 0), #16 (1), #17 (2), #18 (3), #19 (4), #20 (5), #22 (6), #23 (7), #25 (8), puis le lot 9. Détail, écarts au plan et questions : `project/Note Clinique.notes.md` (RA-03 à RA-11, ID-05 à ID-11, Q-05 à Q-23).
+
 Ce plan traduit en changements de prototype ce qui a été **décidé**, et rend **testable** ce qui reste **ouvert**. Il ne couvre pas ce qui ne se prototype pas (index de recherche, retrait du GSF, documentation DAF, frame by frame Figma — voir §J).
 
 **Principes**
