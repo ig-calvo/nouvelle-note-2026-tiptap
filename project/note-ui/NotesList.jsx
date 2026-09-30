@@ -285,7 +285,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     // Notes de démonstration : documents figés dans le gabarit (txDocs).
     if (n.txDocs) return n.txDocs;
     if (!n.doc || !window.scanDoc || !window.buildTransmissionDocs) return [];
-    try { return window.buildTransmissionDocs(window.scanDoc(n.doc), n.txState || {}); }
+    try { return window.buildTransmissionDocs(window.scanDoc(n.doc), n.txState || {}, { groupRequests: !!n.groupRequests }); }
     catch (e) { return []; }
   }
 

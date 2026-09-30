@@ -698,6 +698,12 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }
+.rx-check { flex-shrink: 0; width: 32px; height: 32px; margin: 0 2px 0 -6px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.rx-check .material-symbols-outlined { font-size: 20px; }
+.rx-item.is-checked .rx-check { color: var(--mat-sys-primary); }
+.rx-item.is-checked { background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
+.rx-check:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.rx-add-checked { margin-left: auto; border: 0; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 12.5px var(--font-body); padding: 5px 10px; cursor: pointer; }
 .rx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid var(--mat-sys-secondary-container); margin-bottom: 4px; }
 .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 6px; }
 .rx-item { display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
@@ -850,6 +856,14 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .popover-head .close:hover { background: var(--bg-subtle); color: var(--fg-1); }
 .popover-body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow: auto; }
 .popover-body .field { display: flex; flex-direction: column; gap: 4px; }
+.lab-tests { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-test { display: inline-flex; align-items: center; gap: 2px; padding: 2px 2px 2px 10px; border: 1px solid var(--mat-sys-outline); border-radius: var(--mat-sys-corner-small); font-size: 13px; color: var(--mat-sys-on-surface); background: var(--mat-sys-surface-container-lowest); }
+.lab-test__remove { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.lab-test__remove .material-symbols-outlined { font-size: 16px; }
+.lab-test__remove:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.lab-test__remove:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.lab-tests__empty { font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+.lab-profile-note { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
 .popover-body .field label { font-size: 11px; font-weight: 600; color: var(--fg-2); letter-spacing: 0.2px; }
 .popover-body .field input, .popover-body .field select, .popover-body .field textarea { border: 1px solid var(--border-default); background: var(--surface-2); border-radius: var(--radius-sm); padding: 8px 10px; font: inherit; font-size: 13px; color: var(--fg-1); outline: none; }
 .popover-body .field input:focus, .popover-body .field select:focus, .popover-body .field textarea:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(46,56,166,0.16); }

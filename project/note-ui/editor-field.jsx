@@ -108,6 +108,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
     const kind = props.kind, item = props.item, action = props.action;
+    // Plusieurs résultats cochés, un profil, ou la recherche unifiée /req :
+    // une puce labo pour les analyses, une puce par examen d'imagerie
+    // (buildRequestChips, editor-schema.jsx).
+    if (props.items || kind === 'req' || (item && item.profile)) {
+      const list = props.items || (item ? [item] : []);
+      const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+      const nodes = [];
+      window.buildRequestChips(list, kind === 'req' ? null : kind).forEach(function (a) {
+        nodes.push({ type: 'chip', attrs: Object.assign(a, stamp) }, { type: 'text', text: ' ' });
+      });
+      if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
+      return;
+    }
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
     if (!def || !item) return;
     const chipId = window.newChipId();
@@ -264,6 +277,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // clavier et l'affichage (voir l'en-tête de dx-picker.jsx : c'était le
     // piège de searchDx, deux appels indépendants).
     let dxState = null, dxModel = null, dxSelfRewrite = false;
+    // Sélection multiple des recherches de requêtes (ORDER_DEFS[kind].multi :
+    // /req, /lab, /img) : items cochés, gardés quand la recherche change,
+    // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
+    let checked = [];
+    function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
+    function toggleChecked(it, kind) {
+      const u = checkUid(it, kind);
+      const i = checked.findIndex(function (c) { return checkUid(c, c.__kind) === u; });
+      if (i >= 0) checked.splice(i, 1);
+      else checked.push(Object.assign({}, it, { __kind: kind }));
+    }
 
     function initialIndex() { return 0; }
 
@@ -330,7 +354,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
-        setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
+        setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
       if (parsed.mode === 'dx') {
@@ -348,6 +373,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const api = {
       onStart(props) {
         selectedIndex = initialIndex();
+        checked = [];
         dxState = null; dxModel = null; dxSelfRewrite = false;
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
@@ -395,8 +421,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           selectedIndex = Math.max(0, selectedIndex - 1);
           publish(lastQuery); return true;
         }
+        const orderDef = parsed.mode === 'order' ? window.NOTE_DATA.ORDER_DEFS[parsed.kind] : null;
+        // ⇧ Entrée : coche / décoche le résultat actif, le menu reste ouvert.
+        if (props.event.key === 'Enter' && props.event.shiftKey && orderDef && orderDef.multi) {
+          const it = currentItems[selectedIndex];
+          if (it) { toggleChecked(it, parsed.kind); publish(lastQuery); }
+          return true;
+        }
         if (props.event.key === 'Enter' || props.event.key === 'Tab') {
           if (!slashCommandRef.current) return true;
+          if (parsed.mode === 'order' && checked.length) {
+            const items = checked.slice(); checked = [];
+            slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
+            return true;
+          }
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
             if (it) {
@@ -411,8 +449,16 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return false;
       },
-      onExit() { setSlash(null); },
+      onExit() { checked = []; setSlash(null); },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
+      // Souris (RxMenu) : case à cocher d'un résultat, bouton « Ajouter (n) ».
+      toggleCheck(it) { const parsed = parseSlashQuery(lastQuery); toggleChecked(it, parsed.kind); publish(lastQuery); },
+      addChecked() {
+        const parsed = parseSlashQuery(lastQuery);
+        if (!checked.length || !slashCommandRef.current) return;
+        const items = checked.slice(); checked = [];
+        slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
+      },
       republish() { publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
@@ -1105,6 +1151,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onHover={(i) => { if (slashApiRef.current) slashApiRef.current.setActiveIndex(i); }}
           onSelect={chooseOrderItem}
           onToggleFav={(k) => { window.NOTE_DATA.toggleOrderFav(slash.kind, k); if (slashApiRef.current) slashApiRef.current.republish(); }}
+          checked={slash.checked || []}
+          onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
+          onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
           onClose={() => setSlash(null)} />
       }
 

@@ -141,7 +141,7 @@ function chipPrintText(a) {
     second = join([d.priority, d.fasting ? 'à jeun' : ''], ', ');
   } else if (a.type === 'imaging') {
     main = rx.name || join([d.modality, d.region], ' ') || a.label;
-    second = d.priority || '';
+    second = join([d.laterality, d.priority], ', ');
   } else if (a.type === 'referral') {
     main = 'Référence : ' + (d.specialty || rx.name || a.label);
     second = d.priority || '';
@@ -305,6 +305,12 @@ function buildChipDomBase(data, existingEl) {
       pr.textContent = d.priority || 'Routine';
       poso.appendChild(pr);
       node.appendChild(poso);
+      if (kind === 'img' && d.laterality) {
+        const lt = document.createElement('span');
+        lt.className = 'chip-rx-sig';
+        lt.textContent = d.laterality;
+        node.appendChild(lt);
+      }
       if (kind === 'lab' && d.fasting) {
         const ft = document.createElement('span');
         ft.className = 'chip-rx-sig';
@@ -1721,7 +1727,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref|req)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -1984,7 +1990,13 @@ function buildActionLog(docJson, events) {
 // `txState` est l'état par document ({recipients, complete, transmitted…}) ;
 // passer {} donne des documents vierges.
 // ---------------------------------------------------------
-function buildTransmissionDocs(docStats, txState) {
+// opts.groupRequests (tweak « Checkout des requêtes », aussi lu sur
+// window.__GROUP_REQUESTS) : toutes les puces labo de la note dans UNE
+// requête de laboratoire, toutes les puces imagerie dans une requête
+// d'imagerie — comme l'Ordonnance regroupe les prescriptions. Sinon, un
+// document par puce (comportement d'origine).
+function buildTransmissionDocs(docStats, txState, opts) {
+  var groupRequests = opts && opts.groupRequests !== undefined ? !!opts.groupRequests : !!window.__GROUP_REQUESTS;
   var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
 
   function mkItem(e) {
@@ -2068,7 +2080,13 @@ function buildTransmissionDocs(docStats, txState) {
   var docs = [];
   var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
   if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
-  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
+  var grouped = groupRequests ? ['lab', 'imaging'] : [];
+  [['lab', 'Requête de laboratoire'], ['imaging', 'Requête d’imagerie']].forEach(function(g) {
+    if (grouped.indexOf(g[0]) < 0) return;
+    var its = ents.filter(function(e) { return e.entity.type === g[0]; }).map(mkItem);
+    if (its.length) docs.push(withTx(g[0], g[0], g[1], its));
+  });
+  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0 && grouped.indexOf(e.entity.type) < 0; })
     .forEach(function(e) {
       var item = mkItem(e);
       docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
@@ -2248,6 +2266,41 @@ function orderChipAttrs(kind, item) {
   };
 }
 
+// Puce labo pour une liste d'analyses (sélection multiple, profil) : une
+// seule puce, ses analyses dans details.tests — retirables dans le formulaire.
+function labChipAttrs(details) {
+  const d = Object.assign({ tests: [], priority: 'Routine', fasting: false, context: '' }, details);
+  const rx = window.NOTE_DATA.deriveLabRx(d);
+  return {
+    cid: newChipId(), type: 'lab', label: rx.name, icon: window.NOTE_DATA.ORDER_DEFS.lab.icon,
+    text: rx.name + (rx.sig ? ' — ' + rx.sig : ''), rx: rx, details: d
+  };
+}
+
+// Sélection multiple d'une recherche de requêtes (/req, /lab, /img) → attrs
+// des puces à insérer, dans cet ordre : UNE puce labo pour toutes les
+// analyses cochées (profils déployés, doublons retirés), puis une puce par
+// examen d'imagerie (une puce imagerie décrit un seul examen : modalité,
+// région, vues). `kind` = recherche d'origine, pour les items sans orderKind.
+function buildRequestChips(items, kind) {
+  const tests = [];
+  let fasting = false;
+  const imgs = [];
+  const profiles = [];
+  (items || []).forEach(function (it) {
+    const k = it.orderKind || kind;
+    if (k === 'img') { imgs.push(it); return; }
+    if (it.profile) profiles.push(it.name);
+    (it.details && it.details.tests || [it.name]).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); });
+    if (it.details && it.details.fasting) fasting = true;
+  });
+  const out = [];
+  // `profile` : rappel dans le formulaire (« Depuis le profil … »), rien de plus.
+  if (tests.length) out.push(labChipAttrs(Object.assign({ tests: tests, fasting: fasting }, profiles.length ? { profile: profiles.join(', ') } : {})));
+  imgs.forEach(function (it) { out.push(orderChipAttrs('img', it)); });
+  return out;
+}
+
 // Auteur des marques « insertion » posées sur le texte d'un gabarit quand il
 // est proposé (tweak « Gabarit : texte proposé ») — même mécanisme que le
 // texte de l'Assistant IA (markBlocksAsInsertion, review-mode.jsx).
@@ -2260,6 +2313,12 @@ const TEMPLATE_AUTHOR = { id: 'gabarit', name: 'Gabarit' };
 // propose (« Gabarit « Otite moyenne aiguë » »), affiché sur la puce et
 // dans la barre des ajouts en attente.
 function buildPendingChipNode(proposal, source) {
+  // { kind: 'profile', key } : un profil de laboratoire, déployé en une puce
+  // labo — on retire une analyse en vérifiant l'ajout avant de l'accepter.
+  if (proposal.kind === 'profile') {
+    const prof = (window.NOTE_DATA.LAB_PROFILES || []).find(function (p) { return p.key === proposal.key; });
+    return prof ? { type: 'chip', attrs: Object.assign(buildRequestChips([prof], 'lab')[0], { pending: true, proposedBy: source || null }) } : null;
+  }
   const def = window.NOTE_DATA.ORDER_DEFS[proposal.kind];
   const item = def && def.items().find(function (it) { return it.key === proposal.key; });
   if (!item) return null;
@@ -2436,6 +2495,8 @@ function stripPendingChips(docJson) {
 
 Object.assign(window, {
   orderChipAttrs,
+  labChipAttrs,
+  buildRequestChips,
   buildPendingChipNode,
   buildTemplateBlocks,
   acceptPendingChip,

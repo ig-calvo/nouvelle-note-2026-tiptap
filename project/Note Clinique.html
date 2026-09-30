@@ -333,6 +333,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "templateTextProposed": false,
   "suggestionStyle": "tirets",
   "formOpenMode": "auto",
+  "groupRequests": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -497,6 +498,7 @@ function App() {
       // Statuts et destinataires de transmission figés à la complétion —
       // relus par le bouton « Checkout » du Journal (NotesList).
       txState: data.txState || {},
+      groupRequests: !!data.groupRequests,
     };
     setCompletedNotes(prev => [newNote, ...prev]);
     setNoteOpen(false);
@@ -535,7 +537,8 @@ function App() {
               simulateTxFailure={t.simulateTxFailure === true}
               templateTextProposed={t.templateTextProposed === true}
               suggestionStyle={t.suggestionStyle || 'tirets'}
-              formOpenMode={t.formOpenMode || 'auto'} />
+              formOpenMode={t.formOpenMode || 'auto'}
+              groupRequests={t.groupRequests === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -619,6 +622,13 @@ function App() {
         <TweakSection label="Checkout" />
         <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
+        <TweakRadio label="Checkout des requêtes"
+                    value={t.groupRequests === true ? 'type' : 'puce'}
+                    options={[
+                      { value: 'puce', label: 'Une par puce' },
+                      { value: 'type', label: 'Regroupées' },
+                    ]}
+                    onChange={(v) => setTweak('groupRequests', v === 'type')} />
         <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
                      onChange={(v) => setTweak('simulateTxFailure', v)} />
         <TweakSection label="Gabarits" />
