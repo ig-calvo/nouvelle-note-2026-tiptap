@@ -2,7 +2,11 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
-  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto' }) {
+  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false }) {
+  // Tweak « Checkout des requêtes » : lu par buildTransmissionDocs
+  // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
+  // pour que le pied de note et le checkout le voient dès ce rendu-ci.
+  window.__GROUP_REQUESTS = !!groupRequests;
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -814,6 +818,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       txState: txState,
       // Ce qui a été transmis ou annulé, y compris des chips retirés de la note.
       actionEvents: actionEvents,
+      // Regroupement des requêtes au moment de la complétion : les ids des
+      // documents de txState en dépendent (« lab » ou l'id de la puce).
+      groupRequests: !!groupRequests,
     };
     // Fusion définitive dans le dossier (Summary.jsx) — après ça, la ligne
     // n'est plus « en attente » : Cesser devient résolu à la date DE LA NOTE

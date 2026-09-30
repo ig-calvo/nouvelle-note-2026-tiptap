@@ -373,13 +373,43 @@ function RxFields({ d, up }) {
     <div className="field"><label>Notes</label><textarea rows={2} value={d.notes} onChange={e => up('notes', e.target.value)} /></div>
   </>);
 }
+// Analyses d'une puce labo : une pastille retirable par analyse (profil ou
+// sélection multiple — on retire celle qu'on ne veut pas, cas d'Antoine
+// Cloutier), et une liste pour en ajouter une du catalogue.
+function LabTestsField({ tests, onChange }) {
+  const list = tests || [];
+  const catalog = [];
+  window.NOTE_DATA.ORDER_DEFS.lab.items().forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (catalog.indexOf(t) < 0 && list.indexOf(t) < 0) catalog.push(t); }); });
+  return (
+    <div className="field">
+      <label id="lab-tests-label">Analyses</label>
+      <div className="lab-tests" role="group" aria-labelledby="lab-tests-label">
+        {list.map((t) => (
+          <span key={t} className="lab-test">
+            {t}
+            <button type="button" className="lab-test__remove" aria-label={'Retirer ' + t} title={'Retirer ' + t}
+              onClick={() => onChange(list.filter((x) => x !== t))}>
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </span>
+        ))}
+        {list.length === 0 && <span className="lab-tests__empty">Aucune analyse</span>}
+      </div>
+      <select aria-label="Ajouter une analyse" value="" onChange={(e) => { if (e.target.value) onChange(list.concat([e.target.value])); }}>
+        <option value="">Ajouter une analyse…</option>
+        {catalog.map((t) => <option key={t} value={t}>{t}</option>)}
+      </select>
+    </div>
+  );
+}
 function LabFields({ d, up }) { return (<>
-  <div className="field"><label>Analyses</label><textarea rows={2} value={(d.tests||[]).join(', ')} onChange={e => up('tests', e.target.value.split(',').map(s=>s.trim()))} /></div>
+  {d.profile && <div className="lab-profile-note">Depuis le profil « {d.profile} »</div>}
+  <LabTestsField tests={d.tests} onChange={(v) => up('tests', v)} />
   <div className="row">
     <div className="field"><label>Priorité</label><select value={d.priority} onChange={e=>up('priority', e.target.value)}><option>Routine</option><option>Semi-urgent</option><option>Urgent</option></select></div>
     <div className="field"><label>À jeun</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">Non</option><option value="oui">Oui</option></select></div>
   </div>
-  <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
   <div className="field"><label>Commentaire au laboratoire</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function ImgFields({ d, up }) { return (<>
@@ -391,7 +421,8 @@ function ImgFields({ d, up }) { return (<>
     <div className="field"><label>Région</label><input value={d.region} onChange={e=>up('region', e.target.value)} /></div>
     <div className="field"><label>Vues</label><input value={d.views} onChange={e=>up('views', e.target.value)} /></div>
   </div>
-  <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Latéralité</label><select value={d.laterality || ''} onChange={e=>up('laterality', e.target.value)}><option value="">—</option><option>Gauche</option><option>Droite</option><option>Bilatéral</option></select></div>
+  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
   <div className="field"><label>Commentaire au service d’imagerie</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function PbFields({ d, up }) { return (<>
@@ -753,7 +784,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked }) {
   const ref = useRefP(null);
   const [showCeased, setShowCeased] = useStateP(false);
   useEffectP(() => {
@@ -776,6 +807,12 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   sections.push([d.sections[2], results.autres]);
   const total = profil.length + profilCeased.length + results.favoris.length + results.frequents.length + results.autres.length;
   let flat = -1;
+  // Sélection multiple (/req, /lab, /img) : case à cocher par résultat ; dès
+  // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
+  const multi = !!d.multi;
+  const checkedKeys = checked || [];
+  const uid = (it) => (it.orderKind || kind) + ':' + it.key;
+  const noFav = kind === 'req'; // favoris propres à chaque recherche
 
   return (
     <div className="rx-menu" ref={ref} style={position} role="listbox">
@@ -792,11 +829,19 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               const fav = favSet.has(it.key);
               const isActiveMed = it.med && it.medStatus === 'active';
               return (
-                <div key={it.key} role="option" aria-selected={idx === activeIndex}
-                  className={'rx-item' + (idx === activeIndex ? ' is-active' : '')}
+                <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
+                  aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
+                  className={'rx-item' + (idx === activeIndex ? ' is-active' : '') + (multi && checkedKeys.indexOf(uid(it)) >= 0 ? ' is-checked' : '')}
                   onMouseEnter={() => onHover(idx)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => onSelect(it, isActiveMed ? 'renouveler' : undefined)}>
+                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, isActiveMed ? 'renouveler' : undefined))}>
+                  {multi &&
+                    <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
+                      aria-label={(checkedKeys.indexOf(uid(it)) >= 0 ? 'Décocher ' : 'Cocher ') + it.name}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => { e.stopPropagation(); onToggleCheck(it); }}>
+                      <span className="material-symbols-outlined" aria-hidden="true">{checkedKeys.indexOf(uid(it)) >= 0 ? 'check_box' : 'check_box_outline_blank'}</span>
+                    </button>}
                   <div className="rx-item__body">
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
@@ -824,6 +869,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               </button>
                             </span>
                           : <span className="rx-status rx-status--ceased" title={it.medStatusLabel || ''}>Cessé</span>)
+                      : noFav ? null
                       : <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
                           title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                           onMouseDown={(e) => e.preventDefault()}
@@ -865,8 +911,13 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
       </div>
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>
-        <span><kbd>↵</kbd> {d.verb}</span>
+        {multi && <span><kbd>⇧ ↵</kbd> cocher</span>}
+        <span><kbd>↵</kbd> {multi && checkedKeys.length ? 'ajouter la sélection' : d.verb}</span>
         <span><kbd>Esc</kbd> annuler</span>
+        {multi && checkedKeys.length > 0 &&
+          <button type="button" className="rx-add-checked" onMouseDown={(e) => e.preventDefault()} onClick={onAddChecked}>
+            Ajouter ({checkedKeys.length})
+          </button>}
       </div>
     </div>);
 }
