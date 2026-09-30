@@ -3,28 +3,33 @@
 // =========================================================
 const { useState: useStateP, useEffect: useEffectP, useLayoutEffect: useLayoutEffectP, useRef: useRefP } = React;
 
-// Place un popover `position: fixed` dans le viewport (marge 12 px). Sous
-// l'ancre s'il y a au moins 320 px (hauteur plafonnée : le corps défile), sinon
-// au-dessus, sinon sur toute la hauteur du viewport. On évite le dessus tant
-// que possible : la barre de mise en forme flottante y vit quand la puce est
-// sélectionnée. Les styles top/left/maxHeight sont posés sur le DOM : ne pas
-// les passer en style React.
-function placePopover(el, anchorRect) {
-  const M = 12, GAP = 8, MIN_H = 320;
+// Place un popover `position: fixed` selon choosePopoverPlacement
+// (popover-placement.jsx) et renvoie la décision ({ kind, … }). opts : mode
+// (tweak « Ouverture du formulaire »), width (largeur de base, rétablie avant
+// de mesurer), column (rect de la colonne de la note, pour le bottom sheet).
+// top/left/maxHeight/width sont posés sur le DOM : ne pas les passer en style
+// React. Les classes popover--sheet / popover--center portent l'habillage.
+window.placePopover = placePopover;
+function placePopover(el, anchorRect, opts) {
+  opts = opts || {};
   const vw = window.innerWidth, vh = window.innerHeight;
-  el.style.maxHeight = (vh - 2 * M) + 'px';
-  const h = el.offsetHeight, w = el.offsetWidth;
-  const below = vh - anchorRect.bottom - GAP - M;
-  const above = anchorRect.top - GAP - M;
-  let top, cap = vh - 2 * M;
-  if (h <= below) top = anchorRect.bottom + GAP;
-  else if (below >= MIN_H) { cap = below; top = anchorRect.bottom + GAP; }
-  else if (h <= above) top = anchorRect.top - GAP - h;
-  else if (above >= MIN_H) { cap = above; top = anchorRect.top - GAP - above; }
-  else top = M;
-  el.style.maxHeight = cap + 'px';
-  el.style.top = top + 'px';
-  el.style.left = Math.max(M, Math.min(anchorRect.left, vw - w - 16)) + 'px';
+  if (opts.width) el.style.width = opts.width + 'px';
+  el.style.maxHeight = (vh - 24) + 'px';
+  const p = window.choosePopoverPlacement({
+    mode: opts.mode, anchor: anchorRect, column: opts.column,
+    size: { w: el.offsetWidth, h: el.offsetHeight }, viewport: { w: vw, h: vh }
+  });
+  el.classList.toggle('popover--sheet', p.kind === 'sheet');
+  el.classList.toggle('popover--center', p.kind === 'center');
+  el.style.maxHeight = p.maxHeight + 'px';
+  el.style.left = p.left + 'px';
+  if (p.kind === 'sheet') {
+    // Plus large que la largeur mesurée : la hauteur change, on la relit.
+    el.style.width = p.width + 'px';
+    p.top = vh - Math.min(el.offsetHeight, p.maxHeight);
+  }
+  el.style.top = p.top + 'px';
+  return p;
 }
 
 // ─────────────────────────────────────────────────────────
@@ -48,7 +53,7 @@ const rxS = {
   body: { padding: '16px 18px 4px', overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
   sec: { font: "700 11px 'Inter', sans-serif", letterSpacing: '0.7px', textTransform: 'uppercase', color: 'var(--mat-sys-primary)', margin: '6px 0 16px' },
   row: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 },
-  fieldset: { border: 0, margin: 0, minWidth: 0 },
+  fieldset: { border: 0, margin: 0, padding: 0, minWidth: 0 },
   foot: { display: 'flex', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
   btnCancel: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
   btnSave: { border: 0, background: 'light-dark(#dedbef, #2a244c)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
@@ -123,7 +128,7 @@ function RxSourceToggle({ value, onChange }) {
   );
 }
 
-function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly, pending, onReject }) {
+function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly, pending, onReject, openMode }) {
   const [draft, setDraft] = useStateP(chip.entity);
   const ref = useRefP(null);
   useEffectP(() => { setDraft(chip.entity); }, [chip.id]);
@@ -134,18 +139,38 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [onClose]);
+  const isRx = draft.type === 'prescription';
+  const W = isRx ? 600 : 380;
+  // Où le formulaire s'est ouvert (below / above / center / sheet) : centré,
+  // un voile signale que la note est en attente ; bottom sheet, la puce est
+  // amenée au-dessus du panneau si celui-ci la cache (une fois par ouverture).
+  const [placed, setPlaced] = useStateP(null);
+  const sheetScrolledRef = useRefP(false);
   // À chaque rendu : la hauteur change avec le contenu (bandeau pédiatrique, etc.).
   useLayoutEffectP(() => {
     if (!anchorRect || !ref.current) return;
     const el = ref.current;
-    const place = () => placePopover(el, anchorRect);
+    const chipEl = document.querySelector('.ProseMirror .chip[data-cid="' + chip.id + '"]');
+    const shell = chipEl && chipEl.closest('.note-field-shell');
+    const place = () => {
+      const col = shell ? shell.getBoundingClientRect() : null;
+      const p = placePopover(el, anchorRect, { mode: openMode || 'auto', width: W, column: col ? { left: col.left, width: col.width } : null });
+      if (p.kind !== placed) setPlaced(p.kind);
+      if (p.kind === 'sheet' && chipEl && !sheetScrolledRef.current) {
+        sheetScrolledRef.current = true;
+        // La note ne défile que si le panneau cache la puce.
+        if (chipEl.getBoundingClientRect().bottom > p.top - 8) {
+          chipEl.style.scrollMarginBottom = (window.innerHeight - p.top + 16) + 'px';
+          chipEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    };
     place();
     window.addEventListener('resize', place);
     return () => window.removeEventListener('resize', place);
   });
   if (!anchorRect) return null;
-  const isRx = draft.type === 'prescription';
-  const W = isRx ? 600 : 380;
+  const scrim = placed === 'center' ? <div className="popover-scrim" aria-hidden="true" /> : null;
   const meta = window.NOTE_DATA.ENTITY_TYPES[draft.type] || {};
   function up(f, v) { setDraft(d => ({ ...d, details: { ...d.details, [f]: v } })); }
   // Chip transmis (D-05) : mêmes champs, désactivés par le <fieldset> ; le
@@ -188,8 +213,9 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
       const capped = peds.maxMgPerDose ? Math.min(rounded, peds.maxMgPerDose) : rounded;
       pedsCalc = { raw, suggested: capped, wasCapped: capped < rounded };
     }
-    return (
-      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog">
+    return (<>
+      {scrim}
+      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog" aria-modal={placed === 'center' ? 'true' : undefined}>
         <div style={rxS.head}>
           <span style={rxS.rxIcon}>℞</span>
           <span style={rxS.molName}>{d.molecule || 'Prescription'}</span>
@@ -221,7 +247,10 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
             </div>
             <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>Appliquer</button>
           </div>}
-        <fieldset disabled={!!readOnly} style={Object.assign({}, rxS.body, rxS.fieldset)}>
+        {/* Le <div> défile (un <fieldset> ne rogne pas son contenu : les champs
+            débordaient par-dessus le pied quand la hauteur est plafonnée) ; le
+            <fieldset> ne sert qu'à désactiver les champs d'une puce transmise. */}
+        <div style={rxS.body}><fieldset disabled={!!readOnly} style={rxS.fieldset}>
           <div style={rxS.sec}>Médicament et posologie</div>
           <div style={rxS.row}>
             <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={2} />
@@ -260,7 +289,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
           <div style={rxS.row}>
             <RxFF label="Commentaire au pharmacien" value={d.comment} onChange={(v) => up('comment', v)} placeholder="Commentaire au pharmacien" flex={1} />
           </div>
-        </fieldset>
+        </fieldset></div>
         {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) : pending ? pendingFoot(rxS.foot, rxS.btnCancel, rxS.btnSave) :
         <div style={rxS.foot}>
           <button style={rxS.btnCancel} onClick={onClose}>Annuler</button>
@@ -268,11 +297,12 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
           <button style={rxS.btnSave} onClick={() => onSave(chip.id, draft)}>Enregistrer</button>
         </div>}
       </div>
-    );
+    </>);
   }
 
-  return (
-    <div className="popover" ref={ref} style={{ display: 'flex', flexDirection: 'column', maxWidth: 'calc(100vw - 24px)', zIndex: 2100 }} role="dialog">
+  return (<>
+    {scrim}
+    <div className="popover" ref={ref} style={{ display: 'flex', flexDirection: 'column', maxWidth: 'calc(100vw - 24px)', zIndex: 2100 }} role="dialog" aria-modal={placed === 'center' ? 'true' : undefined}>
       <div className="popover-head">
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
@@ -281,13 +311,13 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
-      <fieldset className="popover-body" disabled={!!readOnly} style={Object.assign({ flex: '1 1 auto', minHeight: 0 }, rxS.fieldset)}>
+      <div className="popover-body" style={{ flex: '1 1 auto', minHeight: 0 }}><fieldset disabled={!!readOnly} style={Object.assign({ display: 'flex', flexDirection: 'column', gap: 10 }, rxS.fieldset)}>
         {draft.type === 'lab' && <LabFields d={draft.details} up={up} />}
         {draft.type === 'imaging' && <ImgFields d={draft.details} up={up} />}
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
         {draft.type === 'instructions' && <InsFields d={draft.details} up={up} />}
         {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
-      </fieldset>
+      </fieldset></div>
       {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
       pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
       <div className="popover-footer">
@@ -301,7 +331,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>Confirmer</button>
       </div>}
     </div>
-  );
+  </>);
 }
 
 function RxFields({ d, up }) {

@@ -374,6 +374,12 @@ function ReviewChangePopover({ change, anchorRect, onClose, onAccept, onReject }
     document.addEventListener('keydown', onKey);
     return function () { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [onClose]);
+  // Sous la marque, ou au-dessus s'il n'y a pas la place (placePopover, mode 'flip').
+  React.useLayoutEffect(function () {
+    if (!anchorRect || !ref.current || !window.placePopover) return;
+    ref.current.style.overflowY = 'auto';
+    window.placePopover(ref.current, anchorRect, { mode: 'flip' });
+  });
   if (!anchorRect) return null;
   const W = 300;
   const top = anchorRect.bottom + 8;
