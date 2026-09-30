@@ -1177,6 +1177,41 @@ function refocusSplitBar(editor) {
   if (bar && document.activeElement !== bar) bar.focus({ preventScroll: true });
 }
 
+// Hauteur minimale de chaque zone de la note. Le document est un seul
+// éditeur : les zones ne sont pas des conteneurs, seulement les blocs avant et
+// après la ligne. On complète donc l'espace manquant avec une marge sur la
+// ligne (Détails) et un padding sous l'éditeur (Conclusion), recalculés quand
+// le contenu ou la mise en page change.
+const ZONE_MIN_DETAILS = 110;
+const ZONE_MIN_CONCLUSION = 117;
+const SPLIT_BASE_MARGIN_TOP = 18; // = .nsx { margin-top } dans editor.css
+const EDITOR_BASE_PADDING_BOTTOM = 8; // = .ql-editor { padding-bottom }
+
+function applyZoneMinHeights(editor, dom) {
+  const root = editor.view && editor.view.dom;
+  if (!root || !dom.isConnected) return;
+  const first = root.firstElementChild;
+  const rootRect = root.getBoundingClientRect();
+  const splitRect = dom.getBoundingClientRect();
+  if (!rootRect.height) return; // éditeur masqué : rien à mesurer
+
+  const curTop = parseFloat(dom.style.marginTop) || SPLIT_BASE_MARGIN_TOP;
+  const curBottom = parseFloat(root.style.paddingBottom) || EDITOR_BASE_PADDING_BOTTOM;
+  const rootPadTop = parseFloat(getComputedStyle(root).paddingTop) || 0;
+
+  // Détails : du haut du contenu jusqu'à la marge de la ligne.
+  const detailsTop = first ? first.getBoundingClientRect().top : rootRect.top + rootPadTop;
+  const detailsH = (splitRect.top - curTop) - detailsTop;
+  const wantTop = Math.max(SPLIT_BASE_MARGIN_TOP, SPLIT_BASE_MARGIN_TOP + ZONE_MIN_DETAILS - detailsH);
+
+  // Conclusion : du bas de la ligne jusqu'au padding bas de l'éditeur.
+  const conclusionH = (rootRect.bottom - curBottom) - splitRect.bottom;
+  const wantBottom = Math.max(EDITOR_BASE_PADDING_BOTTOM, EDITOR_BASE_PADDING_BOTTOM + ZONE_MIN_CONCLUSION - conclusionH);
+
+  if (Math.abs(wantTop - curTop) > 0.5) dom.style.marginTop = wantTop + 'px';
+  if (Math.abs(wantBottom - curBottom) > 0.5) root.style.setProperty('padding-bottom', wantBottom + 'px', 'important');
+}
+
 function makeSectionSplitNode() {
   const T = window.Tiptap;
   return T.Node.create({
@@ -1276,6 +1311,17 @@ function makeSectionSplitNode() {
         }
         sync();
         editor.on('update', sync);
+
+        // Hauteurs minimales des zones : à la création, à chaque frappe, et
+        // quand la largeur change (le texte se replie autrement).
+        function fitZones() { applyZoneMinHeights(editor, dom); }
+        editor.on('update', fitZones);
+        requestAnimationFrame(fitZones);
+        let zoneObserver = null;
+        if (window.ResizeObserver && editor.view && editor.view.dom) {
+          zoneObserver = new ResizeObserver(fitZones);
+          zoneObserver.observe(editor.view.dom);
+        }
 
         // --- déplacement au clavier (WCAG 2.1.1 / OMNI31) : la barre a le
         // rôle « separator » focusable, les flèches la déplacent d'un bloc,
@@ -1401,6 +1447,9 @@ function makeSectionSplitNode() {
           update(updatedNode) { return updatedNode.type.name === window.SECTION_SPLIT; },
           destroy() {
             editor.off('update', sync);
+            editor.off('update', fitZones);
+            if (zoneObserver) zoneObserver.disconnect();
+            if (editor.view && editor.view.dom) editor.view.dom.style.removeProperty('padding-bottom');
             bar.removeEventListener('keydown', onKeyDown);
             bar.removeEventListener('mousedown', onMouseDown);
             if (drag) endDrag();
