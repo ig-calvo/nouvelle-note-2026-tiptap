@@ -611,6 +611,15 @@
 /* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
    (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
    l'icône, valeurs barrées. */
+/* États de la puce (chipIssues, editor-schema.jsx) — plusieurs niveaux :
+   erreur = bordure error + icône ; interaction de haut risque = bordure 2 px
+   et fond teinté ; avertissement = icône seulement. Commentaire = bulle. */
+.chip--rx.chip--error { border-color: var(--mat-sys-error); }
+.chip--rx.chip--interaction { border-width: 2px; padding: 1px 7px; background: color-mix(in srgb, var(--mat-sys-error-container) 55%, var(--mat-sys-surface-container-lowest)); }
+.chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
+.chip-issue-icon--error { color: var(--mat-sys-error); }
+.chip-issue-icon--warning { color: light-dark(#a15c00, #e9cca5); }
+.chip-comment-icon { color: var(--mat-sys-on-surface-variant); }
 /* Détails d'un chip transmis (ChipPopover readOnly) : champs visiblement inactifs. */
 .popover fieldset:disabled { opacity: 0.72; }
 .chip-sent-icon { font-size: 16px; line-height: 1; color: light-dark(#39604d, #b9d5c7); margin-left: 2px; }

@@ -20,6 +20,7 @@ function newChipId() { return 'c' + _chipSeq++; }
 // ---------------------------------------------------------
 function buildChipDom(data, existingEl) {
   const node = buildChipDomBase(data, existingEl);
+  decorateChipStates(node, data);
   if (data.pending) decoratePendingChip(node, data);
   else node.removeAttribute('data-pending'); // le DOM est réutilisé à la mise à jour (accepté)
   if (data.transmittedAt) decorateSentChip(node, data);
@@ -53,6 +54,65 @@ function decorateSentChip(node, data) {
   ic.setAttribute('title', 'Transmis le ' + when);
   ic.textContent = 'done_all';
   node.appendChild(ic);
+}
+
+// ---------------------------------------------------------
+// États d'une puce (rencontre inline entity : plusieurs niveaux d'erreur,
+// pas seulement le ! rouge). Dérivés des attrs — rien n'est stocké, sauf
+// l'échec de transmission (transmitError, posé par NoteEditor).
+//   level 'error'   : bordure error + icône ; `blocking` = le checkout ne
+//                     laisse pas compléter le document.
+//   level 'warning' : icône seulement.
+// Une puce annulée n'a plus d'état ; une puce transmise ne garde que
+// l'échec de transmission.
+// ---------------------------------------------------------
+function chipIssues(a) {
+  if (!a || a.cancelledAt) return [];
+  const out = [];
+  if (a.transmitError) out.push({ level: 'error', kind: 'transmission', message: 'Échec de transmission : ' + a.transmitError });
+  if (a.transmittedAt) return out;
+  const d = a.details || {};
+  const blank = function (v) { return v === undefined || v === null || String(v).trim() === ''; };
+  if (a.type === 'prescription' && !(a.rx && a.rx.ceased)) {
+    // Champs requis du formulaire (ChipPopover) ; le renouvellement vide vaut
+    // R0 partout dans le prototype, il n'est donc pas « manquant ».
+    const missing = [['dose', 'dose'], ['route', 'voie'], ['frequency', 'fréquence']]
+      .filter(function (f) { return blank(d[f[0]]); }).map(function (f) { return f[1]; });
+    if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, message: 'Prescription incomplète — à préciser : ' + missing.join(', ') });
+    if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || 'Interaction de haut risque' });
+  }
+  if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: 'Question clinique à préciser' });
+  return out;
+}
+
+// Classes et icônes de fin de puce : état (erreur / avertissement), puis
+// commentaire. La double coche « Transmis » vient après (decorateSentChip).
+function decorateChipStates(node, data) {
+  const issues = chipIssues(data);
+  const kinds = issues.map(function (i) { return i.kind; });
+  if (kinds.indexOf('interaction') >= 0) node.classList.add('chip--interaction');
+  if (issues.some(function (i) { return i.level === 'error' && i.kind !== 'transmission'; })) node.classList.add('chip--error');
+  if (issues.length) {
+    const worst = issues.some(function (i) { return i.level === 'error'; }) ? 'error' : 'warning';
+    const ic = document.createElement('span');
+    ic.className = 'material-symbols-outlined chip-issue-icon chip-issue-icon--' + worst;
+    ic.setAttribute('role', 'img');
+    const text = issues.map(function (i) { return i.message; }).join(' · ');
+    ic.setAttribute('aria-label', text);
+    ic.setAttribute('title', text);
+    ic.textContent = kinds.indexOf('transmission') >= 0 ? 'sync_problem' : kinds.indexOf('interaction') >= 0 ? 'report' : worst;
+    node.appendChild(ic);
+  }
+  const comment = data.details && data.details.comment && String(data.details.comment).trim();
+  if (comment) {
+    const c = document.createElement('span');
+    c.className = 'material-symbols-outlined chip-comment-icon';
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', 'Commentaire : ' + comment);
+    c.setAttribute('title', 'Commentaire : ' + comment);
+    c.textContent = 'chat';
+    node.appendChild(c);
+  }
 }
 
 function formatChipStamp(iso) {
@@ -239,7 +299,10 @@ function makeChipNode() { return window.Tiptap.Node.create({
       // attrs mais les événements d'action de la note (buildActionLog) : un
       // chip retiré de la note ne porte plus rien, l'événement reste.
       transmittedAt: { default: null },
-      cancelledAt: { default: null }
+      cancelledAt: { default: null },
+      // Échec de la dernière transmission (tweak « Simuler un échec de
+      // transmission ») — effacé par une transmission réussie.
+      transmitError: { default: null }
     };
   },
   parseHTML() {
@@ -1684,7 +1747,9 @@ function scanDoc(docJson) {
       if (node.attrs.pending) return; // ajout non accepté : pas encore dans la note
       chips.push({ cid: node.attrs.cid, entity: {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
-        text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
+        text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
+        transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined,
+        transmitError: node.attrs.transmitError || undefined
       } });
     } else if (node.type === 'clinicalTool') {
       tools.push({
@@ -1883,7 +1948,10 @@ function buildTransmissionDocs(docStats, txState) {
     // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
     // nouvelle, renouvellement (médication déjà au dossier), cessation.
     var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
-    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant };
+    // Mêmes états que sur la puce (chipIssues) : le checkout les montre, et un
+    // état bloquant (prescription incomplète) empêche de compléter le document.
+    var issues = chipIssues(ent);
+    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant, issues: issues };
   }
 
   // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
@@ -1902,6 +1970,12 @@ function buildTransmissionDocs(docStats, txState) {
     var stale = !!st.complete && items.some(function(it) { return captured.indexOf(it.id) < 0; });
     return {
       id: id, kind: kind, title: title, items: items,
+      // Messages des états bloquants de ses items : tant qu'il y en a, le
+      // document ne peut pas être complété (DocumentActionPanel, QuickSendModal).
+      blocking: items.reduce(function(acc, it) {
+        (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(it.label + ' : ' + i.message); });
+        return acc;
+      }, []),
       recipients: st.recipients || [],
       complete: stale ? false : !!st.complete,
       transmitted: stale ? false : !!st.transmitted,
@@ -2046,7 +2120,8 @@ function getChipEntity(editor, cid) {
   return node ? {
     type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
     text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
-    transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined
+    transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined,
+    transmitError: node.attrs.transmitError || undefined
   } : null;
 }
 
@@ -2211,6 +2286,7 @@ Object.assign(window, {
   getChipEntity,
   stampChips,
   chipAttrs,
+  chipIssues,
   formatChipStamp,
   updateChipEntity,
   patchDiagRegions,
