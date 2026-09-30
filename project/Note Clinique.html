@@ -329,6 +329,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "reviewAuthor": "me",
   "checkoutSuggestions": false,
   "simulateTxFailure": false,
+  "templateTextProposed": false,
+  "suggestionStyle": "tirets",
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -528,7 +530,9 @@ function App() {
               reviewingMode={t.reviewingMode === true}
               reviewAuthor={t.reviewAuthor || 'me'}
               checkoutSuggestions={t.checkoutSuggestions === true}
-              simulateTxFailure={t.simulateTxFailure === true} />
+              simulateTxFailure={t.simulateTxFailure === true}
+              templateTextProposed={t.templateTextProposed === true}
+              suggestionStyle={t.suggestionStyle || 'tirets'} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -614,6 +618,17 @@ function App() {
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
         <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
                      onChange={(v) => setTweak('simulateTxFailure', v)} />
+        <TweakSection label="Gabarits" />
+        <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
+                     onChange={(v) => setTweak('templateTextProposed', v)} />
+        <TweakRadio label="Style des suggestions"
+                    value={t.suggestionStyle || 'tirets'}
+                    options={[
+                      { value: 'tirets', label: 'Tirets' },
+                      { value: 'opacite', label: 'Estompé' },
+                      { value: 'violet', label: 'Mauve' },
+                    ]}
+                    onChange={(v) => setTweak('suggestionStyle', v)} />
         <TweakSection label="Mode révision" />
         <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
                      onChange={(v) => setTweak('reviewingMode', v)} />

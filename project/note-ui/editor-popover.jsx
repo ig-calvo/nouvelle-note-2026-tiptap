@@ -123,7 +123,7 @@ function RxSourceToggle({ value, onChange }) {
   );
 }
 
-function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly }) {
+function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly, pending, onReject }) {
   const [draft, setDraft] = useStateP(chip.entity);
   const ref = useRefP(null);
   useEffectP(() => { setDraft(chip.entity); }, [chip.id]);
@@ -153,6 +153,16 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
   const sentNote = readOnly
     ? (chip.entity.cancelledAt ? 'Annulée le ' + window.formatChipStamp(chip.entity.cancelledAt) : 'Transmise le ' + window.formatChipStamp(chip.entity.transmittedAt)) + ' : lecture seule.'
     : '';
+  // Ajout en attente (gabarit) : on vérifie, on ajuste, puis on accepte ou
+  // on refuse — accepter enregistre les modifications en même temps.
+  const pendingFoot = (footStyle, btnGhost, btnPrimary) => (
+    <div style={footStyle}>
+      <button style={btnGhost} onClick={() => onReject && onReject(chip.id)}>Refuser</button>
+      <span style={{ flex: 1 }} />
+      <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', marginRight: 10 }}>{chip.entity.proposedBy ? 'Proposé par ' + chip.entity.proposedBy : 'Ajout proposé'}</span>
+      <button style={btnPrimary} onClick={() => onSave(chip.id, draft, true)}>Accepter</button>
+    </div>
+  );
   const readOnlyFoot = (footStyle, btnStyle) => (
     <div style={footStyle}>
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
@@ -251,7 +261,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
             <RxFF label="Commentaire au pharmacien" value={d.comment} onChange={(v) => up('comment', v)} placeholder="Commentaire au pharmacien" flex={1} />
           </div>
         </fieldset>
-        {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) :
+        {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) : pending ? pendingFoot(rxS.foot, rxS.btnCancel, rxS.btnSave) :
         <div style={rxS.foot}>
           <button style={rxS.btnCancel} onClick={onClose}>Annuler</button>
           <span style={{ flex: 1 }} />
@@ -267,7 +277,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
           <div className="ttl">{meta.label}</div>
-          <div className="sub">{readOnly ? 'Transmis : lecture seule' : 'Modifier les détails structurés'}</div>
+          <div className="sub">{readOnly ? 'Transmis : lecture seule' : pending ? 'Ajout proposé : vérifier, puis accepter' : 'Modifier les détails structurés'}</div>
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
@@ -279,6 +289,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
       </fieldset>
       {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
+      pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
       <div className="popover-footer">
         <button className="btn btn-t btn-sm" onClick={() => onRevert(chip.id)}>
           <span className="material-symbols-outlined">undo</span>Reconvertir en texte

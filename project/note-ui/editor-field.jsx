@@ -704,6 +704,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       }
     });
 
+    // Double-clic sur un chip en attente : ses détails, pour le vérifier et
+    // l'ajuster avant de l'accepter (Q-07 renversée, rencontre inline entity).
+    editor.view.dom.addEventListener('dblclick', (e) => {
+      const chipEl = e.target.closest('.chip--pending[data-cid]');
+      if (!chipEl || e.target.closest('.chip-pending-btn')) return;
+      e.preventDefault();
+      onChipClickRef.current(chipEl.getAttribute('data-cid'), chipEl.getBoundingClientRect(), { action: 'modal' });
+    });
+
     // ✓ / ✕ d'un chip en attente — sur `click` (pas mousedown) pour que Entrée /
     // Espace au clavier sur le bouton focalisé marchent aussi.
     editor.view.dom.addEventListener('click', (e) => {
