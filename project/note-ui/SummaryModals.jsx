@@ -307,7 +307,7 @@ var vStyles = {
   sectionBody:{ marginBottom:8 },
 };
 
-// ── Médicaments ───────────────────────────────────────────────────────────────
+// ── Médications ───────────────────────────────────────────────────────────────
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 var MEDS_TABS = [{ id:'profil',label:'Profil' },{ id:'renouvelables',label:'Renouvelables' },{ id:'ordonnance',label:'Ordonnance' },{ id:'archive',label:'Archive' }];
 
@@ -318,7 +318,7 @@ function MedsModal({ items, onClose }) {
   var [mode, setMode] = React.useState('prescrire');
   if (showPrefs) return <MedsPrefsModal onClose={function(){ setShowPrefs(false); }} />;
   return (
-    <ModalShell title="Médicaments" onClose={onClose} width={620}>
+    <ModalShell title="Médications" onClose={onClose} width={620}>
       <div style={{ display:'flex', alignItems:'center', marginBottom:2 }}>
         <MTabs tabs={MEDS_TABS} active={tab} onChange={setTab} />
         <button style={smS.dotsBtn} onClick={function(){ setShowPrefs(true); }}>
@@ -374,7 +374,7 @@ function MedsPrefsModal({ onClose }) {
   var [renCount, setRenCount] = React.useState('3');
   var [renDuree, setRenDuree] = React.useState('30');
   return (
-    <ModalShell title="Préférences — Médicaments" onClose={onClose} width={520}>
+    <ModalShell title="Préférences — Médications" onClose={onClose} width={520}>
       <div style={smS.prefSection}>Préférences de prescription</div>
       <PrefToggle label="Affichage en dose visée" value={doseVisee} onChange={setDoseVisee} />
       <PrefToggle label="Envoi des ordonnances au DSQ" value={dsq} onChange={setDsq} />
@@ -584,7 +584,7 @@ function ImmunModal({ items, onClose, onAdd }) {
   var [date, setDate] = React.useState('');
   var [lot, setLot] = React.useState('');
   return (
-    <ModalShell title="Immunisations et vaccins" onClose={onClose} width={520}>
+    <ModalShell title="Immunisation et vaccins" onClose={onClose} width={520}>
       {items.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
@@ -687,7 +687,7 @@ function TasksModal({ items, onClose, onAdd }) {
   );
 }
 
-// ── Programmes de suivi ───────────────────────────────────────────────────────
+// ── Programmes ───────────────────────────────────────────────────────────────
 var PROGRAMS_LIST = ['Diabète','Hypertension','Grossesse','Insuffisance cardiaque','MPOC','Santé mentale','Anticoagulothérapie','Maladies rénales chroniques'];
 
 function ProgramsModal({ items, onClose, onAdd }) {
