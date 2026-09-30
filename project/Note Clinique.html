@@ -328,6 +328,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "reviewingMode": false,
   "reviewAuthor": "me",
   "checkoutSuggestions": false,
+  "simulateTxFailure": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -526,7 +527,8 @@ function App() {
               ftBarPosition={t.ftBarPosition || 'haut'}
               reviewingMode={t.reviewingMode === true}
               reviewAuthor={t.reviewAuthor || 'me'}
-              checkoutSuggestions={t.checkoutSuggestions === true} />
+              checkoutSuggestions={t.checkoutSuggestions === true}
+              simulateTxFailure={t.simulateTxFailure === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -610,6 +612,8 @@ function App() {
         <TweakSection label="Checkout" />
         <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
+        <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
+                     onChange={(v) => setTweak('simulateTxFailure', v)} />
         <TweakSection label="Mode révision" />
         <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
                      onChange={(v) => setTweak('reviewingMode', v)} />

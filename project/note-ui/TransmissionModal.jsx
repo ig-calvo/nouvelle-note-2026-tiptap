@@ -298,7 +298,8 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function quickPrint() { setScreen('print'); }
   function quickSend(doc) {
     patch(doc.id, { transmitted: true });
-    if (window.toast) window.toast('Document transmis', { icon: 'check_circle' });
+    // Échec simulé (tweak) : NoteEditor annonce l'échec, pas de succès ici.
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Document transmis', { icon: 'check_circle' });
     afterTransmit(doc.id);
   }
 
@@ -309,7 +310,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function transmitAll() {
     var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
-    if (window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
@@ -331,7 +332,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function onFaxSent(recipient) {
     if (recipient && selected) addRecipient(selected, recipient);
     if (selected) patch(selected.id, { transmitted: true });
-    if (window.toast) window.toast('Fax envoyé', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Fax envoyé', { icon: 'check_circle' });
     if (selected) afterTransmit(selected.id);
   }
   function onPrintDone() {

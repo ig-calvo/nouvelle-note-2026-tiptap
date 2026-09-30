@@ -1,7 +1,7 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
-  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -118,6 +118,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // de la note ne retire pas ce qui a été transmis — le Journal les lit
   // (buildActionLog, editor-schema.jsx).
   const [actionEvents, setActionEvents] = React.useState([]);
+  // Lu par TransmissionModal / QuickSendModal : pas de message de succès
+  // quand l'échec est simulé.
+  React.useEffect(function() { window.__SIMULATE_TX_FAILURE = !!simulateTxFailure; }, [simulateTxFailure]);
   const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
@@ -630,7 +633,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     // marque que ses chips pas encore transmis.
     if (patch && patch.transmitted === true) {
       var sentDoc = buildTransmissionDocs().find(function(d) { return d.id === id; });
-      if (sentDoc && !sentDoc.transmitted) {
+      // Tweak « Simuler un échec de transmission » : rien ne part. Les puces
+      // du document portent l'échec (icône sur la puce, ligne au checkout) et
+      // le document reste « Non transmise ».
+      if (simulateTxFailure) {
+        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: 'envoi non reçu par le destinataire (simulé)' });
+        patch = Object.assign({}, patch, { transmitted: false });
+        if (window.toast) window.toast('Échec de transmission (simulé)', { icon: 'sync_problem' });
+      } else if (sentDoc && !sentDoc.transmitted) {
         recordChipEvents(sentDoc.items.map(function(it) { return it.id; }).filter(function(cid) {
           var a = editorRef.current && window.chipAttrs(editorRef.current, cid);
           return a && !a.transmittedAt;
@@ -650,7 +660,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var editor = editorRef.current;
     if (!editor || !cids.length) return;
     var at = new Date().toISOString();
-    var patch = type === 'annule' ? { cancelledAt: at } : { transmittedAt: at };
+    var patch = type === 'annule' ? { cancelledAt: at } : { transmittedAt: at, transmitError: null };
     var evs = cids.map(function(cid) {
       var attrs = window.chipAttrs(editor, cid);
       return attrs ? { cid: cid, type: type, at: at, author: window.__CURRENT_AUTHOR || null, snapshot: Object.assign(attrs, patch) } : null;
@@ -680,7 +690,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // correspondra plus et le document redeviendra « à compléter ».
   function markDocComplete(id) {
     var doc = buildTransmissionDocs().find(function(d) { return d.id === id; });
-    if (!doc) return;
+    if (!doc || doc.blocking.length) return; // item incomplet : rien à compléter
     var idsKey = doc.items.map(function(it) { return it.id; }).sort().join(',');
     patchTxState(id, { complete: true, itemIds: idsKey });
   }

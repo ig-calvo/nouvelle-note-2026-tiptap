@@ -40,6 +40,7 @@ const rxS = {
   molName: { font: "500 15px 'Poppins', sans-serif", color: 'var(--mat-sys-on-surface)', whiteSpace: 'nowrap' },
   ramq: { display: 'inline-flex', alignItems: 'center', gap: 3, font: "500 12px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap' },
   alertChip: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, padding: '4px 8px', flexShrink: 0 },
+  alertBandError: { background: 'var(--mat-sys-error-container)', border: '1px solid var(--mat-sys-error)', alignItems: 'flex-start' },
   alertBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '12px 18px 0', padding: '8px 14px', background: 'light-dark(#f8f7fd, #2b244c)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8 },
   pedsBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '8px 18px 0', padding: '8px 14px', background: 'light-dark(#f5f0fa, #38244c)', border: '1px solid light-dark(#d9c9ea, #38244c)', borderRadius: 8 },
   pedsApply: { flexShrink: 0, border: '1px solid light-dark(#8a5cb8, #c7b1dd)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#8a5cb8, #c7b1dd)', borderRadius: 6, padding: '6px 12px', font: "600 12px 'Inter',sans-serif", cursor: 'pointer' },
@@ -83,7 +84,9 @@ function RxSel({ label, required, value, onChange, options, placeholder, flex, w
       <select style={rxS.select} value={value == null ? '' : value}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onChange && onChange(e.target.value)}>
-        {placeholder ? <option value="">{placeholder}</option> : null}
+        {/* Sans option vide, une valeur vide afficherait la 1re option (« DIE »)
+            alors que rien n'est saisi — et contredirait « à préciser : fréquence ». */}
+        {(placeholder || value == null || value === '') ? <option value="">{placeholder || (required ? 'À préciser' : '—')}</option> : null}
         {opts.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
       <span className="material-icons-outlined" style={rxS.chev}>expand_more</span>
@@ -163,6 +166,9 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
 
   if (isRx) {
     const d = draft.details || {};
+    // Mêmes états que la puce, recalculés sur le brouillon : le bandeau suit
+    // la saisie (une fréquence ajoutée fait disparaître « incomplète »).
+    const rxIssues = window.chipIssues(Object.assign({}, draft, { transmittedAt: null })).filter(function (i) { return i.kind !== 'transmission'; });
     const pedsW = window.__PEDIATRIC_WEIGHT;
     const peds = d.pedsDosing && pedsW ? d.pedsDosing : null;
     let pedsCalc = null;
@@ -180,10 +186,12 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
           <span style={{ flex: 1 }} />
           <button style={rxS.closeBtn} onClick={onClose}><span className="material-icons-outlined">close</span></button>
         </div>
-        <div style={rxS.alertBand}>
-          <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#39604d, #b9d5c7)', flexShrink: 0 }}>verified_user</span>
+        <div style={Object.assign({}, rxS.alertBand, rxIssues.length ? rxS.alertBandError : {})} role={rxIssues.length ? 'status' : undefined}>
+          <span className="material-icons-outlined" style={{ fontSize: 20, color: rxIssues.length ? 'var(--mat-sys-error)' : 'light-dark(#39604d, #b9d5c7)', flexShrink: 0 }}>{rxIssues.length ? 'report' : 'verified_user'}</span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-            <span style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>Aucune alerte</span>
+            {rxIssues.length
+              ? rxIssues.map(function (i) { return <span key={i.kind} style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-error-container)' }}>{i.message}</span>; })
+              : <span style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>Aucune alerte</span>}
             <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
               Créatinine sérique : N/A&nbsp;&nbsp;·&nbsp;&nbsp;eGFR : N/A&nbsp;&nbsp;·&nbsp;&nbsp;
               Poids : {pedsW ? pedsW.kg + ' kg (pesée du ' + pedsW.weighedOn + ')' : 'N/A'}
@@ -233,9 +241,14 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
             <RxSel label="Unité" value={d.quantityUnit} onChange={(v) => up('quantityUnit', v)} options={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} placeholder="Unité" flex={1} />
           </div>
           <div style={rxS.row}>
-            <RxSel label="Renouvellement" required value={d.refills} onChange={(v) => up('refills', v)} options={['0', '1', '2', '3', '4', '5', '6', '11', '12']} flex={1.3} />
+            {/* Vide = R0 partout dans le prototype (puce, chipIssues) : le formulaire affiche 0. */}
+            <RxSel label="Renouvellement" required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={['0', '1', '2', '3', '4', '5', '6', '11', '12']} flex={1.3} />
             <RxFF label="Fin de traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="Fin de traitement" flex={2} />
             <RxSel label="Mois" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="Mois" flex={2} />
+          </div>
+          <div style={rxS.sec}>Commentaire</div>
+          <div style={rxS.row}>
+            <RxFF label="Commentaire au pharmacien" value={d.comment} onChange={(v) => up('comment', v)} placeholder="Commentaire au pharmacien" flex={1} />
           </div>
         </fieldset>
         {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) :
@@ -326,6 +339,7 @@ function LabFields({ d, up }) { return (<>
     <div className="field"><label>À jeun</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">Non</option><option value="oui">Oui</option></select></div>
   </div>
   <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au laboratoire</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function ImgFields({ d, up }) { return (<>
   <div className="row">
@@ -337,6 +351,7 @@ function ImgFields({ d, up }) { return (<>
     <div className="field"><label>Vues</label><input value={d.views} onChange={e=>up('views', e.target.value)} /></div>
   </div>
   <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au service d’imagerie</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function PbFields({ d, up }) { return (<>
   <div className="field"><label>Problème</label><input value={d.name} onChange={e=>up('name', e.target.value)} /></div>
@@ -371,6 +386,7 @@ function RefFields({ d, up }) { return (<>
   </div>
   <div className="field"><label>Indication</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
   <div className="field"><label>CRDS / guichet</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au spécialiste</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 
 // Slash menu

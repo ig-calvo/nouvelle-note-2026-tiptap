@@ -301,7 +301,10 @@ const MED_CATALOG = [
     label: 'Ciprofloxacine 500 mg',
     details: { molecule: 'Ciprofloxacine', dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '',
-      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique' } },
+      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique',
+      // Alerte SIMULÉE pour montrer l'état « interaction de haut risque » de la
+      // puce (chipIssues, editor-schema.jsx) — pas une donnée clinique.
+      alert: { level: 'high', message: 'Interaction de haut risque avec la médication au dossier (exemple simulé, à valider cliniquement)' } } },
   { stem: 'amoxicilline-clavulanate', brand: 'Clavulin', klass: 'Antibiotique', din: '02238829',
     text: 'Amoxicilline-clavulanate 875/125 mg — 1 co BID x 7 j',
     label: 'Amoxicilline-clavulanate 875/125 mg',
