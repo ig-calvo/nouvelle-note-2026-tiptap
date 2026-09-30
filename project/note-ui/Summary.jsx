@@ -50,18 +50,25 @@ var INIT_DATA = {
   ],
 };
 
+// Boîtes et ordre par défaut du sommaire du DME (PatientDashboardController,
+// setupSummaryBoxIdList). Absentes volontairement : DSQ (bascule de
+// fonctionnalité) et Requêtes - Physimed (rôle ROLE_WEB_ORDERWEB).
+// `link` : boîte réduite à son titre, comme dans le DME — elle ouvre un autre
+// module, n'a ni lignes ni « + » et ne se glisse pas vers la note.
 var SECTION_CFG = [
   { id:'tasks',    icon:'check_box',      label:'Tâches',                    add:true  },
+  { id:'clinicalTools', icon:'handyman',  label:'Outils cliniques',          link:true },
   { id:'vitals',   icon:'monitor_heart',  label:'Signes vitaux',             add:true,  list:true },
+  { id:'habits',   icon:'nutrition',      label:'Habitudes de vie et contexte social', add:true, list:true },
+  { id:'programs', icon:'assignment_turned_in', label:'Programmes',          add:true,  list:true },
+  { id:'allergies',icon:'eco',            label:'Allergies',                 add:true,  list:true },
+  { id:'meds',     icon:'medication',     label:'Médications',               add:false, list:true, dots:true },
+  { id:'results',  icon:'science',        label:'Résultats',                 add:true,  list:true },
+  { id:'requests', icon:'request_page',   label:'Requêtes',                  link:true },
+  { id:'immun',    icon:'vaccines',       label:'Immunisation et vaccins',   add:true,  list:true },
   { id:'problems', icon:'hub',            label:'Problèmes',                 add:true,  list:true },
   { id:'history',  icon:'assignment',     label:'Antécédents',               add:true,  list:true },
-  { id:'results',  icon:'science',            label:'Résultats',                  add:true,  list:true },
-  { id:'allergies',icon:'eco',            label:'Allergies',                 add:true,  list:true },
   { id:'family',   icon:'folder_open',    label:'Antécédents familiaux',     add:true,  list:true },
-  { id:'meds',     icon:'medication',     label:'Médicaments',               add:false, list:true, dots:true },
-  { id:'immun',    icon:'vaccines',       label:'Immunisations et vaccins',  add:true,  list:true },
-  { id:'habits',   icon:'nutrition',      label:'Habitudes de vie',          add:true,  list:true },
-  { id:'programs', icon:'assignment_turned_in', label:'Programmes de suivi', add:true,  list:true },
 ];
 
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
@@ -282,7 +289,10 @@ function Summary() {
               onNoteDragStart={function(e){ startNoteDrag(e, cfg, items); }}
               onNoteDragEnd={endNoteDrag}
               onAdd={function(){ setModal({ section:cfg.id, type:'add' }); }}
-              onTitle={function(){ if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' }); }}
+              onTitle={function(){
+                if (cfg.link) { if (window.toast) window.toast(cfg.label + ' — à venir', { icon: 'info' }); return; }
+                if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });
+              }}
             />
           );
         })}
@@ -312,18 +322,18 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
       <div style={suS.sHead}>
         {reorder && <span className="material-icons" style={{ fontSize:16, color:'color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)', cursor:'grab', marginRight:4 }}>drag_indicator</span>}
         <span
-          draggable={!reorder}
-          onDragStart={!reorder ? onNoteDragStart : undefined}
-          onDragEnd={!reorder ? onNoteDragEnd : undefined}
-          title={!reorder ? 'Glisser vers la note' : undefined}
-          style={{ display:'flex', alignItems:'center', gap:7, flex:1, minWidth:0, cursor: reorder ? 'inherit' : 'grab' }}>
+          draggable={!reorder && !cfg.link}
+          onDragStart={!reorder && !cfg.link ? onNoteDragStart : undefined}
+          onDragEnd={!reorder && !cfg.link ? onNoteDragEnd : undefined}
+          title={!reorder && !cfg.link ? 'Glisser vers la note' : undefined}
+          style={{ display:'flex', alignItems:'center', gap:7, flex:1, minWidth:0, cursor: reorder ? 'inherit' : (cfg.link ? 'default' : 'grab') }}>
           <span className="material-icons-outlined" style={suS.sIcon}>{cfg.icon}</span>
           <button style={suS.labelBtn} onClick={onTitle}>
             <span style={suS.sLabel}>{cfg.label}</span>
           </button>
         </span>
         {cfg.dots && (
-          <button style={suS.addBtn} onClick={onTitle} title="Ouvrir les médicaments">
+          <button style={suS.addBtn} onClick={onTitle} title="Ouvrir les médications">
             <span className="material-icons" style={{ fontSize:20 }}>more_vert</span>
           </button>
         )}
