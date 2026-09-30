@@ -19,6 +19,10 @@
 
 ## Décisions
 - **D-01** — État sélectionné de la barre de mise en forme : fond tonal (`secondary-container` / `on-secondary-container`), plus visible que la production Angular (couleur seule). Accepté comme valide pour ce projet (Ignacio Calvo, 2026-09-28).
+- **D-02** — L'édition inline des valeurs secondaires d'une puce sort du livrable Q1 2027 : elle vient après le chemin critique ; la modification passe d'abord par le formulaire. *Source : rencontre inline entity (Alex Montambeault, Xavier Boilard), 2026-09-29.*
+- **D-03** — Appliquer un gabarit crée des suggestions à accepter une à une ou en bloc, jamais des entités sauvegardées d'office ; même principe pour le contenu poussé par l'IA. *Source : rencontre inline entity (Xavier Boilard, Alex Montambeault, Antoine Cloutier ; Kenny du même avis), 2026-09-29.* Voir RA-04.
+- **D-04** — Un seul outil de prescription rapide dans la note ; les cas complexes ouvrent la modale existante (prescription, rendez-vous, requête), jamais un second système parallèle. *Source : rencontre inline entity (Ignacio Calvo), 2026-09-29.*
+- **D-05** — Backspace sur une puce la sélectionne d'abord, puis propose de la garder en texte ou de la supprimer ; effacer une puce de la note n'annule pas l'action clinique : une entité transmise reste au Journal, l'annulation passe par une action séparée du menu ⋮. *Source : rencontre inline entity (Xavier Boilard, Alex Montambeault), 2026-09-29.*
 
 ## Questions ouvertes
 - **Q-01** — ~~Que compte la pastille bouclier ?~~ Réponse d'Ignacio Calvo (2026-09-28) : les éléments partagés au patient par le portail — consignes au patient, imagerie, laboratoire, références à un spécialiste, et la complétion de la note. Monte dès l'ajout dans la note ; cachée à 0. Statut : répondue. Reste ouvert (**Q-04**) : la complétion de la note.
