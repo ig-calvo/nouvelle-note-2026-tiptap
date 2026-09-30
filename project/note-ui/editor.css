@@ -608,6 +608,15 @@
 .chip--rx.chip--ceased { background: var(--mat-sys-error-container); border-color: var(--mat-sys-error); }
 .chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: var(--mat-sys-error); }
 .chip--rx.chip--ceased .chip-rx-poso { color: var(--mat-sys-on-error-container); font-weight: 500; }
+/* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
+   (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
+   l'icône, valeurs barrées. */
+/* Détails d'un chip transmis (ChipPopover readOnly) : champs visiblement inactifs. */
+.popover fieldset:disabled { opacity: 0.72; }
+.chip-sent-icon { font-size: 16px; line-height: 1; color: light-dark(#39604d, #b9d5c7); margin-left: 2px; }
+.chip-status { font: 600 12px var(--font-body); padding: 0 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); line-height: 18px; }
+.chip-status--cancelled { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+.chip--rx.chip--cancelled .chip-rx-name, .chip--rx.chip--cancelled .chip-rx-dose, .chip--rx.chip--cancelled .chip-rx-poso { text-decoration: line-through; text-decoration-color: var(--mat-sys-on-surface-variant); color: var(--mat-sys-on-surface-variant); }
 .chip--rx.open { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, var(--mat-sys-surface-container-lowest)); }
 /* Même gabarit pour les 4 types (℞ · science · radiology · person_add) : le
    caractère ℞ (police texte) et les glyphes d'icône (police symboles) n'ont

@@ -113,6 +113,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [transmissionOpen, setTransmissionOpen] = React.useState(false);
   const [transmissionOnlyId, setTransmissionOnlyId] = React.useState(null);
   const [txState, setTxState] = React.useState({});
+  // Événements d'action de la note (D-05) : [{cid, type: 'transmis' |
+  // 'annule', at, author, snapshot}]. Hors du doc Tiptap : retirer un chip
+  // de la note ne retire pas ce qui a été transmis — le Journal les lit
+  // (buildActionLog, editor-schema.jsx).
+  const [actionEvents, setActionEvents] = React.useState([]);
   const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
@@ -313,6 +318,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     if (entity && entity.type === 'file') {
       var url = entity.details && entity.details.url;
       if (url) setFilePreview({ name: entity.label || entity.text || 'Document', url: url, kind: window.fileKindFromName(entity.label || entity.text || '') });
+      return;
+    }
+    // Chip transmis : détails en lecture seule, jamais d'édition inline.
+    if (entity && entity.transmittedAt) {
+      setInlineEdit(null);
+      setPopover({ chipId: chipId, anchorRect: rect });
+      setLinkedChipId(chipId);
       return;
     }
     // Edit button (···) → open full modal
@@ -536,6 +548,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setConfidentialWarningOpen(false);
     setConfidentialDeleteOpen(false);
     setTxState({});
+    setActionEvents([]);
     setReviewActive(false);
     setReviewChanges([]);
     setReviewPopover(null);
@@ -569,7 +582,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags,
-        confidential: confidentialContent || null }].concat(prev);
+        confidential: confidentialContent || null, actionEvents: actionEvents }].concat(prev);
     });
     if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
   }
@@ -583,6 +596,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setTags(draft.tags || []);
     if (draft.visitType) setVisitType(draft.visitType);
     if (draft.confidential) { setConfidentialContent(draft.confidential); setConfidentialAdded(true); }
+    setActionEvents(draft.actionEvents || []);
     if (onOpen) onOpen();
   }
 
@@ -610,12 +624,55 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // transmitted/comment) — persiste au niveau de la note tant qu'elle est
   // ouverte, indépendamment de l'ouverture/fermeture de TransmissionModal.
   function patchTxState(id, patch) {
+    // Transmission d'un document : ses chips sont marqués transmis et
+    // l'événement est gardé, même si le chip quitte la note ensuite.
+    // Un document renvoyé (item ajouté après une première transmission) ne
+    // marque que ses chips pas encore transmis.
+    if (patch && patch.transmitted === true) {
+      var sentDoc = buildTransmissionDocs().find(function(d) { return d.id === id; });
+      if (sentDoc && !sentDoc.transmitted) {
+        recordChipEvents(sentDoc.items.map(function(it) { return it.id; }).filter(function(cid) {
+          var a = editorRef.current && window.chipAttrs(editorRef.current, cid);
+          return a && !a.transmittedAt;
+        }), 'transmis');
+      }
+    }
     setTxState(function(prev) {
       var next = Object.assign({}, prev);
       next[id] = Object.assign({}, next[id], patch);
       return next;
     });
   }
+
+  // Ajoute un événement par chip (instantané de ses attrs) et pose l'attr
+  // correspondant sur le chip, hors historique (stampChips).
+  function recordChipEvents(cids, type) {
+    var editor = editorRef.current;
+    if (!editor || !cids.length) return;
+    var at = new Date().toISOString();
+    var patch = type === 'annule' ? { cancelledAt: at } : { transmittedAt: at };
+    var evs = cids.map(function(cid) {
+      var attrs = window.chipAttrs(editor, cid);
+      return attrs ? { cid: cid, type: type, at: at, author: window.__CURRENT_AUTHOR || null, snapshot: Object.assign(attrs, patch) } : null;
+    }).filter(Boolean);
+    if (!evs.length) return;
+    window.stampChips(editor, evs.map(function(e) { return e.cid; }), patch);
+    setActionEvents(function(prev) { return prev.concat(evs); });
+  }
+
+  // Annuler une ordonnance / une requête transmise (menu ⋮ du chip,
+  // editor-field.jsx) : action clinique séparée de l'effacement. L'envoi de
+  // l'annulation au destinataire est simulé.
+  React.useEffect(function() {
+    function onCancel(e) {
+      var cid = e.detail && e.detail.cid;
+      if (!cid) return;
+      recordChipEvents([cid], 'annule');
+      if (window.toast) window.toast('Annulation envoyée', { icon: 'block' });
+    }
+    window.addEventListener('note:chip-cancel', onCancel);
+    return function() { window.removeEventListener('note:chip-cancel', onCancel); };
+  });
 
   // Marque un document complété en capturant l'empreinte de ses items
   // actuels (`itemIds`) — voir la note sur `stale` dans buildTransmissionDocs :
@@ -708,6 +765,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       // « Checkout » de NotesList) avec ses destinataires et ses statuts, au
       // lieu d'un checkout vierge reconstruit depuis le seul contenu.
       txState: txState,
+      // Ce qui a été transmis ou annulé, y compris des chips retirés de la note.
+      actionEvents: actionEvents,
     };
     // Fusion définitive dans le dossier (Summary.jsx) — après ça, la ligne
     // n'est plus « en attente » : Cesser devient résolu à la date DE LA NOTE
@@ -895,7 +954,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             </div>
           }
 
-          <ActionLog docJson={docJson} editor={editorInstance} />
+          <ActionLog docJson={docJson} events={actionEvents} editor={editorInstance} />
         </div>
       }
 
@@ -1028,6 +1087,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {popoverChip &&
         <ChipPopover
           chip={popoverChip}
+          readOnly={!!popoverChip.entity.transmittedAt}
           anchorRect={popover.anchorRect}
           onClose={function() { setPopover(null); setLinkedChipId(null); }}
           onSave={savePopover}

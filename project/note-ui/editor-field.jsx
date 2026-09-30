@@ -24,6 +24,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const [chipMenu, setChipMenu] = useStateE(null); // { cid, rect } — hover menu (Modifier / Prescrire / ⋮) on order chips
   const [chipDelete, setChipDelete] = useStateE(null); // { cid, rect } — delete confirmation popover
   const [chipMore, setChipMore] = useStateE(null); // { cid, rect } — sous-menu « ⋮ » du chip
+  const [chipCancel, setChipCancel] = useStateE(null); // { cid, rect } — confirmation « Annuler l'ordonnance / la requête » (chip transmis)
   const chipMenuTimerRef = useRefE(null);
   const addBtnRef = useRefE(null);
   const fileInputRef = useRefE(null);
@@ -771,11 +772,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function keepChipAsText(cid) { applyChipEdit(cid, chipPlainText(cid)); }
 
   useEffectE(function () {
-    if (!chipDelete && !chipMenu && !chipMore) return;
-    function onKey(e) { if (e.key === 'Escape') { setChipDelete(null); setChipMenu(null); setChipMore(null); } }
+    if (!chipDelete && !chipMenu && !chipMore && !chipCancel) return;
+    function onKey(e) { if (e.key === 'Escape') { setChipDelete(null); setChipMenu(null); setChipMore(null); setChipCancel(null); } }
     document.addEventListener('keydown', onKey);
     return function () { document.removeEventListener('keydown', onKey); };
-  }, [chipDelete, chipMenu, chipMore]);
+  }, [chipDelete, chipMenu, chipMore, chipCancel]);
 
   return (
     <>
@@ -813,6 +814,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const _ent = editorRef.current ? window.getChipEntity(editorRef.current, chipMenu.cid) : null;
         const _isRx = !_ent || _ent.type === 'prescription';
         const _isCeased = !!(_ent && _ent.rx && _ent.rx.ceased);
+        const _isSent = !!(_ent && _ent.transmittedAt);
         return (
           <div
             style={Object.assign({ position: 'fixed', top: top, left: left, zIndex: 200 }, cmS.bar)}
@@ -826,10 +828,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 setChipMenu(null);
                 onChipClickRef.current(cid, rect, { action: 'modal' });
               }}>
-              <span className="material-icons-outlined" style={{ fontSize: 20 }}>edit</span>
-              Modifier
+              <span className="material-icons-outlined" style={{ fontSize: 20 }}>{_isSent ? 'visibility' : 'edit'}</span>
+              {_isSent ? 'Voir' : 'Modifier'}
             </button>
-            {!_isCeased &&
+            {!_isCeased && !_isSent &&
             <button
               style={cmS.segMid}
               onMouseDown={(e) => e.preventDefault()}
@@ -857,24 +859,29 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Confirmation de suppression — effacer ou conserver en texte */}
       {chipDelete && (function () {
         const r = chipDelete.rect;
-        const W = 304;
-        const top = r.bottom + 8;
-        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
         const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipDelete.cid) : null;
         const isRx = ent && ent.type === 'prescription';
         const noun = isRx ? 'cette prescription' : 'cet élément';
+        // Chip transmis (D-05) : le retirer de la note n'annule rien.
+        const sent = !!(ent && ent.transmittedAt);
+        const W = sent ? 360 : 304; // « Retirer de la note » tient sur une ligne
+        const top = r.bottom + 8;
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+        const sentWhat = isRx ? 'l’ordonnance transmise' : 'la requête transmise';
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipDelete(null)} />
             <div style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
-                <span style={cmS.confirmTitle}>Supprimer {noun}&nbsp;?</span>
+                <span style={cmS.confirmTitle}>{sent ? 'Retirer ' + noun + ' de la note' : 'Supprimer ' + noun}&nbsp;?</span>
                 <button style={cmS.confirmClose} title="Annuler" onClick={() => setChipDelete(null)}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
               <p style={cmS.confirmBody}>
-                Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?
+                {sent
+                  ? <>Retirer {noun} de la note n’annule pas {sentWhat}. Elle reste dans les activités de la note. Pour l’annuler, utilisez le menu ⋮.</>
+                  : <>Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?</>}
               </p>
               <div style={cmS.confirmActions}>
                 <button style={cmS.btnKeep}
@@ -883,7 +890,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 </button>
                 <button style={cmS.btnDelete}
                   onClick={() => { deleteChipFromMenu(chipDelete.cid); setChipDelete(null); }}>
-                  Supprimer
+                  {sent ? 'Retirer de la note' : 'Supprimer'}
                 </button>
               </div>
             </div>
@@ -898,6 +905,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const top = r.bottom + 8;
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
         const item = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 0, background: 'transparent', borderRadius: 8, padding: '9px 12px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', textAlign: 'left' };
+        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipMore.cid) : null;
+        const sent = !!(ent && ent.transmittedAt);
+        // Annuler (D-05) : action clinique séparée de l'effacement, en dernier
+        // et sans mise en avant — seulement pour un chip transmis, pas encore annulé.
+        const canCancel = sent && !ent.cancelledAt;
+        const isRx = ent && ent.type === 'prescription';
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipMore(null)} />
@@ -910,8 +923,50 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               <button style={Object.assign({}, item, { color: 'light-dark(#ba1a1a, #e9a5a5)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { setChipDelete({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#ba1a1a, #e9a5a5)' }}>delete</span>
-                Supprimer
+                {sent ? 'Retirer de la note' : 'Supprimer'}
               </button>
+              {canCancel && <div role="separator" style={{ height: 1, margin: '6px 4px', background: 'var(--mat-sys-outline-variant)' }} />}
+              {canCancel &&
+              <button style={Object.assign({}, item, { font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4fb'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                onClick={() => { setChipCancel({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
+                <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>block</span>
+                {isRx ? 'Annuler l’ordonnance…' : 'Annuler la requête…'}
+              </button>}
+            </div>
+          </React.Fragment>
+        );
+      })()}
+
+      {/* Confirmation « Annuler l'ordonnance / la requête » — chip transmis.
+          L'envoi de l'annulation est simulé (note:chip-cancel, NoteEditor.jsx). */}
+      {chipCancel && (function () {
+        const r = chipCancel.rect;
+        const W = 320;
+        const top = r.bottom + 8;
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipCancel.cid) : null;
+        const isRx = ent && ent.type === 'prescription';
+        const what = isRx ? 'l’ordonnance' : 'la requête';
+        return (
+          <React.Fragment>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipCancel(null)} />
+            <div role="dialog" aria-label={'Annuler ' + what} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+              <div style={cmS.confirmHead}>
+                <span style={cmS.confirmTitle}>Annuler {what}&nbsp;?</span>
+                <button style={cmS.confirmClose} title="Fermer" onClick={() => setChipCancel(null)}>
+                  <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
+                </button>
+              </div>
+              <p style={cmS.confirmBody}>
+                Une annulation sera envoyée au destinataire. Les activités de la note garderont la transmission, puis l’annulation.
+              </p>
+              <div style={cmS.confirmActions}>
+                <button style={cmS.btnKeep} autoFocus onClick={() => setChipCancel(null)}>Retour</button>
+                <button style={cmS.btnDelete}
+                  onClick={() => { const cid = chipCancel.cid; setChipCancel(null); window.dispatchEvent(new CustomEvent('note:chip-cancel', { detail: { cid: cid } })); }}>
+                  Envoyer l’annulation
+                </button>
+              </div>
             </div>
           </React.Fragment>
         );
