@@ -749,7 +749,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         if (t) parts.push(t);
       }
     });
-    return parts.join(' ').replace(/\s+/g, ' ').trim();
+    // Puces sans segments d'ordonnance (problème, consignes, fichier…) : leur libellé.
+    return parts.join(' ').replace(/\s+/g, ' ').trim() || node.getAttribute('data-label') || (node.textContent || '').trim();
   }
 
   // Supprime le chip (node atom) à sa position, en remplaçant éventuellement
@@ -771,9 +772,54 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function deleteChipFromMenu(cid) { applyChipEdit(cid, null); }
   function keepChipAsText(cid) { applyChipEdit(cid, chipPlainText(cid)); }
 
+  // Fermer le dialogue de suppression sans rien faire : le focus revient à
+  // la note, la puce reste sélectionnée (Backspace de nouveau le rouvre).
+  function closeChipDelete() {
+    setChipDelete(null);
+    if (editorRef.current) editorRef.current.commands.focus();
+  }
+
+  // Demandes venues du clavier (makeChipKeysExtension, editor-schema.jsx) :
+  // Backspace / Delete sur une puce sélectionnée ou sur une sélection qui
+  // en contient → dialogue ; Entrée sur une puce sélectionnée → ses détails.
+  useEffectE(function () {
+    function chipRect(cid) {
+      const el = editorRef.current && editorRef.current.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
+      return el ? el.getBoundingClientRect() : null;
+    }
+    function onDeleteRequest(e) {
+      const d = e.detail || {};
+      if (!editorRef.current || d.editor !== editorRef.current) return;
+      setChipMenu(null); setChipMore(null);
+      if (d.range) {
+        const c = editorRef.current.view.coordsAtPos(d.range.to);
+        setChipDelete({ cids: d.cids, range: d.range, rect: { left: c.left, right: c.right, top: c.top, bottom: c.bottom } });
+        return;
+      }
+      const rect = chipRect(d.cid);
+      if (rect) setChipDelete({ cid: d.cid, rect: rect });
+    }
+    function onOpenRequest(e) {
+      const d = e.detail || {};
+      if (!editorRef.current || d.editor !== editorRef.current) return;
+      const rect = chipRect(d.cid);
+      if (rect && onChipClickRef.current) onChipClickRef.current(d.cid, rect, { action: 'modal' });
+    }
+    window.addEventListener('note:chip-delete-request', onDeleteRequest);
+    window.addEventListener('note:chip-open-request', onOpenRequest);
+    return function () {
+      window.removeEventListener('note:chip-delete-request', onDeleteRequest);
+      window.removeEventListener('note:chip-open-request', onOpenRequest);
+    };
+  }, []);
+
   useEffectE(function () {
     if (!chipDelete && !chipMenu && !chipMore && !chipCancel) return;
-    function onKey(e) { if (e.key === 'Escape') { setChipDelete(null); setChipMenu(null); setChipMore(null); setChipCancel(null); } }
+    function onKey(e) {
+      if (e.key !== 'Escape') return;
+      if (chipDelete) closeChipDelete();
+      setChipMenu(null); setChipMore(null); setChipCancel(null);
+    }
     document.addEventListener('keydown', onKey);
     return function () { document.removeEventListener('keydown', onKey); };
   }, [chipDelete, chipMenu, chipMore, chipCancel]);
@@ -857,7 +903,44 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       })()}
 
       {/* Confirmation de suppression — effacer ou conserver en texte */}
-      {chipDelete && (function () {
+      {/* Sélection de texte qui contient des puces (Backspace / Delete) */}
+      {chipDelete && chipDelete.range && (function () {
+        const r = chipDelete.rect;
+        const W = 340;
+        const top = r.bottom + 8;
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+        const editor = editorRef.current;
+        const ents = editor ? chipDelete.cids.map(function (cid) { return window.getChipEntity(editor, cid); }).filter(Boolean) : [];
+        const n = ents.length;
+        const names = ents.map(function (e) { return (e.rx && e.rx.name) || e.label; }).join(', ');
+        const anySent = ents.some(function (e) { return e.transmittedAt; });
+        return (
+          <React.Fragment>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
+            <div role="dialog" aria-label="Supprimer la sélection" style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+              <div style={cmS.confirmHead}>
+                <span style={cmS.confirmTitle}>Supprimer la sélection&nbsp;?</span>
+                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
+                  <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
+                </button>
+              </div>
+              <p style={cmS.confirmBody}>
+                {n > 1 ? 'La sélection contient ' + n + ' éléments' : 'La sélection contient un élément'} ({names}), qui {n > 1 ? 'seront retirés' : 'sera retiré'} de la note.
+                {anySent ? ' Ce qui a été transmis n’est pas annulé et reste dans les activités de la note.' : ''}
+              </p>
+              <div style={cmS.confirmActions}>
+                <button style={cmS.btnKeep} autoFocus onClick={closeChipDelete}>Annuler</button>
+                <button style={cmS.btnDelete}
+                  onClick={() => { const range = chipDelete.range; setChipDelete(null); if (editor) editor.chain().focus().deleteRange(range).run(); }}>
+                  Supprimer la sélection
+                </button>
+              </div>
+            </div>
+          </React.Fragment>
+        );
+      })()}
+
+      {chipDelete && !chipDelete.range && (function () {
         const r = chipDelete.rect;
         const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipDelete.cid) : null;
         const isRx = ent && ent.type === 'prescription';
@@ -870,11 +953,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const sentWhat = isRx ? 'l’ordonnance transmise' : 'la requête transmise';
         return (
           <React.Fragment>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipDelete(null)} />
-            <div style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
+            <div role="dialog" aria-label={sent ? 'Retirer de la note' : 'Supprimer'} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
                 <span style={cmS.confirmTitle}>{sent ? 'Retirer ' + noun + ' de la note' : 'Supprimer ' + noun}&nbsp;?</span>
-                <button style={cmS.confirmClose} title="Annuler" onClick={() => setChipDelete(null)}>
+                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
@@ -884,7 +967,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                   : <>Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?</>}
               </p>
               <div style={cmS.confirmActions}>
-                <button style={cmS.btnKeep}
+                <button style={cmS.btnKeep} autoFocus
                   onClick={() => { keepChipAsText(chipDelete.cid); setChipDelete(null); }}>
                   Garder en texte
                 </button>
