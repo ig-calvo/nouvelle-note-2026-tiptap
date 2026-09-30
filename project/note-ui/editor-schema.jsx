@@ -1359,7 +1359,64 @@ function makeLockedHeadingExtension() {
             }
             return true;
           }
-        })
+        }),
+        (function () {
+          // Un titre verrouillé ne se sélectionne pas (ni glisser, ni Ctrl+A,
+          // ni clic) : une extrémité de sélection qui y tombe est repoussée
+          // juste après lui — ou juste avant, si l'autre extrémité est avant.
+          // Sans ça, la sélection l'englobait et Backspace ne faisait rien :
+          // le garde ci-dessus refuse toute suppression qui le touche.
+          // Pendant un glisser à la souris, on ne touche à rien (réécrire la
+          // sélection en plein geste annule le glisser du navigateur ; le
+          // surlignage du titre est déjà invisible, voir editor.css) : la
+          // correction s'applique au relâchement.
+          let pointerDown = false;
+          function clamp(state) {
+            const sel = state.selection;
+            if (sel.node) return null;
+            const doc = state.doc;
+            const ranges = [];
+            doc.forEach(function (node, offset) {
+              if (node.type.name === 'heading' && node.attrs.locked) ranges.push({ start: offset, end: offset + node.nodeSize });
+            });
+            if (!ranges.length) return null;
+            function push(pos, other) {
+              for (let i = 0; i < ranges.length; i++) {
+                const r = ranges[i];
+                // Dedans, ou au tout début d'un document qui s'ouvre sur le
+                // titre (Ctrl+A part de 0).
+                if (pos > r.start && pos < r.end || (r.start === 0 && pos === 0)) return other < r.start ? r.start : r.end;
+              }
+              return pos;
+            }
+            const anchor = push(sel.anchor, sel.head), head = push(sel.head, sel.anchor);
+            if (anchor === sel.anchor && head === sel.head) return null;
+            const next = PM.TextSelection.between(doc.resolve(anchor), doc.resolve(head), head >= anchor ? 1 : -1);
+            return next.eq(sel) ? null : state.tr.setSelection(next);
+          }
+          return new PM.Plugin({
+            key: new PM.PluginKey('lockedHeadingSelection'),
+            appendTransaction(trs, oldState, newState) {
+              if (pointerDown || !trs.some(function (tr) { return tr.selectionSet || tr.docChanged; })) return null;
+              return clamp(newState);
+            },
+            props: {
+              handleDOMEvents: {
+                mousedown(view) {
+                  pointerDown = true;
+                  function up() {
+                    pointerDown = false;
+                    window.removeEventListener('mouseup', up, true);
+                    // Après que ProseMirror a lu la sélection finale du glisser.
+                    setTimeout(function () { const tr = clamp(view.state); if (tr) view.dispatch(tr); }, 0);
+                  }
+                  window.addEventListener('mouseup', up, true);
+                  return false;
+                }
+              }
+            }
+          });
+        })()
       ];
     }
   });
