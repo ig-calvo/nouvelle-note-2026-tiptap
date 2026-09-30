@@ -334,6 +334,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "suggestionStyle": "tirets",
   "formOpenMode": "auto",
   "groupRequests": false,
+  "inlineFieldEdit": true,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -538,7 +539,8 @@ function App() {
               templateTextProposed={t.templateTextProposed === true}
               suggestionStyle={t.suggestionStyle || 'tirets'}
               formOpenMode={t.formOpenMode || 'auto'}
-              groupRequests={t.groupRequests === true} />
+              groupRequests={t.groupRequests === true}
+              inlineFieldEdit={t.inlineFieldEdit !== false} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -643,6 +645,8 @@ function App() {
                     ]}
                     onChange={(v) => setTweak('suggestionStyle', v)} />
         <TweakSection label="Formulaire d'une puce" />
+        <TweakToggle label="Édition inline des valeurs secondaires (après Q1 2027)" value={t.inlineFieldEdit !== false}
+                     onChange={(v) => setTweak('inlineFieldEdit', v)} />
         <TweakSelect label="Ouverture du formulaire"
                      value={t.formOpenMode || 'auto'}
                      options={[
