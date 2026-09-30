@@ -115,6 +115,64 @@ function decorateChipStates(node, data) {
   }
 }
 
+// ---------------------------------------------------------
+// Texte d'une puce hors de l'éditeur (rencontre inline entity : en liste de
+// notes et à l'impression, seul le texte de la puce reste, lisible dans les
+// anciens systèmes et en PDF). Statut + valeur principale + valeurs
+// secondaires ; ni icône, ni état (erreur, transmis), ni commentaire. Sans
+// icône, une référence ne se reconnaît plus à son nom seul (« Cardiologie ») :
+// elle garde un préfixe « Référence : ». Aussi le texte de « Garder en texte ».
+// ---------------------------------------------------------
+function chipPrintText(a) {
+  if (!a) return '';
+  const d = a.details || {};
+  const rx = a.rx || {};
+  const join = function (parts, sep) { return parts.filter(function (p) { return p && String(p).trim(); }).join(sep); };
+  let status = '';
+  if (a.cancelledAt) status = 'Annulée';
+  else if (rx.ceased) status = 'Cessée';
+  else if (rx.renewal) status = 'Renouvelée';
+  let main = '', second = '';
+  if (a.type === 'prescription') {
+    main = join([rx.name || d.molecule || a.label, rx.dose || (d.dose ? d.dose + ' ' + (d.unit || '') : '')], ' ');
+    second = rx.ceased ? '' : (rx.sig || '');
+  } else if (a.type === 'lab') {
+    main = (d.tests && d.tests.length) ? d.tests.join(', ') : (rx.name || a.label);
+    second = join([d.priority, d.fasting ? 'à jeun' : ''], ', ');
+  } else if (a.type === 'imaging') {
+    main = rx.name || join([d.modality, d.region], ' ') || a.label;
+    second = d.priority || '';
+  } else if (a.type === 'referral') {
+    main = 'Référence : ' + (d.specialty || rx.name || a.label);
+    second = d.priority || '';
+  } else if (a.type === 'problem') {
+    main = d.name || a.label;
+  } else if (a.type === 'instructions') {
+    main = d.title || a.label;
+  } else {
+    main = a.label || a.text || '';
+  }
+  return join([status, join([main, second], ' — ')], ' ');
+}
+
+// Contenu inline d'un paragraphe, prêt pour le texte seul : deux puces
+// séparées par un simple espace (« Plan : [Rx] [Labo] ») se lisent comme une
+// seule phrase une fois leurs bordures disparues — on met « ; » entre elles.
+function separateAdjacentChips(nodes) {
+  const out = [];
+  (nodes || []).forEach(function (n, i) {
+    const prev = out[out.length - 1];
+    const next = nodes[i + 1];
+    if (n.type === 'text' && !n.text.trim() && prev && prev.type === 'chip' && next && next.type === 'chip') {
+      out.push(Object.assign({}, n, { text: '; ' }));
+      return;
+    }
+    if (n.type === 'chip' && prev && prev.type === 'chip') out.push({ type: 'text', text: '; ' });
+    out.push(n);
+  });
+  return out;
+}
+
 function formatChipStamp(iso) {
   const d = iso ? new Date(iso) : null;
   if (!d || isNaN(d.getTime())) return '';
@@ -2414,6 +2472,8 @@ Object.assign(window, {
   stampChips,
   chipAttrs,
   chipIssues,
+  chipPrintText,
+  separateAdjacentChips,
   formatChipStamp,
   updateChipEntity,
   patchDiagRegions,

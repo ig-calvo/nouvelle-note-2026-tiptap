@@ -744,22 +744,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     };
   }, []);
 
-  // Reconstruit le texte lisible d'un chip d'ordonnance à partir de ses segments
-  // visibles (nom, dose, posologie…), en ignorant l'icône et les séparateurs.
+  // Texte d'un chip une fois « gardé en texte » : le même que dans la liste
+  // des notes et à l'impression (chipPrintText, editor-schema.jsx).
   function chipPlainText(cid) {
     const editor = editorRef.current; if (!editor) return '';
-    const node = editor.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
-    if (!node) return '';
-    const keep = ['chip-rx-name', 'chip-rx-dose', 'chip-rx-form', 'chip-rx-route', 'chip-rx-freq', 'chip-rx-dur', 'chip-rx-priority', 'chip-rx-sig'];
-    const parts = [];
-    node.querySelectorAll('span').forEach(function (sp) {
-      if (keep.some(function (c) { return sp.classList.contains(c); })) {
-        const t = (sp.textContent || '').trim();
-        if (t) parts.push(t);
-      }
-    });
-    // Puces sans segments d'ordonnance (problème, consignes, fichier…) : leur libellé.
-    return parts.join(' ').replace(/\s+/g, ' ').trim() || node.getAttribute('data-label') || (node.textContent || '').trim();
+    return window.chipPrintText(window.chipAttrs(editor, cid));
   }
 
   // Supprime le chip (node atom) à sa position, en remplaçant éventuellement

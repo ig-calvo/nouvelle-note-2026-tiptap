@@ -447,8 +447,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   function revertChip(chipId) {
     var editor = editorRef.current;
     if (editor) {
-      var entity = window.getChipEntity(editor, chipId);
-      var txt = (entity && (entity.text || entity.label)) || '';
+      // Même texte que « Garder en texte » et que la note imprimée.
+      var txt = window.chipPrintText(window.chipAttrs(editor, chipId));
       var pos = window.findChipPos(editor, chipId);
       if (pos >= 0) editor.chain().focus().deleteRange({ from: pos, to: pos + 1 }).insertContentAt(pos, txt).run();
     }
