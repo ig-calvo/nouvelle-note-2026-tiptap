@@ -73,7 +73,12 @@ var SECTION_CFG = [
 
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 
-function Summary() {
+// addToNote (tweak « Le « + » du sommaire ajoute dans la note », piste de
+// vision — rencontre inline entity, Xavier Boilard) : pour Problèmes et
+// Antécédents, le « + » ouvre la recherche de diagnostic DANS la note
+// (note:summary-add, NoteEditor.jsx) au lieu de l'ancienne modale.
+var SUMMARY_TO_NOTE = { problems: 'probleme', history: 'antecedent' };
+function Summary({ addToNote }) {
   var [data, setData] = React.useState(INIT_DATA);
   var [modal, setModal] = React.useState(null);   // { section, type:'add'|'list' }
   var [reorder, setReorder] = React.useState(false);
@@ -288,7 +293,13 @@ function Summary() {
               onDragEnd={function(){ setDragSrc(null); }}
               onNoteDragStart={function(e){ startNoteDrag(e, cfg, items); }}
               onNoteDragEnd={endNoteDrag}
-              onAdd={function(){ setModal({ section:cfg.id, type:'add' }); }}
+              onAdd={function(){
+                if (addToNote && SUMMARY_TO_NOTE[cfg.id]) {
+                  window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { documentAs: SUMMARY_TO_NOTE[cfg.id] } }));
+                  return;
+                }
+                setModal({ section:cfg.id, type:'add' });
+              }}
               onTitle={function(){
                 if (cfg.link) { if (window.toast) window.toast(cfg.label + ' — à venir', { icon: 'info' }); return; }
                 if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });

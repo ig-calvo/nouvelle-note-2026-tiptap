@@ -608,6 +608,24 @@
 .chip--rx.chip--ceased { background: var(--mat-sys-error-container); border-color: var(--mat-sys-error); }
 .chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: var(--mat-sys-error); }
 .chip--rx.chip--ceased .chip-rx-poso { color: var(--mat-sys-on-error-container); font-weight: 500; }
+/* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
+   (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
+   l'icône, valeurs barrées. */
+/* États de la puce (chipIssues, editor-schema.jsx) — plusieurs niveaux :
+   erreur = bordure error + icône ; interaction de haut risque = bordure 2 px
+   et fond teinté ; avertissement = icône seulement. Commentaire = bulle. */
+.chip--rx.chip--error { border-color: var(--mat-sys-error); }
+.chip--rx.chip--interaction { border-width: 2px; padding: 1px 7px; background: color-mix(in srgb, var(--mat-sys-error-container) 55%, var(--mat-sys-surface-container-lowest)); }
+.chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
+.chip-issue-icon--error { color: var(--mat-sys-error); }
+.chip-issue-icon--warning { color: light-dark(#a15c00, #e9cca5); }
+.chip-comment-icon { color: var(--mat-sys-on-surface-variant); }
+/* Détails d'un chip transmis (ChipPopover readOnly) : champs visiblement inactifs. */
+.popover fieldset:disabled { opacity: 0.72; }
+.chip-sent-icon { font-size: 16px; line-height: 1; color: light-dark(#39604d, #b9d5c7); margin-left: 2px; }
+.chip-status { font: 600 12px var(--font-body); padding: 0 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); line-height: 18px; }
+.chip-status--cancelled { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+.chip--rx.chip--cancelled .chip-rx-name, .chip--rx.chip--cancelled .chip-rx-dose, .chip--rx.chip--cancelled .chip-rx-poso { text-decoration: line-through; text-decoration-color: var(--mat-sys-on-surface-variant); color: var(--mat-sys-on-surface-variant); }
 .chip--rx.open { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, var(--mat-sys-surface-container-lowest)); }
 /* Même gabarit pour les 4 types (℞ · science · radiology · person_add) : le
    caractère ℞ (police texte) et les glyphes d'icône (police symboles) n'ont
@@ -636,6 +654,12 @@
 /* Indice « éditable » : surbrillance claire au survol des segments cliquables */
 .chip--rx .chip-rx-dose:hover,
 .chip--rx .chip-rx-poso > span[data-field]:hover { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 1px #c9c0ef; }
+/* Valeur secondaire ciblée au clavier (Tab sur une puce sélectionnée). */
+.chip--rx .chip-field--kbd { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 2px var(--mat-sys-primary); border-radius: 4px; }
+/* Édition inline désactivée (tweak, portée Q1 2027) : la puce entière ouvre
+   le formulaire, les valeurs ne se signalent plus une à une au survol. */
+html[data-inline-edit="off"] .chip--rx .chip-rx-dose:hover,
+html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { background: transparent; color: inherit; box-shadow: none; }
 /* ℞ icon and lab/img/ref glyph open full modal on click */
 .chip--rx .chip-rx-icon { cursor: pointer; }
 .chip--rx .chip-rx-icon:hover { opacity: 0.75; }
@@ -644,9 +668,50 @@
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
 
+/* Ajout en attente (proposé par un gabarit, pas encore accepté) : même chip,
+   contour en tirets + fond teinté, rien de cliquable sauf ✓ (accepter) et
+   ✕ (refuser). Le contour en tirets n'est pas le seul indice : les deux
+   boutons le disent aussi. */
+.chip--rx.chip--pending { border-style: dashed; padding-right: 4px; cursor: default; background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--rx.chip--pending:hover { background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--pending .chip-rx-icon, .chip--pending .chip-rx-glyph, .chip--pending .chip-rx-dose, .chip--pending .chip-rx-poso > span { cursor: default; }
+.chip--pending .chip-rx-icon:hover, .chip--pending .chip-rx-glyph:hover { opacity: 1; }
+.chip--pending .chip-rx-dose:hover, .chip--pending .chip-rx-poso > span:hover { background: transparent; color: inherit; box-shadow: none; }
+.chip-pending-actions { display: inline-flex; align-items: center; gap: 2px; margin-left: 2px; padding-left: 4px; border-left: 1px solid var(--mat-sys-outline-variant); }
+.chip-pending-btn { width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--mat-sys-corner-small); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); }
+.chip-pending-btn .material-symbols-outlined { font-size: 18px; line-height: 1; }
+.chip-pending-btn--accept { color: var(--mat-sys-primary); }
+.chip-pending-btn:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.chip-pending-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.chip--rx.chip--pending.chip--ai { border-color: var(--omd-primary-400, #6967d1); }
+.chip-ai-icon { font-size: 14px; line-height: 1; color: var(--omd-primary-400, #6967d1); margin-right: -2px; }
+
+/* Tweak « Style des suggestions » (html[data-suggestion-style], posé par
+   NoteEditor) — trois propositions de la rencontre inline entity, à tester :
+   « tirets » (défaut, ci-dessus) ; « opacite » (Alex) : puce estompée,
+   ✓ / ✕ sous la puce au survol ou au focus ; « violet » (Xavier) : puce
+   mauve, ✓ / ✕ en pastilles dans le coin supérieur droit. */
+.chip--pending { position: relative; }
+html[data-suggestion-style="opacite"] .chip--rx.chip--pending { border-style: solid; background: var(--mat-sys-surface-container-lowest); padding-right: 8px; }
+html[data-suggestion-style="opacite"] .chip--pending > :not(.chip-pending-actions) { opacity: 0.55; }
+html[data-suggestion-style="opacite"] .chip--pending .chip-pending-actions { position: absolute; top: calc(100% + 2px); left: 0; z-index: 5; margin: 0; padding: 2px; border: 1px solid var(--mat-sys-outline-variant); border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-lowest); box-shadow: var(--mat-sys-level2, 0 2px 6px rgba(0,0,0,.15)); visibility: hidden; }
+html[data-suggestion-style="opacite"] .chip--pending:hover .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending:focus-within .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending.ProseMirror-selectednode .chip-pending-actions { visibility: visible; }
+html[data-suggestion-style="violet"] .chip--rx.chip--pending { border-style: solid; border-color: light-dark(#7a3ec2, #c4aae4); background: light-dark(#f3ecfb, #2e2340); padding-right: 14px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-actions { position: absolute; top: -9px; right: -9px; margin: 0; padding: 0; border: 0; gap: 2px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#7a3ec2, #c4aae4); color: light-dark(#7a3ec2, #c4aae4); }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-symbols-outlined { font-size: 14px; }
+
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }
+.rx-check { flex-shrink: 0; width: 32px; height: 32px; margin: 0 2px 0 -6px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.rx-check .material-symbols-outlined { font-size: 20px; }
+.rx-item.is-checked .rx-check { color: var(--mat-sys-primary); }
+.rx-item.is-checked { background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
+.rx-check:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.rx-add-checked { margin-left: auto; border: 0; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 12.5px var(--font-body); padding: 5px 10px; cursor: pointer; }
 .rx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid var(--mat-sys-secondary-container); margin-bottom: 4px; }
 .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 6px; }
 .rx-item { display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
@@ -780,6 +845,15 @@
 /* Chip popover */
 .popover { position: fixed; width: 380px; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--elev-4); z-index: 1000; overflow: hidden; animation: pop-in 180ms var(--motion-ease); }
 @keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+/* Ouverture du formulaire d'une puce (placePopover, editor-popover.jsx) :
+   centré = voile léger derrière ; bottom sheet = collé au bas de l'écran,
+   coins du haut arrondis, entrée par le bas. */
+.popover-scrim { position: fixed; inset: 0; z-index: 2090; background: color-mix(in srgb, var(--mat-sys-scrim, #000) 24%, transparent); animation: sheet-scrim-in 160ms ease-out; }
+.popover.popover--center { box-shadow: var(--mat-sys-level3, 0 12px 32px rgba(0,0,0,.24)); }
+.popover.popover--sheet { border-radius: 16px 16px 0 0 !important; border-bottom: 0; box-shadow: 0 -8px 24px rgba(37,36,94,0.18); animation: sheet-up 240ms cubic-bezier(.16,1,.3,1); }
+/* Puce dont le formulaire est ouvert : le lien reste visible (surtout quand
+   le formulaire est centré ou en bottom sheet, loin de la puce). */
+.chip.chip--editing { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
 .popover-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--divider); }
 .popover-head .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--brand-primary-container); color: var(--brand-primary); display: inline-flex; align-items: center; justify-content: center; }
 .popover-head .ic .material-symbols-outlined { font-size: 18px; }
@@ -790,6 +864,14 @@
 .popover-head .close:hover { background: var(--bg-subtle); color: var(--fg-1); }
 .popover-body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow: auto; }
 .popover-body .field { display: flex; flex-direction: column; gap: 4px; }
+.lab-tests { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-test { display: inline-flex; align-items: center; gap: 2px; padding: 2px 2px 2px 10px; border: 1px solid var(--mat-sys-outline); border-radius: var(--mat-sys-corner-small); font-size: 13px; color: var(--mat-sys-on-surface); background: var(--mat-sys-surface-container-lowest); }
+.lab-test__remove { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.lab-test__remove .material-symbols-outlined { font-size: 16px; }
+.lab-test__remove:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.lab-test__remove:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.lab-tests__empty { font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+.lab-profile-note { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
 .popover-body .field label { font-size: 11px; font-weight: 600; color: var(--fg-2); letter-spacing: 0.2px; }
 .popover-body .field input, .popover-body .field select, .popover-body .field textarea { border: 1px solid var(--border-default); background: var(--surface-2); border-radius: var(--radius-sm); padding: 8px 10px; font: inherit; font-size: 13px; color: var(--fg-1); outline: none; }
 .popover-body .field input:focus, .popover-body .field select:focus, .popover-body .field textarea:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(46,56,166,0.16); }

@@ -1,7 +1,18 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
-  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false }) {
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
+  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
+  aiProposals = false }) {
+  // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
+  // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
+  // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
+  window.__INLINE_FIELD_EDIT = inlineFieldEdit !== false;
+  React.useEffect(function() { document.documentElement.setAttribute('data-inline-edit', inlineFieldEdit !== false ? 'on' : 'off'); }, [inlineFieldEdit]);
+  // Tweak « Checkout des requêtes » : lu par buildTransmissionDocs
+  // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
+  // pour que le pied de note et le checkout le voient dès ce rendu-ci.
+  window.__GROUP_REQUESTS = !!groupRequests;
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -25,6 +36,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [reviewChanges, setReviewChanges] = React.useState([]);
   const [reviewPopover, setReviewPopover] = React.useState(null); // { change, anchorRect }
   const [reviewGate, setReviewGate] = React.useState(false);
+  // Finaliser avec des ajouts en attente (gabarit) : dialogue (Q-06).
+  const [pendingGate, setPendingGate] = React.useState(false);
+  // Tweak « Gabarit : texte proposé » — lu par l'écouteur de
+  // note:apply-template, monté une seule fois.
+  const templateTextProposedRef = React.useRef(templateTextProposed);
+  templateTextProposedRef.current = templateTextProposed;
+  // Tweak « Style des suggestions » : CSS seulement (editor.css).
+  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', suggestionStyle || 'tirets'); }, [suggestionStyle]);
   const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
 
   // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
@@ -113,6 +132,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [transmissionOpen, setTransmissionOpen] = React.useState(false);
   const [transmissionOnlyId, setTransmissionOnlyId] = React.useState(null);
   const [txState, setTxState] = React.useState({});
+  // Événements d'action de la note (D-05) : [{cid, type: 'transmis' |
+  // 'annule', at, author, snapshot}]. Hors du doc Tiptap : retirer un chip
+  // de la note ne retire pas ce qui a été transmis — le Journal les lit
+  // (buildActionLog, editor-schema.jsx).
+  const [actionEvents, setActionEvents] = React.useState([]);
+  // Lu par TransmissionModal / QuickSendModal : pas de message de succès
+  // quand l'échec est simulé.
+  React.useEffect(function() { window.__SIMULATE_TX_FAILURE = !!simulateTxFailure; }, [simulateTxFailure]);
   const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
@@ -240,19 +267,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     return function() { window.removeEventListener('ct-picker-open', onPickerOpen); };
   }, []);
 
-  // Gabarit de note (/virus, /itu, /periodique — editor-data.jsx NOTE_TEMPLATES) :
+  // Gabarit de note (/virus, /itu, /periodique, /otite — editor-data.jsx NOTE_TEMPLATES) :
   // règle structure + sections (Titre 2 + paragraphes) + outil clinique en un
-  // geste. Note vierge → remplace tout le doc ; note déjà amorcée → ajoute à
+  // geste. Les éléments inline d'un gabarit (`proposals`) arrivent en attente
+  // (chip pending, ✓ / ✕), jamais appliqués d'office. Note vierge → remplace tout le doc ; note déjà amorcée → ajoute à
   // la suite pour ne rien écraser.
   React.useEffect(function() {
     function onApplyTemplate(e) {
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
-      var blocks = [];
-      (tpl.sections || []).forEach(function(s) {
-        blocks = blocks.concat(window.plainToBlocks(s.title, s.content || ''));
-      });
+      var blocks = window.buildTemplateBlocks(tpl, { proposeText: templateTextProposedRef.current });
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
@@ -272,6 +297,37 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
     return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
+  }, []);
+
+  // « + » Problèmes / Antécédents du Sommaire (tweak, piste de vision) :
+  // ouvre la recherche « /dx » dans la note — sous la ligne du curseur, ou à
+  // la fin des détails si la note vient de s'ouvrir. Le diagnostic choisi
+  // arrive déjà documenté comme problème ou antécédent (__DX_DOCUMENT_AS, lu
+  // par runDiagnosticCommand, editor-field.jsx).
+  React.useEffect(function() {
+    function onSummaryAdd(e) {
+      var documentAs = e.detail && e.detail.documentAs;
+      if (!documentAs) return;
+      var wasOpen = !!editorRef.current;
+      if (!wasOpen && onOpen) onOpen();
+      var tries = 0;
+      (function insertWhenReady() {
+        var editor = editorRef.current;
+        if (!editor) { if (++tries < 30) setTimeout(insertWhenReady, 50); return; }
+        var state = editor.state, $from = state.selection.$from;
+        // Paragraphe de premier niveau seulement : une région diagnostic ne se
+        // loge pas dans une autre.
+        var inText = wasOpen && state.selection.from > 1 && $from.parent.type.name === 'paragraph' && $from.depth === 1;
+        var pos = inText ? $from.after($from.depth) : window.endOfFirstSectionPos(state.doc);
+        window.__DX_DOCUMENT_AS = documentAs;
+        editor.chain().focus()
+          .insertContentAt(pos, { type: 'paragraph', content: [{ type: 'text', text: '/dx ' }] })
+          .setTextSelection(pos + 5)
+          .run();
+      })();
+    }
+    window.addEventListener('note:summary-add', onSummaryAdd);
+    return function() { window.removeEventListener('note:summary-add', onSummaryAdd); };
   }, []);
 
   // Référencer un passage sélectionné dans une note antérieure complétée
@@ -317,6 +373,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       if (url) setFilePreview({ name: entity.label || entity.text || 'Document', url: url, kind: window.fileKindFromName(entity.label || entity.text || '') });
       return;
     }
+    // Chip transmis : détails en lecture seule, jamais d'édition inline.
+    // Chip en attente : ses détails, pour le vérifier avant de l'accepter.
+    if (entity && (entity.transmittedAt || entity.pending)) {
+      setInlineEdit(null);
+      setPopover({ chipId: chipId, anchorRect: rect });
+      setLinkedChipId(chipId);
+      return;
+    }
     // Edit button (···) → open full modal
     if (extra && extra.action === 'modal') {
       setInlineEdit(null);
@@ -325,7 +389,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       return;
     }
     // Zone click → inline autocomplete editor (prescription, lab, imaging, referral)
-    if (extra && extra.field && entity) {
+    // — seulement si l'édition inline est active (D-02) ; sinon formulaire complet.
+    if (extra && extra.field && entity && inlineFieldEdit !== false) {
       var editableTypes = ['prescription', 'lab', 'imaging', 'referral'];
       if (editableTypes.indexOf(entity.type) !== -1) {
         setInlineEdit({ chipId: chipId, field: extra.field, fieldRect: extra.fieldRect || rect });
@@ -410,21 +475,22 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setInlineEdit(null);
   }
 
-  function savePopover(chipId, draft) {
+  // `accept` : ajout en attente vérifié puis accepté depuis ses détails.
+  function savePopover(chipId, draft, accept) {
     var ent = Object.assign({}, draft, { label: deriveLabel(draft) });
     if (ent.type === 'prescription' && ent.rx) ent.rx = window.NOTE_DATA.deriveRx(ent.details || {}, ent.rx);
     else if (ent.type === 'lab' && ent.rx) ent.rx = window.NOTE_DATA.deriveLabRx(ent.details || {});
     else if (ent.type === 'imaging' && ent.rx) ent.rx = window.NOTE_DATA.deriveImgRx(ent.details || {});
     else if (ent.type === 'referral' && ent.rx) ent.rx = window.NOTE_DATA.deriveRefRx(ent.details || {});
-    if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent);
+    if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent, accept ? { pending: false } : null);
     setPopover(null);
   }
 
   function revertChip(chipId) {
     var editor = editorRef.current;
     if (editor) {
-      var entity = window.getChipEntity(editor, chipId);
-      var txt = (entity && (entity.text || entity.label)) || '';
+      // Même texte que « Garder en texte » et que la note imprimée.
+      var txt = window.chipPrintText(window.chipAttrs(editor, chipId));
       var pos = window.findChipPos(editor, chipId);
       if (pos >= 0) editor.chain().focus().deleteRange({ from: pos, to: pos + 1 }).insertContentAt(pos, txt).run();
     }
@@ -538,6 +604,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setConfidentialWarningOpen(false);
     setConfidentialDeleteOpen(false);
     setTxState({});
+    setActionEvents([]);
     setReviewActive(false);
     setReviewChanges([]);
     setReviewPopover(null);
@@ -571,7 +638,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags,
-        confidential: confidentialContent || null }].concat(prev);
+        confidential: confidentialContent || null, actionEvents: actionEvents }].concat(prev);
     });
     if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
   }
@@ -585,6 +652,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setTags(draft.tags || []);
     if (draft.visitType) setVisitType(draft.visitType);
     if (draft.confidential) { setConfidentialContent(draft.confidential); setConfidentialAdded(true); }
+    setActionEvents(draft.actionEvents || []);
     if (onOpen) onOpen();
   }
 
@@ -612,6 +680,26 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // transmitted/comment) — persiste au niveau de la note tant qu'elle est
   // ouverte, indépendamment de l'ouverture/fermeture de TransmissionModal.
   function patchTxState(id, patch) {
+    // Transmission d'un document : ses chips sont marqués transmis et
+    // l'événement est gardé, même si le chip quitte la note ensuite.
+    // Un document renvoyé (item ajouté après une première transmission) ne
+    // marque que ses chips pas encore transmis.
+    if (patch && patch.transmitted === true) {
+      var sentDoc = buildTransmissionDocs().find(function(d) { return d.id === id; });
+      // Tweak « Simuler un échec de transmission » : rien ne part. Les puces
+      // du document portent l'échec (icône sur la puce, ligne au checkout) et
+      // le document reste « Non transmise ».
+      if (simulateTxFailure) {
+        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: 'envoi non reçu par le destinataire (simulé)' });
+        patch = Object.assign({}, patch, { transmitted: false });
+        if (window.toast) window.toast('Échec de transmission (simulé)', { icon: 'sync_problem' });
+      } else if (sentDoc && !sentDoc.transmitted) {
+        recordChipEvents(sentDoc.items.map(function(it) { return it.id; }).filter(function(cid) {
+          var a = editorRef.current && window.chipAttrs(editorRef.current, cid);
+          return a && !a.transmittedAt;
+        }), 'transmis');
+      }
+    }
     setTxState(function(prev) {
       var next = Object.assign({}, prev);
       next[id] = Object.assign({}, next[id], patch);
@@ -619,13 +707,43 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     });
   }
 
+  // Ajoute un événement par chip (instantané de ses attrs) et pose l'attr
+  // correspondant sur le chip, hors historique (stampChips).
+  function recordChipEvents(cids, type) {
+    var editor = editorRef.current;
+    if (!editor || !cids.length) return;
+    var at = new Date().toISOString();
+    var patch = type === 'annule' ? { cancelledAt: at } : { transmittedAt: at, transmitError: null };
+    var evs = cids.map(function(cid) {
+      var attrs = window.chipAttrs(editor, cid);
+      return attrs ? { cid: cid, type: type, at: at, author: window.__CURRENT_AUTHOR || null, snapshot: Object.assign(attrs, patch) } : null;
+    }).filter(Boolean);
+    if (!evs.length) return;
+    window.stampChips(editor, evs.map(function(e) { return e.cid; }), patch);
+    setActionEvents(function(prev) { return prev.concat(evs); });
+  }
+
+  // Annuler une ordonnance / une requête transmise (menu ⋮ du chip,
+  // editor-field.jsx) : action clinique séparée de l'effacement. L'envoi de
+  // l'annulation au destinataire est simulé.
+  React.useEffect(function() {
+    function onCancel(e) {
+      var cid = e.detail && e.detail.cid;
+      if (!cid) return;
+      recordChipEvents([cid], 'annule');
+      if (window.toast) window.toast('Annulation envoyée', { icon: 'block' });
+    }
+    window.addEventListener('note:chip-cancel', onCancel);
+    return function() { window.removeEventListener('note:chip-cancel', onCancel); };
+  });
+
   // Marque un document complété en capturant l'empreinte de ses items
   // actuels (`itemIds`) — voir la note sur `stale` dans buildTransmissionDocs :
   // si de nouveaux items sont ajoutés après coup, cette empreinte ne
   // correspondra plus et le document redeviendra « à compléter ».
   function markDocComplete(id) {
     var doc = buildTransmissionDocs().find(function(d) { return d.id === id; });
-    if (!doc) return;
+    if (!doc || doc.blocking.length) return; // item incomplet : rien à compléter
     var idsKey = doc.items.map(function(it) { return it.id; }).sort().join(',');
     patchTxState(id, { complete: true, itemIds: idsKey });
   }
@@ -658,7 +776,31 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       setReviewGate(true);
       return;
     }
+    if (pending.count > 0) {
+      setPendingGate(true);
+      return;
+    }
     openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  // Ajouts en attente (gabarit) — barre au-dessus du corps de la note et
+  // dialogue de finalisation.
+  var pending = docJson ? window.pendingSummary(docJson) : { count: 0, chips: 0, paragraphs: 0, sources: [] };
+  function resolvePending(accept) { if (editorRef.current) window.resolveAllPending(editorRef.current, accept); }
+  function reviewFirstPending() {
+    var editor = editorRef.current;
+    if (!editor) return;
+    var first = null;
+    editor.state.doc.descendants(function(node, pos) {
+      if (first !== null) return false;
+      if (node.type.name === 'chip' && node.attrs.pending) first = pos;
+      else if (node.isText && node.marks.some(function(m) { return m.type.name === 'insertion' && m.attrs.authorId === window.TEMPLATE_AUTHOR.id; })) first = pos;
+    });
+    if (first === null) return;
+    var node = editor.state.doc.nodeAt(first);
+    if (node && node.type.name === 'chip') editor.chain().focus().setNodeSelection(first).run();
+    else editor.chain().focus().setTextSelection(first).run();
+    try { editor.view.domAtPos(first).node.parentElement.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
   }
 
   function reviewGateAcceptAllAndComplete() {
@@ -688,7 +830,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // TransmissionModal (NoteActionPanel) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
-    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
+    // Un ajout proposé par un gabarit et jamais accepté n'entre pas dans la note complétée.
+    // Refus implicite de ce qui reste en attente (le dialogue de finalisation
+    // l'a annoncé) : puces et texte proposés n'entrent pas dans la note.
+    var doc = window.resolvePendingInDoc(window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC())), false);
     var stats = window.scanDoc(doc);
     var data = {
       raison: raison,
@@ -709,6 +854,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       // « Checkout » de NotesList) avec ses destinataires et ses statuts, au
       // lieu d'un checkout vierge reconstruit depuis le seul contenu.
       txState: txState,
+      // Ce qui a été transmis ou annulé, y compris des chips retirés de la note.
+      actionEvents: actionEvents,
+      // Regroupement des requêtes au moment de la complétion : les ids des
+      // documents de txState en dépendent (« lab » ou l'id de la puce).
+      groupRequests: !!groupRequests,
     };
     // Fusion définitive dans le dossier (Summary.jsx) — après ça, la ligne
     // n'est plus « en attente » : Cesser devient résolu à la date DE LA NOTE
@@ -810,6 +960,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           setReviewActive(true);
           blocks = window.markBlocksAsInsertion(blocks, window.REVIEW_AI_AUTHOR);
         }
+        // Tweak « IA : éléments structurés proposés » (piste de vision, D-03) :
+        // l'assistant propose aussi des puces, en attente comme celles d'un
+        // gabarit — rien n'est créé avant d'être accepté.
+        if (aiProposals) {
+          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, 'Assistant IA'); }).filter(Boolean);
+          // Pas de libellé en texte : il resterait seul si tout est refusé ; la
+          // puce dit elle-même qui la propose (infobulle, style « IA »).
+          var inline = [];
+          chips.forEach(function(c, i) { if (i) inline.push({ type: 'text', text: ' ' }); inline.push(c); });
+          if (chips.length) blocks = blocks.concat([{ type: 'paragraph', content: inline }]);
+        }
         appendToFirstSection(blocks);
       }} />
 
@@ -824,6 +985,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           {ftBarStyle === 'haut' && ftBarPosition !== 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
 
           <div style={neStyles.noteDiv} />
+
+          {pending.count > 0 &&
+            <window.PendingProposalsBar
+              summary={pending}
+              onAcceptAll={function() { resolvePending(true); }}
+              onRejectAll={function() { resolvePending(false); }}
+              onReview={reviewFirstPending} />}
 
           <NoteBody
             placeholder="Appuyer sur « / » pour afficher les commandes"
@@ -896,7 +1064,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             </div>
           }
 
-          <ActionLog docJson={docJson} editor={editorInstance} />
+          <ActionLog docJson={docJson} events={actionEvents} editor={editorInstance} />
         </div>
       }
 
@@ -1007,6 +1175,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       }
 
       {/* Dialogue bloquant — changements en attente à la complétion */}
+      {pendingGate &&
+        <window.PendingCompleteDialog
+          summary={pending}
+          onAcceptAllAndComplete={function() { resolvePending(true); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onReview={function() { setPendingGate(false); reviewFirstPending(); }}
+          onCompleteWithout={function() { resolvePending(false); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onCancel={function() { setPendingGate(false); }} />
+      }
+
       {reviewGate &&
         <window.ReviewCompleteDialog
           count={reviewChanges.length}
@@ -1029,6 +1206,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {popoverChip &&
         <ChipPopover
           chip={popoverChip}
+          readOnly={!!popoverChip.entity.transmittedAt}
+          pending={!!popoverChip.entity.pending}
+          openMode={formOpenMode}
+          onReject={function(id) { if (editorRef.current) window.rejectPendingChip(editorRef.current, id); setPopover(null); setLinkedChipId(null); }}
           anchorRect={popover.anchorRect}
           onClose={function() { setPopover(null); setLinkedChipId(null); }}
           onSave={savePopover}
@@ -1090,14 +1271,8 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '1000UI', '2000UI', '5000UI', '10000UI',
       '5mL', '10mL', '15mL', '20mL', '30mL'
     ],
-    frequency: [
-      'DIE', 'BID', 'TID', 'QID', 'HS',
-      'q4h', 'q6h', 'q8h', 'q12h',
-      'q4-6h PRN', 'q6-8h PRN', 'q8-12h PRN',
-      'DIE PRN', 'BID PRN', 'TID PRN', 'Au besoin (PRN)',
-      '1× / semaine', '2× / semaine', '3× / semaine',
-      '1× / 2 semaines', '1× / mois'
-    ],
+    // Mêmes listes que le formulaire (FIELD_OPTIONS, editor-data.jsx — D-04).
+    frequency: window.NOTE_DATA.FIELD_OPTIONS.frequency,
     form: [
       '1 co', '2 co', '½ co', '1½ co', '3 co', '4 co',
       '1 gél', '2 gél',
@@ -1110,9 +1285,7 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '1 supp',
       'Appliquer localement'
     ],
-    route: [
-      'PO', 'SL', 'TD', 'Inhalé', 'Nasal', 'SC', 'IM', 'IV', 'PR', 'Topique', 'Auriculaire', 'Ophtalmique'
-    ],
+    route: window.NOTE_DATA.FIELD_OPTIONS.route,
     duration_refills: [
       '3 jours R0', '5 jours R0', '7 jours R0', '10 jours R0', '14 jours R0',
       '21 jours R0', '28 jours R0',
@@ -1127,12 +1300,8 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '3 jours', '5 jours', '7 jours', '10 jours', '14 jours', '21 jours', '28 jours',
       '30 jours', '60 jours', '90 jours', '6 mois', '1 an', 'Long terme'
     ],
-    refills: [
-      'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R11', 'R12'
-    ],
-    priority: [
-      'Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'
-    ],
+    refills: window.NOTE_DATA.FIELD_OPTIONS.refills.map(function(r) { return 'R' + r; }),
+    priority: window.NOTE_DATA.FIELD_OPTIONS.priority,
     exam: [
       'Radiographie Thorax', 'Radiographie Genou', 'Radiographie Hanche',
       'Radiographie Cheville', 'Radiographie Poignet', 'Radiographie Colonne',
@@ -1143,13 +1312,7 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       'IRM Genou', 'IRM Épaule', 'IRM Cheville',
       'Mammographie Bilatérale'
     ],
-    specialty: [
-      'Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie',
-      'Neurologie', 'Pneumologie', 'Rhumatologie', 'Endocrinologie',
-      'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie',
-      'ORL', 'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie',
-      'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'
-    ]
+    specialty: window.NOTE_DATA.FIELD_OPTIONS.specialty
   };
   var FIELD_LABELS = {
     dose: 'Dose', frequency: 'Fréquence', form: 'Forme', route: 'Voie', duration_refills: 'Durée / Renouvellements',
@@ -1166,6 +1329,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
   });
 
   React.useEffect(function() { if (inputRef.current) inputRef.current.select(); }, []);
+  // Sous le champ, ou au-dessus s'il n'y a pas la place (placePopover, mode 'flip').
+  React.useLayoutEffect(function() {
+    var el = document.getElementById('chip-inline-editor');
+    if (!el || !window.placePopover) return;
+    el.style.overflowY = 'auto';
+    window.placePopover(el, fieldRect, { mode: 'flip' });
+  });
 
   React.useEffect(function() {
     function onDown(e) {

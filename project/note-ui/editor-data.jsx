@@ -301,7 +301,10 @@ const MED_CATALOG = [
     label: 'Ciprofloxacine 500 mg',
     details: { molecule: 'Ciprofloxacine', dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '',
-      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique' } },
+      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique',
+      // Alerte SIMULÉE pour montrer l'état « interaction de haut risque » de la
+      // puce (chipIssues, editor-schema.jsx) — pas une donnée clinique.
+      alert: { level: 'high', message: 'Interaction de haut risque avec la médication au dossier (exemple simulé, à valider cliniquement)' } } },
   { stem: 'amoxicilline-clavulanate', brand: 'Clavulin', klass: 'Antibiotique', din: '02238829',
     text: 'Amoxicilline-clavulanate 875/125 mg — 1 co BID x 7 j',
     label: 'Amoxicilline-clavulanate 875/125 mg',
@@ -560,16 +563,80 @@ const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: 'prescrire', emptyNoun: 'produit',
          sections: ['Favoris', 'Traitements fréquemment prescrits', 'Autres produits trouvés'],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
-  lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse',
+  lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse', multi: true,
          sections: ['Favoris', 'Analyses fréquemment demandées', 'Autres analyses'],
          favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q) { return _searchList(LAB_ITEMS, LAB_FAVS, q); } },
-  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: 'demander',  emptyNoun: 'examen',
+  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: 'demander',  emptyNoun: 'examen', multi: true,
          sections: ['Favoris', 'Examens fréquemment demandés', 'Autres examens'],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q) { return _searchList(IMG_ITEMS, IMG_FAVS, q); } },
+  // Recherche unifiée (profils + labo + imagerie) : un résultat peut être de
+  // plusieurs natures, voir `orderKind` (searchRequests).
+  req: { kbd: 'req', type: 'lab',          icon: 'lab_profile', glyph: null, verb: 'demander', emptyNoun: 'examen', multi: true,
+         sections: ['Profils', 'Laboratoire', 'Imagerie'],
+         favs: new Set(), items: function () { return LAB_PROFILES.concat(LAB_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); }), IMG_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); })); }, search: searchRequests },
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: 'référer',   emptyNoun: 'spécialité',
          sections: ['Favoris', 'Spécialités fréquentes', 'Autres spécialités'],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q) { return _searchList(REF_ITEMS, REF_FAVS, q); } },
 };
+
+// Éléments structurés que l'Assistant IA propose pour la transcription
+// d'exemple (AIBox.jsx : brûlures mictionnelles, bandelette positive) — tweak
+// « IA : éléments structurés proposés ». Items du catalogue seulement ;
+// contenu SIMULÉ, à valider cliniquement (ID-10). `cat-44` = Nitrofurantoïne.
+const AI_SAMPLE_PROPOSALS = [
+  { kind: 'lab', key: 'srum' },
+  { kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } },
+];
+
+// Valeurs proposées pour les champs d'une puce — UNE source pour le
+// formulaire (ChipPopover, editor-popover.jsx) et l'éditeur inline d'un champ
+// (ChipInlineEditor, NoteEditor.jsx), D-04 : pas deux systèmes pour la même
+// prescription. Couvre toutes les valeurs du catalogue (tests/field-options).
+const FIELD_OPTIONS = {
+  route: ['PO', 'SL', 'TD', 'Inhalé', 'Nasal', 'SC', 'IM', 'IV', 'PR', 'Topique', 'Auriculaire', 'Ophtalmique'],
+  frequency: ['DIE', 'BID', 'TID', 'QID', 'HS', 'AC', 'PC', 'q4h', 'q6h', 'q8h', 'q12h',
+    'PRN', 'DIE PRN', 'BID PRN', 'TID PRN', 'QID PRN', 'HS PRN', 'q4-6h PRN', 'q6-8h PRN', 'q8-12h PRN',
+    '1× / semaine', '2× / semaine', '3× / semaine', '1× / 2 semaines', '1× / mois'],
+  refills: ['0', '1', '2', '3', '4', '5', '6', '11', '12'],
+  durationUnit: ['jours', 'semaines', 'mois'],
+  priority: ['Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'],
+  specialty: ['Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie', 'Neurologie', 'Pneumologie',
+    'Rhumatologie', 'Endocrinologie', 'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie', 'ORL',
+    'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie', 'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'],
+};
+
+// Profils de laboratoire : un raccourci qui commande plusieurs analyses du
+// catalogue (rencontre inline entity, Antoine Cloutier). Choisir un profil ne
+// crée rien d'office : ses analyses arrivent dans une seule puce labo, et
+// chacune se retire dans le formulaire. Contenu d'exemple, à valider (ID-09).
+const LAB_PROFILES = [
+  { key: 'prof-diabete', name: 'Profil diabète', labKeys: ['hba1c', 'glyc', 'creat', 'lipide'] },
+  { key: 'prof-annuel', name: 'Bilan annuel', labKeys: ['fsc', 'glyc', 'lipide', 'creat', 'tsh'] },
+  { key: 'prof-anemie', name: 'Bilan anémie', labKeys: ['fsc', 'ferritine', 'b12'] },
+].map(function (p) {
+  const items = p.labKeys.map(function (k) { return LAB_ITEMS.find(function (it) { return it.key === k; }); }).filter(Boolean);
+  const tests = [];
+  items.forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); }); });
+  return { key: p.key, name: p.name, dose: '', profile: true, orderKind: 'lab',
+    sig: 'Profil · ' + tests.length + ' analyses : ' + tests.join(', '),
+    details: { tests: tests, priority: 'Routine', fasting: items.some(function (it) { return it.details.fasting; }), context: '', profile: p.name } };
+});
+
+// Recherche unifiée des requêtes (/req) : profils, analyses et examens
+// d'imagerie dans une seule liste, en trois sections (mêmes clés que les
+// autres recherches, pour RxMenu). Chaque résultat porte son `orderKind`.
+function searchRequests(q) {
+  const tag = function (kind) { return function (it) { return Object.assign({}, it, { orderKind: kind }); }; };
+  const nq = _norm((q || '').trim());
+  const match = function (it) { return !nq || _norm(it.name).includes(nq) || _norm(it.sig || '').includes(nq); };
+  const lab = _searchList(LAB_ITEMS, LAB_FAVS, q), img = _searchList(IMG_ITEMS, IMG_FAVS, q);
+  const firstOf = function (r) { return r.favoris.concat(r.frequents, r.autres); };
+  return {
+    favoris: LAB_PROFILES.filter(match),
+    frequents: firstOf(lab).map(tag('lab')),
+    autres: firstOf(img).map(tag('img'))
+  };
+}
 
 function _searchList(list, favSet, q) {
   const nq = _norm((q || '').trim());
@@ -631,6 +698,10 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
     hideWhenEmpty: true, noteTemplate: 'periodique' },
+  { key: 'tpl-otite', section: 'Gabarits de note', icon: 'hearing', title: 'Otite moyenne aiguë', desc: 'Histoire, examen, conclusion + ordonnance proposée', kbd: 'otite',
+    hideWhenEmpty: true, noteTemplate: 'otite' },
+  { key: 'tpl-pneumonie', section: 'Gabarits de note', icon: 'pulmonology', title: 'Pneumonie (suspicion)', desc: 'Histoire, examen, conclusion + requêtes et ordonnance proposées', kbd: 'pneumonie',
+    hideWhenEmpty: true, noteTemplate: 'pneumonie' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -651,6 +722,8 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'lab', label: 'Demande de laboratoire', text: 'Demande de laboratoire',
       details: { tests: ['FSC'], priority: 'Routine', fasting: false, context: '', collection: 'Au CH le plus proche' } } },
+  { key: 'requests', section: 'Fonctions', icon: 'lab_profile', title: 'Requêtes', desc: 'Labo, imagerie et profils — plusieurs à la fois', kbd: 'req',
+    orderSearch: true },
   { key: 'imaging', section: 'Fonctions', icon: 'radiology', title: 'Imagerie', desc: 'Radio, écho, TDM', kbd: 'img',
     orderSearch: true,
     template: { type: 'imaging', label: "Demande d'imagerie", text: "Demande d'imagerie",
@@ -706,6 +779,43 @@ const NOTE_TEMPLATES = [
       { title: 'Conclusion', content: 'Impression : Bonne santé générale.\nPlan : ' },
     ],
   },
+  // Gabarit avec ajout proposé : `proposals` = éléments inline (ordonnance…)
+  // que le gabarit ne crée pas, il les propose — chip en attente avec ✓ / ✕
+  // (voir buildTemplateBlocks et decoratePendingChip, editor-schema.jsx).
+  // Chaque proposition pointe un item du catalogue { kind, key } (ORDER_DEFS).
+  {
+    key: 'otite', name: 'Otite moyenne aiguë',
+    raison: 'Otalgie',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Depuis : \nOtalgie (côté) : \nFièvre : \nÉcoulement / hypoacousie : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nOtoscopie droite : \nOtoscopie gauche : \nOropharynx : ' },
+      { title: 'Conclusion', content: 'Impression : Otite moyenne aiguë.\nPlan : ',
+        proposals: [{ kind: 'rx', key: 'amox500' }] },
+    ],
+  },
+  // Gabarit avec plusieurs ajouts proposés, dont une ordonnance INCOMPLÈTE
+  // (fréquence laissée vide, cas soulevé en rencontre : un gabarit de
+  // prescription qui crée une ordonnance à compléter). Contenu clinique
+  // d'exemple, à valider (ID-07). `cat-48` = Amoxicilline-clavulanate au
+  // catalogue (clé dérivée de sa position dans MED_CATALOG).
+  {
+    key: 'pneumonie', name: 'Pneumonie (suspicion)',
+    raison: 'Toux et fièvre',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Toux depuis : \nFièvre : \nDyspnée / douleur thoracique : \nExpectorations : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nFR / SpO2 : \nAuscultation pulmonaire : ' },
+      { title: 'Conclusion', content: 'Impression : Pneumonie acquise en communauté à confirmer.\nPlan : ',
+        proposals: [
+          { kind: 'img', key: 'rxpoumon' },
+          { kind: 'lab', key: 'fsc' },
+          { kind: 'rx', key: 'cat-48', details: { frequency: '' } }
+        ] },
+    ],
+  },
 ];
 
 const PATIENT = {
@@ -759,4 +869,5 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };
+  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

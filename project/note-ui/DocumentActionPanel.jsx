@@ -46,6 +46,30 @@ function DapSection({ label, count, open, onToggle, onAdd, children }) {
 // éditer ou retirer une prescription depuis le checkout reviendrait à
 // modifier la note elle-même, ce qui sort du périmètre (cf. la même
 // décision pour « + Ajouter »).
+// États d'un item (mêmes que sur la puce, chipIssues — editor-schema.jsx) :
+// une ligne par état, sous le libellé. Partagé avec QuickSendModal. Jamais
+// imprimé : DocumentPreview ne lit que label/sub.
+function ChipIssueLines({ issues }) {
+  if (!issues || !issues.length) return null;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 3 }}>
+      {issues.map(function (i) {
+        const err = i.level === 'error';
+        return (
+          <div key={i.kind} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, fontSize: 12, lineHeight: 1.35,
+            color: err ? 'var(--mat-sys-error)' : 'light-dark(#8a6212, #e9d2a5)' }}>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 15, flexShrink: 0 }}>
+              {i.kind === 'transmission' ? 'sync_problem' : i.kind === 'interaction' ? 'report' : err ? 'error' : 'warning'}
+            </span>
+            <span>{i.message}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+window.ChipIssueLines = ChipIssueLines;
+
 function DapContentRow({ it, meta, readOnly }) {
   const [hover, setHover] = React.useState(false);
   const vis = DAP_VARIANT[it.variant] || { icon: meta.icon, color: meta.accent };
@@ -58,6 +82,7 @@ function DapContentRow({ it, meta, readOnly }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={Object.assign({}, dap.contentItemLabel, it.ceased ? { textDecoration: 'line-through', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' } : {})}>{it.label}</div>
         {it.sub ? <div style={dap.contentItemSub}>{it.sub}</div> : null}
+        <ChipIssueLines issues={it.issues} />
       </div>
       {hover && !readOnly &&
         <div style={dap.rowActions}>
@@ -159,10 +184,13 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   // devient primaire. Le médecin voit donc toujours les deux gestes et où il
   // en est, au lieu de voir l'un remplacer l'autre.
   const noRecipient = doc.recipients.length === 0;
-  const completeDisabled = doc.complete || noRecipient;
+  // Un item incomplet (prescription sans voie, p. ex.) empêche de compléter.
+  const blocked = !doc.complete && (doc.blocking || []).length > 0;
+  const completeDisabled = doc.complete || noRecipient || blocked;
   const transmitDisabled = !doc.complete || noRecipient || doc.transmitted;
   const completeTitle = doc.complete
     ? 'Document déjà complété'
+    : blocked ? (doc.blocking || []).join('\n')
     : (noRecipient ? 'Aucun destinataire sélectionné' : undefined);
   const transmitTitle = doc.transmitted
     ? 'Document déjà transmis'

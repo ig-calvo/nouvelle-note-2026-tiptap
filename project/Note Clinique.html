@@ -256,6 +256,7 @@
     'note-ui/SideNav.jsx',
     'note-ui/PatientBanner.jsx',
     'note-ui/editor-data.jsx',
+    'note-ui/popover-placement.jsx',
     'note-ui/editor-popover.jsx',
     'note-ui/note-sections.jsx',
     'note-ui/diagnostics.jsx',
@@ -328,6 +329,14 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "reviewingMode": false,
   "reviewAuthor": "me",
   "checkoutSuggestions": false,
+  "simulateTxFailure": false,
+  "templateTextProposed": false,
+  "suggestionStyle": "tirets",
+  "formOpenMode": "auto",
+  "groupRequests": false,
+  "inlineFieldEdit": true,
+  "aiProposals": false,
+  "summaryAddToNote": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -492,6 +501,7 @@ function App() {
       // Statuts et destinataires de transmission figés à la complétion —
       // relus par le bouton « Checkout » du Journal (NotesList).
       txState: data.txState || {},
+      groupRequests: !!data.groupRequests,
     };
     setCompletedNotes(prev => [newNote, ...prev]);
     setNoteOpen(false);
@@ -526,7 +536,14 @@ function App() {
               ftBarPosition={t.ftBarPosition || 'haut'}
               reviewingMode={t.reviewingMode === true}
               reviewAuthor={t.reviewAuthor || 'me'}
-              checkoutSuggestions={t.checkoutSuggestions === true} />
+              checkoutSuggestions={t.checkoutSuggestions === true}
+              simulateTxFailure={t.simulateTxFailure === true}
+              templateTextProposed={t.templateTextProposed === true}
+              suggestionStyle={t.suggestionStyle || 'tirets'}
+              formOpenMode={t.formOpenMode || 'auto'}
+              groupRequests={t.groupRequests === true}
+              inlineFieldEdit={t.inlineFieldEdit !== false}
+              aiProposals={t.aiProposals === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -561,7 +578,7 @@ function App() {
             }
           </div>
           </div>
-          <Summary />
+          <Summary addToNote={t.summaryAddToNote === true} />
         </div>
       </div>
 
@@ -610,6 +627,43 @@ function App() {
         <TweakSection label="Checkout" />
         <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
+        <TweakRadio label="Checkout des requêtes"
+                    value={t.groupRequests === true ? 'type' : 'puce'}
+                    options={[
+                      { value: 'puce', label: 'Une par puce' },
+                      { value: 'type', label: 'Regroupées' },
+                    ]}
+                    onChange={(v) => setTweak('groupRequests', v === 'type')} />
+        <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
+                     onChange={(v) => setTweak('simulateTxFailure', v)} />
+        <TweakSection label="Gabarits" />
+        <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
+                     onChange={(v) => setTweak('templateTextProposed', v)} />
+        <TweakRadio label="Style des suggestions"
+                    value={t.suggestionStyle || 'tirets'}
+                    options={[
+                      { value: 'tirets', label: 'Tirets' },
+                      { value: 'opacite', label: 'Estompé' },
+                      { value: 'violet', label: 'Mauve' },
+                    ]}
+                    onChange={(v) => setTweak('suggestionStyle', v)} />
+        <TweakSection label="Pistes (vision)" />
+        <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
+                     onChange={(v) => setTweak('aiProposals', v)} />
+        <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}
+                     onChange={(v) => setTweak('summaryAddToNote', v)} />
+        <TweakSection label="Formulaire d'une puce" />
+        <TweakToggle label="Édition inline des valeurs secondaires (après Q1 2027)" value={t.inlineFieldEdit !== false}
+                     onChange={(v) => setTweak('inlineFieldEdit', v)} />
+        <TweakSelect label="Ouverture du formulaire"
+                     value={t.formOpenMode || 'auto'}
+                     options={[
+                       { value: 'auto', label: 'Auto (sous, au-dessus, sinon centré)' },
+                       { value: 'sous', label: 'Sous la puce (corps qui défile)' },
+                       { value: 'centre', label: 'Centré' },
+                       { value: 'sheet', label: 'Bottom sheet' },
+                     ]}
+                     onChange={(v) => setTweak('formOpenMode', v)} />
         <TweakSection label="Mode révision" />
         <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
                      onChange={(v) => setTweak('reviewingMode', v)} />

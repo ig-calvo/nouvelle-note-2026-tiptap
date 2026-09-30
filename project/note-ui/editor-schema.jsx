@@ -19,6 +19,212 @@ function newChipId() { return 'c' + _chipSeq++; }
 // ProseMirror garde une référence stable au `dom` retourné par le NodeView).
 // ---------------------------------------------------------
 function buildChipDom(data, existingEl) {
+  const node = buildChipDomBase(data, existingEl);
+  decorateChipStates(node, data);
+  if (data.pending) decoratePendingChip(node, data);
+  else node.removeAttribute('data-pending'); // le DOM est réutilisé à la mise à jour (accepté)
+  if (data.transmittedAt) decorateSentChip(node, data);
+  else node.removeAttribute('data-sent');
+  return node;
+}
+
+// Chip transmis (D-05) : lecture seule — plus d'édition inline des valeurs
+// (data-field retiré ; l'icône ouvre encore les détails, en lecture seule) —
+// double coche « Transmis » en fin de chip. Annulé : tag de statut
+// « Annulée » après l'icône (anatomie du composant : icône, statut, valeur
+// principale), valeurs barrées, plus de double coche.
+function decorateSentChip(node, data) {
+  node.setAttribute('data-sent', 'true');
+  node.querySelectorAll('[data-field]').forEach(function (el) { el.removeAttribute('data-field'); });
+  const when = formatChipStamp(data.cancelledAt || data.transmittedAt);
+  if (data.cancelledAt) {
+    node.classList.add('chip--cancelled');
+    const tag = document.createElement('span');
+    tag.className = 'chip-status chip-status--cancelled';
+    tag.textContent = 'Annulée';
+    tag.setAttribute('title', 'Annulation envoyée le ' + when);
+    node.insertBefore(tag, node.children[1] || null);
+    return;
+  }
+  node.classList.add('chip--sent');
+  const ic = document.createElement('span');
+  ic.className = 'material-symbols-outlined chip-sent-icon';
+  ic.setAttribute('role', 'img');
+  ic.setAttribute('aria-label', 'Transmis');
+  ic.setAttribute('title', 'Transmis le ' + when);
+  ic.textContent = 'done_all';
+  node.appendChild(ic);
+}
+
+// ---------------------------------------------------------
+// États d'une puce (rencontre inline entity : plusieurs niveaux d'erreur,
+// pas seulement le ! rouge). Dérivés des attrs — rien n'est stocké, sauf
+// l'échec de transmission (transmitError, posé par NoteEditor).
+//   level 'error'   : bordure error + icône ; `blocking` = le checkout ne
+//                     laisse pas compléter le document.
+//   level 'warning' : icône seulement.
+// Une puce annulée n'a plus d'état ; une puce transmise ne garde que
+// l'échec de transmission.
+// ---------------------------------------------------------
+function chipIssues(a) {
+  if (!a || a.cancelledAt) return [];
+  const out = [];
+  if (a.transmitError) out.push({ level: 'error', kind: 'transmission', message: 'Échec de transmission : ' + a.transmitError });
+  if (a.transmittedAt) return out;
+  const d = a.details || {};
+  const blank = function (v) { return v === undefined || v === null || String(v).trim() === ''; };
+  if (a.type === 'prescription' && !(a.rx && a.rx.ceased)) {
+    // Champs requis du formulaire (ChipPopover) ; le renouvellement vide vaut
+    // R0 partout dans le prototype, il n'est donc pas « manquant ».
+    const missing = [['dose', 'dose'], ['route', 'voie'], ['frequency', 'fréquence']]
+      .filter(function (f) { return blank(d[f[0]]); }).map(function (f) { return f[1]; });
+    if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, message: 'Prescription incomplète — à préciser : ' + missing.join(', ') });
+    if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || 'Interaction de haut risque' });
+  }
+  if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: 'Question clinique à préciser' });
+  return out;
+}
+
+// Classes et icônes de fin de puce : état (erreur / avertissement), puis
+// commentaire. La double coche « Transmis » vient après (decorateSentChip).
+function decorateChipStates(node, data) {
+  const issues = chipIssues(data);
+  const kinds = issues.map(function (i) { return i.kind; });
+  if (kinds.indexOf('interaction') >= 0) node.classList.add('chip--interaction');
+  if (issues.some(function (i) { return i.level === 'error' && i.kind !== 'transmission'; })) node.classList.add('chip--error');
+  if (issues.length) {
+    const worst = issues.some(function (i) { return i.level === 'error'; }) ? 'error' : 'warning';
+    const ic = document.createElement('span');
+    ic.className = 'material-symbols-outlined chip-issue-icon chip-issue-icon--' + worst;
+    ic.setAttribute('role', 'img');
+    const text = issues.map(function (i) { return i.message; }).join(' · ');
+    ic.setAttribute('aria-label', text);
+    ic.setAttribute('title', text);
+    ic.textContent = kinds.indexOf('transmission') >= 0 ? 'sync_problem' : kinds.indexOf('interaction') >= 0 ? 'report' : worst;
+    node.appendChild(ic);
+  }
+  const comment = data.details && data.details.comment && String(data.details.comment).trim();
+  if (comment) {
+    const c = document.createElement('span');
+    c.className = 'material-symbols-outlined chip-comment-icon';
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', 'Commentaire : ' + comment);
+    c.setAttribute('title', 'Commentaire : ' + comment);
+    c.textContent = 'chat';
+    node.appendChild(c);
+  }
+}
+
+// ---------------------------------------------------------
+// Texte d'une puce hors de l'éditeur (rencontre inline entity : en liste de
+// notes et à l'impression, seul le texte de la puce reste, lisible dans les
+// anciens systèmes et en PDF). Statut + valeur principale + valeurs
+// secondaires ; ni icône, ni état (erreur, transmis), ni commentaire. Sans
+// icône, une référence ne se reconnaît plus à son nom seul (« Cardiologie ») :
+// elle garde un préfixe « Référence : ». Aussi le texte de « Garder en texte ».
+// ---------------------------------------------------------
+function chipPrintText(a) {
+  if (!a) return '';
+  const d = a.details || {};
+  const rx = a.rx || {};
+  const join = function (parts, sep) { return parts.filter(function (p) { return p && String(p).trim(); }).join(sep); };
+  let status = '';
+  if (a.cancelledAt) status = 'Annulée';
+  else if (rx.ceased) status = 'Cessée';
+  else if (rx.renewal) status = 'Renouvelée';
+  let main = '', second = '';
+  if (a.type === 'prescription') {
+    main = join([rx.name || d.molecule || a.label, rx.dose || (d.dose ? d.dose + ' ' + (d.unit || '') : '')], ' ');
+    second = rx.ceased ? '' : (rx.sig || '');
+  } else if (a.type === 'lab') {
+    main = (d.tests && d.tests.length) ? d.tests.join(', ') : (rx.name || a.label);
+    second = join([d.priority, d.fasting ? 'à jeun' : ''], ', ');
+  } else if (a.type === 'imaging') {
+    main = rx.name || join([d.modality, d.region], ' ') || a.label;
+    second = join([d.laterality, d.priority], ', ');
+  } else if (a.type === 'referral') {
+    main = 'Référence : ' + (d.specialty || rx.name || a.label);
+    second = d.priority || '';
+  } else if (a.type === 'problem') {
+    main = d.name || a.label;
+  } else if (a.type === 'instructions') {
+    main = d.title || a.label;
+  } else {
+    main = a.label || a.text || '';
+  }
+  return join([status, join([main, second], ' — ')], ' ');
+}
+
+// Contenu inline d'un paragraphe, prêt pour le texte seul : deux puces
+// séparées par un simple espace (« Plan : [Rx] [Labo] ») se lisent comme une
+// seule phrase une fois leurs bordures disparues — on met « ; » entre elles.
+function separateAdjacentChips(nodes) {
+  const out = [];
+  (nodes || []).forEach(function (n, i) {
+    const prev = out[out.length - 1];
+    const next = nodes[i + 1];
+    if (n.type === 'text' && !n.text.trim() && prev && prev.type === 'chip' && next && next.type === 'chip') {
+      out.push(Object.assign({}, n, { text: '; ' }));
+      return;
+    }
+    if (n.type === 'chip' && prev && prev.type === 'chip') out.push({ type: 'text', text: '; ' });
+    out.push(n);
+  });
+  return out;
+}
+
+function formatChipStamp(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }) + ' à ' + d.toTimeString().slice(0, 5);
+}
+
+// Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
+// rendu que le chip réel, mais aucune zone n'est cliquable (plus de
+// data-action / data-field, donc ni édition inline ni menu ; double-clic ou
+// Entrée ouvre ses détails pour le vérifier avant d'accepter) et deux
+// boutons — accepter (check) / refuser (close) — s'ajoutent à la fin. Les
+// clics sont traités dans editor-field.jsx (acceptPendingChip / rejectPendingChip).
+function decoratePendingChip(node, data) {
+  node.classList.add('chip--pending');
+  node.setAttribute('data-pending', 'true');
+  node.setAttribute('title', (data.proposedBy ? 'Proposé par ' + data.proposedBy : 'Ajout proposé') + ' — double-cliquer pour vérifier avant d’accepter');
+  // Proposé par l'Assistant IA (piste de vision) : même puce en attente,
+  // marquée comme venant de l'IA (étincelle, couleur des ajouts IA).
+  if (data.proposedBy === 'Assistant IA') {
+    node.classList.add('chip--ai');
+    const spark = document.createElement('span');
+    spark.className = 'material-symbols-outlined chip-ai-icon';
+    spark.setAttribute('aria-hidden', 'true');
+    spark.textContent = 'auto_awesome';
+    node.insertBefore(spark, node.firstChild);
+  }
+  node.querySelectorAll('[data-action], [data-field]').forEach(function (el) {
+    el.removeAttribute('data-action');
+    el.removeAttribute('data-field');
+    el.removeAttribute('title');
+  });
+  const name = (data.rx && data.rx.name) || data.label || '';
+  const wrap = document.createElement('span');
+  wrap.className = 'chip-pending-actions';
+  [['accept', 'check', 'Accepter l’ajout'], ['reject', 'close', 'Refuser l’ajout']].forEach(function (a) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip-pending-btn chip-pending-btn--' + a[0];
+    b.setAttribute('data-pending', a[0]);
+    b.setAttribute('aria-label', a[2] + ' : ' + name);
+    b.setAttribute('title', a[2]);
+    const ic = document.createElement('span');
+    ic.className = 'material-symbols-outlined';
+    ic.setAttribute('aria-hidden', 'true');
+    ic.textContent = a[1];
+    b.appendChild(ic);
+    wrap.appendChild(b);
+  });
+  node.appendChild(wrap);
+}
+
+function buildChipDomBase(data, existingEl) {
   const node = existingEl || document.createElement('span');
   while (node.firstChild) node.removeChild(node.firstChild);
   node.className = '';
@@ -109,6 +315,12 @@ function buildChipDom(data, existingEl) {
       pr.textContent = d.priority || 'Routine';
       poso.appendChild(pr);
       node.appendChild(poso);
+      if (kind === 'img' && d.laterality) {
+        const lt = document.createElement('span');
+        lt.className = 'chip-rx-sig';
+        lt.textContent = d.laterality;
+        node.appendChild(lt);
+      }
       if (kind === 'lab' && d.fasting) {
         const ft = document.createElement('span');
         ft.className = 'chip-rx-sig';
@@ -153,7 +365,22 @@ function makeChipNode() { return window.Tiptap.Node.create({
       // HTML (parseHTML) : les chips de ce prototype ne sont jamais recréés
       // depuis du HTML collé, seulement depuis du JSON.
       savedAt: { default: null },
-      author: { default: null }
+      author: { default: null },
+      // Ajout proposé par un gabarit, en attente d'acceptation (voir
+      // decoratePendingChip) : ignoré par scanDoc/buildActionLog tant qu'il
+      // n'est pas accepté, effacé s'il est refusé.
+      pending: { default: false },
+      // Transmission et annulation (D-05) : posés par stampChips, hors
+      // historique (Ctrl+Z ne « détransmet » pas). Le Journal ne lit pas ces
+      // attrs mais les événements d'action de la note (buildActionLog) : un
+      // chip retiré de la note ne porte plus rien, l'événement reste.
+      transmittedAt: { default: null },
+      cancelledAt: { default: null },
+      // Échec de la dernière transmission (tweak « Simuler un échec de
+      // transmission ») — effacé par une transmission réussie.
+      transmitError: { default: null },
+      // Qui propose un ajout en attente (« Gabarit « Otite moyenne aiguë » »).
+      proposedBy: { default: null }
     };
   },
   parseHTML() {
@@ -182,6 +409,8 @@ function makeChipNode() { return window.Tiptap.Node.create({
     if (node.attrs.rx) attrs['data-rx'] = JSON.stringify(node.attrs.rx);
     if (node.attrs.details) attrs['data-details'] = JSON.stringify(node.attrs.details);
     if (node.attrs.label) attrs['data-label'] = node.attrs.label;
+    if (node.attrs.pending) attrs['data-pending'] = 'true';
+    if (node.attrs.transmittedAt) attrs['data-sent'] = 'true';
     return ['span', window.Tiptap.mergeAttributes({ class: 'ql-chip chip' }, HTMLAttributes, attrs), node.attrs.label || ''];
   },
   addNodeView() {
@@ -191,6 +420,10 @@ function makeChipNode() { return window.Tiptap.Node.create({
       return {
         dom,
         ignoreMutation: () => true,
+        // ✓ / ✕ d'un chip en attente : ProseMirror ne doit pas traiter ces
+        // événements (Entrée y insérerait un saut de ligne au lieu d'activer
+        // le bouton focalisé au clavier).
+        stopEvent: (event) => !!(event.target && event.target.closest && event.target.closest('.chip-pending-btn')),
         update(updatedNode) {
           if (updatedNode.type.name !== 'chip' || updatedNode.attrs.cid !== cid) return false;
           buildChipDom(updatedNode.attrs, dom);
@@ -199,6 +432,135 @@ function makeChipNode() { return window.Tiptap.Node.create({
       };
     };
   }
+}); }
+
+// Valeur secondaire d'une puce sélectionnée ciblée au clavier (Tab / ⇧ Tab,
+// lot 8) : { cid, index } dans ses [data-field]. Effacée dès que la
+// sélection quitte la puce (vue du plugin de chipKeys).
+let chipFieldFocus = null;
+function chipFieldEls(editor, cid) {
+  const el = editor.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
+  return el ? Array.prototype.slice.call(el.querySelectorAll('[data-field]')) : [];
+}
+function showChipFieldFocus(editor) {
+  editor.view.dom.querySelectorAll('.chip-field--kbd').forEach(function (el) { el.classList.remove('chip-field--kbd'); });
+  if (!chipFieldFocus) return;
+  const f = chipFieldEls(editor, chipFieldFocus.cid)[chipFieldFocus.index];
+  if (f) f.classList.add('chip-field--kbd');
+}
+
+// Clavier des puces — extension à part, priorité haute : ses raccourcis
+// doivent passer AVANT le keymap de base de Tiptap (deleteSelection
+// effacerait la puce sélectionnée avant qu'on puisse demander quoi en faire).
+function makeChipKeysExtension() { return window.Tiptap.Extension.create({
+  name: 'chipKeys',
+  priority: 1000,
+  // D-05 — une puce ne disparaît jamais d'un coup au clavier :
+  // - Backspace juste après une puce (Delete juste avant) la sélectionne ;
+  // - Backspace / Delete sur une puce sélectionnée demande quoi en faire
+  //   (note:chip-delete-request → dialogue « Garder en texte / Supprimer »,
+  //   editor-field.jsx) ; une puce en attente (gabarit) est refusée sans
+  //   dialogue, ce n'est pas encore une entité ;
+  // - une sélection de texte qui contient des puces demande confirmation ;
+  // - Entrée sur une puce sélectionnée ouvre ses détails.
+  addKeyboardShortcuts() {
+    const editor = this.editor;
+    function selectedChip() {
+      const sel = editor.state.selection;
+      return sel.node && sel.node.type.name === 'chip' ? sel.node : null;
+    }
+    function chipsIn(from, to) {
+      const out = [];
+      editor.state.doc.nodesBetween(from, to, function (node) {
+        if (node.type.name === 'chip' && !node.attrs.pending) out.push(node.attrs.cid);
+      });
+      return out;
+    }
+    function request(detail) {
+      window.dispatchEvent(new CustomEvent('note:chip-delete-request', { detail: Object.assign({ editor: editor }, detail) }));
+      return true;
+    }
+    function remove(dir) {
+      const chip = selectedChip();
+      if (chip) {
+        if (chip.attrs.pending) { window.rejectPendingChip(editor, chip.attrs.cid); return true; }
+        return request({ cid: chip.attrs.cid });
+      }
+      const sel = editor.state.selection;
+      if (sel.empty) {
+        const $pos = sel.$from;
+        const next = dir < 0 ? $pos.nodeBefore : $pos.nodeAfter;
+        if (!next || next.type.name !== 'chip') return false;
+        return editor.commands.setNodeSelection(dir < 0 ? $pos.pos - next.nodeSize : $pos.pos);
+      }
+      const cids = chipsIn(sel.from, sel.to);
+      if (!cids.length) return false;
+      return request({ cids: cids, range: { from: sel.from, to: sel.to } });
+    }
+    // Tab / ⇧ Tab sur une puce sélectionnée : passe d'une valeur secondaire à
+    // l'autre (dose, voie, fréquence…) ; Entrée ouvre alors son éditeur. Actif
+    // seulement avec l'édition inline (tweak, D-02) ; les flèches gardent leur
+    // rôle habituel (déplacer le curseur hors de la puce).
+    function moveField(dir) {
+      const chip = selectedChip();
+      if (!chip || chip.attrs.pending || chip.attrs.transmittedAt || window.__INLINE_FIELD_EDIT === false) return false;
+      const n = chipFieldEls(editor, chip.attrs.cid).length;
+      if (!n) return false;
+      const cur = chipFieldFocus && chipFieldFocus.cid === chip.attrs.cid ? chipFieldFocus.index : (dir > 0 ? -1 : n);
+      chipFieldFocus = { cid: chip.attrs.cid, index: (cur + dir + n) % n };
+      showChipFieldFocus(editor);
+      return true;
+    }
+    return {
+      Tab: () => moveField(1),
+      'Shift-Tab': () => moveField(-1),
+      Backspace: () => remove(-1),
+      Delete: () => remove(1),
+      Enter: () => {
+        const chip = selectedChip();
+        if (!chip) return false;
+        if (chipFieldFocus && chipFieldFocus.cid === chip.attrs.cid) {
+          const f = chipFieldEls(editor, chip.attrs.cid)[chipFieldFocus.index];
+          if (f) {
+            window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid, field: f.getAttribute('data-field'), fieldRect: f.getBoundingClientRect() } }));
+            return true;
+          }
+        }
+        // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
+        // Une puce en attente s'ouvre aussi : on peut la vérifier avant d'accepter.
+        window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
+        return true;
+      }
+    };
+  },
+  // Taper une lettre sur une puce sélectionnée la remplacerait : le texte va
+  // après la puce, qui reste.
+  addProseMirrorPlugins() {
+    const editor = this.editor;
+    return [new window.Tiptap.pm.Plugin({
+      view: function () {
+        return {
+          update: function (view) {
+            const sel = view.state.selection;
+            if (chipFieldFocus && !(sel.node && sel.node.type.name === 'chip' && sel.node.attrs.cid === chipFieldFocus.cid)) {
+              chipFieldFocus = null;
+              showChipFieldFocus(editor);
+            } else if (chipFieldFocus) showChipFieldFocus(editor); // la puce a pu être redessinée
+          }
+        };
+      },
+      props: {
+        handleTextInput(view, from, to, text) {
+          const sel = view.state.selection;
+          if (!(sel.node && sel.node.type.name === 'chip')) return false;
+          const tr = view.state.tr.insertText(text, sel.to);
+          tr.setSelection(window.Tiptap.pm.TextSelection.create(tr.doc, sel.to + text.length));
+          view.dispatch(tr);
+          return true;
+        }
+      }
+    })];
+  },
 }); }
 
 // ---------------------------------------------------------
@@ -815,6 +1177,41 @@ function refocusSplitBar(editor) {
   if (bar && document.activeElement !== bar) bar.focus({ preventScroll: true });
 }
 
+// Hauteur minimale de chaque zone de la note. Le document est un seul
+// éditeur : les zones ne sont pas des conteneurs, seulement les blocs avant et
+// après la ligne. On complète donc l'espace manquant avec une marge sur la
+// ligne (Détails) et un padding sous l'éditeur (Conclusion), recalculés quand
+// le contenu ou la mise en page change.
+const ZONE_MIN_DETAILS = 110;
+const ZONE_MIN_CONCLUSION = 117;
+const SPLIT_BASE_MARGIN_TOP = 18; // = .nsx { margin-top } dans editor.css
+const EDITOR_BASE_PADDING_BOTTOM = 8; // = .ql-editor { padding-bottom }
+
+function applyZoneMinHeights(editor, dom) {
+  const root = editor.view && editor.view.dom;
+  if (!root || !dom.isConnected) return;
+  const first = root.firstElementChild;
+  const rootRect = root.getBoundingClientRect();
+  const splitRect = dom.getBoundingClientRect();
+  if (!rootRect.height) return; // éditeur masqué : rien à mesurer
+
+  const curTop = parseFloat(dom.style.marginTop) || SPLIT_BASE_MARGIN_TOP;
+  const curBottom = parseFloat(root.style.paddingBottom) || EDITOR_BASE_PADDING_BOTTOM;
+  const rootPadTop = parseFloat(getComputedStyle(root).paddingTop) || 0;
+
+  // Détails : du haut du contenu jusqu'à la marge de la ligne.
+  const detailsTop = first ? first.getBoundingClientRect().top : rootRect.top + rootPadTop;
+  const detailsH = (splitRect.top - curTop) - detailsTop;
+  const wantTop = Math.max(SPLIT_BASE_MARGIN_TOP, SPLIT_BASE_MARGIN_TOP + ZONE_MIN_DETAILS - detailsH);
+
+  // Conclusion : du bas de la ligne jusqu'au padding bas de l'éditeur.
+  const conclusionH = (rootRect.bottom - curBottom) - splitRect.bottom;
+  const wantBottom = Math.max(EDITOR_BASE_PADDING_BOTTOM, EDITOR_BASE_PADDING_BOTTOM + ZONE_MIN_CONCLUSION - conclusionH);
+
+  if (Math.abs(wantTop - curTop) > 0.5) dom.style.marginTop = wantTop + 'px';
+  if (Math.abs(wantBottom - curBottom) > 0.5) root.style.setProperty('padding-bottom', wantBottom + 'px', 'important');
+}
+
 function makeSectionSplitNode() {
   const T = window.Tiptap;
   return T.Node.create({
@@ -914,6 +1311,17 @@ function makeSectionSplitNode() {
         }
         sync();
         editor.on('update', sync);
+
+        // Hauteurs minimales des zones : à la création, à chaque frappe, et
+        // quand la largeur change (le texte se replie autrement).
+        function fitZones() { applyZoneMinHeights(editor, dom); }
+        editor.on('update', fitZones);
+        requestAnimationFrame(fitZones);
+        let zoneObserver = null;
+        if (window.ResizeObserver && editor.view && editor.view.dom) {
+          zoneObserver = new ResizeObserver(fitZones);
+          zoneObserver.observe(editor.view.dom);
+        }
 
         // --- déplacement au clavier (WCAG 2.1.1 / OMNI31) : la barre a le
         // rôle « separator » focusable, les flèches la déplacent d'un bloc,
@@ -1039,6 +1447,9 @@ function makeSectionSplitNode() {
           update(updatedNode) { return updatedNode.type.name === window.SECTION_SPLIT; },
           destroy() {
             editor.off('update', sync);
+            editor.off('update', fitZones);
+            if (zoneObserver) zoneObserver.disconnect();
+            if (editor.view && editor.view.dom) editor.view.dom.style.removeProperty('padding-bottom');
             bar.removeEventListener('keydown', onKeyDown);
             bar.removeEventListener('mousedown', onMouseDown);
             if (drag) endDrag();
@@ -1393,6 +1804,7 @@ function buildEditorExtensions(placeholder) {
     }),
     makeLockedHeadingExtension(),
     makeChipNode(),
+    makeChipKeysExtension(),
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
     makeDiagnosticRefNode(),
@@ -1424,7 +1836,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref|req)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -1510,9 +1922,12 @@ function scanDoc(docJson) {
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
+      if (node.attrs.pending) return; // ajout non accepté : pas encore dans la note
       chips.push({ cid: node.attrs.cid, entity: {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
-        text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
+        text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
+        transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined,
+        transmitError: node.attrs.transmitError || undefined
       } });
     } else if (node.type === 'clinicalTool') {
       tools.push({
@@ -1591,22 +2006,48 @@ function chipLogIcon(node) {
   return { icon: node.attrs.icon || 'bookmark' };
 }
 
-function buildActionLog(docJson) {
+// Événements d'action de la note (D-05) — [{cid, type: 'transmis' | 'annule',
+// at, author, snapshot}], `snapshot` = attrs du chip au moment de
+// l'événement. Regroupés par chip : c'est ce qui garde au Journal un chip
+// transmis puis retiré de la note (effacer n'annule pas l'action clinique).
+function chipEventsByCid(events) {
+  const byCid = {};
+  (events || []).forEach(function (ev) {
+    if (!ev || !ev.cid) return;
+    const s = byCid[ev.cid] || (byCid[ev.cid] = { transmittedAt: null, cancelledAt: null, snapshot: null });
+    if (ev.type === 'transmis' && !s.transmittedAt) s.transmittedAt = ev.at;
+    if (ev.type === 'annule') s.cancelledAt = ev.at;
+    if (ev.snapshot) s.snapshot = ev.snapshot;
+  });
+  return byCid;
+}
+
+function buildActionLog(docJson, events) {
   const order = {};
   ACTION_LOG_TYPES.forEach(function (key, i) { order[key] = i; });
   const entries = [];
+  const sent = chipEventsByCid(events);
+  const seen = {};
+  function pushChip(attrs, removed) {
+    const logType = CHIP_TYPE_TO_LOG[attrs.type];
+    if (!logType) return;
+    const s = sent[attrs.cid] || {};
+    entries.push(Object.assign({
+      key: 'chip-' + attrs.cid, logType: logType,
+      title: attrs.text || attrs.label || '',
+      author: attrs.author, savedAt: attrs.savedAt,
+      transmittedAt: s.transmittedAt || null, cancelledAt: s.cancelledAt || null,
+      removed: !!removed,
+      // Retiré de la note : rien vers quoi défiler.
+      sourceType: removed ? null : 'chip', sourceId: removed ? null : attrs.cid
+    }, chipLogIcon({ attrs: attrs })));
+  }
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
-      const logType = CHIP_TYPE_TO_LOG[node.attrs.type];
-      if (logType) {
-        entries.push(Object.assign({
-          key: 'chip-' + node.attrs.cid, logType: logType,
-          title: node.attrs.text || node.attrs.label || '',
-          author: node.attrs.author, savedAt: node.attrs.savedAt,
-          sourceType: 'chip', sourceId: node.attrs.cid
-        }, chipLogIcon(node)));
-      }
+      if (node.attrs.pending) return;
+      seen[node.attrs.cid] = true;
+      pushChip(node.attrs, false);
     } else if (node.type === 'clinicalTool') {
       // Même icône que la barre de l'outil dans la note (ct-bar__wrench).
       entries.push({
@@ -1619,6 +2060,12 @@ function buildActionLog(docJson) {
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  // Transmis puis retiré de la note : l'entrée reste, depuis l'instantané. Un
+  // chip jamais transmis et effacé n'a pas d'événement : il disparaît.
+  Object.keys(sent).forEach(function (cid) {
+    const s = sent[cid];
+    if (!seen[cid] && s.transmittedAt && s.snapshot) pushChip(s.snapshot, true);
+  });
   // Diagnostics : une entrée par FIL (pas par occurrence), seulement pour un
   // fil documenté (Problème ou Antécédent — voir diagPlacement,
   // diagnostics.jsx). Même icône que l'en-tête de la région (dxr-ic).
@@ -1652,7 +2099,13 @@ function buildActionLog(docJson) {
 // `txState` est l'état par document ({recipients, complete, transmitted…}) ;
 // passer {} donne des documents vierges.
 // ---------------------------------------------------------
-function buildTransmissionDocs(docStats, txState) {
+// opts.groupRequests (tweak « Checkout des requêtes », aussi lu sur
+// window.__GROUP_REQUESTS) : toutes les puces labo de la note dans UNE
+// requête de laboratoire, toutes les puces imagerie dans une requête
+// d'imagerie — comme l'Ordonnance regroupe les prescriptions. Sinon, un
+// document par puce (comportement d'origine).
+function buildTransmissionDocs(docStats, txState, opts) {
+  var groupRequests = opts && opts.groupRequests !== undefined ? !!opts.groupRequests : !!window.__GROUP_REQUESTS;
   var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
 
   function mkItem(e) {
@@ -1679,7 +2132,10 @@ function buildTransmissionDocs(docStats, txState) {
     // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
     // nouvelle, renouvellement (médication déjà au dossier), cessation.
     var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
-    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant };
+    // Mêmes états que sur la puce (chipIssues) : le checkout les montre, et un
+    // état bloquant (prescription incomplète) empêche de compléter le document.
+    var issues = chipIssues(ent);
+    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant, issues: issues };
   }
 
   // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
@@ -1689,13 +2145,21 @@ function buildTransmissionDocs(docStats, txState) {
   // invalide donc complete/transmitted dès que la liste d'items ne
   // correspond plus à celle capturée au moment de la complétion
   // (`itemIds`, posé par markDocComplete) — les destinataires déjà
-  // choisis restent, eux, valides et ne sont pas perdus.
+  // choisis restent, eux, valides et ne sont pas perdus. Seul un AJOUT
+  // invalide : un item retiré de la note après la transmission est parti
+  // quand même (D-05, effacer n'annule pas), le document reste transmis.
   function withTx(id, kind, title, items) {
     var st = txState[id] || {};
-    var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
-    var stale = !!st.complete && st.itemIds !== idsKey;
+    var captured = (st.itemIds || '').split(',');
+    var stale = !!st.complete && items.some(function(it) { return captured.indexOf(it.id) < 0; });
     return {
       id: id, kind: kind, title: title, items: items,
+      // Messages des états bloquants de ses items : tant qu'il y en a, le
+      // document ne peut pas être complété (DocumentActionPanel, QuickSendModal).
+      blocking: items.reduce(function(acc, it) {
+        (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(it.label + ' : ' + i.message); });
+        return acc;
+      }, []),
       recipients: st.recipients || [],
       complete: stale ? false : !!st.complete,
       transmitted: stale ? false : !!st.transmitted,
@@ -1725,7 +2189,13 @@ function buildTransmissionDocs(docStats, txState) {
   var docs = [];
   var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
   if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
-  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0; })
+  var grouped = groupRequests ? ['lab', 'imaging'] : [];
+  [['lab', 'Requête de laboratoire'], ['imaging', 'Requête d’imagerie']].forEach(function(g) {
+    if (grouped.indexOf(g[0]) < 0) return;
+    var its = ents.filter(function(e) { return e.entity.type === g[0]; }).map(mkItem);
+    if (its.length) docs.push(withTx(g[0], g[0], g[1], its));
+  });
+  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0 && grouped.indexOf(e.entity.type) < 0; })
     .forEach(function(e) {
       var item = mkItem(e);
       docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
@@ -1839,13 +2309,39 @@ function getChipEntity(editor, cid) {
   const node = editor.state.doc.nodeAt(pos);
   return node ? {
     type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
-    text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
+    text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
+    transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined,
+    transmitError: node.attrs.transmitError || undefined,
+    pending: node.attrs.pending || undefined, proposedBy: node.attrs.proposedBy || undefined
   } : null;
+}
+
+// Pose des attrs sur des chips sans passer par l'historique : une
+// transmission ou une annulation est un fait, Ctrl+Z ne la défait pas.
+function stampChips(editor, cids, patch) {
+  const tr = editor.state.tr;
+  editor.state.doc.descendants(function (node, pos) {
+    if (node.type.name === 'chip' && cids.indexOf(node.attrs.cid) >= 0) {
+      tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, patch));
+    }
+  });
+  if (!tr.docChanged) return;
+  tr.setMeta('addToHistory', false);
+  editor.view.dispatch(tr);
+}
+
+// Attrs courants d'un chip (instantané d'un événement d'action), ou null.
+function chipAttrs(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  const node = pos >= 0 ? editor.state.doc.nodeAt(pos) : null;
+  return node ? Object.assign({}, node.attrs) : null;
 }
 
 // Édition undoable : tr.setNodeMarkup préserve la position, couvert par
 // l'historique natif de Tiptap (Ctrl+Z annule l'édition d'un chip).
-function updateChipEntity(editor, cid, entity) {
+// `extra` : autres attrs dans la même transaction (p. ex. { pending: false }
+// — modifier puis accepter un ajout en attente = un seul Ctrl+Z).
+function updateChipEntity(editor, cid, entity, extra) {
   const pos = findChipPos(editor, cid);
   if (pos < 0) return;
   editor.chain().command(function (props) {
@@ -1853,12 +2349,272 @@ function updateChipEntity(editor, cid, entity) {
       type: entity.type, label: entity.label, icon: entity.icon, text: entity.text,
       rx: entity.rx || null, details: entity.details || null,
       savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
+    }, extra || {}));
+    return true;
+  }).run();
+}
+
+// ---------------------------------------------------------
+// Ajouts en attente — un gabarit (NOTE_TEMPLATES, `proposals`) n'applique pas
+// ses éléments inline : il les propose. Chip `pending` = version temporaire,
+// avec ✓ / ✕ (decoratePendingChip). Accepter le crée pour de vrai (même état
+// qu'un chip inséré par « / »), refuser l'efface. Les deux sont annulables
+// (Ctrl+Z) comme toute transaction Tiptap.
+// ---------------------------------------------------------
+
+// Attrs d'un chip d'ordonnance/requête pour un item du catalogue — même
+// résultat que runOrderCommand (editor-field.jsx) pour un ajout normal.
+function orderChipAttrs(kind, item) {
+  const def = window.NOTE_DATA.ORDER_DEFS[kind];
+  const label = (item.name + ' ' + (item.dose || '')).trim();
+  const sig = item.chipSig || item.sig;
+  return {
+    cid: newChipId(), type: def.type, label: label, icon: def.icon, text: label + ' — ' + sig,
+    rx: { name: item.name, dose: item.dose || '', sig: sig, kind: kind, renewal: false },
+    details: item.details || {}
+  };
+}
+
+// Puce labo pour une liste d'analyses (sélection multiple, profil) : une
+// seule puce, ses analyses dans details.tests — retirables dans le formulaire.
+function labChipAttrs(details) {
+  const d = Object.assign({ tests: [], priority: 'Routine', fasting: false, context: '' }, details);
+  const rx = window.NOTE_DATA.deriveLabRx(d);
+  return {
+    cid: newChipId(), type: 'lab', label: rx.name, icon: window.NOTE_DATA.ORDER_DEFS.lab.icon,
+    text: rx.name + (rx.sig ? ' — ' + rx.sig : ''), rx: rx, details: d
+  };
+}
+
+// Sélection multiple d'une recherche de requêtes (/req, /lab, /img) → attrs
+// des puces à insérer, dans cet ordre : UNE puce labo pour toutes les
+// analyses cochées (profils déployés, doublons retirés), puis une puce par
+// examen d'imagerie (une puce imagerie décrit un seul examen : modalité,
+// région, vues). `kind` = recherche d'origine, pour les items sans orderKind.
+function buildRequestChips(items, kind) {
+  const tests = [];
+  let fasting = false;
+  const imgs = [];
+  const profiles = [];
+  (items || []).forEach(function (it) {
+    const k = it.orderKind || kind;
+    if (k === 'img') { imgs.push(it); return; }
+    if (it.profile) profiles.push(it.name);
+    (it.details && it.details.tests || [it.name]).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); });
+    if (it.details && it.details.fasting) fasting = true;
+  });
+  const out = [];
+  // `profile` : rappel dans le formulaire (« Depuis le profil … »), rien de plus.
+  if (tests.length) out.push(labChipAttrs(Object.assign({ tests: tests, fasting: fasting }, profiles.length ? { profile: profiles.join(', ') } : {})));
+  imgs.forEach(function (it) { out.push(orderChipAttrs('img', it)); });
+  return out;
+}
+
+// Auteur des marques « insertion » posées sur le texte d'un gabarit quand il
+// est proposé (tweak « Gabarit : texte proposé ») — même mécanisme que le
+// texte de l'Assistant IA (markBlocksAsInsertion, review-mode.jsx).
+const TEMPLATE_AUTHOR = { id: 'gabarit', name: 'Gabarit' };
+
+// { kind: 'rx'|'lab'|'img'|'ref', key, details? } → node chip en attente, ou
+// null si l'item n'existe pas au catalogue. `details` remplace des champs de
+// l'item (p. ex. fréquence vide : un gabarit qui crée une ordonnance
+// incomplète) ; la posologie affichée est alors recalculée. `source` = qui
+// propose (« Gabarit « Otite moyenne aiguë » »), affiché sur la puce et
+// dans la barre des ajouts en attente.
+function buildPendingChipNode(proposal, source) {
+  // { kind: 'profile', key } : un profil de laboratoire, déployé en une puce
+  // labo — on retire une analyse en vérifiant l'ajout avant de l'accepter.
+  if (proposal.kind === 'profile') {
+    const prof = (window.NOTE_DATA.LAB_PROFILES || []).find(function (p) { return p.key === proposal.key; });
+    return prof ? { type: 'chip', attrs: Object.assign(buildRequestChips([prof], 'lab')[0], { pending: true, proposedBy: source || null }) } : null;
+  }
+  const def = window.NOTE_DATA.ORDER_DEFS[proposal.kind];
+  const item = def && def.items().find(function (it) { return it.key === proposal.key; });
+  if (!item) return null;
+  const attrs = Object.assign(orderChipAttrs(proposal.kind, item), { pending: true, proposedBy: source || null });
+  if (proposal.details) {
+    attrs.details = Object.assign({}, attrs.details, proposal.details);
+    if (proposal.kind === 'rx') {
+      attrs.rx = Object.assign({}, attrs.rx, { sig: window.NOTE_DATA.deriveRx(attrs.details, attrs.rx).sig });
+      attrs.text = attrs.label + ' — ' + attrs.rx.sig;
+    }
+  }
+  return { type: 'chip', attrs: attrs };
+}
+
+// Blocs d'un gabarit de note : titres + paragraphes de chaque section, puis
+// les ajouts proposés (`proposals`) en fin de dernier paragraphe de la
+// section — donc inline, à la suite du texte (« Plan : » + ordonnance).
+// opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
+// en suggestion, à accepter ou refuser (D-03, tout le gabarit).
+function buildTemplateBlocks(tpl, opts) {
+  const source = 'Gabarit « ' + (tpl.name || tpl.key) + ' »';
+  const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
+  let blocks = [];
+  (tpl.sections || []).forEach(function (s) {
+    let sec = plainToBlocks(s.title, s.content || '');
+    if (proposeText) {
+      sec = sec.map(function (b) { return b.type === 'paragraph' ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
+    }
+    const nodes = (s.proposals || []).map(function (p) { return buildPendingChipNode(p, source); }).filter(Boolean);
+    if (nodes.length) {
+      const last = sec[sec.length - 1];
+      const inline = [];
+      nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });
+      if (last && last.type === 'paragraph') last.content = (last.content || []).concat(inline);
+      else sec.push({ type: 'paragraph', content: inline });
+    }
+    blocks = blocks.concat(sec);
+  });
+  return blocks;
+}
+
+function acceptPendingChip(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  if (pos < 0) return;
+  editor.chain().focus().command(function (props) {
+    props.tr.setNodeMarkup(pos, undefined, Object.assign({}, props.tr.doc.nodeAt(pos).attrs, {
+      pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
     }));
     return true;
   }).run();
 }
 
+// Fin de la plage à effacer pour un chip : le chip, et l'espace qui le
+// suivait si le texte d'avant finit déjà par un espace (ou si le chip ouvre
+// son paragraphe) — sinon « Plan :  ».
+function pendingChipDeleteEnd(doc, pos) {
+  const node = doc.nodeAt(pos);
+  let to = pos + node.nodeSize;
+  const before = doc.textBetween(Math.max(doc.resolve(pos).start(), pos - 1), pos);
+  const after = doc.textBetween(to, Math.min(doc.resolve(to).end(), to + 1));
+  if (after === ' ' && (before === '' || before === ' ')) to += 1;
+  return to;
+}
+
+function rejectPendingChip(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  if (pos < 0) return;
+  editor.chain().focus().command(function (props) {
+    props.tr.delete(pos, pendingChipDeleteEnd(props.tr.doc, pos));
+    return true;
+  }).run();
+}
+
+// Ajouts en attente d'un doc JSON : puces `pending` et paragraphes qui
+// portent du texte proposé par un gabarit. `sources` = qui les propose.
+function pendingSummary(docJson) {
+  let chips = 0, paragraphs = 0;
+  const sources = [];
+  const isTemplateText = function (n) {
+    return n.type === 'text' && (n.marks || []).some(function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; });
+  };
+  function walk(node) {
+    if (!node) return;
+    if (node.type === 'chip' && node.attrs && node.attrs.pending) {
+      chips++;
+      if (node.attrs.proposedBy && sources.indexOf(node.attrs.proposedBy) < 0) sources.push(node.attrs.proposedBy);
+    }
+    if (node.type === 'paragraph' && (node.content || []).some(isTemplateText)) paragraphs++;
+    (node.content || []).forEach(walk);
+  }
+  walk(docJson);
+  return { chips: chips, paragraphs: paragraphs, count: chips + paragraphs, sources: sources };
+}
+
+// Tout accepter / tout refuser les ajouts en attente, en UNE transaction
+// (un seul Ctrl+Z). `reviewAction` : le traqueur du mode révision l'ignore.
+function resolveAllPending(editor, accept) {
+  const doc = editor.state.doc;
+  const ops = [];
+  doc.descendants(function (node, pos) {
+    if (node.type.name === 'chip' && node.attrs.pending) ops.push({ chip: node, from: pos });
+  });
+  (window.scanReviewChanges ? window.scanReviewChanges(doc) : []).forEach(function (c) {
+    if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id) ops.push({ from: c.from, to: c.to });
+  });
+  if (!ops.length) return;
+  const stamp = { pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+  editor.chain().focus().command(function (props) {
+    const tr = props.tr;
+    tr.setMeta('reviewAction', true);
+    ops.sort(function (a, b) { return b.from - a.from; }).forEach(function (op) {
+      if (op.chip) {
+        if (accept) tr.setNodeMarkup(op.from, undefined, Object.assign({}, op.chip.attrs, stamp));
+        else tr.delete(op.from, pendingChipDeleteEnd(tr.doc, op.from));
+      } else if (accept) tr.removeMark(op.from, op.to, props.state.schema.marks.insertion);
+      else tr.delete(op.from, op.to);
+    });
+    return true;
+  }).run();
+}
+
+// Même résolution sur un doc JSON (finalisation, tests). Ne modifie pas le
+// doc reçu. Refuser retire les puces en attente et le texte proposé.
+function resolvePendingInDoc(docJson, accept) {
+  const isTemplateMark = function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; };
+  function walk(node) {
+    if (!node || !node.content) return node;
+    const content = [];
+    let dropSpace = false; // chip refusé : l'espace qui le suivait part aussi (voir pendingChipDeleteEnd)
+    node.content.forEach(function (c) {
+      if (dropSpace && c.type === 'text' && c.text.charAt(0) === ' ') {
+        dropSpace = false;
+        if (c.text.length === 1) return;
+        c = Object.assign({}, c, { text: c.text.slice(1) });
+      }
+      dropSpace = false;
+      if (c.type === 'chip' && c.attrs && c.attrs.pending) {
+        if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false }) }));
+        else {
+          const prev = content[content.length - 1];
+          dropSpace = !prev || (prev.type === 'text' && /\s$/.test(prev.text));
+        }
+        return;
+      }
+      if (c.type === 'text' && (c.marks || []).some(isTemplateMark)) {
+        if (!accept) return;
+        const marks = c.marks.filter(function (m) { return !isTemplateMark(m); });
+        const t = Object.assign({}, c);
+        if (marks.length) t.marks = marks; else delete t.marks;
+        content.push(t);
+        return;
+      }
+      content.push(walk(c));
+    });
+    return Object.assign({}, node, { content: content });
+  }
+  return walk(docJson);
+}
+
+// Doc sans ses chips en attente — ce qui n'a pas été accepté n'entre pas dans
+// la note complétée. Ne modifie pas le doc reçu.
+function stripPendingChips(docJson) {
+  function walk(node) {
+    if (!node || !node.content) return node;
+    const content = [];
+    node.content.forEach(function (c) {
+      if (c.type === 'chip' && c.attrs && c.attrs.pending) return;
+      content.push(walk(c));
+    });
+    return Object.assign({}, node, { content: content });
+  }
+  return walk(docJson);
+}
+
 Object.assign(window, {
+  orderChipAttrs,
+  labChipAttrs,
+  buildRequestChips,
+  buildPendingChipNode,
+  buildTemplateBlocks,
+  acceptPendingChip,
+  rejectPendingChip,
+  pendingSummary,
+  resolveAllPending,
+  resolvePendingInDoc,
+  TEMPLATE_AUTHOR,
+  stripPendingChips,
   makeSectionSplitNode,
   moveSplitToSlot,
   currentSplitSlot,
@@ -1883,6 +2639,12 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
+  stampChips,
+  chipAttrs,
+  chipIssues,
+  chipPrintText,
+  separateAdjacentChips,
+  formatChipStamp,
   updateChipEntity,
   patchDiagRegions,
   getDiagModel
