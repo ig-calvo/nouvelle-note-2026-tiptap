@@ -1,7 +1,31 @@
 // =========================================================
 // popover.jsx — Chip popover + slash menu
 // =========================================================
-const { useState: useStateP, useEffect: useEffectP, useRef: useRefP } = React;
+const { useState: useStateP, useEffect: useEffectP, useLayoutEffect: useLayoutEffectP, useRef: useRefP } = React;
+
+// Place un popover `position: fixed` dans le viewport (marge 12 px). Sous
+// l'ancre s'il y a au moins 320 px (hauteur plafonnée : le corps défile), sinon
+// au-dessus, sinon sur toute la hauteur du viewport. On évite le dessus tant
+// que possible : la barre de mise en forme flottante y vit quand la puce est
+// sélectionnée. Les styles top/left/maxHeight sont posés sur le DOM : ne pas
+// les passer en style React.
+function placePopover(el, anchorRect) {
+  const M = 12, GAP = 8, MIN_H = 320;
+  const vw = window.innerWidth, vh = window.innerHeight;
+  el.style.maxHeight = (vh - 2 * M) + 'px';
+  const h = el.offsetHeight, w = el.offsetWidth;
+  const below = vh - anchorRect.bottom - GAP - M;
+  const above = anchorRect.top - GAP - M;
+  let top, cap = vh - 2 * M;
+  if (h <= below) top = anchorRect.bottom + GAP;
+  else if (below >= MIN_H) { cap = below; top = anchorRect.bottom + GAP; }
+  else if (h <= above) top = anchorRect.top - GAP - h;
+  else if (above >= MIN_H) { cap = above; top = anchorRect.top - GAP - above; }
+  else top = M;
+  el.style.maxHeight = cap + 'px';
+  el.style.top = top + 'px';
+  el.style.left = Math.max(M, Math.min(anchorRect.left, vw - w - 16)) + 'px';
+}
 
 // ─────────────────────────────────────────────────────────
 // Posologie structurée (Prescription) — refonte d'après Figma
@@ -106,12 +130,18 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [onClose]);
+  // À chaque rendu : la hauteur change avec le contenu (bandeau pédiatrique, etc.).
+  useLayoutEffectP(() => {
+    if (!anchorRect || !ref.current) return;
+    const el = ref.current;
+    const place = () => placePopover(el, anchorRect);
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  });
   if (!anchorRect) return null;
   const isRx = draft.type === 'prescription';
   const W = isRx ? 600 : 380;
-  const top = anchorRect.bottom + 8;
-  let left = anchorRect.left;
-  if (left + W > window.innerWidth - 16) left = Math.max(12, window.innerWidth - W - 16);
   const meta = window.NOTE_DATA.ENTITY_TYPES[draft.type] || {};
   function up(f, v) { setDraft(d => ({ ...d, details: { ...d.details, [f]: v } })); }
 
@@ -127,7 +157,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
       pedsCalc = { raw, suggested: capped, wasCapped: capped < rounded };
     }
     return (
-      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { top: top, left: left, width: W })} role="dialog">
+      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog">
         <div style={rxS.head}>
           <span style={rxS.rxIcon}>℞</span>
           <span style={rxS.molName}>{d.molecule || 'Prescription'}</span>
@@ -202,7 +232,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
   }
 
   return (
-    <div className="popover" ref={ref} style={{ top, left }} role="dialog">
+    <div className="popover" ref={ref} style={{ display: 'flex', flexDirection: 'column', maxWidth: 'calc(100vw - 24px)', zIndex: 2100 }} role="dialog">
       <div className="popover-head">
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
@@ -211,7 +241,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
-      <div className="popover-body">
+      <div className="popover-body" style={{ flex: '1 1 auto', minHeight: 0 }}>
         {draft.type === 'lab' && <LabFields d={draft.details} up={up} />}
         {draft.type === 'imaging' && <ImgFields d={draft.details} up={up} />}
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
