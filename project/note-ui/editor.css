@@ -678,6 +678,23 @@
 .chip-pending-btn:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
 .chip-pending-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
 
+/* Tweak « Style des suggestions » (html[data-suggestion-style], posé par
+   NoteEditor) — trois propositions de la rencontre inline entity, à tester :
+   « tirets » (défaut, ci-dessus) ; « opacite » (Alex) : puce estompée,
+   ✓ / ✕ sous la puce au survol ou au focus ; « violet » (Xavier) : puce
+   mauve, ✓ / ✕ en pastilles dans le coin supérieur droit. */
+.chip--pending { position: relative; }
+html[data-suggestion-style="opacite"] .chip--rx.chip--pending { border-style: solid; background: var(--mat-sys-surface-container-lowest); padding-right: 8px; }
+html[data-suggestion-style="opacite"] .chip--pending > :not(.chip-pending-actions) { opacity: 0.55; }
+html[data-suggestion-style="opacite"] .chip--pending .chip-pending-actions { position: absolute; top: calc(100% + 2px); left: 0; z-index: 5; margin: 0; padding: 2px; border: 1px solid var(--mat-sys-outline-variant); border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-lowest); box-shadow: var(--mat-sys-level2, 0 2px 6px rgba(0,0,0,.15)); visibility: hidden; }
+html[data-suggestion-style="opacite"] .chip--pending:hover .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending:focus-within .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending.ProseMirror-selectednode .chip-pending-actions { visibility: visible; }
+html[data-suggestion-style="violet"] .chip--rx.chip--pending { border-style: solid; border-color: light-dark(#7a3ec2, #c4aae4); background: light-dark(#f3ecfb, #2e2340); padding-right: 14px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-actions { position: absolute; top: -9px; right: -9px; margin: 0; padding: 0; border: 0; gap: 2px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#7a3ec2, #c4aae4); color: light-dark(#7a3ec2, #c4aae4); }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-symbols-outlined { font-size: 14px; }
+
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }

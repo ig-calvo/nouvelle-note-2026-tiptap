@@ -636,6 +636,8 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true, noteTemplate: 'periodique' },
   { key: 'tpl-otite', section: 'Gabarits de note', icon: 'hearing', title: 'Otite moyenne aiguë', desc: 'Histoire, examen, conclusion + ordonnance proposée', kbd: 'otite',
     hideWhenEmpty: true, noteTemplate: 'otite' },
+  { key: 'tpl-pneumonie', section: 'Gabarits de note', icon: 'pulmonology', title: 'Pneumonie (suspicion)', desc: 'Histoire, examen, conclusion + requêtes et ordonnance proposées', kbd: 'pneumonie',
+    hideWhenEmpty: true, noteTemplate: 'pneumonie' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -725,6 +727,27 @@ const NOTE_TEMPLATES = [
         content: 'Température : \nOtoscopie droite : \nOtoscopie gauche : \nOropharynx : ' },
       { title: 'Conclusion', content: 'Impression : Otite moyenne aiguë.\nPlan : ',
         proposals: [{ kind: 'rx', key: 'amox500' }] },
+    ],
+  },
+  // Gabarit avec plusieurs ajouts proposés, dont une ordonnance INCOMPLÈTE
+  // (fréquence laissée vide, cas soulevé en rencontre : un gabarit de
+  // prescription qui crée une ordonnance à compléter). Contenu clinique
+  // d'exemple, à valider (ID-07). `cat-48` = Amoxicilline-clavulanate au
+  // catalogue (clé dérivée de sa position dans MED_CATALOG).
+  {
+    key: 'pneumonie', name: 'Pneumonie (suspicion)',
+    raison: 'Toux et fièvre',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Toux depuis : \nFièvre : \nDyspnée / douleur thoracique : \nExpectorations : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nFR / SpO2 : \nAuscultation pulmonaire : ' },
+      { title: 'Conclusion', content: 'Impression : Pneumonie acquise en communauté à confirmer.\nPlan : ',
+        proposals: [
+          { kind: 'img', key: 'rxpoumon' },
+          { kind: 'lab', key: 'fsc' },
+          { kind: 'rx', key: 'cat-48', details: { frequency: '' } }
+        ] },
     ],
   },
 ];

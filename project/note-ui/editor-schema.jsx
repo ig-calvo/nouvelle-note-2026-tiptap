@@ -123,12 +123,14 @@ function formatChipStamp(iso) {
 
 // Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
 // rendu que le chip réel, mais aucune zone n'est cliquable (plus de
-// data-action / data-field, donc ni édition inline ni modale) et deux
+// data-action / data-field, donc ni édition inline ni menu ; double-clic ou
+// Entrée ouvre ses détails pour le vérifier avant d'accepter) et deux
 // boutons — accepter (check) / refuser (close) — s'ajoutent à la fin. Les
 // clics sont traités dans editor-field.jsx (acceptPendingChip / rejectPendingChip).
 function decoratePendingChip(node, data) {
   node.classList.add('chip--pending');
   node.setAttribute('data-pending', 'true');
+  node.setAttribute('title', (data.proposedBy ? 'Proposé par ' + data.proposedBy : 'Ajout proposé') + ' — double-cliquer pour vérifier avant d’accepter');
   node.querySelectorAll('[data-action], [data-field]').forEach(function (el) {
     el.removeAttribute('data-action');
     el.removeAttribute('data-field');
@@ -302,7 +304,9 @@ function makeChipNode() { return window.Tiptap.Node.create({
       cancelledAt: { default: null },
       // Échec de la dernière transmission (tweak « Simuler un échec de
       // transmission ») — effacé par une transmission réussie.
-      transmitError: { default: null }
+      transmitError: { default: null },
+      // Qui propose un ajout en attente (« Gabarit « Otite moyenne aiguë » »).
+      proposedBy: { default: null }
     };
   },
   parseHTML() {
@@ -411,7 +415,8 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
         const chip = selectedChip();
         if (!chip) return false;
         // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
-        if (!chip.attrs.pending) window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
+        // Une puce en attente s'ouvre aussi : on peut la vérifier avant d'accepter.
+        window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
         return true;
       }
     };
@@ -2121,7 +2126,8 @@ function getChipEntity(editor, cid) {
     type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
     text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
     transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined,
-    transmitError: node.attrs.transmitError || undefined
+    transmitError: node.attrs.transmitError || undefined,
+    pending: node.attrs.pending || undefined, proposedBy: node.attrs.proposedBy || undefined
   } : null;
 }
 
@@ -2148,7 +2154,9 @@ function chipAttrs(editor, cid) {
 
 // Édition undoable : tr.setNodeMarkup préserve la position, couvert par
 // l'historique natif de Tiptap (Ctrl+Z annule l'édition d'un chip).
-function updateChipEntity(editor, cid, entity) {
+// `extra` : autres attrs dans la même transaction (p. ex. { pending: false }
+// — modifier puis accepter un ajout en attente = un seul Ctrl+Z).
+function updateChipEntity(editor, cid, entity, extra) {
   const pos = findChipPos(editor, cid);
   if (pos < 0) return;
   editor.chain().command(function (props) {
@@ -2156,7 +2164,7 @@ function updateChipEntity(editor, cid, entity) {
       type: entity.type, label: entity.label, icon: entity.icon, text: entity.text,
       rx: entity.rx || null, details: entity.details || null,
       savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
-    }));
+    }, extra || {}));
     return true;
   }).run();
 }
@@ -2182,23 +2190,47 @@ function orderChipAttrs(kind, item) {
   };
 }
 
-// { kind: 'rx'|'lab'|'img'|'ref', key } → node chip en attente, ou null si
-// l'item n'existe pas au catalogue.
-function buildPendingChipNode(proposal) {
+// Auteur des marques « insertion » posées sur le texte d'un gabarit quand il
+// est proposé (tweak « Gabarit : texte proposé ») — même mécanisme que le
+// texte de l'Assistant IA (markBlocksAsInsertion, review-mode.jsx).
+const TEMPLATE_AUTHOR = { id: 'gabarit', name: 'Gabarit' };
+
+// { kind: 'rx'|'lab'|'img'|'ref', key, details? } → node chip en attente, ou
+// null si l'item n'existe pas au catalogue. `details` remplace des champs de
+// l'item (p. ex. fréquence vide : un gabarit qui crée une ordonnance
+// incomplète) ; la posologie affichée est alors recalculée. `source` = qui
+// propose (« Gabarit « Otite moyenne aiguë » »), affiché sur la puce et
+// dans la barre des ajouts en attente.
+function buildPendingChipNode(proposal, source) {
   const def = window.NOTE_DATA.ORDER_DEFS[proposal.kind];
   const item = def && def.items().find(function (it) { return it.key === proposal.key; });
   if (!item) return null;
-  return { type: 'chip', attrs: Object.assign(orderChipAttrs(proposal.kind, item), { pending: true }) };
+  const attrs = Object.assign(orderChipAttrs(proposal.kind, item), { pending: true, proposedBy: source || null });
+  if (proposal.details) {
+    attrs.details = Object.assign({}, attrs.details, proposal.details);
+    if (proposal.kind === 'rx') {
+      attrs.rx = Object.assign({}, attrs.rx, { sig: window.NOTE_DATA.deriveRx(attrs.details, attrs.rx).sig });
+      attrs.text = attrs.label + ' — ' + attrs.rx.sig;
+    }
+  }
+  return { type: 'chip', attrs: attrs };
 }
 
 // Blocs d'un gabarit de note : titres + paragraphes de chaque section, puis
 // les ajouts proposés (`proposals`) en fin de dernier paragraphe de la
 // section — donc inline, à la suite du texte (« Plan : » + ordonnance).
-function buildTemplateBlocks(tpl) {
+// opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
+// en suggestion, à accepter ou refuser (D-03, tout le gabarit).
+function buildTemplateBlocks(tpl, opts) {
+  const source = 'Gabarit « ' + (tpl.name || tpl.key) + ' »';
+  const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
   let blocks = [];
   (tpl.sections || []).forEach(function (s) {
-    const sec = plainToBlocks(s.title, s.content || '');
-    const nodes = (s.proposals || []).map(buildPendingChipNode).filter(Boolean);
+    let sec = plainToBlocks(s.title, s.content || '');
+    if (proposeText) {
+      sec = sec.map(function (b) { return b.type === 'paragraph' ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
+    }
+    const nodes = (s.proposals || []).map(function (p) { return buildPendingChipNode(p, source); }).filter(Boolean);
     if (nodes.length) {
       const last = sec[sec.length - 1];
       const inline = [];
@@ -2222,20 +2254,111 @@ function acceptPendingChip(editor, cid) {
   }).run();
 }
 
-// Efface le chip, et l'espace qui le suivait si le texte d'avant finit déjà
-// par un espace (ou si le chip ouvre son paragraphe) — sinon « Plan :  ».
+// Fin de la plage à effacer pour un chip : le chip, et l'espace qui le
+// suivait si le texte d'avant finit déjà par un espace (ou si le chip ouvre
+// son paragraphe) — sinon « Plan :  ».
+function pendingChipDeleteEnd(doc, pos) {
+  const node = doc.nodeAt(pos);
+  let to = pos + node.nodeSize;
+  const before = doc.textBetween(Math.max(doc.resolve(pos).start(), pos - 1), pos);
+  const after = doc.textBetween(to, Math.min(doc.resolve(to).end(), to + 1));
+  if (after === ' ' && (before === '' || before === ' ')) to += 1;
+  return to;
+}
+
 function rejectPendingChip(editor, cid) {
   const pos = findChipPos(editor, cid);
   if (pos < 0) return;
   editor.chain().focus().command(function (props) {
-    const doc = props.tr.doc, node = doc.nodeAt(pos);
-    let to = pos + node.nodeSize;
-    const before = doc.textBetween(Math.max(doc.resolve(pos).start(), pos - 1), pos);
-    const after = doc.textBetween(to, Math.min(doc.resolve(to).end(), to + 1));
-    if (after === ' ' && (before === '' || before === ' ')) to += 1;
-    props.tr.delete(pos, to);
+    props.tr.delete(pos, pendingChipDeleteEnd(props.tr.doc, pos));
     return true;
   }).run();
+}
+
+// Ajouts en attente d'un doc JSON : puces `pending` et paragraphes qui
+// portent du texte proposé par un gabarit. `sources` = qui les propose.
+function pendingSummary(docJson) {
+  let chips = 0, paragraphs = 0;
+  const sources = [];
+  const isTemplateText = function (n) {
+    return n.type === 'text' && (n.marks || []).some(function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; });
+  };
+  function walk(node) {
+    if (!node) return;
+    if (node.type === 'chip' && node.attrs && node.attrs.pending) {
+      chips++;
+      if (node.attrs.proposedBy && sources.indexOf(node.attrs.proposedBy) < 0) sources.push(node.attrs.proposedBy);
+    }
+    if (node.type === 'paragraph' && (node.content || []).some(isTemplateText)) paragraphs++;
+    (node.content || []).forEach(walk);
+  }
+  walk(docJson);
+  return { chips: chips, paragraphs: paragraphs, count: chips + paragraphs, sources: sources };
+}
+
+// Tout accepter / tout refuser les ajouts en attente, en UNE transaction
+// (un seul Ctrl+Z). `reviewAction` : le traqueur du mode révision l'ignore.
+function resolveAllPending(editor, accept) {
+  const doc = editor.state.doc;
+  const ops = [];
+  doc.descendants(function (node, pos) {
+    if (node.type.name === 'chip' && node.attrs.pending) ops.push({ chip: node, from: pos });
+  });
+  (window.scanReviewChanges ? window.scanReviewChanges(doc) : []).forEach(function (c) {
+    if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id) ops.push({ from: c.from, to: c.to });
+  });
+  if (!ops.length) return;
+  const stamp = { pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+  editor.chain().focus().command(function (props) {
+    const tr = props.tr;
+    tr.setMeta('reviewAction', true);
+    ops.sort(function (a, b) { return b.from - a.from; }).forEach(function (op) {
+      if (op.chip) {
+        if (accept) tr.setNodeMarkup(op.from, undefined, Object.assign({}, op.chip.attrs, stamp));
+        else tr.delete(op.from, pendingChipDeleteEnd(tr.doc, op.from));
+      } else if (accept) tr.removeMark(op.from, op.to, props.state.schema.marks.insertion);
+      else tr.delete(op.from, op.to);
+    });
+    return true;
+  }).run();
+}
+
+// Même résolution sur un doc JSON (finalisation, tests). Ne modifie pas le
+// doc reçu. Refuser retire les puces en attente et le texte proposé.
+function resolvePendingInDoc(docJson, accept) {
+  const isTemplateMark = function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; };
+  function walk(node) {
+    if (!node || !node.content) return node;
+    const content = [];
+    let dropSpace = false; // chip refusé : l'espace qui le suivait part aussi (voir pendingChipDeleteEnd)
+    node.content.forEach(function (c) {
+      if (dropSpace && c.type === 'text' && c.text.charAt(0) === ' ') {
+        dropSpace = false;
+        if (c.text.length === 1) return;
+        c = Object.assign({}, c, { text: c.text.slice(1) });
+      }
+      dropSpace = false;
+      if (c.type === 'chip' && c.attrs && c.attrs.pending) {
+        if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false }) }));
+        else {
+          const prev = content[content.length - 1];
+          dropSpace = !prev || (prev.type === 'text' && /\s$/.test(prev.text));
+        }
+        return;
+      }
+      if (c.type === 'text' && (c.marks || []).some(isTemplateMark)) {
+        if (!accept) return;
+        const marks = c.marks.filter(function (m) { return !isTemplateMark(m); });
+        const t = Object.assign({}, c);
+        if (marks.length) t.marks = marks; else delete t.marks;
+        content.push(t);
+        return;
+      }
+      content.push(walk(c));
+    });
+    return Object.assign({}, node, { content: content });
+  }
+  return walk(docJson);
 }
 
 // Doc sans ses chips en attente — ce qui n'a pas été accepté n'entre pas dans
@@ -2259,6 +2382,10 @@ Object.assign(window, {
   buildTemplateBlocks,
   acceptPendingChip,
   rejectPendingChip,
+  pendingSummary,
+  resolveAllPending,
+  resolvePendingInDoc,
+  TEMPLATE_AUTHOR,
   stripPendingChips,
   makeSectionSplitNode,
   moveSplitToSlot,

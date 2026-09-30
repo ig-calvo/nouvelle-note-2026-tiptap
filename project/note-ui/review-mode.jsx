@@ -456,7 +456,70 @@ function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCance
   );
 }
 
+// ---------------------------------------------------------
+// Ajouts en attente d'un gabarit (D-03) — `summary` = pendingSummary
+// (editor-schema.jsx). Barre au-dessus du corps de la note, puis dialogue à
+// la finalisation (Q-06). Même habillage que le mode révision.
+// ---------------------------------------------------------
+function pendingSummaryText(summary) {
+  const parts = [];
+  if (summary.chips) parts.push(summary.chips + ' ajout' + (summary.chips > 1 ? 's' : ''));
+  if (summary.paragraphs) parts.push(summary.paragraphs + ' ligne' + (summary.paragraphs > 1 ? 's' : '') + ' de texte');
+  return parts.join(' et ');
+}
+
+function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {
+  const who = summary.sources.length === 1 ? summary.sources[0] : 'Gabarit';
+  return (
+    <div style={rvwS.pendingBar} role="region" aria-label="Ajouts en attente">
+      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>playlist_add_check</span>
+      <span style={rvwS.pendingText} title="Rien n’est créé avant d’être accepté.">
+        <b>{who}</b> : {pendingSummaryText(summary)} en attente
+      </span>
+      {/* Les trois actions passent à la ligne ensemble, jamais une seule. */}
+      <span style={rvwS.pendingActions}>
+        <button type="button" style={rvwS.pendingBtnGhost} onClick={onReview}>Réviser</button>
+        <button type="button" style={rvwS.pendingBtnOutline} onClick={onRejectAll}>
+          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> Tout refuser
+        </button>
+        <button type="button" style={rvwS.pendingBtnPrimary} onClick={onAcceptAll}>
+          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> Tout accepter
+        </button>
+      </span>
+    </div>
+  );
+}
+
+function PendingCompleteDialog({ summary, onAcceptAllAndComplete, onReview, onCompleteWithout, onCancel }) {
+  React.useEffect(function () {
+    function onKey(e) { if (e.key === 'Escape') onCancel(); }
+    document.addEventListener('keydown', onKey);
+    return function () { document.removeEventListener('keydown', onKey); };
+  }, [onCancel]);
+  return (
+    <div style={rvwS.dialogScrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onCancel(); }}>
+      <div style={rvwS.dialogBox} role="dialog" aria-label="Ajouts en attente">
+        <div style={rvwS.dialogTitle}>Ajouts en attente</div>
+        <p style={rvwS.dialogText}>
+          Il reste {pendingSummaryText(summary)} proposés par un gabarit, ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.
+        </p>
+        <div style={rvwS.dialogActions}>
+          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCompleteWithout}>Finaliser sans eux</button>
+          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>Réviser</button>
+          <button type="button" style={rvwS.dialogBtnPrimary} autoFocus onClick={onAcceptAllAndComplete}>Tout accepter et finaliser</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const rvwS = {
+  pendingBar: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 8px', padding: '8px 10px 8px 12px', borderRadius: 8, background: 'color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-outline-variant)', fontFamily: "'Inter',sans-serif" },
+  pendingText: { flex: '1 1 240px', font: "400 13.5px/1.4 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  pendingActions: { display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', whiteSpace: 'nowrap' },
+  pendingBtnGhost: { border: 0, background: 'transparent', color: 'var(--mat-sys-primary)', borderRadius: 8, padding: '7px 10px', font: "600 13px 'Inter',sans-serif", cursor: 'pointer' },
+  pendingBtnOutline: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--mat-sys-outline)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)', borderRadius: 8, padding: '6px 12px', font: "600 13px 'Inter',sans-serif", cursor: 'pointer' },
+  pendingBtnPrimary: { display: 'inline-flex', alignItems: 'center', gap: 4, border: 0, background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', borderRadius: 8, padding: '7px 12px', font: "600 13px 'Inter',sans-serif", cursor: 'pointer' },
   headerRow: { display: 'flex', alignItems: 'center', gap: 8 },
   toggleBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', padding: '7px 12px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', cursor: 'pointer', whiteSpace: 'nowrap' },
   toggleBtnOn: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-primary)', color: 'var(--mat-sys-primary)' },
@@ -501,5 +564,7 @@ Object.assign(window, {
   findChangeAtDom,
   ReviewChangePopover,
   ReviewHeaderControls,
-  ReviewCompleteDialog
+  ReviewCompleteDialog,
+  PendingProposalsBar,
+  PendingCompleteDialog
 });

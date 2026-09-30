@@ -1,7 +1,8 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
-  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false }) {
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
+  templateTextProposed = false, suggestionStyle = 'tirets' }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -25,6 +26,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [reviewChanges, setReviewChanges] = React.useState([]);
   const [reviewPopover, setReviewPopover] = React.useState(null); // { change, anchorRect }
   const [reviewGate, setReviewGate] = React.useState(false);
+  // Finaliser avec des ajouts en attente (gabarit) : dialogue (Q-06).
+  const [pendingGate, setPendingGate] = React.useState(false);
+  // Tweak « Gabarit : texte proposé » — lu par l'écouteur de
+  // note:apply-template, monté une seule fois.
+  const templateTextProposedRef = React.useRef(templateTextProposed);
+  templateTextProposedRef.current = templateTextProposed;
+  // Tweak « Style des suggestions » : CSS seulement (editor.css).
+  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', suggestionStyle || 'tirets'); }, [suggestionStyle]);
   const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
 
   // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
@@ -258,7 +267,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
-      var blocks = window.buildTemplateBlocks(tpl);
+      var blocks = window.buildTemplateBlocks(tpl, { proposeText: templateTextProposedRef.current });
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
@@ -324,7 +333,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       return;
     }
     // Chip transmis : détails en lecture seule, jamais d'édition inline.
-    if (entity && entity.transmittedAt) {
+    // Chip en attente : ses détails, pour le vérifier avant de l'accepter.
+    if (entity && (entity.transmittedAt || entity.pending)) {
       setInlineEdit(null);
       setPopover({ chipId: chipId, anchorRect: rect });
       setLinkedChipId(chipId);
@@ -423,13 +433,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setInlineEdit(null);
   }
 
-  function savePopover(chipId, draft) {
+  // `accept` : ajout en attente vérifié puis accepté depuis ses détails.
+  function savePopover(chipId, draft, accept) {
     var ent = Object.assign({}, draft, { label: deriveLabel(draft) });
     if (ent.type === 'prescription' && ent.rx) ent.rx = window.NOTE_DATA.deriveRx(ent.details || {}, ent.rx);
     else if (ent.type === 'lab' && ent.rx) ent.rx = window.NOTE_DATA.deriveLabRx(ent.details || {});
     else if (ent.type === 'imaging' && ent.rx) ent.rx = window.NOTE_DATA.deriveImgRx(ent.details || {});
     else if (ent.type === 'referral' && ent.rx) ent.rx = window.NOTE_DATA.deriveRefRx(ent.details || {});
-    if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent);
+    if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent, accept ? { pending: false } : null);
     setPopover(null);
   }
 
@@ -723,7 +734,31 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       setReviewGate(true);
       return;
     }
+    if (pending.count > 0) {
+      setPendingGate(true);
+      return;
+    }
     openTransmission(window.TX_NOTE_ITEM_ID);
+  }
+
+  // Ajouts en attente (gabarit) — barre au-dessus du corps de la note et
+  // dialogue de finalisation.
+  var pending = docJson ? window.pendingSummary(docJson) : { count: 0, chips: 0, paragraphs: 0, sources: [] };
+  function resolvePending(accept) { if (editorRef.current) window.resolveAllPending(editorRef.current, accept); }
+  function reviewFirstPending() {
+    var editor = editorRef.current;
+    if (!editor) return;
+    var first = null;
+    editor.state.doc.descendants(function(node, pos) {
+      if (first !== null) return false;
+      if (node.type.name === 'chip' && node.attrs.pending) first = pos;
+      else if (node.isText && node.marks.some(function(m) { return m.type.name === 'insertion' && m.attrs.authorId === window.TEMPLATE_AUTHOR.id; })) first = pos;
+    });
+    if (first === null) return;
+    var node = editor.state.doc.nodeAt(first);
+    if (node && node.type.name === 'chip') editor.chain().focus().setNodeSelection(first).run();
+    else editor.chain().focus().setTextSelection(first).run();
+    try { editor.view.domAtPos(first).node.parentElement.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
   }
 
   function reviewGateAcceptAllAndComplete() {
@@ -754,7 +789,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
     // Un ajout proposé par un gabarit et jamais accepté n'entre pas dans la note complétée.
-    var doc = window.stripPendingChips(window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC())));
+    // Refus implicite de ce qui reste en attente (le dialogue de finalisation
+    // l'a annoncé) : puces et texte proposés n'entrent pas dans la note.
+    var doc = window.resolvePendingInDoc(window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC())), false);
     var stats = window.scanDoc(doc);
     var data = {
       raison: raison,
@@ -892,6 +929,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           {ftBarStyle === 'haut' && ftBarPosition !== 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
 
           <div style={neStyles.noteDiv} />
+
+          {pending.count > 0 &&
+            <window.PendingProposalsBar
+              summary={pending}
+              onAcceptAll={function() { resolvePending(true); }}
+              onRejectAll={function() { resolvePending(false); }}
+              onReview={reviewFirstPending} />}
 
           <NoteBody
             placeholder="Appuyer sur « / » pour afficher les commandes"
@@ -1075,6 +1119,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       }
 
       {/* Dialogue bloquant — changements en attente à la complétion */}
+      {pendingGate &&
+        <window.PendingCompleteDialog
+          summary={pending}
+          onAcceptAllAndComplete={function() { resolvePending(true); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onReview={function() { setPendingGate(false); reviewFirstPending(); }}
+          onCompleteWithout={function() { resolvePending(false); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onCancel={function() { setPendingGate(false); }} />
+      }
+
       {reviewGate &&
         <window.ReviewCompleteDialog
           count={reviewChanges.length}
@@ -1098,6 +1151,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <ChipPopover
           chip={popoverChip}
           readOnly={!!popoverChip.entity.transmittedAt}
+          pending={!!popoverChip.entity.pending}
+          onReject={function(id) { if (editorRef.current) window.rejectPendingChip(editorRef.current, id); setPopover(null); setLinkedChipId(null); }}
           anchorRect={popover.anchorRect}
           onClose={function() { setPopover(null); setLinkedChipId(null); }}
           onSave={savePopover}
