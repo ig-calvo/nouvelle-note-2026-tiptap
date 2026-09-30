@@ -22,7 +22,43 @@ function buildChipDom(data, existingEl) {
   const node = buildChipDomBase(data, existingEl);
   if (data.pending) decoratePendingChip(node, data);
   else node.removeAttribute('data-pending'); // le DOM est réutilisé à la mise à jour (accepté)
+  if (data.transmittedAt) decorateSentChip(node, data);
+  else node.removeAttribute('data-sent');
   return node;
+}
+
+// Chip transmis (D-05) : lecture seule — plus d'édition inline des valeurs
+// (data-field retiré ; l'icône ouvre encore les détails, en lecture seule) —
+// double coche « Transmis » en fin de chip. Annulé : tag de statut
+// « Annulée » après l'icône (anatomie du composant : icône, statut, valeur
+// principale), valeurs barrées, plus de double coche.
+function decorateSentChip(node, data) {
+  node.setAttribute('data-sent', 'true');
+  node.querySelectorAll('[data-field]').forEach(function (el) { el.removeAttribute('data-field'); });
+  const when = formatChipStamp(data.cancelledAt || data.transmittedAt);
+  if (data.cancelledAt) {
+    node.classList.add('chip--cancelled');
+    const tag = document.createElement('span');
+    tag.className = 'chip-status chip-status--cancelled';
+    tag.textContent = 'Annulée';
+    tag.setAttribute('title', 'Annulation envoyée le ' + when);
+    node.insertBefore(tag, node.children[1] || null);
+    return;
+  }
+  node.classList.add('chip--sent');
+  const ic = document.createElement('span');
+  ic.className = 'material-symbols-outlined chip-sent-icon';
+  ic.setAttribute('role', 'img');
+  ic.setAttribute('aria-label', 'Transmis');
+  ic.setAttribute('title', 'Transmis le ' + when);
+  ic.textContent = 'done_all';
+  node.appendChild(ic);
+}
+
+function formatChipStamp(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }) + ' à ' + d.toTimeString().slice(0, 5);
 }
 
 // Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
@@ -197,7 +233,13 @@ function makeChipNode() { return window.Tiptap.Node.create({
       // Ajout proposé par un gabarit, en attente d'acceptation (voir
       // decoratePendingChip) : ignoré par scanDoc/buildActionLog tant qu'il
       // n'est pas accepté, effacé s'il est refusé.
-      pending: { default: false }
+      pending: { default: false },
+      // Transmission et annulation (D-05) : posés par stampChips, hors
+      // historique (Ctrl+Z ne « détransmet » pas). Le Journal ne lit pas ces
+      // attrs mais les événements d'action de la note (buildActionLog) : un
+      // chip retiré de la note ne porte plus rien, l'événement reste.
+      transmittedAt: { default: null },
+      cancelledAt: { default: null }
     };
   },
   parseHTML() {
@@ -227,6 +269,7 @@ function makeChipNode() { return window.Tiptap.Node.create({
     if (node.attrs.details) attrs['data-details'] = JSON.stringify(node.attrs.details);
     if (node.attrs.label) attrs['data-label'] = node.attrs.label;
     if (node.attrs.pending) attrs['data-pending'] = 'true';
+    if (node.attrs.transmittedAt) attrs['data-sent'] = 'true';
     return ['span', window.Tiptap.mergeAttributes({ class: 'ql-chip chip' }, HTMLAttributes, attrs), node.attrs.label || ''];
   },
   addNodeView() {
@@ -1641,23 +1684,48 @@ function chipLogIcon(node) {
   return { icon: node.attrs.icon || 'bookmark' };
 }
 
-function buildActionLog(docJson) {
+// Événements d'action de la note (D-05) — [{cid, type: 'transmis' | 'annule',
+// at, author, snapshot}], `snapshot` = attrs du chip au moment de
+// l'événement. Regroupés par chip : c'est ce qui garde au Journal un chip
+// transmis puis retiré de la note (effacer n'annule pas l'action clinique).
+function chipEventsByCid(events) {
+  const byCid = {};
+  (events || []).forEach(function (ev) {
+    if (!ev || !ev.cid) return;
+    const s = byCid[ev.cid] || (byCid[ev.cid] = { transmittedAt: null, cancelledAt: null, snapshot: null });
+    if (ev.type === 'transmis' && !s.transmittedAt) s.transmittedAt = ev.at;
+    if (ev.type === 'annule') s.cancelledAt = ev.at;
+    if (ev.snapshot) s.snapshot = ev.snapshot;
+  });
+  return byCid;
+}
+
+function buildActionLog(docJson, events) {
   const order = {};
   ACTION_LOG_TYPES.forEach(function (key, i) { order[key] = i; });
   const entries = [];
+  const sent = chipEventsByCid(events);
+  const seen = {};
+  function pushChip(attrs, removed) {
+    const logType = CHIP_TYPE_TO_LOG[attrs.type];
+    if (!logType) return;
+    const s = sent[attrs.cid] || {};
+    entries.push(Object.assign({
+      key: 'chip-' + attrs.cid, logType: logType,
+      title: attrs.text || attrs.label || '',
+      author: attrs.author, savedAt: attrs.savedAt,
+      transmittedAt: s.transmittedAt || null, cancelledAt: s.cancelledAt || null,
+      removed: !!removed,
+      // Retiré de la note : rien vers quoi défiler.
+      sourceType: removed ? null : 'chip', sourceId: removed ? null : attrs.cid
+    }, chipLogIcon({ attrs: attrs })));
+  }
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
       if (node.attrs.pending) return;
-      const logType = CHIP_TYPE_TO_LOG[node.attrs.type];
-      if (logType) {
-        entries.push(Object.assign({
-          key: 'chip-' + node.attrs.cid, logType: logType,
-          title: node.attrs.text || node.attrs.label || '',
-          author: node.attrs.author, savedAt: node.attrs.savedAt,
-          sourceType: 'chip', sourceId: node.attrs.cid
-        }, chipLogIcon(node)));
-      }
+      seen[node.attrs.cid] = true;
+      pushChip(node.attrs, false);
     } else if (node.type === 'clinicalTool') {
       // Même icône que la barre de l'outil dans la note (ct-bar__wrench).
       entries.push({
@@ -1670,6 +1738,12 @@ function buildActionLog(docJson) {
     (node.content || []).forEach(walk);
   }
   walk(docJson);
+  // Transmis puis retiré de la note : l'entrée reste, depuis l'instantané. Un
+  // chip jamais transmis et effacé n'a pas d'événement : il disparaît.
+  Object.keys(sent).forEach(function (cid) {
+    const s = sent[cid];
+    if (!seen[cid] && s.transmittedAt && s.snapshot) pushChip(s.snapshot, true);
+  });
   // Diagnostics : une entrée par FIL (pas par occurrence), seulement pour un
   // fil documenté (Problème ou Antécédent — voir diagPlacement,
   // diagnostics.jsx). Même icône que l'en-tête de la région (dxr-ic).
@@ -1740,11 +1814,13 @@ function buildTransmissionDocs(docStats, txState) {
   // invalide donc complete/transmitted dès que la liste d'items ne
   // correspond plus à celle capturée au moment de la complétion
   // (`itemIds`, posé par markDocComplete) — les destinataires déjà
-  // choisis restent, eux, valides et ne sont pas perdus.
+  // choisis restent, eux, valides et ne sont pas perdus. Seul un AJOUT
+  // invalide : un item retiré de la note après la transmission est parti
+  // quand même (D-05, effacer n'annule pas), le document reste transmis.
   function withTx(id, kind, title, items) {
     var st = txState[id] || {};
-    var idsKey = items.map(function(it) { return it.id; }).sort().join(',');
-    var stale = !!st.complete && st.itemIds !== idsKey;
+    var captured = (st.itemIds || '').split(',');
+    var stale = !!st.complete && items.some(function(it) { return captured.indexOf(it.id) < 0; });
     return {
       id: id, kind: kind, title: title, items: items,
       recipients: st.recipients || [],
@@ -1890,8 +1966,30 @@ function getChipEntity(editor, cid) {
   const node = editor.state.doc.nodeAt(pos);
   return node ? {
     type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
-    text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
+    text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
+    transmittedAt: node.attrs.transmittedAt || undefined, cancelledAt: node.attrs.cancelledAt || undefined
   } : null;
+}
+
+// Pose des attrs sur des chips sans passer par l'historique : une
+// transmission ou une annulation est un fait, Ctrl+Z ne la défait pas.
+function stampChips(editor, cids, patch) {
+  const tr = editor.state.tr;
+  editor.state.doc.descendants(function (node, pos) {
+    if (node.type.name === 'chip' && cids.indexOf(node.attrs.cid) >= 0) {
+      tr.setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, patch));
+    }
+  });
+  if (!tr.docChanged) return;
+  tr.setMeta('addToHistory', false);
+  editor.view.dispatch(tr);
+}
+
+// Attrs courants d'un chip (instantané d'un événement d'action), ou null.
+function chipAttrs(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  const node = pos >= 0 ? editor.state.doc.nodeAt(pos) : null;
+  return node ? Object.assign({}, node.attrs) : null;
 }
 
 // Édition undoable : tr.setNodeMarkup préserve la position, couvert par
@@ -2032,6 +2130,9 @@ Object.assign(window, {
   plainToBlocks,
   findChipPos,
   getChipEntity,
+  stampChips,
+  chipAttrs,
+  formatChipStamp,
   updateChipEntity,
   patchDiagRegions,
   getDiagModel

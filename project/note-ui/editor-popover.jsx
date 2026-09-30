@@ -47,6 +47,7 @@ const rxS = {
   body: { padding: '16px 18px 4px', overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
   sec: { font: "700 11px 'Inter', sans-serif", letterSpacing: '0.7px', textTransform: 'uppercase', color: 'var(--mat-sys-primary)', margin: '6px 0 16px' },
   row: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 },
+  fieldset: { border: 0, margin: 0, minWidth: 0 },
   foot: { display: 'flex', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
   btnCancel: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
   btnSave: { border: 0, background: 'light-dark(#dedbef, #2a244c)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
@@ -119,7 +120,7 @@ function RxSourceToggle({ value, onChange }) {
   );
 }
 
-function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) {
+function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly }) {
   const [draft, setDraft] = useStateP(chip.entity);
   const ref = useRefP(null);
   useEffectP(() => { setDraft(chip.entity); }, [chip.id]);
@@ -144,6 +145,21 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
   const W = isRx ? 600 : 380;
   const meta = window.NOTE_DATA.ENTITY_TYPES[draft.type] || {};
   function up(f, v) { setDraft(d => ({ ...d, details: { ...d.details, [f]: v } })); }
+  // Chip transmis (D-05) : mêmes champs, désactivés par le <fieldset> ; le
+  // pied ne propose que Fermer. Annuler passe par le menu ⋮ du chip.
+  const sentNote = readOnly
+    ? (chip.entity.cancelledAt ? 'Annulée le ' + window.formatChipStamp(chip.entity.cancelledAt) : 'Transmise le ' + window.formatChipStamp(chip.entity.transmittedAt)) + ' : lecture seule.'
+    : '';
+  const readOnlyFoot = (footStyle, btnStyle) => (
+    <div style={footStyle}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
+        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>{chip.entity.cancelledAt ? 'block' : 'done_all'}</span>
+        {sentNote}
+      </span>
+      <span style={{ flex: 1 }} />
+      <button style={btnStyle} onClick={onClose}>Fermer</button>
+    </div>
+  );
 
   if (isRx) {
     const d = draft.details || {};
@@ -174,7 +190,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
             </span>
           </div>
         </div>
-        {peds &&
+        {peds && !readOnly &&
           <div style={rxS.pedsBand}>
             <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#8a5cb8, #c7b1dd)', flexShrink: 0 }}>child_care</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
@@ -187,7 +203,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
             </div>
             <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>Appliquer</button>
           </div>}
-        <div style={rxS.body}>
+        <fieldset disabled={!!readOnly} style={Object.assign({}, rxS.body, rxS.fieldset)}>
           <div style={rxS.sec}>Médicament et posologie</div>
           <div style={rxS.row}>
             <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={2} />
@@ -221,12 +237,13 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
             <RxFF label="Fin de traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="Fin de traitement" flex={2} />
             <RxSel label="Mois" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="Mois" flex={2} />
           </div>
-        </div>
+        </fieldset>
+        {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) :
         <div style={rxS.foot}>
           <button style={rxS.btnCancel} onClick={onClose}>Annuler</button>
           <span style={{ flex: 1 }} />
           <button style={rxS.btnSave} onClick={() => onSave(chip.id, draft)}>Enregistrer</button>
-        </div>
+        </div>}
       </div>
     );
   }
@@ -237,17 +254,18 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
           <div className="ttl">{meta.label}</div>
-          <div className="sub">Modifier les détails structurés</div>
+          <div className="sub">{readOnly ? 'Transmis : lecture seule' : 'Modifier les détails structurés'}</div>
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
-      <div className="popover-body" style={{ flex: '1 1 auto', minHeight: 0 }}>
+      <fieldset className="popover-body" disabled={!!readOnly} style={Object.assign({ flex: '1 1 auto', minHeight: 0 }, rxS.fieldset)}>
         {draft.type === 'lab' && <LabFields d={draft.details} up={up} />}
         {draft.type === 'imaging' && <ImgFields d={draft.details} up={up} />}
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
         {draft.type === 'instructions' && <InsFields d={draft.details} up={up} />}
         {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
-      </div>
+      </fieldset>
+      {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
       <div className="popover-footer">
         <button className="btn btn-t btn-sm" onClick={() => onRevert(chip.id)}>
           <span className="material-symbols-outlined">undo</span>Reconvertir en texte
@@ -257,7 +275,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
           <span className="material-symbols-outlined">delete</span>
         </button>
         <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>Confirmer</button>
-      </div>
+      </div>}
     </div>
   );
 }
