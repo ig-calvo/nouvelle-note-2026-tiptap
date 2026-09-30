@@ -100,7 +100,7 @@ Contenu des suggestions, pour quand le tweak est activé (`17441:193304` + Compo
 ### B5. Sidebar
 
 - En-tête : `N documents`, rien d'autre. Le bouton pilule **« ➤ Mode »** visible dans toutes les maquettes est un **reste d'exploration** — ne pas le construire. Il n'existe pas dans le code actuel : il n'y a donc rien à retirer, seulement à ne pas ajouter.
-- Catégories avec compteur : `ORDONNANCE 1`, `OUTILS CLINIQUES 3`.
+- Catégories avec compteur, une par famille de document : `ORDONNANCE 1`, `REQUÊTES 3`, `OUTILS CLINIQUES 1`, `CONSIGNES 1`. Les maquettes V7 n'en montrent que deux (`ORDONNANCE 1`, `OUTILS CLINIQUES 3`) ; le découpage retenu est décrit au §D.
 - **Une catégorie vide n'est pas rendue** — pas de titre, pas de compteur à zéro (§D).
 - Item : titre, sous-titre (`5 prescriptions`, `Colonne lombaire`), ligne destinataire (`CHU de Québec - Radiologie`, ou **`Aucun destinataire` en ambre**), icône de statut à droite.
 - Pied : `+ Ajouter`.
@@ -157,7 +157,7 @@ L'ancien plan de transmission (§4.4) excluait **explicitement** les formulaires
 3. **Layout à 2 colonnes** pour ces documents : `DESTINATAIRE` puis `APERÇU`, sans colonne de contenu — le document *est* son aperçu (formulaire de requête). En-tête : icône 🔧 + `Outil clinique: <titre>`.
 4. Ajouter une entrée dans `TX_META` ([TransmissionModal.jsx](project/note-ui/TransmissionModal.jsx)) pour le kind `clinicalTool` (icône, accent, `nounPhrase`, suggestions de destinataires).
 
-À noter : dans la sidebar, la catégorie « Outils cliniques » regroupe **à la fois** les formulaires `clinicalTool` et les requêtes imagerie/labo — cohérent avec le regroupement actuel.
+À noter : dans la sidebar, la catégorie « Outils cliniques » ne regroupe **que** les formulaires `clinicalTool`. Les requêtes labo/imagerie/référence ont leur propre catégorie « Requêtes », et les consignes au patient la leur, « Consignes » (`TX_SIDE_GROUPS` dans [TransmissionModal.jsx](project/note-ui/TransmissionModal.jsx)). Tranché le 2026-09-30 : avant, tout ce qui n'était pas une prescription tombait sous « Outils cliniques ».
 
 ---
 
@@ -289,7 +289,7 @@ C'est un écart **beaucoup plus large** que V7 : deux sous-systèmes entiers qui
 
 - **Pied de la note** (`17744:265214`, `17782:31054`) : remplace les compteurs bruts par type de chip (Rx/labo/imagerie/référence/diagnostic/fichier — [Note Clinique.html:416-468](project/Note%20Clinique.html#L416-L468)) par 3 pastilles **fraction complété/total** — « Documents » (bundle Rx + outils cliniques, ex. `℞ 1/5` `🔧 2/2`), « Portail Patient » (ex. `2`), « Pré-facturation » (montant, ex. `231,75$`). Une pastille à `total` atteint passe grisée (satisfaite) plutôt que colorée.
 - **Statuts d'en-tête** : texte souligné + point coloré (« 2 à compléter · 2 Prêt · 0 transmis ») au lieu des pastilles pleines actuelles ([TransmissionModal.jsx](project/note-ui/TransmissionModal.jsx) `tx.pill`).
-- **Regroupement sidebar** : catégories nommées et comptées — MÉDICATION 1 / LABORATOIRE 1 / IMAGERIE 2 / CONSULTATION 0 / EXAMENS DIAGNOSTIQUES 0 — plutôt que ORDONNANCE / OUTILS CLINIQUES actuels.
+- **Regroupement sidebar** : catégories nommées et comptées — MÉDICATION 1 / LABORATOIRE 1 / IMAGERIE 2 / CONSULTATION 0 / EXAMENS DIAGNOSTIQUES 0 — plutôt que ORDONNANCE / REQUÊTES / OUTILS CLINIQUES / CONSIGNES actuels (§B5).
 - **Destinataire** : liste triée par distance (« 1,2 km »), favoris (♥), et une carte géographique qui s'affiche au focus du champ de recherche (`273483`). Le bottin actuel (`DocumentActionPanel`/`renderSideRow`) n'a ni distance, ni carte, ni favoris.
 - **Icônes par ligne de prescription** (nouvelle/renouvellement/cessation) : déjà amorcé côté code (`variant` dans `NoteEditor.jsx`/`DAP_VARIANT` dans `DocumentActionPanel.jsx`) — à revérifier contre le mapping exact d'icônes des mockups plutôt qu'à reconstruire.
 - **« Renseignements cliniques »** avec compteur de suggestions ✨ et champ « Rechercher au dossier » : proche de ce qui existe déjà derrière le tweak `checkoutSuggestions` (§B4/§I) — à vérifier si c'est bien le même bloc ou un nouveau.
