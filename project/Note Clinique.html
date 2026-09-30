@@ -335,6 +335,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "formOpenMode": "auto",
   "groupRequests": false,
   "inlineFieldEdit": true,
+  "aiProposals": false,
+  "summaryAddToNote": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -540,7 +542,8 @@ function App() {
               suggestionStyle={t.suggestionStyle || 'tirets'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
-              inlineFieldEdit={t.inlineFieldEdit !== false} />
+              inlineFieldEdit={t.inlineFieldEdit !== false}
+              aiProposals={t.aiProposals === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -575,7 +578,7 @@ function App() {
             }
           </div>
           </div>
-          <Summary />
+          <Summary addToNote={t.summaryAddToNote === true} />
         </div>
       </div>
 
@@ -644,6 +647,11 @@ function App() {
                       { value: 'violet', label: 'Mauve' },
                     ]}
                     onChange={(v) => setTweak('suggestionStyle', v)} />
+        <TweakSection label="Pistes (vision)" />
+        <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
+                     onChange={(v) => setTweak('aiProposals', v)} />
+        <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}
+                     onChange={(v) => setTweak('summaryAddToNote', v)} />
         <TweakSection label="Formulaire d'une puce" />
         <TweakToggle label="Édition inline des valeurs secondaires (après Q1 2027)" value={t.inlineFieldEdit !== false}
                      onChange={(v) => setTweak('inlineFieldEdit', v)} />

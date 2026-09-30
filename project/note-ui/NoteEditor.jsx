@@ -2,7 +2,8 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
-  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true }) {
+  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
+  aiProposals = false }) {
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
   // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
   // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
@@ -296,6 +297,37 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
     return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
+  }, []);
+
+  // « + » Problèmes / Antécédents du Sommaire (tweak, piste de vision) :
+  // ouvre la recherche « /dx » dans la note — sous la ligne du curseur, ou à
+  // la fin des détails si la note vient de s'ouvrir. Le diagnostic choisi
+  // arrive déjà documenté comme problème ou antécédent (__DX_DOCUMENT_AS, lu
+  // par runDiagnosticCommand, editor-field.jsx).
+  React.useEffect(function() {
+    function onSummaryAdd(e) {
+      var documentAs = e.detail && e.detail.documentAs;
+      if (!documentAs) return;
+      var wasOpen = !!editorRef.current;
+      if (!wasOpen && onOpen) onOpen();
+      var tries = 0;
+      (function insertWhenReady() {
+        var editor = editorRef.current;
+        if (!editor) { if (++tries < 30) setTimeout(insertWhenReady, 50); return; }
+        var state = editor.state, $from = state.selection.$from;
+        // Paragraphe de premier niveau seulement : une région diagnostic ne se
+        // loge pas dans une autre.
+        var inText = wasOpen && state.selection.from > 1 && $from.parent.type.name === 'paragraph' && $from.depth === 1;
+        var pos = inText ? $from.after($from.depth) : window.endOfFirstSectionPos(state.doc);
+        window.__DX_DOCUMENT_AS = documentAs;
+        editor.chain().focus()
+          .insertContentAt(pos, { type: 'paragraph', content: [{ type: 'text', text: '/dx ' }] })
+          .setTextSelection(pos + 5)
+          .run();
+      })();
+    }
+    window.addEventListener('note:summary-add', onSummaryAdd);
+    return function() { window.removeEventListener('note:summary-add', onSummaryAdd); };
   }, []);
 
   // Référencer un passage sélectionné dans une note antérieure complétée
@@ -927,6 +959,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         if (reviewingMode) {
           setReviewActive(true);
           blocks = window.markBlocksAsInsertion(blocks, window.REVIEW_AI_AUTHOR);
+        }
+        // Tweak « IA : éléments structurés proposés » (piste de vision, D-03) :
+        // l'assistant propose aussi des puces, en attente comme celles d'un
+        // gabarit — rien n'est créé avant d'être accepté.
+        if (aiProposals) {
+          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, 'Assistant IA'); }).filter(Boolean);
+          // Pas de libellé en texte : il resterait seul si tout est refusé ; la
+          // puce dit elle-même qui la propose (infobulle, style « IA »).
+          var inline = [];
+          chips.forEach(function(c, i) { if (i) inline.push({ type: 'text', text: ' ' }); inline.push(c); });
+          if (chips.length) blocks = blocks.concat([{ type: 'paragraph', content: inline }]);
         }
         appendToFirstSection(blocks);
       }} />

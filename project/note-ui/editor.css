@@ -683,6 +683,8 @@ html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { 
 .chip-pending-btn--accept { color: var(--mat-sys-primary); }
 .chip-pending-btn:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
 .chip-pending-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.chip--rx.chip--pending.chip--ai { border-color: var(--omd-primary-400, #6967d1); }
+.chip-ai-icon { font-size: 14px; line-height: 1; color: var(--omd-primary-400, #6967d1); margin-right: -2px; }
 
 /* Tweak « Style des suggestions » (html[data-suggestion-style], posé par
    NoteEditor) — trois propositions de la rencontre inline entity, à tester :

@@ -152,8 +152,14 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // corps vide, curseur placé dans ce paragraphe. makeDiagRegionAttrs
   // (diagnostics.jsx) est le seul endroit qui construit ses attributs.
   function runDiagnosticCommand(editor, range, props) {
-    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    const now = new Date().toISOString();
+    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: now, author: window.__CURRENT_AUTHOR || null });
     if (!attrs) return;
+    // Ouvert depuis le « + » Problèmes / Antécédents du Sommaire : documenté d'emblée.
+    if (window.__DX_DOCUMENT_AS && props.action === 'nouveau' && !attrs.documentAs) {
+      Object.assign(attrs, { documentAs: window.__DX_DOCUMENT_AS, documentedAt: now, documentedBy: window.__CURRENT_AUTHOR || null });
+    }
+    window.__DX_DOCUMENT_AS = null;
     const diagId = attrs.id;
     const diagnosticContent = {
       type: 'diagnosticRegion',
@@ -449,7 +455,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return false;
       },
-      onExit() { checked = []; setSlash(null); },
+      onExit() { checked = []; window.__DX_DOCUMENT_AS = null; setSlash(null); },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
       // Souris (RxMenu) : case à cocher d'un résultat, bouton « Ajouter (n) ».
       toggleCheck(it) { const parsed = parseSlashQuery(lastQuery); toggleChecked(it, parsed.kind); publish(lastQuery); },

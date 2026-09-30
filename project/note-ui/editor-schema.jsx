@@ -189,6 +189,16 @@ function decoratePendingChip(node, data) {
   node.classList.add('chip--pending');
   node.setAttribute('data-pending', 'true');
   node.setAttribute('title', (data.proposedBy ? 'Proposé par ' + data.proposedBy : 'Ajout proposé') + ' — double-cliquer pour vérifier avant d’accepter');
+  // Proposé par l'Assistant IA (piste de vision) : même puce en attente,
+  // marquée comme venant de l'IA (étincelle, couleur des ajouts IA).
+  if (data.proposedBy === 'Assistant IA') {
+    node.classList.add('chip--ai');
+    const spark = document.createElement('span');
+    spark.className = 'material-symbols-outlined chip-ai-icon';
+    spark.setAttribute('aria-hidden', 'true');
+    spark.textContent = 'auto_awesome';
+    node.insertBefore(spark, node.firstChild);
+  }
   node.querySelectorAll('[data-action], [data-field]').forEach(function (el) {
     el.removeAttribute('data-action');
     el.removeAttribute('data-field');
