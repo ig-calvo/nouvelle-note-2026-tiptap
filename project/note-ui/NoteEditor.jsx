@@ -2,7 +2,7 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
-  templateTextProposed = false, suggestionStyle = 'tirets' }) {
+  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto' }) {
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -1152,6 +1152,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           chip={popoverChip}
           readOnly={!!popoverChip.entity.transmittedAt}
           pending={!!popoverChip.entity.pending}
+          openMode={formOpenMode}
           onReject={function(id) { if (editorRef.current) window.rejectPendingChip(editorRef.current, id); setPopover(null); setLinkedChipId(null); }}
           anchorRect={popover.anchorRect}
           onClose={function() { setPopover(null); setLinkedChipId(null); }}
@@ -1290,6 +1291,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
   });
 
   React.useEffect(function() { if (inputRef.current) inputRef.current.select(); }, []);
+  // Sous le champ, ou au-dessus s'il n'y a pas la place (placePopover, mode 'flip').
+  React.useLayoutEffect(function() {
+    var el = document.getElementById('chip-inline-editor');
+    if (!el || !window.placePopover) return;
+    el.style.overflowY = 'auto';
+    window.placePopover(el, fieldRect, { mode: 'flip' });
+  });
 
   React.useEffect(function() {
     function onDown(e) {

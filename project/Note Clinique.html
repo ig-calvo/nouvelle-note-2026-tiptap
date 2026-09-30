@@ -256,6 +256,7 @@
     'note-ui/SideNav.jsx',
     'note-ui/PatientBanner.jsx',
     'note-ui/editor-data.jsx',
+    'note-ui/popover-placement.jsx',
     'note-ui/editor-popover.jsx',
     'note-ui/note-sections.jsx',
     'note-ui/diagnostics.jsx',
@@ -331,6 +332,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "simulateTxFailure": false,
   "templateTextProposed": false,
   "suggestionStyle": "tirets",
+  "formOpenMode": "auto",
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -532,7 +534,8 @@ function App() {
               checkoutSuggestions={t.checkoutSuggestions === true}
               simulateTxFailure={t.simulateTxFailure === true}
               templateTextProposed={t.templateTextProposed === true}
-              suggestionStyle={t.suggestionStyle || 'tirets'} />
+              suggestionStyle={t.suggestionStyle || 'tirets'}
+              formOpenMode={t.formOpenMode || 'auto'} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -629,6 +632,16 @@ function App() {
                       { value: 'violet', label: 'Mauve' },
                     ]}
                     onChange={(v) => setTweak('suggestionStyle', v)} />
+        <TweakSection label="Formulaire d'une puce" />
+        <TweakSelect label="Ouverture du formulaire"
+                     value={t.formOpenMode || 'auto'}
+                     options={[
+                       { value: 'auto', label: 'Auto (sous, au-dessus, sinon centré)' },
+                       { value: 'sous', label: 'Sous la puce (corps qui défile)' },
+                       { value: 'centre', label: 'Centré' },
+                       { value: 'sheet', label: 'Bottom sheet' },
+                     ]}
+                     onChange={(v) => setTweak('formOpenMode', v)} />
         <TweakSection label="Mode révision" />
         <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
                      onChange={(v) => setTweak('reviewingMode', v)} />

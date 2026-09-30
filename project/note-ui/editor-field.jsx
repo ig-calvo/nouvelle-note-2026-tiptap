@@ -770,6 +770,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function deleteChipFromMenu(cid) { applyChipEdit(cid, null); }
   function keepChipAsText(cid) { applyChipEdit(cid, chipPlainText(cid)); }
 
+  // Puce dont le formulaire est ouvert (NoteEditor → linkedChipId) : contour.
+  useEffectE(function () {
+    const editor = editorRef.current;
+    if (!editor) return undefined;
+    const dom = editor.view.dom;
+    dom.querySelectorAll('.chip--editing').forEach(function (el) { el.classList.remove('chip--editing'); });
+    const el = linkedChipId && dom.querySelector('.chip[data-cid="' + linkedChipId + '"]');
+    if (el) el.classList.add('chip--editing');
+    return function () { if (el) el.classList.remove('chip--editing'); };
+  }, [linkedChipId]);
+
   // Fermer le dialogue de suppression sans rien faire : le focus revient à
   // la note, la puce reste sélectionnée (Backspace de nouveau le rouvre).
   function closeChipDelete() {
