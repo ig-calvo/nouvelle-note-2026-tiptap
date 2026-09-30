@@ -2,7 +2,12 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
-  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false }) {
+  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true }) {
+  // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
+  // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
+  // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
+  window.__INLINE_FIELD_EDIT = inlineFieldEdit !== false;
+  React.useEffect(function() { document.documentElement.setAttribute('data-inline-edit', inlineFieldEdit !== false ? 'on' : 'off'); }, [inlineFieldEdit]);
   // Tweak « Checkout des requêtes » : lu par buildTransmissionDocs
   // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
   // pour que le pied de note et le checkout le voient dès ce rendu-ci.
@@ -352,7 +357,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       return;
     }
     // Zone click → inline autocomplete editor (prescription, lab, imaging, referral)
-    if (extra && extra.field && entity) {
+    // — seulement si l'édition inline est active (D-02) ; sinon formulaire complet.
+    if (extra && extra.field && entity && inlineFieldEdit !== false) {
       var editableTypes = ['prescription', 'lab', 'imaging', 'referral'];
       if (editableTypes.indexOf(entity.type) !== -1) {
         setInlineEdit({ chipId: chipId, field: extra.field, fieldRect: extra.fieldRect || rect });
@@ -1222,14 +1228,8 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '1000UI', '2000UI', '5000UI', '10000UI',
       '5mL', '10mL', '15mL', '20mL', '30mL'
     ],
-    frequency: [
-      'DIE', 'BID', 'TID', 'QID', 'HS',
-      'q4h', 'q6h', 'q8h', 'q12h',
-      'q4-6h PRN', 'q6-8h PRN', 'q8-12h PRN',
-      'DIE PRN', 'BID PRN', 'TID PRN', 'Au besoin (PRN)',
-      '1× / semaine', '2× / semaine', '3× / semaine',
-      '1× / 2 semaines', '1× / mois'
-    ],
+    // Mêmes listes que le formulaire (FIELD_OPTIONS, editor-data.jsx — D-04).
+    frequency: window.NOTE_DATA.FIELD_OPTIONS.frequency,
     form: [
       '1 co', '2 co', '½ co', '1½ co', '3 co', '4 co',
       '1 gél', '2 gél',
@@ -1242,9 +1242,7 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '1 supp',
       'Appliquer localement'
     ],
-    route: [
-      'PO', 'SL', 'TD', 'Inhalé', 'Nasal', 'SC', 'IM', 'IV', 'PR', 'Topique', 'Auriculaire', 'Ophtalmique'
-    ],
+    route: window.NOTE_DATA.FIELD_OPTIONS.route,
     duration_refills: [
       '3 jours R0', '5 jours R0', '7 jours R0', '10 jours R0', '14 jours R0',
       '21 jours R0', '28 jours R0',
@@ -1259,12 +1257,8 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       '3 jours', '5 jours', '7 jours', '10 jours', '14 jours', '21 jours', '28 jours',
       '30 jours', '60 jours', '90 jours', '6 mois', '1 an', 'Long terme'
     ],
-    refills: [
-      'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R11', 'R12'
-    ],
-    priority: [
-      'Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'
-    ],
+    refills: window.NOTE_DATA.FIELD_OPTIONS.refills.map(function(r) { return 'R' + r; }),
+    priority: window.NOTE_DATA.FIELD_OPTIONS.priority,
     exam: [
       'Radiographie Thorax', 'Radiographie Genou', 'Radiographie Hanche',
       'Radiographie Cheville', 'Radiographie Poignet', 'Radiographie Colonne',
@@ -1275,13 +1269,7 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       'IRM Genou', 'IRM Épaule', 'IRM Cheville',
       'Mammographie Bilatérale'
     ],
-    specialty: [
-      'Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie',
-      'Neurologie', 'Pneumologie', 'Rhumatologie', 'Endocrinologie',
-      'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie',
-      'ORL', 'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie',
-      'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'
-    ]
+    specialty: window.NOTE_DATA.FIELD_OPTIONS.specialty
   };
   var FIELD_LABELS = {
     dose: 'Dose', frequency: 'Fréquence', form: 'Forme', route: 'Voie', duration_refills: 'Durée / Renouvellements',

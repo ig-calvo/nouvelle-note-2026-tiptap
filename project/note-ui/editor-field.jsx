@@ -858,7 +858,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const d = e.detail || {};
       if (!editorRef.current || d.editor !== editorRef.current) return;
       const rect = chipRect(d.cid);
-      if (rect && onChipClickRef.current) onChipClickRef.current(d.cid, rect, { action: 'modal' });
+      if (!rect || !onChipClickRef.current) return;
+      // Valeur secondaire ciblée au clavier (Tab) : son éditeur inline.
+      if (d.field) onChipClickRef.current(d.cid, rect, { field: d.field, fieldRect: d.fieldRect || rect });
+      else onChipClickRef.current(d.cid, rect, { action: 'modal' });
     }
     window.addEventListener('note:chip-delete-request', onDeleteRequest);
     window.addEventListener('note:chip-open-request', onOpenRequest);

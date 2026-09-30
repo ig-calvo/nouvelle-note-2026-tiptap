@@ -424,6 +424,21 @@ function makeChipNode() { return window.Tiptap.Node.create({
   }
 }); }
 
+// Valeur secondaire d'une puce sélectionnée ciblée au clavier (Tab / ⇧ Tab,
+// lot 8) : { cid, index } dans ses [data-field]. Effacée dès que la
+// sélection quitte la puce (vue du plugin de chipKeys).
+let chipFieldFocus = null;
+function chipFieldEls(editor, cid) {
+  const el = editor.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
+  return el ? Array.prototype.slice.call(el.querySelectorAll('[data-field]')) : [];
+}
+function showChipFieldFocus(editor) {
+  editor.view.dom.querySelectorAll('.chip-field--kbd').forEach(function (el) { el.classList.remove('chip-field--kbd'); });
+  if (!chipFieldFocus) return;
+  const f = chipFieldEls(editor, chipFieldFocus.cid)[chipFieldFocus.index];
+  if (f) f.classList.add('chip-field--kbd');
+}
+
 // Clavier des puces — extension à part, priorité haute : ses raccourcis
 // doivent passer AVANT le keymap de base de Tiptap (deleteSelection
 // effacerait la puce sélectionnée avant qu'on puisse demander quoi en faire).
@@ -472,12 +487,35 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
       if (!cids.length) return false;
       return request({ cids: cids, range: { from: sel.from, to: sel.to } });
     }
+    // Tab / ⇧ Tab sur une puce sélectionnée : passe d'une valeur secondaire à
+    // l'autre (dose, voie, fréquence…) ; Entrée ouvre alors son éditeur. Actif
+    // seulement avec l'édition inline (tweak, D-02) ; les flèches gardent leur
+    // rôle habituel (déplacer le curseur hors de la puce).
+    function moveField(dir) {
+      const chip = selectedChip();
+      if (!chip || chip.attrs.pending || chip.attrs.transmittedAt || window.__INLINE_FIELD_EDIT === false) return false;
+      const n = chipFieldEls(editor, chip.attrs.cid).length;
+      if (!n) return false;
+      const cur = chipFieldFocus && chipFieldFocus.cid === chip.attrs.cid ? chipFieldFocus.index : (dir > 0 ? -1 : n);
+      chipFieldFocus = { cid: chip.attrs.cid, index: (cur + dir + n) % n };
+      showChipFieldFocus(editor);
+      return true;
+    }
     return {
+      Tab: () => moveField(1),
+      'Shift-Tab': () => moveField(-1),
       Backspace: () => remove(-1),
       Delete: () => remove(1),
       Enter: () => {
         const chip = selectedChip();
         if (!chip) return false;
+        if (chipFieldFocus && chipFieldFocus.cid === chip.attrs.cid) {
+          const f = chipFieldEls(editor, chip.attrs.cid)[chipFieldFocus.index];
+          if (f) {
+            window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid, field: f.getAttribute('data-field'), fieldRect: f.getBoundingClientRect() } }));
+            return true;
+          }
+        }
         // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
         // Une puce en attente s'ouvre aussi : on peut la vérifier avant d'accepter.
         window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
@@ -488,7 +526,19 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
   // Taper une lettre sur une puce sélectionnée la remplacerait : le texte va
   // après la puce, qui reste.
   addProseMirrorPlugins() {
+    const editor = this.editor;
     return [new window.Tiptap.pm.Plugin({
+      view: function () {
+        return {
+          update: function (view) {
+            const sel = view.state.selection;
+            if (chipFieldFocus && !(sel.node && sel.node.type.name === 'chip' && sel.node.attrs.cid === chipFieldFocus.cid)) {
+              chipFieldFocus = null;
+              showChipFieldFocus(editor);
+            } else if (chipFieldFocus) showChipFieldFocus(editor); // la puce a pu être redessinée
+          }
+        };
+      },
       props: {
         handleTextInput(view, from, to, text) {
           const sel = view.state.selection;

@@ -264,9 +264,9 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
             <RxFF label="Forme et teneur" value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1.9} />
           </div>
           <div style={rxS.row}>
-            <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={['PO', 'IM', 'IV', 'SC', 'Inhalé', 'SL', 'Top.', 'Rect.']} flex={1.2} />
+            <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={window.NOTE_DATA.FIELD_OPTIONS.route} flex={1.2} />
             <RxSel label="Site" value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder="Site" flex={1.2} />
-            <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={['DIE', 'BID', 'TID', 'QID', 'HS', 'q4-6h PRN', 'QID PRN', 'AC', 'PC']} flex={1.6} />
+            <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={window.NOTE_DATA.FIELD_OPTIONS.frequency} flex={1.6} />
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <input type="checkbox" checked={!!d.prn} onChange={(e) => up('prn', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--mat-sys-primary)' }} />
               PRN
@@ -275,13 +275,13 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
           <div style={rxS.sec}>Durée et renouvellement</div>
           <div style={rxS.row}>
             <RxSel label="Durée" value={d.duration} onChange={(v) => up('duration', v)} options={['7', '10', '14', '21', '30', '60', '90', '180', '365']} flex={1} />
-            <RxSel label="Unité" value={d.durationUnit} onChange={(v) => up('durationUnit', v)} options={['jours', 'semaines', 'mois']} flex={1} />
+            <RxSel label="Unité" value={d.durationUnit} onChange={(v) => up('durationUnit', v)} options={window.NOTE_DATA.FIELD_OPTIONS.durationUnit} flex={1} />
             <RxFF label="Quantité" value={d.quantity} onChange={(v) => up('quantity', v)} placeholder="Quantité" flex={1} />
             <RxSel label="Unité" value={d.quantityUnit} onChange={(v) => up('quantityUnit', v)} options={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} placeholder="Unité" flex={1} />
           </div>
           <div style={rxS.row}>
             {/* Vide = R0 partout dans le prototype (puce, chipIssues) : le formulaire affiche 0. */}
-            <RxSel label="Renouvellement" required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={['0', '1', '2', '3', '4', '5', '6', '11', '12']} flex={1.3} />
+            <RxSel label="Renouvellement" required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={window.NOTE_DATA.FIELD_OPTIONS.refills} flex={1.3} />
             <RxFF label="Fin de traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="Fin de traitement" flex={2} />
             <RxSel label="Mois" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="Mois" flex={2} />
           </div>
@@ -373,6 +373,16 @@ function RxFields({ d, up }) {
     <div className="field"><label>Notes</label><textarea rows={2} value={d.notes} onChange={e => up('notes', e.target.value)} /></div>
   </>);
 }
+// Priorité d'une requête — mêmes valeurs que l'éditeur inline (FIELD_OPTIONS).
+// Vide = Routine, comme sur la puce.
+function PrioritySelect({ value, onChange }) {
+  return (
+    <select value={value || 'Routine'} onChange={e => onChange(e.target.value)}>
+      {window.NOTE_DATA.FIELD_OPTIONS.priority.map((o) => <option key={o}>{o}</option>)}
+    </select>
+  );
+}
+
 // Analyses d'une puce labo : une pastille retirable par analyse (profil ou
 // sélection multiple — on retire celle qu'on ne veut pas, cas d'Antoine
 // Cloutier), et une liste pour en ajouter une du catalogue.
@@ -406,7 +416,7 @@ function LabFields({ d, up }) { return (<>
   {d.profile && <div className="lab-profile-note">Depuis le profil « {d.profile} »</div>}
   <LabTestsField tests={d.tests} onChange={(v) => up('tests', v)} />
   <div className="row">
-    <div className="field"><label>Priorité</label><select value={d.priority} onChange={e=>up('priority', e.target.value)}><option>Routine</option><option>Semi-urgent</option><option>Urgent</option></select></div>
+    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
     <div className="field"><label>À jeun</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">Non</option><option value="oui">Oui</option></select></div>
   </div>
   <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
@@ -415,7 +425,7 @@ function LabFields({ d, up }) { return (<>
 function ImgFields({ d, up }) { return (<>
   <div className="row">
     <div className="field"><label>Modalité</label><select value={d.modality} onChange={e=>up('modality', e.target.value)}><option>Radiographie</option><option>Échographie</option><option>TDM</option><option>IRM</option></select></div>
-    <div className="field"><label>Priorité</label><select value={d.priority} onChange={e=>up('priority', e.target.value)}><option>Routine</option><option>Semi-urgent</option><option>Urgent</option></select></div>
+    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
   <div className="row">
     <div className="field"><label>Région</label><input value={d.region} onChange={e=>up('region', e.target.value)} /></div>
@@ -441,20 +451,12 @@ function RefFields({ d, up }) { return (<>
   <div className="field"><label>Spécialité</label>
     <select value={d.specialty||''} onChange={e=>up('specialty', e.target.value)}>
       <option value="">— Choisir —</option>
-      <option>Cardiologie</option><option>Orthopédie</option><option>Dermatologie</option>
-      <option>Gastroentérologie</option><option>Neurologie</option><option>Pneumologie</option>
-      <option>Rhumatologie</option><option>Endocrinologie</option><option>Néphrologie</option>
-      <option>Urologie</option><option>Gynécologie</option><option>Ophtalmologie</option>
-      <option>ORL</option><option>Chirurgie générale</option><option>Chirurgie vasculaire</option>
-      <option>Hématologie</option><option>Oncologie</option><option>Psychiatrie</option>
-      <option>Gériatrie</option><option>Médecine interne</option>
+      {window.NOTE_DATA.FIELD_OPTIONS.specialty.map((o) => <option key={o}>{o}</option>)}
     </select></div>
   <div className="field"><label>Question clinique</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
   <div className="row">
     <div className="field"><label>Priorité</label>
-      <select value={d.priority||'Routine'} onChange={e=>up('priority', e.target.value)}>
-        <option>Routine</option><option>Semi-urgent</option><option>Urgent</option><option>STAT</option>
-      </select></div>
+      <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
   <div className="field"><label>Indication</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
   <div className="field"><label>CRDS / guichet</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>

@@ -654,6 +654,12 @@
 /* Indice « éditable » : surbrillance claire au survol des segments cliquables */
 .chip--rx .chip-rx-dose:hover,
 .chip--rx .chip-rx-poso > span[data-field]:hover { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 1px #c9c0ef; }
+/* Valeur secondaire ciblée au clavier (Tab sur une puce sélectionnée). */
+.chip--rx .chip-field--kbd { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 2px var(--mat-sys-primary); border-radius: 4px; }
+/* Édition inline désactivée (tweak, portée Q1 2027) : la puce entière ouvre
+   le formulaire, les valeurs ne se signalent plus une à une au survol. */
+html[data-inline-edit="off"] .chip--rx .chip-rx-dose:hover,
+html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { background: transparent; color: inherit; box-shadow: none; }
 /* ℞ icon and lab/img/ref glyph open full modal on click */
 .chip--rx .chip-rx-icon { cursor: pointer; }
 .chip--rx .chip-rx-icon:hover { opacity: 0.75; }

@@ -579,6 +579,23 @@ const ORDER_DEFS = {
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q) { return _searchList(REF_ITEMS, REF_FAVS, q); } },
 };
 
+// Valeurs proposées pour les champs d'une puce — UNE source pour le
+// formulaire (ChipPopover, editor-popover.jsx) et l'éditeur inline d'un champ
+// (ChipInlineEditor, NoteEditor.jsx), D-04 : pas deux systèmes pour la même
+// prescription. Couvre toutes les valeurs du catalogue (tests/field-options).
+const FIELD_OPTIONS = {
+  route: ['PO', 'SL', 'TD', 'Inhalé', 'Nasal', 'SC', 'IM', 'IV', 'PR', 'Topique', 'Auriculaire', 'Ophtalmique'],
+  frequency: ['DIE', 'BID', 'TID', 'QID', 'HS', 'AC', 'PC', 'q4h', 'q6h', 'q8h', 'q12h',
+    'PRN', 'DIE PRN', 'BID PRN', 'TID PRN', 'QID PRN', 'HS PRN', 'q4-6h PRN', 'q6-8h PRN', 'q8-12h PRN',
+    '1× / semaine', '2× / semaine', '3× / semaine', '1× / 2 semaines', '1× / mois'],
+  refills: ['0', '1', '2', '3', '4', '5', '6', '11', '12'],
+  durationUnit: ['jours', 'semaines', 'mois'],
+  priority: ['Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'],
+  specialty: ['Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie', 'Neurologie', 'Pneumologie',
+    'Rhumatologie', 'Endocrinologie', 'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie', 'ORL',
+    'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie', 'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'],
+};
+
 // Profils de laboratoire : un raccourci qui commande plusieurs analyses du
 // catalogue (rencontre inline entity, Antoine Cloutier). Choisir un profil ne
 // crée rien d'office : ses analyses arrivent dans une seule puce labo, et
@@ -844,4 +861,4 @@ const SCENARIOS = [
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchRequests };
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS };
