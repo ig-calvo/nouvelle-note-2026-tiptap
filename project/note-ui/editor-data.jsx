@@ -631,6 +631,8 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
     hideWhenEmpty: true, noteTemplate: 'periodique' },
+  { key: 'tpl-otite', section: 'Gabarits de note', icon: 'hearing', title: 'Otite moyenne aiguë', desc: 'Histoire, examen, conclusion + ordonnance proposée', kbd: 'otite',
+    hideWhenEmpty: true, noteTemplate: 'otite' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -704,6 +706,22 @@ const NOTE_TEMPLATES = [
       { title: 'Examen physique',
         content: 'Signes vitaux : TA _/_, pouls _, poids _ kg, IMC _\nExamen général : ' },
       { title: 'Conclusion', content: 'Impression : Bonne santé générale.\nPlan : ' },
+    ],
+  },
+  // Gabarit avec ajout proposé : `proposals` = éléments inline (ordonnance…)
+  // que le gabarit ne crée pas, il les propose — chip en attente avec ✓ / ✕
+  // (voir buildTemplateBlocks et decoratePendingChip, editor-schema.jsx).
+  // Chaque proposition pointe un item du catalogue { kind, key } (ORDER_DEFS).
+  {
+    key: 'otite', name: 'Otite moyenne aiguë',
+    raison: 'Otalgie',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Depuis : \nOtalgie (côté) : \nFièvre : \nÉcoulement / hypoacousie : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nOtoscopie droite : \nOtoscopie gauche : \nOropharynx : ' },
+      { title: 'Conclusion', content: 'Impression : Otite moyenne aiguë.\nPlan : ',
+        proposals: [{ kind: 'rx', key: 'amox500' }] },
     ],
   },
 ];

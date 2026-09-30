@@ -644,6 +644,22 @@
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
 
+/* Ajout en attente (proposé par un gabarit, pas encore accepté) : même chip,
+   contour en tirets + fond teinté, rien de cliquable sauf ✓ (accepter) et
+   ✕ (refuser). Le contour en tirets n'est pas le seul indice : les deux
+   boutons le disent aussi. */
+.chip--rx.chip--pending { border-style: dashed; padding-right: 4px; cursor: default; background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--rx.chip--pending:hover { background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--pending .chip-rx-icon, .chip--pending .chip-rx-glyph, .chip--pending .chip-rx-dose, .chip--pending .chip-rx-poso > span { cursor: default; }
+.chip--pending .chip-rx-icon:hover, .chip--pending .chip-rx-glyph:hover { opacity: 1; }
+.chip--pending .chip-rx-dose:hover, .chip--pending .chip-rx-poso > span:hover { background: transparent; color: inherit; box-shadow: none; }
+.chip-pending-actions { display: inline-flex; align-items: center; gap: 2px; margin-left: 2px; padding-left: 4px; border-left: 1px solid var(--mat-sys-outline-variant); }
+.chip-pending-btn { width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--mat-sys-corner-small); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); }
+.chip-pending-btn .material-symbols-outlined { font-size: 18px; line-height: 1; }
+.chip-pending-btn--accept { color: var(--mat-sys-primary); }
+.chip-pending-btn:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.chip-pending-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }

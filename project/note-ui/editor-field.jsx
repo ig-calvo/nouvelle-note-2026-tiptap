@@ -684,6 +684,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const chipEl = e.target.closest('.chip[data-cid]');
       if (!chipEl) return;
       e.preventDefault();
+      // Ajout en attente (gabarit) : rien à ouvrir, seuls ✓ / ✕ agissent (click, ci-dessous).
+      if (chipEl.classList.contains('chip--pending')) return;
       const cid = chipEl.getAttribute('data-cid');
       const actionEl = e.target.closest('[data-action]');
       const fieldEl = e.target.closest('[data-field]');
@@ -701,10 +703,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       }
     });
 
+    // ✓ / ✕ d'un chip en attente — sur `click` (pas mousedown) pour que Entrée /
+    // Espace au clavier sur le bouton focalisé marchent aussi.
+    editor.view.dom.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip--pending [data-pending]');
+      if (!btn) return;
+      const cid = btn.closest('.chip[data-cid]').getAttribute('data-cid');
+      if (btn.getAttribute('data-pending') === 'accept') window.acceptPendingChip(editor, cid);
+      else window.rejectPendingChip(editor, cid);
+    });
+
     // Hover menu (Modifier / Prescrire / ⋮) on order chips — show on chip hover,
     // close shortly after the pointer leaves (cancelled if it enters the menu).
     editor.view.dom.addEventListener('mouseover', (e) => {
-      const chipEl = e.target.closest('.chip--rx[data-cid]');
+      const chipEl = e.target.closest('.chip--rx[data-cid]:not(.chip--pending)');
       if (!chipEl) return;
       cancelChipMenuClose();
       const cid = chipEl.getAttribute('data-cid');

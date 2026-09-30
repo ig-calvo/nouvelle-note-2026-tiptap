@@ -19,6 +19,46 @@ function newChipId() { return 'c' + _chipSeq++; }
 // ProseMirror garde une référence stable au `dom` retourné par le NodeView).
 // ---------------------------------------------------------
 function buildChipDom(data, existingEl) {
+  const node = buildChipDomBase(data, existingEl);
+  if (data.pending) decoratePendingChip(node, data);
+  else node.removeAttribute('data-pending'); // le DOM est réutilisé à la mise à jour (accepté)
+  return node;
+}
+
+// Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
+// rendu que le chip réel, mais aucune zone n'est cliquable (plus de
+// data-action / data-field, donc ni édition inline ni modale) et deux
+// boutons — accepter (check) / refuser (close) — s'ajoutent à la fin. Les
+// clics sont traités dans editor-field.jsx (acceptPendingChip / rejectPendingChip).
+function decoratePendingChip(node, data) {
+  node.classList.add('chip--pending');
+  node.setAttribute('data-pending', 'true');
+  node.querySelectorAll('[data-action], [data-field]').forEach(function (el) {
+    el.removeAttribute('data-action');
+    el.removeAttribute('data-field');
+    el.removeAttribute('title');
+  });
+  const name = (data.rx && data.rx.name) || data.label || '';
+  const wrap = document.createElement('span');
+  wrap.className = 'chip-pending-actions';
+  [['accept', 'check', 'Accepter l’ajout'], ['reject', 'close', 'Refuser l’ajout']].forEach(function (a) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip-pending-btn chip-pending-btn--' + a[0];
+    b.setAttribute('data-pending', a[0]);
+    b.setAttribute('aria-label', a[2] + ' : ' + name);
+    b.setAttribute('title', a[2]);
+    const ic = document.createElement('span');
+    ic.className = 'material-symbols-outlined';
+    ic.setAttribute('aria-hidden', 'true');
+    ic.textContent = a[1];
+    b.appendChild(ic);
+    wrap.appendChild(b);
+  });
+  node.appendChild(wrap);
+}
+
+function buildChipDomBase(data, existingEl) {
   const node = existingEl || document.createElement('span');
   while (node.firstChild) node.removeChild(node.firstChild);
   node.className = '';
@@ -153,7 +193,11 @@ function makeChipNode() { return window.Tiptap.Node.create({
       // HTML (parseHTML) : les chips de ce prototype ne sont jamais recréés
       // depuis du HTML collé, seulement depuis du JSON.
       savedAt: { default: null },
-      author: { default: null }
+      author: { default: null },
+      // Ajout proposé par un gabarit, en attente d'acceptation (voir
+      // decoratePendingChip) : ignoré par scanDoc/buildActionLog tant qu'il
+      // n'est pas accepté, effacé s'il est refusé.
+      pending: { default: false }
     };
   },
   parseHTML() {
@@ -182,6 +226,7 @@ function makeChipNode() { return window.Tiptap.Node.create({
     if (node.attrs.rx) attrs['data-rx'] = JSON.stringify(node.attrs.rx);
     if (node.attrs.details) attrs['data-details'] = JSON.stringify(node.attrs.details);
     if (node.attrs.label) attrs['data-label'] = node.attrs.label;
+    if (node.attrs.pending) attrs['data-pending'] = 'true';
     return ['span', window.Tiptap.mergeAttributes({ class: 'ql-chip chip' }, HTMLAttributes, attrs), node.attrs.label || ''];
   },
   addNodeView() {
@@ -191,6 +236,10 @@ function makeChipNode() { return window.Tiptap.Node.create({
       return {
         dom,
         ignoreMutation: () => true,
+        // ✓ / ✕ d'un chip en attente : ProseMirror ne doit pas traiter ces
+        // événements (Entrée y insérerait un saut de ligne au lieu d'activer
+        // le bouton focalisé au clavier).
+        stopEvent: (event) => !!(event.target && event.target.closest && event.target.closest('.chip-pending-btn')),
         update(updatedNode) {
           if (updatedNode.type.name !== 'chip' || updatedNode.attrs.cid !== cid) return false;
           buildChipDom(updatedNode.attrs, dom);
@@ -1510,6 +1559,7 @@ function scanDoc(docJson) {
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
+      if (node.attrs.pending) return; // ajout non accepté : pas encore dans la note
       chips.push({ cid: node.attrs.cid, entity: {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
         text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined
@@ -1598,6 +1648,7 @@ function buildActionLog(docJson) {
   function walk(node) {
     if (!node) return;
     if (node.type === 'chip') {
+      if (node.attrs.pending) return;
       const logType = CHIP_TYPE_TO_LOG[node.attrs.type];
       if (logType) {
         entries.push(Object.assign({
@@ -1858,7 +1909,105 @@ function updateChipEntity(editor, cid, entity) {
   }).run();
 }
 
+// ---------------------------------------------------------
+// Ajouts en attente — un gabarit (NOTE_TEMPLATES, `proposals`) n'applique pas
+// ses éléments inline : il les propose. Chip `pending` = version temporaire,
+// avec ✓ / ✕ (decoratePendingChip). Accepter le crée pour de vrai (même état
+// qu'un chip inséré par « / »), refuser l'efface. Les deux sont annulables
+// (Ctrl+Z) comme toute transaction Tiptap.
+// ---------------------------------------------------------
+
+// Attrs d'un chip d'ordonnance/requête pour un item du catalogue — même
+// résultat que runOrderCommand (editor-field.jsx) pour un ajout normal.
+function orderChipAttrs(kind, item) {
+  const def = window.NOTE_DATA.ORDER_DEFS[kind];
+  const label = (item.name + ' ' + (item.dose || '')).trim();
+  const sig = item.chipSig || item.sig;
+  return {
+    cid: newChipId(), type: def.type, label: label, icon: def.icon, text: label + ' — ' + sig,
+    rx: { name: item.name, dose: item.dose || '', sig: sig, kind: kind, renewal: false },
+    details: item.details || {}
+  };
+}
+
+// { kind: 'rx'|'lab'|'img'|'ref', key } → node chip en attente, ou null si
+// l'item n'existe pas au catalogue.
+function buildPendingChipNode(proposal) {
+  const def = window.NOTE_DATA.ORDER_DEFS[proposal.kind];
+  const item = def && def.items().find(function (it) { return it.key === proposal.key; });
+  if (!item) return null;
+  return { type: 'chip', attrs: Object.assign(orderChipAttrs(proposal.kind, item), { pending: true }) };
+}
+
+// Blocs d'un gabarit de note : titres + paragraphes de chaque section, puis
+// les ajouts proposés (`proposals`) en fin de dernier paragraphe de la
+// section — donc inline, à la suite du texte (« Plan : » + ordonnance).
+function buildTemplateBlocks(tpl) {
+  let blocks = [];
+  (tpl.sections || []).forEach(function (s) {
+    const sec = plainToBlocks(s.title, s.content || '');
+    const nodes = (s.proposals || []).map(buildPendingChipNode).filter(Boolean);
+    if (nodes.length) {
+      const last = sec[sec.length - 1];
+      const inline = [];
+      nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });
+      if (last && last.type === 'paragraph') last.content = (last.content || []).concat(inline);
+      else sec.push({ type: 'paragraph', content: inline });
+    }
+    blocks = blocks.concat(sec);
+  });
+  return blocks;
+}
+
+function acceptPendingChip(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  if (pos < 0) return;
+  editor.chain().focus().command(function (props) {
+    props.tr.setNodeMarkup(pos, undefined, Object.assign({}, props.tr.doc.nodeAt(pos).attrs, {
+      pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
+    }));
+    return true;
+  }).run();
+}
+
+// Efface le chip, et l'espace qui le suivait si le texte d'avant finit déjà
+// par un espace (ou si le chip ouvre son paragraphe) — sinon « Plan :  ».
+function rejectPendingChip(editor, cid) {
+  const pos = findChipPos(editor, cid);
+  if (pos < 0) return;
+  editor.chain().focus().command(function (props) {
+    const doc = props.tr.doc, node = doc.nodeAt(pos);
+    let to = pos + node.nodeSize;
+    const before = doc.textBetween(Math.max(doc.resolve(pos).start(), pos - 1), pos);
+    const after = doc.textBetween(to, Math.min(doc.resolve(to).end(), to + 1));
+    if (after === ' ' && (before === '' || before === ' ')) to += 1;
+    props.tr.delete(pos, to);
+    return true;
+  }).run();
+}
+
+// Doc sans ses chips en attente — ce qui n'a pas été accepté n'entre pas dans
+// la note complétée. Ne modifie pas le doc reçu.
+function stripPendingChips(docJson) {
+  function walk(node) {
+    if (!node || !node.content) return node;
+    const content = [];
+    node.content.forEach(function (c) {
+      if (c.type === 'chip' && c.attrs && c.attrs.pending) return;
+      content.push(walk(c));
+    });
+    return Object.assign({}, node, { content: content });
+  }
+  return walk(docJson);
+}
+
 Object.assign(window, {
+  orderChipAttrs,
+  buildPendingChipNode,
+  buildTemplateBlocks,
+  acceptPendingChip,
+  rejectPendingChip,
+  stripPendingChips,
   makeSectionSplitNode,
   moveSplitToSlot,
   currentSplitSlot,

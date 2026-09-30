@@ -240,19 +240,17 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     return function() { window.removeEventListener('ct-picker-open', onPickerOpen); };
   }, []);
 
-  // Gabarit de note (/virus, /itu, /periodique — editor-data.jsx NOTE_TEMPLATES) :
+  // Gabarit de note (/virus, /itu, /periodique, /otite — editor-data.jsx NOTE_TEMPLATES) :
   // règle structure + sections (Titre 2 + paragraphes) + outil clinique en un
-  // geste. Note vierge → remplace tout le doc ; note déjà amorcée → ajoute à
+  // geste. Les éléments inline d'un gabarit (`proposals`) arrivent en attente
+  // (chip pending, ✓ / ✕), jamais appliqués d'office. Note vierge → remplace tout le doc ; note déjà amorcée → ajoute à
   // la suite pour ne rien écraser.
   React.useEffect(function() {
     function onApplyTemplate(e) {
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
-      var blocks = [];
-      (tpl.sections || []).forEach(function(s) {
-        blocks = blocks.concat(window.plainToBlocks(s.title, s.content || ''));
-      });
+      var blocks = window.buildTemplateBlocks(tpl);
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
@@ -688,7 +686,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // TransmissionModal (NoteActionPanel) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
-    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
+    // Un ajout proposé par un gabarit et jamais accepté n'entre pas dans la note complétée.
+    var doc = window.stripPendingChips(window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC())));
     var stats = window.scanDoc(doc);
     var data = {
       raison: raison,
