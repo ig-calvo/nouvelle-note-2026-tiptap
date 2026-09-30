@@ -293,6 +293,84 @@ function makeChipNode() { return window.Tiptap.Node.create({
   }
 }); }
 
+// Clavier des puces — extension à part, priorité haute : ses raccourcis
+// doivent passer AVANT le keymap de base de Tiptap (deleteSelection
+// effacerait la puce sélectionnée avant qu'on puisse demander quoi en faire).
+function makeChipKeysExtension() { return window.Tiptap.Extension.create({
+  name: 'chipKeys',
+  priority: 1000,
+  // D-05 — une puce ne disparaît jamais d'un coup au clavier :
+  // - Backspace juste après une puce (Delete juste avant) la sélectionne ;
+  // - Backspace / Delete sur une puce sélectionnée demande quoi en faire
+  //   (note:chip-delete-request → dialogue « Garder en texte / Supprimer »,
+  //   editor-field.jsx) ; une puce en attente (gabarit) est refusée sans
+  //   dialogue, ce n'est pas encore une entité ;
+  // - une sélection de texte qui contient des puces demande confirmation ;
+  // - Entrée sur une puce sélectionnée ouvre ses détails.
+  addKeyboardShortcuts() {
+    const editor = this.editor;
+    function selectedChip() {
+      const sel = editor.state.selection;
+      return sel.node && sel.node.type.name === 'chip' ? sel.node : null;
+    }
+    function chipsIn(from, to) {
+      const out = [];
+      editor.state.doc.nodesBetween(from, to, function (node) {
+        if (node.type.name === 'chip' && !node.attrs.pending) out.push(node.attrs.cid);
+      });
+      return out;
+    }
+    function request(detail) {
+      window.dispatchEvent(new CustomEvent('note:chip-delete-request', { detail: Object.assign({ editor: editor }, detail) }));
+      return true;
+    }
+    function remove(dir) {
+      const chip = selectedChip();
+      if (chip) {
+        if (chip.attrs.pending) { window.rejectPendingChip(editor, chip.attrs.cid); return true; }
+        return request({ cid: chip.attrs.cid });
+      }
+      const sel = editor.state.selection;
+      if (sel.empty) {
+        const $pos = sel.$from;
+        const next = dir < 0 ? $pos.nodeBefore : $pos.nodeAfter;
+        if (!next || next.type.name !== 'chip') return false;
+        return editor.commands.setNodeSelection(dir < 0 ? $pos.pos - next.nodeSize : $pos.pos);
+      }
+      const cids = chipsIn(sel.from, sel.to);
+      if (!cids.length) return false;
+      return request({ cids: cids, range: { from: sel.from, to: sel.to } });
+    }
+    return {
+      Backspace: () => remove(-1),
+      Delete: () => remove(1),
+      Enter: () => {
+        const chip = selectedChip();
+        if (!chip) return false;
+        // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
+        if (!chip.attrs.pending) window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
+        return true;
+      }
+    };
+  },
+  // Taper une lettre sur une puce sélectionnée la remplacerait : le texte va
+  // après la puce, qui reste.
+  addProseMirrorPlugins() {
+    return [new window.Tiptap.pm.Plugin({
+      props: {
+        handleTextInput(view, from, to, text) {
+          const sel = view.state.selection;
+          if (!(sel.node && sel.node.type.name === 'chip')) return false;
+          const tr = view.state.tr.insertText(text, sel.to);
+          tr.setSelection(window.Tiptap.pm.TextSelection.create(tr.doc, sel.to + text.length));
+          view.dispatch(tr);
+          return true;
+        }
+      }
+    })];
+  },
+}); }
+
 // ---------------------------------------------------------
 // ReferenceNode — passage cité depuis une note antérieure complétée. Bloc
 // atomique non-éditable, insertion en un geste (jamais édité en place).
@@ -1485,6 +1563,7 @@ function buildEditorExtensions(placeholder) {
     }),
     makeLockedHeadingExtension(),
     makeChipNode(),
+    makeChipKeysExtension(),
     makeReferenceNode(),
     makeDiagnosticRegionNode(),
     makeDiagnosticRefNode(),
