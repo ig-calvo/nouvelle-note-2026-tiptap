@@ -89,6 +89,27 @@ function chipIssues(a) {
   return out;
 }
 
+// Statuts d'une puce, dans l'ordre d'affichage : { kind, text | icon, title }.
+//   ceased     « Cesser » — cessation d'un médicament (rx.ceased)
+//   renewal    icône ⟳ — renouvellement d'un médicament au dossier (rx.renewal)
+//   incomplete « Incomplet » — champs requis vides (chipIssues)
+//   pending    « En suspens » — ajout proposé, pas encore accepté (Q-26 : sens
+//              à confirmer ; masqué par le tweak « Badge En suspens »)
+// Une puce annulée n'en a pas (son badge « Annulée » vient de decorateSentChip).
+function chipStatusBadges(a) {
+  if (!a || a.cancelledAt) return [];
+  const out = [];
+  const rx = a.rx || {};
+  if (a.type === 'prescription') {
+    if (rx.ceased) out.push({ kind: 'ceased', text: 'Cesser', title: 'Cessation du médicament' });
+    else if (rx.renewal) out.push({ kind: 'renewal', icon: 'autorenew', title: 'Renouvellement' });
+  }
+  const incomplete = chipIssues(a).filter(function (i) { return i.kind === 'incomplete'; })[0];
+  if (incomplete) out.push({ kind: 'incomplete', text: 'Incomplet', title: incomplete.message });
+  if (a.pending) out.push({ kind: 'pending', text: 'En suspens', title: (a.proposedBy ? 'Proposé par ' + a.proposedBy : 'Ajout proposé') + ' : en attente d’acceptation' });
+  return out;
+}
+
 // Classes et icônes de fin de puce : état (erreur / avertissement), puis
 // commentaire. La double coche « Transmis » vient après (decorateSentChip).
 function decorateChipStates(node, data) {
@@ -96,17 +117,29 @@ function decorateChipStates(node, data) {
   const kinds = issues.map(function (i) { return i.kind; });
   if (kinds.indexOf('interaction') >= 0) node.classList.add('chip--interaction');
   if (issues.some(function (i) { return i.level === 'error' && i.kind !== 'transmission'; })) node.classList.add('chip--error');
-  // Prescription incomplète : badge « Incomplet » avant la valeur principale
-  // (les champs à préciser sont déjà dans la puce) ; le message est dans le
-  // badge, pas dans une icône de fin de puce.
-  const incomplete = issues.filter(function (i) { return i.kind === 'incomplete'; })[0];
-  if (incomplete) {
+  // Badges de statut entre l'icône et la valeur principale (anatomie du
+  // composant « Inline item » du Figma) : Cesser / Renouveler, Incomplet, En
+  // suspens. Le texte d'un badge est son nom accessible ; son message est dans
+  // l'infobulle. Les champs à préciser se lisent dans la puce même.
+  chipStatusBadges(data).forEach(function (b, i) {
     const tag = document.createElement('span');
-    tag.className = 'chip-status chip-status--incomplete';
-    tag.textContent = 'Incomplet';
-    tag.setAttribute('title', incomplete.message); // le texte du badge est son nom accessible ; les champs à préciser se lisent dans la puce
-    node.insertBefore(tag, node.children[1] || null);
-  }
+    tag.className = 'chip-status chip-status--' + b.kind;
+    tag.setAttribute('title', b.title);
+    if (b.icon) {
+      // Badge d'icône seule : l'icône n'a pas de texte, le badge porte le nom.
+      tag.classList.add('chip-status--icon');
+      tag.setAttribute('role', 'img');
+      tag.setAttribute('aria-label', b.title);
+      const g = document.createElement('span');
+      g.className = 'material-symbols-outlined';
+      g.setAttribute('aria-hidden', 'true');
+      g.textContent = b.icon;
+      tag.appendChild(g);
+    } else {
+      tag.textContent = b.text;
+    }
+    node.insertBefore(tag, node.children[1 + i] || null);
+  });
   const iconIssues = issues.filter(function (i) { return i.kind !== 'incomplete'; });
   if (iconIssues.length) {
     const worst = iconIssues.some(function (i) { return i.level === 'error'; }) ? 'error' : 'warning';
@@ -333,7 +366,7 @@ function buildChipDomBase(data, existingEl) {
           poso.appendChild(s);
         });
         node.appendChild(poso);
-      } else if (data.rx.sig) {
+      } else if (data.rx.sig && !data.rx.ceased) { // cessée : le badge « Cesser » dit déjà « Cessé »
         const sg = document.createElement('span');
         sg.className = 'chip-rx-poso';
         sg.textContent = data.rx.sig;
@@ -2681,7 +2714,7 @@ Object.assign(window, {
   getChipEntity,
   stampChips,
   chipAttrs,
-  chipIssues, rxChipSegments,
+  chipIssues, chipStatusBadges, rxChipSegments,
   chipPrintText,
   separateAdjacentChips,
   formatChipStamp,

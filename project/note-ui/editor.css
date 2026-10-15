@@ -604,10 +604,8 @@
 /* Inline order chip (℞/lab/img · Name dose · [detail box] · free text) */
 .chip--rx { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; }
 .chip--rx:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
-/* Cessation d'une médication au dossier — distincte d'une nouvelle Rx */
-.chip--rx.chip--ceased { background: var(--mat-sys-error-container); border-color: var(--mat-sys-error); }
-.chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: var(--mat-sys-error); }
-.chip--rx.chip--ceased .chip-rx-poso { color: var(--mat-sys-on-error-container); font-weight: 500; }
+/* Cessation d'une médication au dossier : badge « Cesser » avant le nom (statuts,
+   chipStatusBadges), comme le Figma — plus de fond rouge ni de nom barré. */
 /* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
    (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
    l'icône, valeurs barrées. */
@@ -624,7 +622,14 @@
 .popover fieldset:disabled { opacity: 0.72; }
 .chip-sent-icon { font-size: 16px; line-height: 1; color: light-dark(#39604d, #b9d5c7); margin-left: 2px; }
 .chip-status { font: 600 12px var(--font-body); padding: 0 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); line-height: 18px; }
-.chip-status--cancelled, .chip-status--incomplete { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+.chip-status--cancelled, .chip-status--incomplete, .chip-status--ceased { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+/* Renouveler : badge d'icône seule, ton primaire ; En suspens : ton secondaire. */
+.chip-status--renewal { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+.chip-status--pending { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.chip-status--icon { display: inline-flex; align-items: center; padding: 0 2px; }
+.chip-status--icon .material-symbols-outlined { font-size: 16px; line-height: 18px; }
+/* Tweak « Badge En suspens » (html[data-pending-badge], posé par NoteEditor). */
+html:not([data-pending-badge="on"]) .chip-status--pending { display: none; }
 /* Champ requis vide (rxChipSegments) : espace réservé souligné à sa place dans
    la puce ; le premier est entouré (Figma « Prescription incomplète »). */
 .chip--rx .chip-missing { color: var(--mat-sys-error); text-decoration: underline; text-underline-offset: 2px; }

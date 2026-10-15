@@ -3,7 +3,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false }) {
+  aiProposals = false, pendingBadge = true }) {
+  // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
+  React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
   // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
   // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
