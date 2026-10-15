@@ -78,8 +78,13 @@ var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', 
 // addToNote (tweak « Le « + » du sommaire ajoute dans la note », piste de
 // vision — rencontre inline entity, Xavier Boilard) : pour Problèmes et
 // Antécédents, le « + » ouvre la recherche de diagnostic DANS la note
-// (note:summary-add, NoteEditor.jsx) au lieu de l'ancienne modale.
-var SUMMARY_TO_NOTE = { problems: 'probleme', history: 'antecedent' };
+// (note:summary-add, NoteEditor.jsx) au lieu de l'ancienne modale. Pour
+// Médications (lot 6 du plan « Prescription inline »), qui n'avait pas de « + »,
+// il ouvre la recherche de médication « /rx » dans la note — le Figma
+// (« Ajouter une prescription depuis le sommaire ») y prescrit par défaut.
+// Ce que le « + » d'une boîte fait dans la note : NOTE_DATA.summaryAddDetail
+// (editor-data.jsx), { documentAs } pour /dx, { command } pour /rx, null pour
+// l'ancienne modale.
 function Summary({ addToNote }) {
   var [data, setData] = React.useState(INIT_DATA);
   var [modal, setModal] = React.useState(null);   // { section, type:'add'|'list' }
@@ -295,9 +300,11 @@ function Summary({ addToNote }) {
               onDragEnd={function(){ setDragSrc(null); }}
               onNoteDragStart={function(e){ startNoteDrag(e, cfg, items); }}
               onNoteDragEnd={endNoteDrag}
+              canAdd={cfg.add || (!!addToNote && !!window.NOTE_DATA.summaryAddDetail(cfg.id))}
               onAdd={function(){
-                if (addToNote && SUMMARY_TO_NOTE[cfg.id]) {
-                  window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { documentAs: SUMMARY_TO_NOTE[cfg.id] } }));
+                var addDetail = addToNote ? window.NOTE_DATA.summaryAddDetail(cfg.id) : null;
+                if (addDetail) {
+                  window.dispatchEvent(new CustomEvent('note:summary-add', { detail: addDetail }));
                   return;
                 }
                 setModal({ section:cfg.id, type:'add' });
@@ -317,7 +324,7 @@ function Summary({ addToNote }) {
   );
 }
 
-function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, onAdd, onTitle }) {
+function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, canAdd, onAdd, onTitle }) {
   pending = pending || [];
   // Réordonnancement actif uniquement en mode `reorder`. Sinon ces handlers NE
   // doivent PAS exister : le dragstart du <span> « Glisser vers la note » remonte
@@ -350,7 +357,7 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
             <span className="material-icons" style={{ fontSize:20 }}>more_vert</span>
           </button>
         )}
-        {cfg.add && (
+        {canAdd && (
           <button style={suS.addBtn} onClick={onAdd} title="Ajouter">
             <span className="material-icons" style={{ fontSize:20 }}>add</span>
           </button>
