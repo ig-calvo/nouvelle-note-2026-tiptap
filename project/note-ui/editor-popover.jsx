@@ -832,7 +832,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, documentMention, documenting, onToggleDocument }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -862,6 +862,15 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
 
   return (
     <div className="rx-menu" ref={ref} style={position} role="listbox">
+      {documentMention &&
+        <div className="rx-menu__bar">
+          <span>{documenting ? 'Ajoute au profil, sans prescrire' : 'Prescrire, renouveler, cesser'}</span>
+          <button type="button" role="switch" aria-checked={!!documenting} className={'rx-switch' + (documenting ? ' is-on' : '')}
+            title="Documenter : ajouter la médication au profil sans prescrire"
+            onMouseDown={(e) => e.preventDefault()} onClick={onToggleDocument}>
+            <span className="rx-switch__track"><span className="rx-switch__thumb" /></span>Documenter
+          </button>
+        </div>}
       <div className="rx-menu__scroll">
         {total === 0 &&
           <div className="rx-empty">Aucun {d.emptyNoun} trouvé{query ? <> pour « {query} »</> : null}.</div>
@@ -880,7 +889,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   className={'rx-item' + (idx === activeIndex ? ' is-active' : '') + (multi && checkedKeys.indexOf(uid(it)) >= 0 ? ' is-checked' : '')}
                   onMouseEnter={() => onHover(idx)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, window.NOTE_DATA.defaultMedAction(it)))}>
+                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, documenting ? 'documenter' : window.NOTE_DATA.defaultMedAction(it)))}>
                   {multi &&
                     <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
                       aria-label={(checkedKeys.indexOf(uid(it)) >= 0 ? 'Décocher ' : 'Cocher ') + it.name}
@@ -898,29 +907,36 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   <div className="rx-item__actions">
                     {it.med
                       ? <span className="rx-med-actions">
-                          {medActs.indexOf('renouveler') >= 0 &&
+                          {documenting && <span className="rx-med-hint">Documenter</span>}
+                          {!documenting && medActs.indexOf('renouveler') >= 0 &&
                             <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
                               <span className="material-icons-outlined">refresh</span>
                             </button>}
-                          {medActs.indexOf('ajuster') >= 0 &&
+                          {!documenting && medActs.indexOf('ajuster') >= 0 &&
                             <button type="button" className="rx-med-btn" title="Ajuster la posologie"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
                               <span className="material-icons-outlined">tune</span>
                             </button>}
-                          {medActs.indexOf('cesser') >= 0 &&
+                          {!documenting && medActs.indexOf('cesser') >= 0 &&
                             <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
                               <span className="material-icons-outlined">block</span>
                             </button>}
-                          {medActs.indexOf('prescrire') >= 0 &&
+                          {!documenting && medActs.indexOf('prescrire') >= 0 &&
                             <button type="button" className="rx-med-btn rx-med-btn--text" title="Prescrire une nouvelle ordonnance pour ce médicament"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
                               Prescrire
+                            </button>}
+                          {documentMention && !documenting &&
+                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Mentionner cette médication dans la note, sans prescrire"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'mentionner'); }}>
+                              Mentionner
                             </button>}
                         </span>
                       : noFav ? null

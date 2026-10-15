@@ -148,7 +148,7 @@ function Summary({ addToNote }) {
   // Un diagnostic suit son propre mécanisme (dxOverlay/dxView ci-dessus),
   // pas cette liste générique.
   React.useEffect(function() {
-    var MAP = { prescription:'meds', problem:'problems', lab:'results', imaging:'results' };
+    var MAP = { prescription:'meds', medication:'meds', problem:'problems', lab:'results', imaging:'results' };
     function onItems(e) {
       var list = (e.detail && e.detail.items) || [];
       var grouped = {};

@@ -606,6 +606,17 @@
 .chip--rx:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
 /* Cessation d'une médication au dossier : badge « Cesser » avant le nom (statuts,
    chipStatusBadges), comme le Figma — plus de fond rouge ni de nom barré. */
+/* Médication documentée ou mentionnée (lot 4) : puce documentaire, icône neutre,
+   statut au profil en texte ; rien à envoyer. */
+.chip--med { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; cursor: default; }
+.chip--med .chip-med-icon { font-size: 16px; line-height: 1; color: var(--mat-sys-on-surface-variant); }
+.chip--med .chip-rx-name { font-weight: 500; font-size: 14px; padding: 0 0 0 2px; }
+.chip--med .chip-rx-dose { font-weight: 500; font-size: 14px; color: var(--fg-2); }
+.chip--med .chip-rx-poso { font-weight: 500; font-size: 12px; color: var(--fg-3); }
+.chip--med-doc { border-style: dashed; }
+.chip-med-status { font: 500 12px var(--font-body); }
+.chip-med-status--ceased { color: var(--mat-sys-error); }
+.chip-med-status--echue { color: light-dark(#7a5200, #e9cca5); }
 /* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
    (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
    l'icône, valeurs barrées. */
@@ -752,6 +763,14 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-med-btn--stop:hover { background: rgba(211,47,47,0.10); color: light-dark(#d32f2f, #e9a5a5); }
 /* « Prescrire » (échu, cessé) : bouton texte, une nouvelle ordonnance sur ce médicament. */
 .rx-med-btn--text { padding: 4px 8px; font: 600 12px/16px var(--font-body); color: var(--mat-sys-primary); }
+/* Documenter / Mentionner (tweak documentMention) : bandeau et bascule en tête du menu /rx. */
+.rx-menu__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; color: var(--fg-3); }
+.rx-switch { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; cursor: pointer; font: 600 13px var(--font-body); color: var(--mat-sys-on-surface); padding: 2px 4px; border-radius: 6px; }
+.rx-switch__track { width: 36px; height: 20px; border-radius: 10px; background: var(--mat-sys-outline-variant); position: relative; transition: background 120ms; }
+.rx-switch__thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left 120ms; }
+.rx-switch.is-on .rx-switch__track { background: var(--mat-sys-primary); }
+.rx-switch.is-on .rx-switch__thumb { left: 18px; }
+.rx-med-hint { font: 600 12px/16px var(--font-body); color: var(--fg-3); padding: 4px 8px; }
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }

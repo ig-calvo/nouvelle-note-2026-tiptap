@@ -137,6 +137,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
       return;
     }
+    // Documenter / Mentionner (lot 4) : une puce documentaire, sans prescription.
+    if ((action === 'documenter' || action === 'mentionner') && kind === 'rx' && item) {
+      const attrs = Object.assign(window.medicationChipAttrs(item, action === 'documenter' ? 'document' : 'mention'),
+        { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+      editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
+      return;
+    }
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
     if (!def || !item) return;
     const chipId = window.newChipId();
@@ -304,6 +311,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // /req, /lab, /img) : items cochés, gardés quand la recherche change,
     // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
     let checked = [];
+    let documenting = false; // bascule « Documenter » du menu /rx (tweak documentMention)
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
     function toggleChecked(it, kind) {
       const u = checkUid(it, kind);
@@ -377,7 +385,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
-        setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+        setSlash({ mode: 'order', kind: parsed.kind, documenting: documenting, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -399,6 +407,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = [];
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
+        documenting = false;
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -469,7 +478,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
             if (it) {
-              slashCommandRef.current({ __order: true, item: it, action: window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
+              const documentIt = documenting && window.__DOC_MENTION && parsed.kind === 'rx'; // Documenter (lot 4)
+              slashCommandRef.current({ __order: true, item: it, action: documentIt ? 'documenter' : window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
           } else {
             const it = currentItems[selectedIndex];
@@ -485,7 +495,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // générique garde son texte (« Échap pour écrire en texte libre »).
         const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
         const range = currentRange, query = lastQuery;
-        checked = []; window.__DX_DOCUMENT_AS = null;
+        checked = []; documenting = false; window.__DX_DOCUMENT_AS = null;
         window.NOTE_DATA.endOrderSearch();
         setSlash(null);
         if (abandoned) removeAbandonedSearch(range, query);
@@ -500,6 +510,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
+      // Bascule « Documenter » du menu /rx (lot 4) : la sélection ajoute au profil sans prescrire.
+      toggleDocument() { documenting = !documenting; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
       // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
@@ -1197,6 +1209,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           checked={slash.checked || []}
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
+          documentMention={!!window.__DOC_MENTION && slash.kind === 'rx'}
+          documenting={!!slash.documenting}
+          onToggleDocument={() => { if (slashApiRef.current) slashApiRef.current.toggleDocument(); }}
           onClose={() => setSlash(null)} />
       }
 
