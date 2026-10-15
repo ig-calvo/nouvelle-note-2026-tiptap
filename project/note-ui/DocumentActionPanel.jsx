@@ -11,13 +11,14 @@
 // Seul appelant : TransmissionModal.jsx.
 // =========================================================
 
-// Trois variantes de ligne de prescription (plan V7 §G) — la variante est
+// Quatre variantes de ligne de prescription (plan V7 §G, plus l'ajustement de dose) — la variante est
 // calculée dans buildTransmissionDocs (NoteEditor.jsx), pas ici : le panneau
 // ne connaît pas le modèle Tiptap.
 const DAP_VARIANT = {
   nouvelle:       { icon: 'info', color: 'var(--mat-sys-primary)' },
   renouvellement: { icon: 'history', color: 'light-dark(#a15c00, #e9cca5)' },
   cessation:      { icon: 'cancel', color: 'light-dark(#b3261e, #e9a9a5)' },
+  ajustement:     { icon: 'swap_vert', color: 'light-dark(#a15c00, #e9cca5)' },
 };
 
 // Section repliable de la colonne « contenu ».

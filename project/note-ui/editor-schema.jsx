@@ -92,6 +92,7 @@ function chipIssues(a) {
 // Statuts d'une puce, dans l'ordre d'affichage : { kind, text | icon, title }.
 //   ceased     « Cesser » — cessation d'un médicament (rx.ceased)
 //   renewal    icône ⟳ — renouvellement d'un médicament au dossier (rx.renewal)
+//   adjust     icône ↑ / ↓ — dose augmentée ou diminuée d'un palier (rx.adjust) ; remplace ⟳
 //   incomplete « Incomplet » — champs requis vides (chipIssues)
 //   pending    « En suspens » — ajout proposé, pas encore accepté (Q-26 : sens
 //              à confirmer ; masqué par le tweak « Badge En suspens »)
@@ -102,6 +103,8 @@ function chipStatusBadges(a) {
   const rx = a.rx || {};
   if (a.type === 'prescription') {
     if (rx.ceased) out.push({ kind: 'ceased', text: 'Cesser', title: 'Cessation du médicament' });
+    else if (rx.adjust) out.push({ kind: 'adjust', icon: rx.adjust === 'up' ? 'arrow_upward' : 'arrow_downward',
+      title: (rx.adjust === 'up' ? 'Dose augmentée' : 'Dose diminuée') + (rx.adjustFrom ? ' : ' + rx.adjustFrom + ' → ' + rx.dose : '') });
     else if (rx.renewal) out.push({ kind: 'renewal', icon: 'autorenew', title: 'Renouvellement' });
   }
   const incomplete = chipIssues(a).filter(function (i) { return i.kind === 'incomplete'; })[0];
@@ -181,6 +184,7 @@ function chipPrintText(a) {
   let status = '';
   if (a.cancelledAt) status = 'Annulée';
   else if (rx.ceased) status = 'Cessée';
+  else if (rx.adjust) status = rx.adjust === 'up' ? 'Augmentée' : 'Diminuée';
   else if (rx.renewal) status = 'Renouvelée';
   let main = '', second = '';
   if (a.type === 'prescription') {
@@ -1964,7 +1968,7 @@ function parseSlashQuery(query) {
 // Aplatit {profil?, favoris, frequents, autres} dans l'ordre de rendu de
 // RxMenu — sert de liste unique pour la navigation clavier (↑↓/Entrée).
 function flattenRxResults(r) {
-  return (r.profil || []).concat(r.favoris || [], r.frequents || [], r.autres || []);
+  return (r.profil || []).concat(r.favoris || [], r.frequents || [], r.autres || [], r.gabarits || []);
 }
 
 // ---------------------------------------------------------
@@ -2250,9 +2254,9 @@ function buildTransmissionDocs(docStats, txState, opts) {
     }
     var rx = ent.rx || {};
     var ceased = !!rx.ceased;
-    // Trois variantes de ligne de prescription au checkout (plan V7 §G) :
-    // nouvelle, renouvellement (médication déjà au dossier), cessation.
-    var variant = ceased ? 'cessation' : (rx.renewal ? 'renouvellement' : 'nouvelle');
+    // Variantes de ligne de prescription au checkout (plan V7 §G) : nouvelle,
+    // renouvellement (médication déjà au dossier), ajustement de dose, cessation.
+    var variant = ceased ? 'cessation' : (rx.adjust ? 'ajustement' : (rx.renewal ? 'renouvellement' : 'nouvelle'));
     // Mêmes états que sur la puce (chipIssues) : le checkout les montre, et un
     // état bloquant (prescription incomplète) empêche de compléter le document.
     var issues = chipIssues(ent);

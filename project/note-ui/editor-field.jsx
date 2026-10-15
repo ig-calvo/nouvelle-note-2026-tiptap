@@ -115,6 +115,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // (sélection normale), ou 'renouveler'/'ajuster'/'cesser' (médication au
   // dossier) — voir runOrderCommand.
   function chooseOrderItem(it, action) {
+    // Ligne du filtre « Gabarits » : c'est l'item du menu « / », on applique le gabarit.
+    if (it && it.noteTemplate) { if (slashCommandRef.current) slashCommandRef.current(it); return; }
     if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
   }
 
@@ -146,28 +148,33 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
     if (!def || !item) return;
+    // Augmenter / diminuer (Figma, menu /rx) : la même médication, sa dose d'un
+    // palier plus haut ou plus bas (adjustMedDose). `src` est alors l'item à
+    // prescrire ; sans palier (déjà au bout de l'échelle), rien ne se passe.
+    let src = item, adjust = null;
+    if (kind === 'rx' && (action === 'augmenter' || action === 'diminuer')) {
+      adjust = window.NOTE_DATA.adjustMedDose(item, action === 'augmenter' ? 'up' : 'down');
+      if (!adjust) return;
+      src = adjust.item;
+    }
     const chipId = window.newChipId();
-    const label = (item.name + ' ' + (item.dose || '')).trim();
+    const label = (src.name + ' ' + (src.dose || '')).trim();
     const isCeasing = action === 'cesser' && kind === 'rx';
-    const itemDetails = isCeasing ? {} : (item.details || {});
+    const itemDetails = isCeasing ? {} : (src.details || {});
     // `renewal` distingue le renouvellement d'une médication déjà au dossier
     // d'une nouvelle prescription : les deux produisent le même chip, mais le
-    // checkout les affiche avec une icône différente (plan V7 §G).
+    // checkout les affiche avec une icône différente (plan V7 §G). Un
+    // ajustement de dose est un renouvellement à une autre dose (`adjust`).
     const rx = isCeasing
-      ? { name: item.name, dose: item.dose || '', sig: 'Cessé', kind: kind, ceased: true }
-      : { name: item.name, dose: item.dose || '', sig: item.chipSig || item.sig, kind: kind,
-          renewal: action === 'renouveler' };
-    const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (item.chipSig || item.sig);
+      ? { name: src.name, dose: src.dose || '', sig: 'Cessé', kind: kind, ceased: true }
+      : { name: src.name, dose: src.dose || '', sig: src.chipSig || src.sig, kind: kind,
+          renewal: action === 'renouveler' || !!adjust,
+          adjust: adjust ? adjust.dir : undefined, adjustFrom: adjust ? (item.dose || '') : undefined };
+    const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (src.chipSig || src.sig);
     editor.chain().focus().insertContentAt(range, [
       { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
     ]).run();
-    if (action === 'ajuster') {
-      requestAnimationFrame(function () {
-        const node = editor.view.dom.querySelector('[data-cid="' + chipId + '"]');
-        if (node && onChipClickRef.current) onChipClickRef.current(chipId, node.getBoundingClientRect(), { action: 'modal' });
-      });
-    }
   }
 
   // Crée (bientôt aussi : Reprend/Remplace/Cesse — dx-picker.jsx) une région
@@ -385,7 +392,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
-        setSlash({ mode: 'order', kind: parsed.kind, documenting: documenting, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+        // La liste navigable est la liste affichée (le filtre du rail la change sans
+        // que le plugin « / » ne la recalcule).
+        currentItems = window.flattenRxResults(results);
+        selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
+        setSlash({ mode: 'order', kind: parsed.kind, documenting: documenting,
+          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
+          counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -408,6 +421,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
         documenting = false;
+        window.NOTE_DATA.setRxFilter('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -477,7 +491,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
-            if (it) {
+            if (it && it.noteTemplate) {
+              slashCommandRef.current(it); // filtre « Gabarits » : on applique le gabarit
+            } else if (it) {
               const documentIt = documenting && window.__DOC_MENTION && parsed.kind === 'rx'; // Documenter (lot 4)
               slashCommandRef.current({ __order: true, item: it, action: documentIt ? 'documenter' : window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
@@ -512,6 +528,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       republish() { publish(lastQuery); },
       // Bascule « Documenter » du menu /rx (lot 4) : la sélection ajoute au profil sans prescrire.
       toggleDocument() { documenting = !documenting; publish(lastQuery); },
+      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Gabarits.
+      setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
       // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
@@ -1197,7 +1215,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
         <RxMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - 476)), zIndex: 60 }}
+          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.kind === 'rx' ? 696 : 476))), zIndex: 60 }}
           kind={slash.kind}
           def={window.NOTE_DATA.ORDER_DEFS[slash.kind]}
           query={slash.query}
@@ -1209,6 +1227,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           checked={slash.checked || []}
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
+          filter={slash.filter}
+          counts={slash.counts}
+          onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
           documentMention={!!window.__DOC_MENTION && slash.kind === 'rx'}
           documenting={!!slash.documenting}
           onToggleDocument={() => { if (slashApiRef.current) slashApiRef.current.toggleDocument(); }}

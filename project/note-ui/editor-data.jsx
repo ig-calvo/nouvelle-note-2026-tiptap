@@ -403,12 +403,13 @@ const PATIENT_MEDS = [
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '11',
       indication: 'Contraception', notes: 'Profil actif au dossier.' } },
   { key: 'med-tylenol-100', name: 'Tylenol', dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: 'actif',
+    renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
     sig: '1 co PO PRN',
     chipSig: '1 co PO PRN',
     details: { molecule: 'Tylenol', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: 'Douleur', notes: 'Profil actif au dossier.' } },
-  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', medDate: '02/2026', medStatusLabel: 'échue 02/2026',
+  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', doseSteps: ['100', '325', '500', '650'], medDate: '02/2026', medStatusLabel: 'échue 02/2026',
     sig: '2 co PO DIE',
     chipSig: '2 co PO DIE',
     details: { molecule: 'Tylenol', dose: '500', unit: 'mg', form: 'comprimé', qtyDose: '2', route: 'PO',
@@ -422,16 +423,90 @@ const PATIENT_MEDS = [
       indication: 'Infection urinaire', notes: 'Cessée 12/2025.' } },
 ];
 
-// Actions d'une ligne du profil (RxMenu) : renouveler (actif, échu), ajuster et
-// cesser (actif), prescrire (échu, cessé : une nouvelle ordonnance sur ce
-// médicament). `defaultMedAction` : ce que fait un clic ou Entrée sur la ligne ;
+// Actions d'une ligne du profil (RxMenu) : augmenter et diminuer la dose,
+// renouveler, cesser (actif) ; renouveler, prescrire (échu) ; prescrire (cessé :
+// une nouvelle ordonnance sur ce médicament). Augmenter / diminuer remplacent
+// l'ancien « Ajuster » (Figma « Recherche de prescriptions », mise à jour du
+// 2026-10-15). `defaultMedAction` : ce que fait un clic ou Entrée sur la ligne ;
 // undefined = une nouvelle prescription, sans le marquer renouvellement.
 function medActions(it) {
   if (!it || !it.med) return [];
-  if (it.medStatus === 'active') return ['renouveler', 'ajuster', 'cesser'];
+  if (it.medStatus === 'active') return ['augmenter', 'diminuer', 'renouveler', 'cesser'];
   if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
   return ['prescrire'];
 }
+// Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
+// au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,
+// que sa dose n'en est pas un, ou qu'elle est déjà au bout de l'échelle.
+function medDoseStep(it, dir) {
+  if (!it || !it.med || !it.doseSteps || !it.details) return null;
+  const steps = it.doseSteps, i = steps.indexOf(String(it.details.dose));
+  if (i < 0) return null;
+  const j = dir === 'up' ? i + 1 : i - 1;
+  return j >= 0 && j < steps.length ? { from: steps[i], to: steps[j] } : null;
+}
+// La médication avec sa dose changée d'un palier : { item, dir, from, to }, ou
+// null. La posologie de la puce est recalculée (deriveRxSig).
+function adjustMedDose(it, dir) {
+  const step = medDoseStep(it, dir);
+  if (!step) return null;
+  const unit = (it.details.unit || '').trim();
+  const details = Object.assign({}, it.details, { dose: step.to });
+  const sig = deriveRxSig(details);
+  const item = Object.assign({}, it, { dose: (step.to + ' ' + unit).trim(), sig: sig, chipSig: sig, details: details });
+  return { item: item, dir: dir, from: step.from, to: step.to, unit: unit };
+}
+
+// Filtres du menu /rx (rail à droite, Figma « Recherche de prescriptions ») :
+// Tout, Renouvelables (échues ou à renouveler bientôt), Actives, Cessées,
+// Favoris, Gabarits (ceux qui proposent une ordonnance). Le filtre vit le temps
+// d'une recherche, comme les favoris figés (endOrderSearch).
+const RX_FILTERS = [
+  { key: 'tout', label: 'Tout', icon: 'collections_bookmark' },
+  { key: 'renouvelables', label: 'Renouvelables', icon: 'history' },
+  { key: 'actives', label: 'Actives', icon: 'check_circle' },
+  { key: 'cessees', label: 'Cessées', icon: 'block' },
+  { key: 'favoris', label: 'Favoris', icon: 'favorite_border' },
+  { key: 'gabarits', label: 'Gabarits', icon: 'assignment' },
+];
+let _rxFilter = 'tout';
+function setRxFilter(f) { _rxFilter = RX_FILTERS.some(function (x) { return x.key === f; }) ? f : 'tout'; }
+function getRxFilter() { return _rxFilter; }
+function isRenewable(it) { return !!(it && it.med && (it.medStatus === 'echue' || it.renewSoon)); }
+// Gabarits de note qui proposent une ordonnance : des items du menu « / »
+// (noteTemplate) affichés comme des lignes de la recherche.
+function rxGabarits(q) {
+  const nq = _norm((q || '').trim());
+  const withRx = {};
+  NOTE_TEMPLATES.forEach(function (t) {
+    if ((t.sections || []).some(function (sec) { return (sec.proposals || []).some(function (p) { return p.kind === 'rx'; }); })) withRx[t.key] = true;
+  });
+  return SLASH_ITEMS.filter(function (it) { return it.noteTemplate && withRx[it.noteTemplate] && (!nq || _norm(it.title).includes(nq)); })
+    .map(function (it) { return Object.assign({}, it, { name: it.title, dose: '', sig: it.desc }); });
+}
+// `r` = résultat de searchRx ; rend la liste du filtre choisi.
+function applyRxFilter(r, f) {
+  const none = { profil: [], favoris: [], frequents: [], autres: [], gabarits: [] };
+  switch (f) {
+    case 'renouvelables': return Object.assign(none, { profil: r.profil.filter(isRenewable) });
+    case 'actives': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'active'; }) });
+    case 'cessees': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }) });
+    case 'favoris': return Object.assign(none, { favoris: r.favoris });
+    case 'gabarits': return Object.assign(none, { gabarits: r.gabarits });
+    default: return Object.assign({}, r, { gabarits: [] });
+  }
+}
+// Compteurs du rail, pour la recherche en cours. Tout = les lignes que « Tout »
+// affiche.
+function rxFilterCounts(q, favs) {
+  const r = searchRx(q, favs);
+  const tout = r.profil.length + r.favoris.length + r.frequents.length + r.autres.length;
+  return { tout: tout, renouvelables: r.profil.filter(isRenewable).length,
+    actives: r.profil.filter(function (it) { return it.medStatus === 'active'; }).length,
+    cessees: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }).length,
+    favoris: r.favoris.length, gabarits: r.gabarits.length };
+}
+
 // Texte du statut d'une médication au profil, pour la puce documentaire :
 // « Cessé 12/2025 », « Échu 02/2026 » ; vide pour une médication active.
 function medStatusText(m) {
@@ -471,7 +546,7 @@ function searchRx(q, favs) {
   const autres = nq
     ? RX_ALL.filter(function (it) { return !it.freq && !favSet.has(it.key) && match(it); }).slice(0, 6)
     : [];
-  return { profil, favoris, frequents, autres };
+  return { profil, favoris, frequents, autres, gabarits: rxGabarits(q) };
 }
 
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
@@ -714,9 +789,12 @@ function searchOrder(kind, q) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
-  return d.search(q, _favFreeze[kind]);
+  const r = d.search(q, _favFreeze[kind]);
+  return kind === 'rx' ? applyRxFilter(r, _rxFilter) : r;
 }
-function endOrderSearch() { _favFreeze = {}; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; }
+// Compteurs du rail avec les favoris figés de la recherche en cours.
+function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
 
 // Regenerate the rich-chip payload after a popover edit (lab / imaging)
@@ -930,6 +1008,7 @@ const SCENARIOS = [
 ];
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail, searchRx, toggleRxFav, deriveRx,
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
+  medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, rxGabarits, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };
