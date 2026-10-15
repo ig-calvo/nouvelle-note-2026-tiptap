@@ -76,6 +76,22 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const slashRef = useRefE(null); slashRef.current = slash; // lu par openSlashMenu, abonné une seule fois
   const slashCommandRef = useRefE(null); // fonction `command` fournie par le plugin pour le item courant
   const slashApiRef = useRefE(null); // { setActiveIndex, republish } — pour onHover/onToggleFav (hors du contrôleur)
+  const slashDoneRef = useRefE(false); // un item a été choisi (runSlashCommand) : la recherche ne s'est pas terminée par un abandon
+
+  // Recherche de fonction abandonnée (Échap, clic ailleurs) : « /rx amox » ne
+  // reste pas dans la note, la ligne redevient ce qu'elle était et le curseur
+  // reste là où il est (spec Figma « Recherche abandonnée »). Différé : onExit
+  // s'exécute pendant la mise à jour de la vue. Ne touche à rien si le texte à
+  // cet endroit n'est plus « /requête » (le document a changé entre-temps).
+  function removeAbandonedSearch(range, query) {
+    setTimeout(function () {
+      const editor = editorRef.current; if (!editor || !range) return;
+      const doc = editor.state.doc;
+      if (range.from < 0 || range.to > doc.content.size) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
+      editor.view.dispatch(editor.state.tr.delete(range.from, range.to));
+    }, 0);
+  }
 
   function openSlashMenu() {
     const editor = editorRef.current; if (!editor) return;
@@ -191,6 +207,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // {__order, item, action, kind} (RxMenu), soit {__dx, action, pick, target}
   // (DiagnosticDropdown — voir makeDiagRegionAttrs, diagnostics.jsx).
   function runSlashCommand({ editor, range, props }) {
+    slashDoneRef.current = true;
     if (props.__order) { runOrderCommand(editor, range, props); return; }
     if (props.__dx) { runDiagnosticCommand(editor, range, props); return; }
     const it = props;
@@ -381,6 +398,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         selectedIndex = initialIndex();
         checked = [];
         dxState = null; dxModel = null; dxSelfRewrite = false;
+        slashDoneRef.current = false;
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -399,6 +417,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           selectedIndex = initialIndex();
         }
         lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range;
+        slashDoneRef.current = false; // un item de bascule (/rx, /dx) réécrit la requête sans terminer la recherche
         slashCommandRef.current = props.command;
         publish(props.query);
       },
@@ -414,7 +433,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (result.effects.length === 0) publish(lastQuery);
           return true;
         }
-        if (props.event.key === 'Escape') { setSlash(null); return true; }
+        if (props.event.key === 'Escape') {
+          // Le plugin « / » ne se ferme pas de lui-même quand onKeyDown renvoie
+          // true : en mode fonction, on retire la requête du document, ce qui le
+          // ferme (onExit). Le menu générique garde son texte (texte libre).
+          if (parsed.mode === 'order' && currentRange) removeAbandonedSearch(currentRange, lastQuery);
+          setSlash(null); return true;
+        }
         // Menu générique sans aucun résultat : on n'intercepte plus les
         // flèches/Entrée (rien à sélectionner) — la frappe continue
         // normalement, le message « aucun résultat » reste affiché via publish().
@@ -455,7 +480,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return false;
       },
-      onExit() { checked = []; window.__DX_DOCUMENT_AS = null; setSlash(null); },
+      onExit() {
+        // Abandon d'une recherche de fonction (/rx, /lab, /img, /ref, /req) sans
+        // avoir choisi d'item : le texte « /rx amox » est retiré. Le menu
+        // générique garde son texte (« Échap pour écrire en texte libre »).
+        const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
+        const range = currentRange, query = lastQuery;
+        checked = []; window.__DX_DOCUMENT_AS = null;
+        window.NOTE_DATA.endOrderSearch();
+        setSlash(null);
+        if (abandoned) removeAbandonedSearch(range, query);
+      },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
       // Souris (RxMenu) : case à cocher d'un résultat, bouton « Ajouter (n) ».
       toggleCheck(it) { const parsed = parseSlashQuery(lastQuery); toggleChecked(it, parsed.kind); publish(lastQuery); },
