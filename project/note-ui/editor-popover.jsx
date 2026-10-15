@@ -788,7 +788,6 @@ function RxNameHighlight({ name, query }) {
 
 function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked }) {
   const ref = useRefP(null);
-  const [showCeased, setShowCeased] = useStateP(false);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
     // Différé d'un tick : l'item du SlashMenu déclenche sur mousedown et React
@@ -801,13 +800,12 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const d = def || window.NOTE_DATA.ORDER_DEFS.rx;
   const favSet = d.favs;
   const profil = results.profil || [];
-  const profilCeased = results.profilCeased || [];
   const sections = [];
   if (profil.length) sections.push(['Médications au dossier', profil]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = profil.length + profilCeased.length + results.favoris.length + results.frequents.length + results.autres.length;
+  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
   let flat = -1;
   // Sélection multiple (/req, /lab, /img) : case à cocher par résultat ; dès
   // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
@@ -829,14 +827,14 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               flat += 1;
               const idx = flat;
               const fav = favSet.has(it.key);
-              const isActiveMed = it.med && it.medStatus === 'active';
+              const medActs = window.NOTE_DATA.medActions(it);
               return (
                 <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
                   aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
                   className={'rx-item' + (idx === activeIndex ? ' is-active' : '') + (multi && checkedKeys.indexOf(uid(it)) >= 0 ? ' is-checked' : '')}
                   onMouseEnter={() => onHover(idx)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, isActiveMed ? 'renouveler' : undefined))}>
+                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, window.NOTE_DATA.defaultMedAction(it)))}>
                   {multi &&
                     <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
                       aria-label={(checkedKeys.indexOf(uid(it)) >= 0 ? 'Décocher ' : 'Cocher ') + it.name}
@@ -847,30 +845,38 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   <div className="rx-item__body">
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
+                      {it.med && <span className={'rx-status rx-status--' + (it.medStatus === 'cessée' ? 'ceased' : it.medStatus)} title={it.medStatusLabel || ''}>{window.NOTE_DATA.MED_STATUS_LABEL[it.medStatus]}</span>}
                     </div>
                     <div className="rx-item__sig">{it.sig}</div>
                   </div>
                   <div className="rx-item__actions">
                     {it.med
-                      ? (isActiveMed
-                          ? <span className="rx-med-actions">
-                              <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
-                                <span className="material-icons-outlined">refresh</span>
-                              </button>
-                              <button type="button" className="rx-med-btn" title="Ajuster la posologie"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
-                                <span className="material-icons-outlined">tune</span>
-                              </button>
-                              <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
-                                <span className="material-icons-outlined">block</span>
-                              </button>
-                            </span>
-                          : <span className="rx-status rx-status--ceased" title={it.medStatusLabel || ''}>Cessé</span>)
+                      ? <span className="rx-med-actions">
+                          {medActs.indexOf('renouveler') >= 0 &&
+                            <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
+                              <span className="material-icons-outlined">refresh</span>
+                            </button>}
+                          {medActs.indexOf('ajuster') >= 0 &&
+                            <button type="button" className="rx-med-btn" title="Ajuster la posologie"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
+                              <span className="material-icons-outlined">tune</span>
+                            </button>}
+                          {medActs.indexOf('cesser') >= 0 &&
+                            <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
+                              <span className="material-icons-outlined">block</span>
+                            </button>}
+                          {medActs.indexOf('prescrire') >= 0 &&
+                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Prescrire une nouvelle ordonnance pour ce médicament"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
+                              Prescrire
+                            </button>}
+                        </span>
                       : noFav ? null
                       : <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
                           title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
@@ -889,27 +895,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
             })}
           </div>
         ))}
-        {profilCeased.length > 0 &&
-          <div className="rx-sec-block">
-            <button type="button" className="rx-sec rx-sec--toggle" onClick={() => setShowCeased((v) => !v)}>
-              <span className="material-icons-outlined" style={{ fontSize: 15, verticalAlign: 'middle' }}>
-                {showCeased ? 'expand_less' : 'expand_more'}
-              </span>
-              {' '}Médicaments cessés <span className="rx-sec-count">({profilCeased.length})</span>
-            </button>
-            {showCeased && profilCeased.map((it) => (
-              <div key={it.key} className="rx-item rx-item--ceased">
-                <div className="rx-item__body">
-                  <div className="rx-item__name"><RxNameHighlight name={it.name} query={query} /> {it.dose}</div>
-                  <div className="rx-item__sig">{it.medStatusLabel || 'Cessé'}</div>
-                </div>
-                <div className="rx-item__actions">
-                  <span className="rx-status rx-status--ceased">Cessé</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        }
       </div>
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>

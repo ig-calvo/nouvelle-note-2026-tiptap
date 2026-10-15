@@ -35,6 +35,8 @@ var INIT_DATA = {
   ],
   meds: [
     { name:'Contraceptif…',      detail:'1 co DIE — actif',  status:'active',  pinned:true },
+    { name:'Tylenol 100 mg',     detail:'1 co PRN — actif',  status:'active' },
+    { name:'Tylenol 500 mg',     detail:'2 co DIE — échue',  status:'echue',   date:'02/2026' },
     { name:'Nitrofurantoïne…',   detail:'cessée (ITU)',       status:'cessée',  date:'12/2025' },
   ],
   immun: [
