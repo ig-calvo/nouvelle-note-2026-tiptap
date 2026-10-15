@@ -71,3 +71,43 @@ test('checkout : l’ordonnance porte le message bloquant de son item incomplet,
   const alone = w.buildTransmissionDocs(w.scanDoc(doc(H2('Conclusion'), { type: 'paragraph', content: [ok] })), {}).find((x) => x.id === 'rx');
   assert.deepEqual(alone.blocking, []);
 });
+
+// --- Lot 1 « Prescription inline » : valeurs manquantes dans la puce ---
+
+test('incomplète : chipIssues liste les champs vides, dans l’ordre de la puce', () => {
+  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine'));
+  const incomplete = w.chipIssues(a).find((i) => i.kind === 'incomplete');
+  assert.deepEqual(incomplete.missing, [{ field: 'frequency', word: 'fréquence', label: 'Fréquence' }]);
+  const none = Object.assign({}, a, { details: Object.assign({}, a.details, { dose: '', route: '', frequency: '' }) });
+  assert.deepEqual(w.chipIssues(none).find((i) => i.kind === 'incomplete').missing.map((m) => m.field), ['dose', 'route', 'frequency']);
+  assert.match(w.chipIssues(none)[0].message, /dose, voie, fréquence/);
+});
+
+test('segments : un champ requis vide est un espace réservé à sa place, pas un trou', () => {
+  const d = { form: 'comprimé', route: 'PO', frequency: '', quantity: '21', duration: '7', durationUnit: 'jours', refills: '' };
+  const missing = [{ field: 'frequency', word: 'fréquence', label: 'Fréquence' }];
+  assert.deepEqual(w.rxChipSegments(d, missing).map((s) => s.text), ['1 comp.', 'PO', 'Fréquence', '#21', '7j', 'R0']);
+  assert.deepEqual(w.rxChipSegments(d, missing).filter((s) => s.missing).map((s) => s.field), ['frequency']);
+  // Rien de manquant : aucun espace réservé, rendu inchangé.
+  assert.deepEqual(w.rxChipSegments(Object.assign({}, d, { frequency: 'TID' }), []).map((s) => s.text), ['1 comp.', 'PO', 'TID', '#21', '7j', 'R0']);
+});
+
+test('segments : route et fréquence vides ensemble, ordre voie puis fréquence', () => {
+  const missing = [{ field: 'route', word: 'voie', label: 'Voie' }, { field: 'frequency', word: 'fréquence', label: 'Fréquence' }];
+  const segs = w.rxChipSegments({ form: 'capsule', refills: '2' }, missing);
+  assert.deepEqual(segs.map((s) => s.text), ['1 caps.', 'Voie', 'Fréquence', 'R2']);
+  assert.deepEqual(segs.map((s) => s.field), ['form', 'route', 'frequency', 'refills']);
+});
+
+test('segments : le renouvellement vide vaut R0 et n’est jamais un espace réservé (Q-12)', () => {
+  const segs = w.rxChipSegments({ form: 'comprimé', route: 'PO', frequency: 'DIE', refills: '' }, []);
+  const last = segs[segs.length - 1];
+  assert.equal(last.text, 'R0');
+  assert.equal(last.missing, undefined);
+});
+
+test('segments : PRN ajouté à la fréquence sans doublon ; sans forme ni fréquence, pas de « 1 dose » trompeur', () => {
+  assert.equal(w.rxChipSegments({ form: 'comprimé', route: 'PO', frequency: 'DIE', prn: true }, []).find((s) => s.field === 'frequency').text, 'DIE PRN');
+  assert.equal(w.rxChipSegments({ form: 'comprimé', route: 'PO', frequency: 'q4-6h PRN', prn: true }, []).find((s) => s.field === 'frequency').text, 'q4-6h PRN');
+  assert.deepEqual(w.rxChipSegments({ route: 'PO' }, []).map((s) => s.text), ['PO', 'R0']);
+});
