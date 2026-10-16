@@ -3,6 +3,8 @@
 // =========================================================
 const ENTITY_TYPES = {
   prescription: { key: 'prescription', label: 'Prescription', icon: 'pill', summaryGroup: 'Médications' },
+  // Médication documentée au profil ou mentionnée, sans prescription (lot 4 : Documenter / Mentionner).
+  medication:   { key: 'medication',   label: 'Médication',   icon: 'medication', summaryGroup: 'Médications' },
   lab:          { key: 'lab',          label: 'Laboratoire',  icon: 'science', summaryGroup: 'Résultats' },
   imaging:      { key: 'imaging',      label: 'Imagerie',     icon: 'radiology', summaryGroup: 'Résultats' },
   problem:      { key: 'problem',      label: 'Problème', icon: 'flag', summaryGroup: 'Problèmes' },
@@ -406,13 +408,13 @@ const PATIENT_MEDS = [
     details: { molecule: 'Tylenol', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: 'Douleur', notes: 'Profil actif au dossier.' } },
-  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', medStatusLabel: 'échue 02/2026',
+  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', medDate: '02/2026', medStatusLabel: 'échue 02/2026',
     sig: '2 co PO DIE',
     chipSig: '2 co PO DIE',
     details: { molecule: 'Tylenol', dose: '500', unit: 'mg', form: 'comprimé', qtyDose: '2', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: 'Douleur', notes: 'Échue au dossier (02/2026).' } },
-  { key: 'med-nitrofurantoine', name: 'Nitrofurantoïne', dose: '100 mg', med: true, medStatus: 'cessée', medStatusLabel: 'cessée (ITU)',
+  { key: 'med-nitrofurantoine', name: 'Nitrofurantoïne', dose: '100 mg', med: true, medStatus: 'cessée', medDate: '12/2025', medStatusLabel: 'cessée (ITU)',
     sig: '1 co PO BID',
     chipSig: '1 co PO BID',
     details: { molecule: 'Nitrofurantoïne', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
@@ -429,6 +431,12 @@ function medActions(it) {
   if (it.medStatus === 'active') return ['renouveler', 'ajuster', 'cesser'];
   if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
   return ['prescrire'];
+}
+// Texte du statut d'une médication au profil, pour la puce documentaire :
+// « Cessé 12/2025 », « Échu 02/2026 » ; vide pour une médication active.
+function medStatusText(m) {
+  if (!m || !m.medStatus || m.medStatus === 'active') return '';
+  return MED_STATUS_LABEL[m.medStatus] + (m.medDate ? ' ' + m.medDate : '');
 }
 function defaultMedAction(it) {
   if (!it || !it.med) return undefined;
@@ -911,6 +919,6 @@ const SCENARIOS = [
 ];
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, defaultMedAction, searchRx, toggleRxFav, deriveRx,
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

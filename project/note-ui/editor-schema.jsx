@@ -195,6 +195,9 @@ function chipPrintText(a) {
   } else if (a.type === 'referral') {
     main = 'Référence : ' + (d.specialty || rx.name || a.label);
     second = d.priority || '';
+  } else if (a.type === 'medication') {
+    main = join([rx.name, rx.dose], ' ');
+    second = join([rx.sig, window.NOTE_DATA && window.NOTE_DATA.medStatusText ? window.NOTE_DATA.medStatusText(rx) : ''], ', ');
   } else if (a.type === 'problem') {
     main = d.name || a.label;
   } else if (a.type === 'instructions') {
@@ -305,6 +308,44 @@ function rxChipSegments(d, missing) {
   return out;
 }
 
+// Puce documentaire (lot 4, Documenter / Mentionner) : une médication du
+// profil dite dans la note, sans prescription — icône neutre, nom, posologie,
+// statut au profil (« Cessé 12/2025 »). Pas de zone cliquable, pas de statut
+// d'envoi : rien ne part au checkout. Voir medicationChipAttrs.
+function buildMedicationChipDom(node, data) {
+  const rx = data.rx || {};
+  node.classList.add('chip--med', rx.mode === 'document' ? 'chip--med-doc' : 'chip--med-mention');
+  node.setAttribute('data-rx', JSON.stringify(rx));
+  node.setAttribute('data-label', data.label || '');
+  node.setAttribute('title', rx.mode === 'document' ? 'Documentée au profil, sans prescription' : 'Mention d’une médication au profil');
+  const el = function (tag, cls, text) { const e = document.createElement(tag); e.className = cls; if (text) e.textContent = text; return e; };
+  const ic = el('span', 'material-symbols-outlined chip-med-icon', 'medication');
+  ic.setAttribute('aria-hidden', 'true');
+  node.appendChild(ic);
+  const head = el('span', 'chip-rx-head');
+  head.appendChild(el('span', 'chip-rx-name', rx.name || ''));
+  if (rx.dose) { head.appendChild(document.createTextNode(' ')); head.appendChild(el('span', 'chip-rx-dose', rx.dose)); }
+  node.appendChild(head);
+  if (rx.sig) node.appendChild(el('span', 'chip-rx-poso', rx.sig));
+  const status = window.NOTE_DATA && window.NOTE_DATA.medStatusText ? window.NOTE_DATA.medStatusText(rx) : '';
+  if (status) node.appendChild(el('span', 'chip-med-status chip-med-status--' + (rx.medStatus === 'cessée' ? 'ceased' : rx.medStatus), status));
+  return node;
+}
+
+// Attrs d'une puce documentaire pour une médication du profil ou du catalogue.
+// mode : 'document' = ajoutée au profil sans prescrire (Documenter) ; 'mention'
+// = parle d'une médication déjà au profil, sans rien changer (Mentionner).
+function medicationChipAttrs(item, mode) {
+  const label = (item.name + ' ' + (item.dose || '')).trim();
+  const sig = item.chipSig || item.sig || '';
+  return {
+    cid: newChipId(), type: 'medication', label: label, icon: 'medication', text: label + (sig ? ' — ' + sig : ''),
+    rx: { name: item.name, dose: item.dose || '', sig: sig, kind: 'med', mode: mode,
+      medStatus: item.medStatus || null, medDate: item.medDate || null },
+    details: item.details || {}
+  };
+}
+
 function buildChipDomBase(data, existingEl) {
   const node = existingEl || document.createElement('span');
   while (node.firstChild) node.removeChild(node.firstChild);
@@ -314,6 +355,7 @@ function buildChipDomBase(data, existingEl) {
   node.setAttribute('data-type', data.type || '');
   node.setAttribute('contenteditable', 'false');
   node.classList.add('chip');
+  if (data.type === 'medication' && data.rx) return buildMedicationChipDom(node, data);
   if (data.rx) {
     const kind = data.rx.kind || 'rx';
     node.classList.add('chip--rx');
@@ -2016,7 +2058,9 @@ function scanDoc(docJson) {
   const counts = {};
   chips.forEach(function (c) { if (c.entity.type) counts[c.entity.type] = (counts[c.entity.type] || 0) + 1; });
   if (diagThreads.length) counts.diagnostic = diagThreads.length;
-  const items = chips.map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
+  // Une mention (Mentionner) ne change rien au profil : pas de ligne « en attente » au Sommaire.
+  const items = chips.filter(function (c) { return !(c.entity.type === 'medication' && !(c.entity.rx && c.entity.rx.mode === 'document')); })
+    .map(function (c) { return { id: c.cid, type: c.entity.type, label: c.entity.label }; });
   diagThreads.forEach(function (e) { items.push({ id: 'dx-' + e.dxKey, type: 'diagnostic', label: e.name }); });
   return { chips: chips, counts: counts, items: items, diagNames: diagNames, diagThreads: diagThreads, tools: tools };
 }
@@ -2048,6 +2092,7 @@ const ACTION_LOG_TYPES = [
 const ACTION_LOG_META = {
   outilsCliniques: { label: 'Outils cliniques' },
   prescriptions: { label: 'Prescriptions' },
+  inscriptionMedication: { label: 'Inscription de médication' },
   requetes: { label: 'Requêtes' },
   consignes: { label: 'Consignes' },
   problemes: { label: 'Problèmes' },
@@ -2057,7 +2102,7 @@ const ACTION_LOG_META = {
 // chip.attrs.type → clé du journal — seuls les types réellement produits par
 // un chip dans ce prototype sont mappés ('problem' n'a pas de flux de
 // création dédié, il reste hors journal pour l'instant).
-const CHIP_TYPE_TO_LOG = { prescription: 'prescriptions', lab: 'requetes', imaging: 'requetes', referral: 'requetes', instructions: 'consignes', file: 'fichier' };
+const CHIP_TYPE_TO_LOG = { prescription: 'prescriptions', medication: 'inscriptionMedication', lab: 'requetes', imaging: 'requetes', referral: 'requetes', instructions: 'consignes', file: 'fichier' };
 
 // Reprend exactement l'icône (et sa couleur, voir chip--rx/lab/img/ref et
 // .chip .chip-icon dans editor.css) que ce chip affiche déjà dans le corps
@@ -2069,7 +2114,7 @@ function chipLogIcon(node) {
     const kind = node.attrs.rx.kind || 'rx';
     if (kind === 'rx') return { isRx: true };
     return {
-      icon: kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark',
+      icon: kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : kind === 'med' ? 'medication' : 'bookmark',
       colorClass: 'action-log__icon--' + kind
     };
   }
@@ -2104,6 +2149,8 @@ function buildActionLog(docJson, events) {
   function pushChip(attrs, removed) {
     const logType = CHIP_TYPE_TO_LOG[attrs.type];
     if (!logType) return;
+    // Mention d'une médication du profil : rien ne s'est passé au profil, pas d'entrée.
+    if (attrs.type === 'medication' && !(attrs.rx && attrs.rx.mode === 'document')) return;
     const s = sent[attrs.cid] || {};
     entries.push(Object.assign({
       key: 'chip-' + attrs.cid, logType: logType,
@@ -2111,6 +2158,7 @@ function buildActionLog(docJson, events) {
       author: attrs.author, savedAt: attrs.savedAt,
       transmittedAt: s.transmittedAt || null, cancelledAt: s.cancelledAt || null,
       removed: !!removed,
+      verb: attrs.type === 'medication' ? 'Documentée' : undefined,
       // Retiré de la note : rien vers quoi défiler.
       sourceType: removed ? null : 'chip', sourceId: removed ? null : attrs.cid
     }, chipLogIcon({ attrs: attrs })));
@@ -2714,7 +2762,7 @@ Object.assign(window, {
   getChipEntity,
   stampChips,
   chipAttrs,
-  chipIssues, chipStatusBadges, rxChipSegments,
+  chipIssues, chipStatusBadges, rxChipSegments, medicationChipAttrs,
   chipPrintText,
   separateAdjacentChips,
   formatChipStamp,

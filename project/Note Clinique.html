@@ -333,6 +333,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "templateTextProposed": false,
   "suggestionStyle": "tirets",
   "pendingBadge": true,
+  "documentMention": false,
   "formOpenMode": "auto",
   "groupRequests": false,
   "inlineFieldEdit": true,
@@ -545,6 +546,7 @@ function App() {
               groupRequests={t.groupRequests === true}
               inlineFieldEdit={t.inlineFieldEdit !== false}
               pendingBadge={t.pendingBadge !== false}
+              documentMention={t.documentMention === true}
               aiProposals={t.aiProposals === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
@@ -654,6 +656,8 @@ function App() {
         <TweakSection label="Pistes (vision)" />
         <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
                      onChange={(v) => setTweak('aiProposals', v)} />
+        <TweakToggle label="Documenter / Mentionner une médication" value={t.documentMention === true}
+                     onChange={(v) => setTweak('documentMention', v)} />
         <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}
                      onChange={(v) => setTweak('summaryAddToNote', v)} />
         <TweakSection label="Formulaire d'une puce" />
