@@ -76,9 +76,13 @@ function chipIssues(a) {
   if (a.type === 'prescription' && !(a.rx && a.rx.ceased)) {
     // Champs requis du formulaire (ChipPopover) ; le renouvellement vide vaut
     // R0 partout dans le prototype, il n'est donc pas « manquant ».
-    const missing = [['dose', 'dose'], ['route', 'voie'], ['frequency', 'fréquence']]
-      .filter(function (f) { return blank(d[f[0]]); }).map(function (f) { return f[1]; });
-    if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, message: 'Prescription incomplète — à préciser : ' + missing.join(', ') });
+    // `missing` : les champs vides, dans l'ordre de la puce ; la puce les montre
+    // comme espaces réservés à leur place (rxChipSegments).
+    const missing = [['dose', 'dose', 'Dose'], ['route', 'voie', 'Voie'], ['frequency', 'fréquence', 'Fréquence']]
+      .filter(function (f) { return blank(d[f[0]]); })
+      .map(function (f) { return { field: f[0], word: f[1], label: f[2] }; });
+    if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, missing: missing,
+      message: 'Prescription incomplète — à préciser : ' + missing.map(function (m) { return m.word; }).join(', ') });
     if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || 'Interaction de haut risque' });
   }
   if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: 'Question clinique à préciser' });
@@ -92,15 +96,28 @@ function decorateChipStates(node, data) {
   const kinds = issues.map(function (i) { return i.kind; });
   if (kinds.indexOf('interaction') >= 0) node.classList.add('chip--interaction');
   if (issues.some(function (i) { return i.level === 'error' && i.kind !== 'transmission'; })) node.classList.add('chip--error');
-  if (issues.length) {
-    const worst = issues.some(function (i) { return i.level === 'error'; }) ? 'error' : 'warning';
+  // Prescription incomplète : badge « Incomplet » avant la valeur principale
+  // (les champs à préciser sont déjà dans la puce) ; le message est dans le
+  // badge, pas dans une icône de fin de puce.
+  const incomplete = issues.filter(function (i) { return i.kind === 'incomplete'; })[0];
+  if (incomplete) {
+    const tag = document.createElement('span');
+    tag.className = 'chip-status chip-status--incomplete';
+    tag.textContent = 'Incomplet';
+    tag.setAttribute('title', incomplete.message); // le texte du badge est son nom accessible ; les champs à préciser se lisent dans la puce
+    node.insertBefore(tag, node.children[1] || null);
+  }
+  const iconIssues = issues.filter(function (i) { return i.kind !== 'incomplete'; });
+  if (iconIssues.length) {
+    const worst = iconIssues.some(function (i) { return i.level === 'error'; }) ? 'error' : 'warning';
+    const iconKinds = iconIssues.map(function (i) { return i.kind; });
     const ic = document.createElement('span');
     ic.className = 'material-symbols-outlined chip-issue-icon chip-issue-icon--' + worst;
     ic.setAttribute('role', 'img');
-    const text = issues.map(function (i) { return i.message; }).join(' · ');
+    const text = iconIssues.map(function (i) { return i.message; }).join(' · ');
     ic.setAttribute('aria-label', text);
     ic.setAttribute('title', text);
-    ic.textContent = kinds.indexOf('transmission') >= 0 ? 'sync_problem' : kinds.indexOf('interaction') >= 0 ? 'report' : worst;
+    ic.textContent = iconKinds.indexOf('transmission') >= 0 ? 'sync_problem' : iconKinds.indexOf('interaction') >= 0 ? 'report' : worst;
     node.appendChild(ic);
   }
   const comment = data.details && data.details.comment && String(data.details.comment).trim();
@@ -224,6 +241,37 @@ function decoratePendingChip(node, data) {
   node.appendChild(wrap);
 }
 
+// Segments de la posologie d'une puce d'ordonnance, dans l'ordre d'affichage :
+// { cls, field, text, missing? }. `field` = zone cliquable (édition inline ou
+// formulaire). Un champ requis vide (`missing`, voir chipIssues) est un espace
+// réservé à sa place — « 1 comp. PO Fréquence #21 7j R0 » — au lieu de
+// disparaître. Le renouvellement vide vaut R0 (Q-12) : jamais un espace réservé.
+function rxChipSegments(d, missing) {
+  d = d || {};
+  const miss = {};
+  (missing || []).forEach(function (m) { miss[m.field] = m.label; });
+  const out = [];
+  const seg = function (cls, field, text, isMissing) {
+    out.push(isMissing ? { cls: cls, field: field, text: text, missing: true } : { cls: cls, field: field, text: text });
+  };
+  if (d.form || d.qtyDose || d.frequency) {
+    const n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
+    const ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
+    seg('chip-rx-form', 'form', n + ' ' + ab);
+  }
+  if (d.route) seg('chip-rx-route', 'route', d.route);
+  else if (miss.route) seg('chip-rx-route', 'route', miss.route, true);
+  if (d.frequency) seg('chip-rx-freq', 'frequency', d.frequency + (d.prn && !/prn/i.test(d.frequency) ? ' PRN' : ''));
+  else if (miss.frequency) seg('chip-rx-freq', 'frequency', miss.frequency, true);
+  if (d.quantity && /^\d+$/.test(String(d.quantity))) seg('chip-rx-qty', null, '#' + d.quantity);
+  if (d.duration && d.duration !== '—') {
+    seg('chip-rx-dur', 'duration', d.duration + (d.durationUnit === 'jours' || !d.durationUnit ? 'j' : ' ' + d.durationUnit));
+  }
+  const rf = (d.refills === undefined || d.refills === null || String(d.refills) === '') ? '0' : String(d.refills);
+  seg('chip-rx-dur', 'refills', 'R' + rf);
+  return out;
+}
+
 function buildChipDomBase(data, existingEl) {
   const node = existingEl || document.createElement('span');
   while (node.firstChild) node.removeChild(node.firstChild);
@@ -242,6 +290,8 @@ function buildChipDomBase(data, existingEl) {
     node.setAttribute('data-label', data.label || '');
     const d = data.details || {};
     if (Object.keys(d).length > 0) node.setAttribute('data-details', JSON.stringify(d));
+    const incomplete = chipIssues(data).filter(function (i) { return i.kind === 'incomplete'; })[0];
+    const missing = incomplete ? incomplete.missing : [];
     const ic = document.createElement('span');
     if (kind === 'rx') {
       ic.className = 'chip-rx-icon';
@@ -262,39 +312,26 @@ function buildChipDomBase(data, existingEl) {
       nm.className = 'chip-rx-name';
       nm.textContent = data.rx.name || '';
       head.appendChild(nm);
-      if (data.rx.dose) {
+      const doseMissing = missing.filter(function (m) { return m.field === 'dose'; })[0];
+      if (data.rx.dose || doseMissing) {
         const ds = document.createElement('span');
-        ds.className = 'chip-rx-dose';
+        ds.className = 'chip-rx-dose' + (data.rx.dose ? '' : ' chip-missing');
         ds.setAttribute('data-field', 'dose');
-        ds.textContent = data.rx.dose;
+        ds.textContent = data.rx.dose || doseMissing.label;
         head.appendChild(document.createTextNode(' '));
         head.appendChild(ds);
       }
       node.appendChild(head);
-      if (d.frequency) {
+      if (Object.keys(d).length > 0 && !data.rx.ceased) {
         const poso = document.createElement('span');
         poso.className = 'chip-rx-poso';
-        const seg = function (cls, field, text) {
+        rxChipSegments(d, missing).forEach(function (sg) {
           const s = document.createElement('span');
-          s.className = cls;
-          if (field) s.setAttribute('data-field', field);
-          s.textContent = text;
-          return s;
-        };
-        const _n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
-        const _ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
-        const qty = _n + ' ' + _ab;
-        const freqTxt = (d.frequency || '') + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : '');
-        const tokens = [seg('chip-rx-form', 'form', qty)];
-        if (d.route) tokens.push(seg('chip-rx-route', 'route', d.route));
-        tokens.push(seg('chip-rx-freq', 'frequency', freqTxt));
-        if (d.quantity && /^\d+$/.test(String(d.quantity))) tokens.push(seg('chip-rx-qty', null, '#' + d.quantity));
-        if (d.duration && d.duration !== '—') {
-          tokens.push(seg('chip-rx-dur', 'duration', d.duration + (d.durationUnit === 'jours' || !d.durationUnit ? 'j' : ' ' + d.durationUnit)));
-        }
-        const _rf = (d.refills === undefined || d.refills === null || String(d.refills) === '') ? '0' : String(d.refills);
-        tokens.push(seg('chip-rx-dur', 'refills', 'R' + _rf));
-        tokens.forEach(function (t) { poso.appendChild(t); });
+          s.className = sg.cls + (sg.missing ? ' chip-missing' : '');
+          if (sg.field) s.setAttribute('data-field', sg.field);
+          s.textContent = sg.text;
+          poso.appendChild(s);
+        });
         node.appendChild(poso);
       } else if (data.rx.sig) {
         const sg = document.createElement('span');
@@ -302,6 +339,9 @@ function buildChipDomBase(data, existingEl) {
         sg.textContent = data.rx.sig;
         node.appendChild(sg);
       }
+      // Le premier champ à préciser est mis en évidence (Figma « Prescription incomplète »).
+      const firstMissing = node.querySelector('.chip-missing');
+      if (firstMissing) firstMissing.classList.add('chip-missing--first');
     } else {
       const nm = document.createElement('span');
       nm.className = 'chip-rx-name';
@@ -2641,7 +2681,7 @@ Object.assign(window, {
   getChipEntity,
   stampChips,
   chipAttrs,
-  chipIssues,
+  chipIssues, rxChipSegments,
   chipPrintText,
   separateAdjacentChips,
   formatChipStamp,
