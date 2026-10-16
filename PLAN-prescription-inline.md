@@ -1,6 +1,8 @@
 # Plan — Prescription inline : aligner le prototype sur le Figma, puis étendre aux autres éléments inline
 
 **Date :** 2026-10-15
+**Statut (2026-10-15) :** lots 0, 1, 2 et 3 livrés, en branches empilées (`feat/prescription-lot0-recherche` → `…lot1-valeurs-manquantes` → `…lot2-statuts` → `…lot3-profil-recherche`), rien de poussé. Lot 3 sans le rail de catégories, les flèches ↑ ↓ et la section Favoris repliable (voir `project/Note Clinique.notes.md`, RA-15). Restent : lot 4 (Documenter / Mentionner), lot 5 (modale), lot 6 (Sommaire), §4.2 (autres types).
+
 **Source Figma :** [Prescription - DEV, page « Prescription inline »](https://www.figma.com/design/yKlDaui3uatLoHfsfhdJbG/Prescription---DEV?node-id=7802-1787) (la page entière, 36 enfants ; lue par captures et extraction des textes, pas par `get_metadata`, trop gros). Nœuds clés :
 
 | Nœud | Contenu |

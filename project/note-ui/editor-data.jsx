@@ -387,7 +387,12 @@ const RX_OTHERS = MED_CATALOG.map(function (m, i) {
 const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 
 // Médications au dossier du patient (profil pharmacologique — cf. sommaire).
-// Affichées en tête du menu /rx pour renouvellement / référence.
+// Affichées en tête du menu /rx avec leur statut, toutes prescriptibles (spec
+// Figma « Recherche », EX-023). Statuts : 'active' (Actif), 'echue' (Échu),
+// 'cessée' (Cessé) — mêmes clés que le Sommaire (MEDS_STATUS_COLOR). Contenu
+// d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
+// profil garde le contraceptif et la nitrofurantoïne déjà au Sommaire.
+const MED_STATUS_LABEL = { active: 'Actif', echue: 'Échu', 'cessée': 'Cessé' };
 const PATIENT_MEDS = [
   { key: 'med-contraceptif', name: 'Contraceptif oral', dose: '', med: true, medStatus: 'active', medStatusLabel: 'actif',
     sig: '1 co PO DIE',
@@ -395,6 +400,18 @@ const PATIENT_MEDS = [
     details: { molecule: 'Contraceptif oral', dose: '', unit: '', form: 'comprimé', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '11',
       indication: 'Contraception', notes: 'Profil actif au dossier.' } },
+  { key: 'med-tylenol-100', name: 'Tylenol', dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: 'actif',
+    sig: '1 co PO PRN',
+    chipSig: '1 co PO PRN',
+    details: { molecule: 'Tylenol', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: 'Douleur', notes: 'Profil actif au dossier.' } },
+  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', medStatusLabel: 'échue 02/2026',
+    sig: '2 co PO DIE',
+    chipSig: '2 co PO DIE',
+    details: { molecule: 'Tylenol', dose: '500', unit: 'mg', form: 'comprimé', qtyDose: '2', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: 'Douleur', notes: 'Échue au dossier (02/2026).' } },
   { key: 'med-nitrofurantoine', name: 'Nitrofurantoïne', dose: '100 mg', med: true, medStatus: 'cessée', medStatusLabel: 'cessée (ITU)',
     sig: '1 co PO BID',
     chipSig: '1 co PO BID',
@@ -402,6 +419,21 @@ const PATIENT_MEDS = [
       frequency: 'BID', duration: '5', durationUnit: 'jours', quantity: '10', refills: '0',
       indication: 'Infection urinaire', notes: 'Cessée 12/2025.' } },
 ];
+
+// Actions d'une ligne du profil (RxMenu) : renouveler (actif, échu), ajuster et
+// cesser (actif), prescrire (échu, cessé : une nouvelle ordonnance sur ce
+// médicament). `defaultMedAction` : ce que fait un clic ou Entrée sur la ligne ;
+// undefined = une nouvelle prescription, sans le marquer renouvellement.
+function medActions(it) {
+  if (!it || !it.med) return [];
+  if (it.medStatus === 'active') return ['renouveler', 'ajuster', 'cesser'];
+  if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
+  return ['prescrire'];
+}
+function defaultMedAction(it) {
+  if (!it || !it.med) return undefined;
+  return it.medStatus === 'cessée' ? undefined : 'renouveler';
+}
 
 function searchRx(q, favs) {
   const favSet = favs || RX_FAVS;
@@ -414,15 +446,13 @@ function searchRx(q, favs) {
     if (it.din && /\d/.test(nq) && it.din.includes(nq.replace(/\D/g, ''))) return true;
     return false;
   };
-  const profilAll = PATIENT_MEDS.filter(match);
-  const profil = profilAll.filter(function (it) { return !it.med || it.medStatus === 'active'; });
-  const profilCeased = profilAll.filter(function (it) { return it.med && it.medStatus !== 'active'; });
+  const profil = PATIENT_MEDS.filter(match); // tous les statuts : actif, échu, cessé
   const favoris = RX_ALL.filter(function (it) { return favSet.has(it.key) && match(it); });
   const frequents = RX_ALL.filter(function (it) { return it.freq && !favSet.has(it.key) && match(it); });
   const autres = nq
     ? RX_ALL.filter(function (it) { return !it.freq && !favSet.has(it.key) && match(it); }).slice(0, 6)
     : [];
-  return { profil, profilCeased, favoris, frequents, autres };
+  return { profil, favoris, frequents, autres };
 }
 
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
@@ -881,6 +911,6 @@ const SCENARIOS = [
 ];
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, defaultMedAction, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

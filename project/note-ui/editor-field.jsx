@@ -469,8 +469,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
             if (it) {
-              const isActiveMed = it.med && it.medStatus === 'active';
-              slashCommandRef.current({ __order: true, item: it, action: isActiveMed ? 'renouveler' : undefined, kind: parsed.kind });
+              slashCommandRef.current({ __order: true, item: it, action: window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
           } else {
             const it = currentItems[selectedIndex];
