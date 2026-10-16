@@ -111,3 +111,47 @@ test('segments : PRN ajouté à la fréquence sans doublon ; sans forme ni fréq
   assert.equal(w.rxChipSegments({ form: 'comprimé', route: 'PO', frequency: 'q4-6h PRN', prn: true }, []).find((s) => s.field === 'frequency').text, 'q4-6h PRN');
   assert.deepEqual(w.rxChipSegments({ route: 'PO' }, []).map((s) => s.text), ['PO', 'R0']);
 });
+
+// --- Lot 2 « Prescription inline » : badges de statut de la puce ---
+
+const badgeKinds = (a) => w.chipStatusBadges(a).map((b) => b.kind);
+const withRx = (a, rx) => Object.assign({}, a, { rx: Object.assign({}, a.rx, rx) });
+
+test('statuts : une nouvelle prescription complète n’a aucun badge', () => {
+  assert.deepEqual(w.chipStatusBadges(attrsFor('rx', item('rx', (it) => it.key === 'amox500'))), []);
+});
+
+test('statuts : cesser (texte) et renouveler (icône seule, nom accessible), jamais les deux', () => {
+  const a = attrsFor('rx', item('rx', (it) => it.key === 'amox500'));
+  const ceased = w.chipStatusBadges(withRx(a, { ceased: true }));
+  assert.deepEqual(ceased.map((b) => [b.kind, b.text]), [['ceased', 'Cesser']]);
+  const renewal = w.chipStatusBadges(withRx(a, { renewal: true }));
+  assert.deepEqual(renewal.map((b) => [b.kind, b.icon, b.text, b.title]), [['renewal', 'autorenew', undefined, 'Renouvellement']]);
+  assert.deepEqual(badgeKinds(withRx(a, { renewal: true, ceased: true })), ['ceased']);
+});
+
+test('statuts : l’ordre est cesser / renouveler, incomplet, en suspens', () => {
+  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')); // sans fréquence : incomplète
+  assert.deepEqual(badgeKinds(a), ['incomplete']);
+  assert.deepEqual(badgeKinds(withRx(a, { renewal: true })), ['renewal', 'incomplete']);
+  assert.deepEqual(badgeKinds(Object.assign({}, withRx(a, { renewal: true }), { pending: true })), ['renewal', 'incomplete', 'pending']);
+});
+
+test('statuts : en suspens sur une suggestion de n’importe quel type, avec son auteur dans l’infobulle', () => {
+  const lab = Object.assign({}, attrsFor('lab', item('lab', (it) => it.key === 'fsc')), { pending: true, proposedBy: 'Gabarit' });
+  const badges = w.chipStatusBadges(lab);
+  assert.deepEqual(badges.map((b) => [b.kind, b.text]), [['pending', 'En suspens']]);
+  assert.match(badges[0].title, /Proposé par Gabarit/);
+  assert.match(w.chipStatusBadges(Object.assign({}, lab, { proposedBy: undefined }))[0].title, /Ajout proposé/);
+});
+
+test('statuts : une puce annulée n’a pas de badge ici (« Annulée » vient de la puce transmise)', () => {
+  const a = Object.assign({}, withRx(attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')), { renewal: true }), { pending: true, cancelledAt: '2026-10-15T10:00:00Z' });
+  assert.deepEqual(w.chipStatusBadges(a), []);
+});
+
+test('statuts : une cessée n’est jamais « incomplète » et garde son seul badge « Cesser »', () => {
+  const a = withRx(attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')), { ceased: true });
+  a.details = {};
+  assert.deepEqual(badgeKinds(a), ['ceased']);
+});
