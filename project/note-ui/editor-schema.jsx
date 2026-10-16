@@ -20,12 +20,48 @@ function newChipId() { return 'c' + _chipSeq++; }
 // ---------------------------------------------------------
 function buildChipDom(data, existingEl) {
   const node = buildChipDomBase(data, existingEl);
+  decorateChipDestination(node, data);
   decorateChipStates(node, data);
   if (data.pending) decoratePendingChip(node, data);
   else node.removeAttribute('data-pending'); // le DOM est réutilisé à la mise à jour (accepté)
   if (data.transmittedAt) decorateSentChip(node, data);
   else node.removeAttribute('data-sent');
   return node;
+}
+
+// Où va la puce — traitement de l'icône de début de puce (demande d'Ignacio
+// Calvo, 2026-10-16) :
+//   'a-envoyer'  une action en attente au checkout, à envoyer (prescription,
+//                requête, consigne) : icône blanche sur fond bleu
+//   'dossier'    quelque chose qui existe déjà au dossier, que la note ne fait
+//                que documenter ou mentionner : icône noire sur fond blanc
+//   'envoye'     une action déjà envoyée ou annulée : plus rien à envoyer, icône
+//                noire sur fond blanc (hypothèse à confirmer, Q-36)
+//   'suggestion' un ajout proposé, pas encore accepté donc pas encore au
+//                checkout : icône noire sur fond blanc (hypothèse, Q-36)
+// Les types qui produisent un document au checkout sont ceux de
+// buildTransmissionDocs.
+const CHECKOUT_CHIP_TYPES = ['prescription', 'lab', 'imaging', 'referral', 'instructions'];
+function chipDestination(a) {
+  if (!a) return 'dossier';
+  if (a.pending) return 'suggestion';
+  if (a.cancelledAt || a.transmittedAt) return 'envoye';
+  return CHECKOUT_CHIP_TYPES.indexOf(a.type) >= 0 ? 'a-envoyer' : 'dossier';
+}
+const CHIP_DESTINATION_TITLE = {
+  'a-envoyer': 'À envoyer : en attente au checkout',
+  'dossier': 'Déjà au dossier : la note le documente, rien à envoyer',
+  'envoye': 'Déjà envoyé',
+  'suggestion': 'Suggestion : pas encore au checkout'
+};
+// Pose la destination sur la puce (`data-dest`, lu par editor.css) et la dit à
+// l'infobulle de l'icône.
+function decorateChipDestination(node, data) {
+  const dest = chipDestination(data);
+  node.setAttribute('data-dest', dest);
+  const icon = node.querySelector('.chip-rx-icon');
+  if (icon) icon.setAttribute('title', CHIP_DESTINATION_TITLE[dest] + ' · Modifier les détails complets');
+  // La puce documentaire garde son infobulle (documentée ou mentionnée, buildMedicationChipDom).
 }
 
 // Chip transmis (D-05) : lecture seule — plus d'édition inline des valeurs
@@ -2766,7 +2802,7 @@ Object.assign(window, {
   getChipEntity,
   stampChips,
   chipAttrs,
-  chipIssues, chipStatusBadges, rxChipSegments, medicationChipAttrs,
+  chipIssues, chipStatusBadges, rxChipSegments, medicationChipAttrs, chipDestination, CHECKOUT_CHIP_TYPES,
   chipPrintText,
   separateAdjacentChips,
   formatChipStamp,
