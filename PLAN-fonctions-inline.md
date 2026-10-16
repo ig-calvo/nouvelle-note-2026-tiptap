@@ -23,7 +23,7 @@
 
 | Destination | Quand | Icône |
 |---|---|---|
-| `a-envoyer` | Prescription, requête (labo, imagerie), référence, consigne présente dans la note : produit un document au checkout | Blanche sur fond bleu (`primary`) |
+| `a-envoyer` | Prescription, requête (labo, imagerie), référence, consigne présente dans la note : produit un document au checkout | Blanche, sur toute la cellule d'icône en fond bleu (`primary`), de bord à bord de la puce |
 | `dossier` | Médication documentée ou mentionnée ; problème, fichier, diagnostic | Noire sur fond blanc |
 | `envoye` | Déjà envoyée ou annulée | Noire sur fond blanc (hypothèse, Q-36) |
 | `suggestion` | Ajout proposé par un gabarit ou l'Assistant IA, pas encore accepté donc pas encore au checkout | Noire sur fond blanc (hypothèse, Q-36) |
@@ -53,7 +53,7 @@ Constat : seules la **prescription** (profil de médications) et le **diagnostic
 ## 3. Lots proposés
 
 ### Lot A — Fondations génériques (P1, M–L)
-1. **Destination de l'icône pour toutes les puces.** Poser la boîte (18 px, `data-dest`) sur les glyphes `science`, `radiology`, `person_add`, `menu_book` aussi : le glyphe garde le type, la boîte dit où ça va. Les couleurs par type (`primary` / `tertiary` / `secondary`, sans rôle DS, question ID-04 ouverte) disparaissent : la couleur ne dit plus le type, elle dit la destination.
+1. **Destination de l'icône pour toutes les puces.** Poser la cellule d'icône pleine hauteur (30 px, `data-dest`) sur les glyphes `science`, `radiology`, `person_add`, `menu_book` aussi : le glyphe garde le type, la cellule dit où ça va. Les couleurs par type (`primary` / `tertiary` / `secondary`, sans rôle DS, question ID-04 ouverte) disparaissent : la couleur ne dit plus le type, elle dit la destination.
 2. **Filtres par fonction.** Remplacer `RX_FILTERS` en dur par une définition portée par `ORDER_DEFS[kind]` : `filters: [{ key, label, icon, predicate, count }]`, `applyFilter`, `counts`, `setFilter`. Le rail de `RxMenu` lit cette définition ; sans définition, pas de rail (comportement actuel de /lab, /img, /ref).
 3. **Boutons de ligne génériques.** `medActions(it)` devient `rowActions(kind, it)` ; Mentionner et Documenter viennent de la fonction, les boutons propres à la médication restent dans sa définition.
 4. **Puce documentaire générique.** `medicationChipAttrs` / `buildMedicationChipDom` / `CHIP_TYPE_TO_LOG` / `scanDoc` : passer d'un type `medication` à un type par fonction (`labResult`, `imagingStudy`…) ou à un seul type `documented` avec `kind`. Le journal, le Sommaire et le checkout lisent déjà le type : à confirmer au moment de coder.
@@ -104,7 +104,7 @@ Un lot = une branche = une PR ; chaque lot met à jour `project/Note Clinique.no
 | # | Question | Hypothèse |
 |---|---|---|
 | Q-36 | Quelle icône pour une action **déjà envoyée** et pour une **suggestion** pas encore acceptée ? La règle donnée ne parle que de « en attente au checkout » (bleu) et « déjà au dossier » (blanc) | Envoyée, annulée, suggestion : noire sur blanc, puisqu'il n'y a (plus) rien en attente au checkout |
-| Q-37 | La boîte blanche porte-t-elle un contour ? | Oui, un trait de 1 px (`outline-variant`) : sans lui, la boîte blanche sur la puce blanche ne se voit pas |
+| Q-37 | La cellule blanche porte-t-elle un contour ? | Un trait de séparation à droite (`outline-variant`) : sans lui, la cellule blanche sur la puce blanche ne se voit pas |
 | Q-38 | Les couleurs par type (labo bleu, imagerie, référence) disparaissent-elles ? | Oui : la couleur de l'icône dit désormais la destination, le glyphe dit le type |
 | Q-39 | Le diagnostic (région, pas puce) suit-il la même anatomie ? | À décider avant le lot E |
 | Q-40 | Les données « au dossier » de labo, imagerie et référence : d'où viennent-elles ? | Exemples fictifs dans le prototype, marqués « à valider cliniquement » |
