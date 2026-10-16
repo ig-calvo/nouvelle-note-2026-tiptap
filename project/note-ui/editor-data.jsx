@@ -403,7 +403,8 @@ const PATIENT_MEDS = [
       indication: 'Infection urinaire', notes: 'Cessée 12/2025.' } },
 ];
 
-function searchRx(q) {
+function searchRx(q, favs) {
+  const favSet = favs || RX_FAVS;
   const nq = _norm((q || '').trim());
   const match = function (it) {
     if (!nq) return true;
@@ -416,10 +417,10 @@ function searchRx(q) {
   const profilAll = PATIENT_MEDS.filter(match);
   const profil = profilAll.filter(function (it) { return !it.med || it.medStatus === 'active'; });
   const profilCeased = profilAll.filter(function (it) { return it.med && it.medStatus !== 'active'; });
-  const favoris = RX_ALL.filter(function (it) { return RX_FAVS.has(it.key) && match(it); });
-  const frequents = RX_ALL.filter(function (it) { return it.freq && !RX_FAVS.has(it.key) && match(it); });
+  const favoris = RX_ALL.filter(function (it) { return favSet.has(it.key) && match(it); });
+  const frequents = RX_ALL.filter(function (it) { return it.freq && !favSet.has(it.key) && match(it); });
   const autres = nq
-    ? RX_ALL.filter(function (it) { return !it.freq && !RX_FAVS.has(it.key) && match(it); }).slice(0, 6)
+    ? RX_ALL.filter(function (it) { return !it.freq && !favSet.has(it.key) && match(it); }).slice(0, 6)
     : [];
   return { profil, profilCeased, favoris, frequents, autres };
 }
@@ -565,10 +566,10 @@ const ORDER_DEFS = {
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
   lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse', multi: true,
          sections: ['Favoris', 'Analyses fréquemment demandées', 'Autres analyses'],
-         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q) { return _searchList(LAB_ITEMS, LAB_FAVS, q); } },
+         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q, favs) { return _searchList(LAB_ITEMS, favs || LAB_FAVS, q); } },
   img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: 'demander',  emptyNoun: 'examen', multi: true,
          sections: ['Favoris', 'Examens fréquemment demandés', 'Autres examens'],
-         favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q) { return _searchList(IMG_ITEMS, IMG_FAVS, q); } },
+         favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
   // Recherche unifiée (profils + labo + imagerie) : un résultat peut être de
   // plusieurs natures, voir `orderKind` (searchRequests).
   req: { kbd: 'req', type: 'lab',          icon: 'lab_profile', glyph: null, verb: 'demander', emptyNoun: 'examen', multi: true,
@@ -576,7 +577,7 @@ const ORDER_DEFS = {
          favs: new Set(), items: function () { return LAB_PROFILES.concat(LAB_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); }), IMG_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); })); }, search: searchRequests },
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: 'référer',   emptyNoun: 'spécialité',
          sections: ['Favoris', 'Spécialités fréquentes', 'Autres spécialités'],
-         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q) { return _searchList(REF_ITEMS, REF_FAVS, q); } },
+         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
 };
 
 // Éléments structurés que l'Assistant IA propose pour la transcription
@@ -654,7 +655,19 @@ function orderKindForKbd(kbd) {
   const k = (kbd || '').toLowerCase();
   return ORDER_DEFS[k] ? k : null;
 }
-function searchOrder(kind, q) { const d = ORDER_DEFS[kind]; return d ? d.search(q) : { favoris: [], frequents: [], autres: [] }; }
+// Une recherche ouverte ne se réorganise pas quand on ajoute ou retire un
+// favori (cœur) : les sections gardent les favoris tels qu'ils étaient à la
+// première recherche de la session (spec « Recherche », Figma). Le cœur, lui,
+// lit toujours les favoris à jour (`ORDER_DEFS[kind].favs`). La session se
+// termine à la fermeture du menu (`endOrderSearch`, onExit du plugin « / »).
+let _favFreeze = {};
+function searchOrder(kind, q) {
+  const d = ORDER_DEFS[kind];
+  if (!d) return { favoris: [], frequents: [], autres: [] };
+  if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
+  return d.search(q, _favFreeze[kind]);
+}
+function endOrderSearch() { _favFreeze = {}; }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
 
 // Regenerate the rich-chip payload after a popover edit (lab / imaging)
@@ -869,5 +882,5 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
+  ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };
