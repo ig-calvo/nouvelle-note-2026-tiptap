@@ -877,7 +877,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               flat += 1;
               const idx = flat;
               const fav = favSet.has(it.key);
-              const medActs = window.NOTE_DATA.medActions(it);
+              const docMention = window.__RX_DOC_MENTION === true;
+              const medActs = window.NOTE_DATA.medActions(it, docMention);
               return (
                 <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
                   aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
@@ -953,7 +954,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                         </span>
                       : (noFav || it.noteTemplate) ? null
                       : <>
-                          {kind === 'rx' &&
+                          {kind === 'rx' && docMention &&
                             <span className="rx-med-actions rx-med-actions--heart">
                               <button type="button" className="rx-med-btn rx-med-btn--text" title="Documenter : ajouter au profil sans prescrire"
                                 onMouseDown={(e) => e.preventDefault()}
