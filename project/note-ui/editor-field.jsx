@@ -318,7 +318,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // /req, /lab, /img) : items cochés, gardés quand la recherche change,
     // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
     let checked = [];
-    let documenting = false; // bascule « Documenter » du menu /rx (tweak documentMention)
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
     function toggleChecked(it, kind) {
       const u = checkUid(it, kind);
@@ -396,7 +395,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
         selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
-        setSlash({ mode: 'order', kind: parsed.kind, documenting: documenting,
+        setSlash({ mode: 'order', kind: parsed.kind,
           filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
           counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
@@ -420,7 +419,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = [];
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        documenting = false;
         window.NOTE_DATA.setRxFilter('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
@@ -494,8 +492,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
             if (it && it.noteTemplate) {
               slashCommandRef.current(it); // filtre « Gabarits » : on applique le gabarit
             } else if (it) {
-              const documentIt = documenting && window.__DOC_MENTION && parsed.kind === 'rx'; // Documenter (lot 4)
-              slashCommandRef.current({ __order: true, item: it, action: documentIt ? 'documenter' : window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
+              slashCommandRef.current({ __order: true, item: it, action: window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
           } else {
             const it = currentItems[selectedIndex];
@@ -511,7 +508,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // générique garde son texte (« Échap pour écrire en texte libre »).
         const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
         const range = currentRange, query = lastQuery;
-        checked = []; documenting = false; window.__DX_DOCUMENT_AS = null;
+        checked = []; window.__DX_DOCUMENT_AS = null;
         window.NOTE_DATA.endOrderSearch();
         setSlash(null);
         if (abandoned) removeAbandonedSearch(range, query);
@@ -526,8 +523,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
-      // Bascule « Documenter » du menu /rx (lot 4) : la sélection ajoute au profil sans prescrire.
-      toggleDocument() { documenting = !documenting; publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Gabarits.
       setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
@@ -1215,7 +1210,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
         <RxMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.kind === 'rx' ? 696 : 476))), zIndex: 60 }}
+          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.kind === 'rx' ? 736 : 476))), zIndex: 60 }}
           kind={slash.kind}
           def={window.NOTE_DATA.ORDER_DEFS[slash.kind]}
           query={slash.query}
@@ -1230,9 +1225,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           filter={slash.filter}
           counts={slash.counts}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
-          documentMention={!!window.__DOC_MENTION && slash.kind === 'rx'}
-          documenting={!!slash.documenting}
-          onToggleDocument={() => { if (slashApiRef.current) slashApiRef.current.toggleDocument(); }}
           onClose={() => setSlash(null)} />
       }
 

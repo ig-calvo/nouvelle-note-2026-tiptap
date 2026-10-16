@@ -729,7 +729,7 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }
 /* Menu /rx avec le rail de filtres à droite (Figma « Recherche de prescriptions ») :
    la liste à gauche, les filtres à droite, le pied de raccourcis sous les deux. */
-.rx-menu--rail { width: 680px; display: grid; grid-template-columns: minmax(0, 1fr) 200px; grid-template-rows: minmax(0, 1fr) auto; }
+.rx-menu--rail { width: 720px; display: grid; grid-template-columns: minmax(0, 1fr) 200px; grid-template-rows: minmax(0, 1fr) auto; }
 .rx-menu--rail .rx-menu__main { min-width: 0; display: flex; flex-direction: column; }
 .rx-menu--rail .rx-menu__foot { grid-column: 1 / -1; }
 .rx-rail { border-left: 1px solid var(--border-subtle); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
@@ -740,7 +740,6 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-rail__count { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
 .rx-rail__item.is-on { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); font-weight: 700; }
 .rx-rail__item.is-on .material-icons-outlined, .rx-rail__item.is-on .rx-rail__count { color: inherit; }
-.rx-sec__extra { float: right; margin: -4px 0 -4px 12px; }
 /* Actions d'une ligne : visibles sur la ligne survolée ou choisie (Figma), pas sur toutes. */
 .rx-item .rx-med-actions { visibility: hidden; }
 .rx-item.is-active .rx-med-actions, .rx-item:hover .rx-med-actions, .rx-item:focus-within .rx-med-actions { visibility: visible; }
@@ -749,13 +748,13 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-check { flex-shrink: 0; width: 32px; height: 32px; margin: 0 2px 0 -6px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
 .rx-check .material-symbols-outlined { font-size: 20px; }
 .rx-item.is-checked .rx-check { color: var(--mat-sys-primary); }
-.rx-item.is-checked { background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
+.rx-item.is-checked { --rx-row-bg: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-lowest)); }
 .rx-check:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
 .rx-add-checked { margin-left: auto; border: 0; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 12.5px var(--font-body); padding: 5px 10px; cursor: pointer; }
 .rx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid var(--mat-sys-secondary-container); margin-bottom: 4px; }
 .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 6px; }
-.rx-item { display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
-.rx-item.is-active { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.rx-item { --rx-row-bg: var(--mat-sys-surface-container-lowest); position: relative; background: var(--rx-row-bg); display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
+.rx-item.is-active { --rx-row-bg: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
 .rx-item__body { flex: 1; min-width: 0; }
 .rx-item__name { font-size: 15px; font-weight: 600; color: var(--fg-1); }
 .rx-sec-count { color: var(--fg-3); font-weight: 500; }
@@ -776,20 +775,16 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 /* Actions sur une médication active au dossier — donne un sens distinct
    entre renouveler/ajuster une Rx existante et en créer une nouvelle. */
 .rx-med-actions { display: flex; align-items: center; gap: 2px; }
+/* Boutons de ligne en surimpression à droite (fond de la ligne) : ils ne prennent pas de place quand ils sont cachés,
+   le nom et la posologie gardent toute la largeur. */
+.rx-item .rx-med-actions { position: absolute; right: 12px; top: 6px; padding-left: 16px; background: var(--rx-row-bg); box-shadow: -12px 0 10px -4px var(--rx-row-bg); }
+.rx-item .rx-med-actions--heart { right: 52px; }
 .rx-med-btn { border: 0; background: transparent; cursor: pointer; padding: 4px; display: inline-flex; color: var(--fg-3); border-radius: 6px; transition: background 110ms, color 110ms; }
 .rx-med-btn:hover { background: rgba(25,117,209,0.10); color: var(--mat-sys-primary); }
 .rx-med-btn .material-icons-outlined { font-size: 19px; }
 .rx-med-btn--stop:hover { background: rgba(211,47,47,0.10); color: light-dark(#d32f2f, #e9a5a5); }
 /* « Prescrire » (échu, cessé) : bouton texte, une nouvelle ordonnance sur ce médicament. */
 .rx-med-btn--text { padding: 4px 8px; font: 600 12px/16px var(--font-body); color: var(--mat-sys-primary); }
-/* Documenter / Mentionner (tweak documentMention) : bandeau et bascule en tête du menu /rx. */
-.rx-menu__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; border-bottom: 1px solid var(--border-subtle); font-size: 12px; color: var(--fg-3); }
-.rx-switch { display: inline-flex; align-items: center; gap: 8px; border: 0; background: transparent; cursor: pointer; font: 600 13px var(--font-body); color: var(--mat-sys-on-surface); padding: 2px 4px; border-radius: 6px; }
-.rx-switch__track { width: 36px; height: 20px; border-radius: 10px; background: var(--mat-sys-outline-variant); position: relative; transition: background 120ms; }
-.rx-switch__thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); box-shadow: 0 1px 2px rgba(0,0,0,.3); transition: left 120ms; }
-.rx-switch.is-on .rx-switch__track { background: var(--mat-sys-primary); }
-.rx-switch.is-on .rx-switch__thumb { left: 18px; }
-.rx-med-hint { font: 600 12px/16px var(--font-body); color: var(--fg-3); padding: 4px 8px; }
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }

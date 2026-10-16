@@ -423,17 +423,21 @@ const PATIENT_MEDS = [
       indication: 'Infection urinaire', notes: 'Cessée 12/2025.' } },
 ];
 
-// Actions d'une ligne du profil (RxMenu) : augmenter et diminuer la dose,
-// renouveler, cesser (actif) ; renouveler, prescrire (échu) ; prescrire (cessé :
-// une nouvelle ordonnance sur ce médicament). Augmenter / diminuer remplacent
-// l'ancien « Ajuster » (Figma « Recherche de prescriptions », mise à jour du
-// 2026-10-15). `defaultMedAction` : ce que fait un clic ou Entrée sur la ligne ;
-// undefined = une nouvelle prescription, sans le marquer renouvellement.
+// Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
+// médication déjà au dossier : « Mentionner » d'abord (la référencer sans ajouter
+// de prescription), puis augmenter, diminuer, renouveler, cesser (actif) ;
+// renouveler, prescrire (échu) ; prescrire (cessé) ; « Documenter » en dernier
+// (l'ajouter au profil sans prescrire). Un produit du catalogue n'a que
+// « Documenter ». Le clic ou Entrée sur la ligne reste l'action principale :
+// `defaultMedAction` — renouveler une médication active ou échue, une nouvelle
+// prescription sans marque de renouvellement pour une cessée ou un produit du
+// catalogue (undefined). Augmenter / diminuer remplacent l'ancien « Ajuster »
+// (Figma « Recherche de prescriptions », mise à jour du 2026-10-15).
 function medActions(it) {
-  if (!it || !it.med) return [];
-  if (it.medStatus === 'active') return ['augmenter', 'diminuer', 'renouveler', 'cesser'];
-  if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
-  return ['prescrire'];
+  if (!it || !it.med) return ['documenter'];
+  if (it.medStatus === 'active') return ['mentionner', 'augmenter', 'diminuer', 'renouveler', 'cesser', 'documenter'];
+  if (it.medStatus === 'echue') return ['mentionner', 'renouveler', 'prescrire', 'documenter'];
+  return ['mentionner', 'prescrire', 'documenter'];
 }
 // Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
 // au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,
