@@ -609,7 +609,7 @@
 /* Médication documentée ou mentionnée (lot 4) : puce documentaire, icône neutre,
    statut au profil en texte ; rien à envoyer. */
 .chip--med { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; cursor: default; }
-.chip--med .chip-med-icon { font-size: 16px; line-height: 1; color: var(--mat-sys-on-surface-variant); }
+.chip--med .chip-med-icon { font-size: 16px; line-height: 1; color: var(--mat-sys-on-surface); }
 .chip--med .chip-rx-name { font-weight: 500; font-size: 14px; padding: 0 0 0 2px; }
 .chip--med .chip-rx-dose { font-weight: 500; font-size: 14px; color: var(--fg-2); }
 .chip--med .chip-rx-poso { font-weight: 500; font-size: 12px; color: var(--fg-3); }
@@ -659,6 +659,23 @@ html:not([data-pending-badge="on"]) .chip-status--pending { display: none; }
 }
 .chip--rx .chip-rx-icon { font-family: var(--font-display); font-weight: 500; font-size: 16px; color: var(--mat-sys-on-surface); line-height: 1; }
 .chip--rx .chip-rx-glyph { font-size: 16px !important; line-height: 1; color: var(--mat-sys-on-surface); }
+/* Où va la puce (data-dest, chipDestination) : l'icône de début de puce dit si la
+   puce est une action en attente au checkout (icône blanche, la cellule d'icône
+   prend tout le fond bleu) ou quelque chose qui est déjà au dossier (icône noire
+   sur fond blanc). Pour la prescription (℞) et la médication documentée ; les
+   autres fonctions suivent (PLAN-fonctions-inline.md). La cellule va d'un bord à
+   l'autre de la puce, en haut, en bas et à gauche : marges négatives égales au
+   remplissage de la puce, coins arrondis du rayon intérieur de la bordure. */
+.chip--rx .chip-rx-icon, .chip--med .chip-med-icon {
+  box-sizing: border-box; align-self: stretch; width: auto; height: auto; min-width: 30px; padding: 0 6px;
+  margin: -2px 0 -2px -8px; border-radius: calc(var(--mat-sys-corner-small) - 1px) 0 0 calc(var(--mat-sys-corner-small) - 1px);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.chip--rx.chip--interaction .chip-rx-icon { margin: -1px 0 -1px -7px; } /* bordure de 2 px, remplissage de 1 px */
+.chip--rx .chip-rx-icon { font-size: 17px; }
+.chip--med .chip-med-icon { font-size: 17px; }
+.chip[data-dest="a-envoyer"] .chip-rx-icon { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.chip--rx:not([data-dest="a-envoyer"]) .chip-rx-icon, .chip--med .chip-med-icon { background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); border-right: 1px solid var(--mat-sys-outline-variant); }
 .chip--lab .chip-rx-glyph { color: var(--mat-sys-primary); }
 .chip--img .chip-rx-glyph { color: var(--mat-sys-tertiary); }
 .chip--rx .chip-rx-name { font-weight: 500; font-size: 14px; color: var(--fg-1); padding: 0 0 0 2px; }
