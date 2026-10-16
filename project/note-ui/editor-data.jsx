@@ -433,11 +433,15 @@ const PATIENT_MEDS = [
 // prescription sans marque de renouvellement pour une cessée ou un produit du
 // catalogue (undefined). Augmenter / diminuer remplacent l'ancien « Ajuster »
 // (Figma « Recherche de prescriptions », mise à jour du 2026-10-15).
-function medActions(it) {
-  if (!it || !it.med) return ['documenter'];
-  if (it.medStatus === 'active') return ['mentionner', 'augmenter', 'diminuer', 'renouveler', 'cesser', 'documenter'];
-  if (it.medStatus === 'echue') return ['mentionner', 'renouveler', 'prescrire', 'documenter'];
-  return ['mentionner', 'prescrire', 'documenter'];
+// `docMention` false (tweak « Documenter / Mentionner », inactif par défaut dans
+// le prototype) retire « Mentionner » et « Documenter » : le travail reste, le
+// menu ne les offre pas.
+function medActions(it, docMention) {
+  const all = !it || !it.med ? ['documenter']
+    : it.medStatus === 'active' ? ['mentionner', 'augmenter', 'diminuer', 'renouveler', 'cesser', 'documenter']
+    : it.medStatus === 'echue' ? ['mentionner', 'renouveler', 'prescrire', 'documenter']
+    : ['mentionner', 'prescrire', 'documenter'];
+  return docMention === false ? all.filter(function (a) { return a !== 'mentionner' && a !== 'documenter'; }) : all;
 }
 // Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
 // au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,
