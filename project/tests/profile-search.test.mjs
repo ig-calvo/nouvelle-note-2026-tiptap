@@ -32,8 +32,8 @@ test('une médication cessée ou échue se prescrit : elle est dans la liste de 
   assert.deepEqual(keys.slice(0, 4), ['med-contraceptif', 'med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
 });
 
-test('actions d’une ligne : actif renouvelle, ajuste et cesse ; échu renouvelle ou prescrit ; cessé prescrit', () => {
-  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['renouveler', 'ajuster', 'cesser']);
+test('actions d’une ligne : actif augmente, diminue, renouvelle et cesse ; échu renouvelle ou prescrit ; cessé prescrit', () => {
+  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['augmenter', 'diminuer', 'renouveler', 'cesser']);
   assert.deepEqual(D.medActions(row('med-tylenol-500')), ['renouveler', 'prescrire']);
   assert.deepEqual(D.medActions(row('med-nitrofurantoine')), ['prescrire']);
   assert.deepEqual(D.medActions(D.RX_ITEMS[0]), []); // un item du catalogue n'a pas d'action de profil

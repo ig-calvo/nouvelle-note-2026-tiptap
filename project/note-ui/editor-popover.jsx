@@ -832,7 +832,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, documentMention, documenting, onToggleDocument }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, documentMention, documenting, onToggleDocument, filter, counts, onFilter }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -851,7 +851,18 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
+  if ((results.gabarits || []).length) sections.push(['Gabarits', results.gabarits]);
+  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length + (results.gabarits || []).length;
+  // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
+  const railOn = kind === 'rx' && !!counts;
+  // Bascule « Documenter » (tweak documentMention) : dans l'en-tête de la 1re section, comme le Figma.
+  const docSwitch = documentMention ? (
+    <button type="button" role="switch" aria-checked={!!documenting} className={'rx-switch' + (documenting ? ' is-on' : '')}
+      title="Documenter : ajouter la médication au profil sans prescrire"
+      onMouseDown={(e) => e.preventDefault()} onClick={onToggleDocument}>
+      Documenter<span className="rx-switch__track"><span className="rx-switch__thumb" /></span>
+    </button>) : null;
+  let firstShown = true;
   let flat = -1;
   // Sélection multiple (/req, /lab, /img) : case à cocher par résultat ; dès
   // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
@@ -861,23 +872,16 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const noFav = kind === 'req'; // favoris propres à chaque recherche
 
   return (
-    <div className="rx-menu" ref={ref} style={position} role="listbox">
-      {documentMention &&
-        <div className="rx-menu__bar">
-          <span>{documenting ? 'Ajoute au profil, sans prescrire' : 'Prescrire, renouveler, cesser'}</span>
-          <button type="button" role="switch" aria-checked={!!documenting} className={'rx-switch' + (documenting ? ' is-on' : '')}
-            title="Documenter : ajouter la médication au profil sans prescrire"
-            onMouseDown={(e) => e.preventDefault()} onClick={onToggleDocument}>
-            <span className="rx-switch__track"><span className="rx-switch__thumb" /></span>Documenter
-          </button>
-        </div>}
+    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '')} ref={ref} style={position} role="listbox">
+      <div className="rx-menu__main">
+      {documentMention && total === 0 && <div className="rx-menu__bar">{docSwitch}</div>}
       <div className="rx-menu__scroll">
         {total === 0 &&
           <div className="rx-empty">Aucun {d.emptyNoun} trouvé{query ? <> pour « {query} »</> : null}.</div>
         }
-        {sections.map(([ttl, list]) => list.length === 0 ? null : (
+        {sections.map(([ttl, list]) => { if (list.length === 0) return null; const showSwitch = firstShown; firstShown = false; return (
           <div key={ttl} className="rx-sec-block">
-            <div className="rx-sec">{ttl} <span className="rx-sec-count">({list.length})</span></div>
+            <div className="rx-sec">{ttl} <span className="rx-sec-count">({list.length})</span>{showSwitch && docSwitch && <span className="rx-sec__extra">{docSwitch}</span>}</div>
             {list.map((it) => {
               flat += 1;
               const idx = flat;
@@ -914,12 +918,20 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
                               <span className="material-icons-outlined">refresh</span>
                             </button>}
-                          {!documenting && medActs.indexOf('ajuster') >= 0 &&
-                            <button type="button" className="rx-med-btn" title="Ajuster la posologie"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
-                              <span className="material-icons-outlined">tune</span>
-                            </button>}
+                          {!documenting && ['augmenter', 'diminuer'].map((act) => {
+                            if (medActs.indexOf(act) < 0) return null;
+                            const dir = act === 'augmenter' ? 'up' : 'down';
+                            const step = window.NOTE_DATA.medDoseStep(it, dir);
+                            const unit = (it.details && it.details.unit) || '';
+                            const title = step ? (act === 'augmenter' ? 'Augmenter la dose : ' : 'Diminuer la dose : ') + step.from + ' → ' + step.to + ' ' + unit
+                              : (it.doseSteps ? (dir === 'up' ? 'Dose maximale atteinte' : 'Dose minimale atteinte') : 'Pas de palier de dose connu');
+                            return (
+                              <button key={act} type="button" className="rx-med-btn" title={title.trim()} aria-label={title.trim()} disabled={!step}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={(e) => { e.stopPropagation(); if (step) onSelect(it, act); }}>
+                                <span className="material-icons-outlined">{dir === 'up' ? 'arrow_upward' : 'arrow_downward'}</span>
+                              </button>);
+                          })}
                           {!documenting && medActs.indexOf('cesser') >= 0 &&
                             <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
                               onMouseDown={(e) => e.preventDefault()}
@@ -939,7 +951,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               Mentionner
                             </button>}
                         </span>
-                      : noFav ? null
+                      : (noFav || it.noteTemplate) ? null
                       : <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
                           title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                           onMouseDown={(e) => e.preventDefault()}
@@ -956,8 +968,19 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                 </div>);
             })}
           </div>
-        ))}
+        ); })}
       </div>
+      </div>
+      {railOn &&
+        <nav className="rx-rail" aria-label="Filtres des médications">
+          {window.NOTE_DATA.RX_FILTERS.map((f) => (
+            <button key={f.key} type="button" className={'rx-rail__item' + (filter === f.key ? ' is-on' : '')} aria-pressed={filter === f.key}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => onFilter && onFilter(f.key)}>
+              <span className="material-icons-outlined" aria-hidden="true">{f.icon}</span>
+              <span className="rx-rail__label">{f.label}</span>
+              <span className="rx-rail__count">{counts[f.key]}</span>
+            </button>))}
+        </nav>}
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>
         {multi && <span><kbd>⇧ ↵</kbd> cocher</span>}
