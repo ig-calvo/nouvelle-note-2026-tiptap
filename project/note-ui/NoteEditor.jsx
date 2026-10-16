@@ -303,15 +303,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
   }, []);
 
-  // « + » Problèmes / Antécédents du Sommaire (tweak, piste de vision) :
-  // ouvre la recherche « /dx » dans la note — sous la ligne du curseur, ou à
-  // la fin des détails si la note vient de s'ouvrir. Le diagnostic choisi
-  // arrive déjà documenté comme problème ou antécédent (__DX_DOCUMENT_AS, lu
-  // par runDiagnosticCommand, editor-field.jsx).
+  // « + » Problèmes / Antécédents / Médications du Sommaire (tweak, piste de
+  // vision) : ouvre la recherche « /dx » (ou « /rx », detail.command) dans la
+  // note — sous la ligne du curseur, ou à la fin des détails si la note vient
+  // de s'ouvrir. Le diagnostic choisi arrive déjà documenté comme problème ou
+  // antécédent (__DX_DOCUMENT_AS, lu par runDiagnosticCommand, editor-field.jsx).
   React.useEffect(function() {
     function onSummaryAdd(e) {
       var documentAs = e.detail && e.detail.documentAs;
-      if (!documentAs) return;
+      var command = documentAs ? 'dx' : (e.detail && e.detail.command);
+      if (!command) return;
       var wasOpen = !!editorRef.current;
       if (!wasOpen && onOpen) onOpen();
       var tries = 0;
@@ -323,10 +324,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         // loge pas dans une autre.
         var inText = wasOpen && state.selection.from > 1 && $from.parent.type.name === 'paragraph' && $from.depth === 1;
         var pos = inText ? $from.after($from.depth) : window.endOfFirstSectionPos(state.doc);
-        window.__DX_DOCUMENT_AS = documentAs;
+        if (documentAs) window.__DX_DOCUMENT_AS = documentAs;
+        var typed = '/' + command + ' ';
         editor.chain().focus()
-          .insertContentAt(pos, { type: 'paragraph', content: [{ type: 'text', text: '/dx ' }] })
-          .setTextSelection(pos + 5)
+          .insertContentAt(pos, { type: 'paragraph', content: [{ type: 'text', text: typed }] })
+          .setTextSelection(pos + 1 + typed.length)
           .run();
       })();
     }

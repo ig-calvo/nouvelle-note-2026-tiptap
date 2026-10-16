@@ -438,6 +438,17 @@ function medStatusText(m) {
   if (!m || !m.medStatus || m.medStatus === 'active') return '';
   return MED_STATUS_LABEL[m.medStatus] + (m.medDate ? ' ' + m.medDate : '');
 }
+// « + » du Sommaire derrière le tweak « Le « + » du sommaire ajoute dans la
+// note » : ce que la boîte demande à la note. { documentAs } = région
+// diagnostic (/dx) documentée comme problème ou antécédent ; { command } =
+// fonction de la note (/rx) ; null = l'ancienne modale de la boîte.
+function summaryAddDetail(sectionId) {
+  const dx = { problems: 'probleme', history: 'antecedent' };
+  const fn = { meds: 'rx' };
+  if (dx[sectionId]) return { documentAs: dx[sectionId] };
+  if (fn[sectionId]) return { command: fn[sectionId] };
+  return null;
+}
 function defaultMedAction(it) {
   if (!it || !it.med) return undefined;
   return it.medStatus === 'cessée' ? undefined : 'renouveler';
@@ -919,6 +930,6 @@ const SCENARIOS = [
 ];
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, searchRx, toggleRxFav, deriveRx,
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };
