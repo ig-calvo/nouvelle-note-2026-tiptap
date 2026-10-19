@@ -6,7 +6,9 @@
 // juste masqué. Les entrées viennent de buildActionLog (editor-schema.jsx),
 // qui lit les attrs savedAt/author posés à la création/édition de chaque
 // chip/outil clinique, ou à la documentation d'un diagnostic (Problème ou
-// Antécédent — un diagnostic non documenté n'apparaît pas ici).
+// Antécédent — un diagnostic non documenté n'apparaît pas ici), et les
+// événements d'action de la note (transmis, annulé — D-05) : un chip transmis
+// puis retiré de la note reste ici, marqué « Retiré de la note ».
 // =========================================================
 function formatLogTimestamp(iso) {
   if (!iso) return '';
@@ -45,12 +47,27 @@ function scrollToLogSource(editor, entry) {
   setTimeout(function () { el.classList.remove('action-log-flash'); }, 900);
 }
 
-function ActionLog({ docJson, editor }) {
+// Statuts d'une entrée de chip : ce qui est parti, ce qui a été annulé, ce
+// qui n'est plus dans la note (sans que rien soit annulé pour autant).
+function ActionLogTags({ entry }) {
+  const tags = [];
+  if (entry.transmittedAt) tags.push({ key: 'transmis', label: 'Transmis le ' + formatLogTimestamp(entry.transmittedAt) });
+  if (entry.cancelledAt) tags.push({ key: 'annule', label: 'Annulé le ' + formatLogTimestamp(entry.cancelledAt) });
+  if (entry.removed) tags.push({ key: 'retire', label: 'Retiré de la note' });
+  if (!tags.length) return null;
+  return (
+    <span className="action-log__tags">
+      {tags.map(function (t) { return <span key={t.key} className={'action-log__tag action-log__tag--' + t.key}>{t.label}</span>; })}
+    </span>
+  );
+}
+
+function ActionLog({ docJson, events, editor }) {
   // Replié par défaut : le compte suffit à savoir que la note a des
   // activités rattachées sans pousser tout le reste plus bas à chaque
   // chip/outil ajouté.
   const [collapsed, setCollapsed] = React.useState(true);
-  const entries = docJson ? window.buildActionLog(docJson) : [];
+  const entries = docJson ? window.buildActionLog(docJson, events) : [];
   if (!entries.length) return null;
   return (
     <div className="action-log">
@@ -67,14 +84,22 @@ function ActionLog({ docJson, editor }) {
         const meta = entry.author
           ? (entry.savedAt ? verb + ' par ' + entry.author + ' le ' + formatLogTimestamp(entry.savedAt) : verb + ' par ' + entry.author)
           : (entry.savedAt ? verb + ' le ' + formatLogTimestamp(entry.savedAt) : '');
-        return (
-          <button key={entry.key} type="button" className="action-log__row"
-            onClick={function () { scrollToLogSource(editor, entry); }}>
+        const body = (
+          <React.Fragment>
             <ActionLogIcon entry={entry} />
             <span className="action-log__body">
               <span className="action-log__row-title">{entry.title}</span>
               {meta && <span className="action-log__meta">{meta}</span>}
+              <ActionLogTags entry={entry} />
             </span>
+          </React.Fragment>
+        );
+        // Retiré de la note : plus rien vers quoi défiler, la ligne n'est pas un bouton.
+        if (!entry.sourceType) return <div key={entry.key} className="action-log__row action-log__row--static">{body}</div>;
+        return (
+          <button key={entry.key} type="button" className="action-log__row"
+            onClick={function () { scrollToLogSource(editor, entry); }}>
+            {body}
           </button>
         );
       })}

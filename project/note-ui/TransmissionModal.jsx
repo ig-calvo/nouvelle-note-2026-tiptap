@@ -82,6 +82,14 @@ const TX_META = {
   },
 };
 
+// Groupes de la sidebar, dans l'ordre d'affichage : un par famille de document.
+const TX_SIDE_GROUPS = [
+  { title: 'ORDONNANCE', kinds: ['prescription'] },
+  { title: 'REQUÊTES', kinds: ['lab', 'imaging', 'referral'] },
+  { title: 'OUTILS CLINIQUES', kinds: ['clinicalTool'] },
+  { title: 'CONSIGNES', kinds: ['instructions'] },
+];
+
 const TX_FORWARD_OPTS = [
   'Ne pas faire suivre',
   'Médecin de famille',
@@ -234,8 +242,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   const counts = { todo: 0, ready: 0, done: 0 };
   effectiveDocs.forEach(function (d) { counts[txStatus(d)]++; });
 
-  const rxDocs = effectiveDocs.filter(function (d) { return d.kind === 'prescription'; });
-  const toolDocs = effectiveDocs.filter(function (d) { return d.kind !== 'prescription'; });
+  // Un groupe de sidebar par famille de document. Un groupe vide n'est pas
+  // rendu (PLAN-checkout-v7 §B5). Un kind absent de la liste tombe dans
+  // « Autres documents » plutôt que de disparaître de la sidebar.
+  const sideGroups = TX_SIDE_GROUPS.map(function (g) {
+    return { title: g.title, docs: effectiveDocs.filter(function (d) { return g.kinds.indexOf(d.kind) !== -1; }) };
+  });
+  const otherDocs = effectiveDocs.filter(function (d) {
+    return !TX_SIDE_GROUPS.some(function (g) { return g.kinds.indexOf(d.kind) !== -1; });
+  });
+  if (otherDocs.length) sideGroups.push({ title: 'AUTRES DOCUMENTS', docs: otherDocs });
   const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
 
   // Identité patient — même source unique que PatientBanner (window.NOTE_DATA.PATIENT) :
@@ -298,7 +314,8 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function quickPrint() { setScreen('print'); }
   function quickSend(doc) {
     patch(doc.id, { transmitted: true });
-    if (window.toast) window.toast('Document transmis', { icon: 'check_circle' });
+    // Échec simulé (tweak) : NoteEditor annonce l'échec, pas de succès ici.
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Document transmis', { icon: 'check_circle' });
     afterTransmit(doc.id);
   }
 
@@ -309,7 +326,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function transmitAll() {
     var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
-    if (window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
@@ -331,7 +348,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function onFaxSent(recipient) {
     if (recipient && selected) addRecipient(selected, recipient);
     if (selected) patch(selected.id, { transmitted: true });
-    if (window.toast) window.toast('Fax envoyé', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Fax envoyé', { icon: 'check_circle' });
     if (selected) afterTransmit(selected.id);
   }
   function onPrintDone() {
@@ -403,18 +420,15 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               </button>
             </div>}
 
-            {rxDocs.length > 0 &&
-              <div style={tx.sideGroup}>
-                <div style={tx.sideGroupTitle}>ORDONNANCE {rxDocs.length}</div>
-                {rxDocs.map(function (d) { return renderSideRow(d); })}
-              </div>
-            }
-            {toolDocs.length > 0 &&
-              <div style={tx.sideGroup}>
-                <div style={tx.sideGroupTitle}>OUTILS CLINIQUES {toolDocs.length}</div>
-                {toolDocs.map(function (d) { return renderSideRow(d); })}
-              </div>
-            }
+            {sideGroups.map(function (g) {
+              if (!g.docs.length) return null;
+              return (
+                <div key={g.title} style={tx.sideGroup}>
+                  <div style={tx.sideGroupTitle}>{g.title} {g.docs.length}</div>
+                  {g.docs.map(function (d) { return renderSideRow(d); })}
+                </div>
+              );
+            })}
             {!readOnly &&
               <button style={tx.addDocBtn} onClick={function () {
                 if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });

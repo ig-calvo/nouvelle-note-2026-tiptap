@@ -35,6 +35,8 @@ var INIT_DATA = {
   ],
   meds: [
     { name:'Contraceptif…',      detail:'1 co DIE — actif',  status:'active',  pinned:true },
+    { name:'Tylenol 100 mg',     detail:'1 co PRN — actif',  status:'active' },
+    { name:'Tylenol 500 mg',     detail:'2 co DIE — échue',  status:'echue',   date:'02/2026' },
     { name:'Nitrofurantoïne…',   detail:'cessée (ITU)',       status:'cessée',  date:'12/2025' },
   ],
   immun: [
@@ -50,23 +52,40 @@ var INIT_DATA = {
   ],
 };
 
+// Boîtes et ordre par défaut du sommaire du DME (PatientDashboardController,
+// setupSummaryBoxIdList). Absentes volontairement : DSQ (bascule de
+// fonctionnalité) et Requêtes - Physimed (rôle ROLE_WEB_ORDERWEB).
+// `link` : boîte réduite à son titre, comme dans le DME — elle ouvre un autre
+// module, n'a ni lignes ni « + » et ne se glisse pas vers la note.
 var SECTION_CFG = [
   { id:'tasks',    icon:'check_box',      label:'Tâches',                    add:true  },
+  { id:'clinicalTools', icon:'handyman',  label:'Outils cliniques',          link:true },
   { id:'vitals',   icon:'monitor_heart',  label:'Signes vitaux',             add:true,  list:true },
+  { id:'habits',   icon:'nutrition',      label:'Habitudes de vie et contexte social', add:true, list:true },
+  { id:'programs', icon:'assignment_turned_in', label:'Programmes',          add:true,  list:true },
+  { id:'allergies',icon:'eco',            label:'Allergies',                 add:true,  list:true },
+  { id:'meds',     icon:'medication',     label:'Médications',               add:false, list:true, dots:true },
+  { id:'results',  icon:'science',        label:'Résultats',                 add:true,  list:true },
+  { id:'requests', icon:'request_page',   label:'Requêtes',                  link:true },
+  { id:'immun',    icon:'vaccines',       label:'Immunisation et vaccins',   add:true,  list:true },
   { id:'problems', icon:'hub',            label:'Problèmes',                 add:true,  list:true },
   { id:'history',  icon:'assignment',     label:'Antécédents',               add:true,  list:true },
-  { id:'results',  icon:'science',            label:'Résultats',                  add:true,  list:true },
-  { id:'allergies',icon:'eco',            label:'Allergies',                 add:true,  list:true },
   { id:'family',   icon:'folder_open',    label:'Antécédents familiaux',     add:true,  list:true },
-  { id:'meds',     icon:'medication',     label:'Médicaments',               add:false, list:true, dots:true },
-  { id:'immun',    icon:'vaccines',       label:'Immunisations et vaccins',  add:true,  list:true },
-  { id:'habits',   icon:'nutrition',      label:'Habitudes de vie',          add:true,  list:true },
-  { id:'programs', icon:'assignment_turned_in', label:'Programmes de suivi', add:true,  list:true },
 ];
 
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 
-function Summary() {
+// addToNote (tweak « Le « + » du sommaire ajoute dans la note », piste de
+// vision — rencontre inline entity, Xavier Boilard) : pour Problèmes et
+// Antécédents, le « + » ouvre la recherche de diagnostic DANS la note
+// (note:summary-add, NoteEditor.jsx) au lieu de l'ancienne modale. Pour
+// Médications (lot 6 du plan « Prescription inline »), qui n'avait pas de « + »,
+// il ouvre la recherche de médication « /rx » dans la note — le Figma
+// (« Ajouter une prescription depuis le sommaire ») y prescrit par défaut.
+// Ce que le « + » d'une boîte fait dans la note : NOTE_DATA.summaryAddDetail
+// (editor-data.jsx), { documentAs } pour /dx, { command } pour /rx, null pour
+// l'ancienne modale.
+function Summary({ addToNote }) {
   var [data, setData] = React.useState(INIT_DATA);
   var [modal, setModal] = React.useState(null);   // { section, type:'add'|'list' }
   var [reorder, setReorder] = React.useState(false);
@@ -134,7 +153,7 @@ function Summary() {
   // Un diagnostic suit son propre mécanisme (dxOverlay/dxView ci-dessus),
   // pas cette liste générique.
   React.useEffect(function() {
-    var MAP = { prescription:'meds', problem:'problems', lab:'results', imaging:'results' };
+    var MAP = { prescription:'meds', medication:'meds', problem:'problems', lab:'results', imaging:'results' };
     function onItems(e) {
       var list = (e.detail && e.detail.items) || [];
       var grouped = {};
@@ -281,8 +300,19 @@ function Summary() {
               onDragEnd={function(){ setDragSrc(null); }}
               onNoteDragStart={function(e){ startNoteDrag(e, cfg, items); }}
               onNoteDragEnd={endNoteDrag}
-              onAdd={function(){ setModal({ section:cfg.id, type:'add' }); }}
-              onTitle={function(){ if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' }); }}
+              canAdd={cfg.add || (!!addToNote && !!window.NOTE_DATA.summaryAddDetail(cfg.id))}
+              onAdd={function(){
+                var addDetail = addToNote ? window.NOTE_DATA.summaryAddDetail(cfg.id) : null;
+                if (addDetail) {
+                  window.dispatchEvent(new CustomEvent('note:summary-add', { detail: addDetail }));
+                  return;
+                }
+                setModal({ section:cfg.id, type:'add' });
+              }}
+              onTitle={function(){
+                if (cfg.link) { if (window.toast) window.toast(cfg.label + ' — à venir', { icon: 'info' }); return; }
+                if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });
+              }}
             />
           );
         })}
@@ -294,7 +324,7 @@ function Summary() {
   );
 }
 
-function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, onAdd, onTitle }) {
+function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, canAdd, onAdd, onTitle }) {
   pending = pending || [];
   // Réordonnancement actif uniquement en mode `reorder`. Sinon ces handlers NE
   // doivent PAS exister : le dragstart du <span> « Glisser vers la note » remonte
@@ -312,22 +342,22 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
       <div style={suS.sHead}>
         {reorder && <span className="material-icons" style={{ fontSize:16, color:'color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent)', cursor:'grab', marginRight:4 }}>drag_indicator</span>}
         <span
-          draggable={!reorder}
-          onDragStart={!reorder ? onNoteDragStart : undefined}
-          onDragEnd={!reorder ? onNoteDragEnd : undefined}
-          title={!reorder ? 'Glisser vers la note' : undefined}
-          style={{ display:'flex', alignItems:'center', gap:7, flex:1, minWidth:0, cursor: reorder ? 'inherit' : 'grab' }}>
+          draggable={!reorder && !cfg.link}
+          onDragStart={!reorder && !cfg.link ? onNoteDragStart : undefined}
+          onDragEnd={!reorder && !cfg.link ? onNoteDragEnd : undefined}
+          title={!reorder && !cfg.link ? 'Glisser vers la note' : undefined}
+          style={{ display:'flex', alignItems:'center', gap:7, flex:1, minWidth:0, cursor: reorder ? 'inherit' : (cfg.link ? 'default' : 'grab') }}>
           <span className="material-icons-outlined" style={suS.sIcon}>{cfg.icon}</span>
           <button style={suS.labelBtn} onClick={onTitle}>
             <span style={suS.sLabel}>{cfg.label}</span>
           </button>
         </span>
         {cfg.dots && (
-          <button style={suS.addBtn} onClick={onTitle} title="Ouvrir les médicaments">
+          <button style={suS.addBtn} onClick={onTitle} title="Ouvrir les médications">
             <span className="material-icons" style={{ fontSize:20 }}>more_vert</span>
           </button>
         )}
-        {cfg.add && (
+        {canAdd && (
           <button style={suS.addBtn} onClick={onAdd} title="Ajouter">
             <span className="material-icons" style={{ fontSize:20 }}>add</span>
           </button>

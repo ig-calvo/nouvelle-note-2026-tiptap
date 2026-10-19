@@ -3,6 +3,8 @@
 // =========================================================
 const ENTITY_TYPES = {
   prescription: { key: 'prescription', label: 'Prescription', icon: 'pill', summaryGroup: 'Médications' },
+  // Médication documentée au profil ou mentionnée, sans prescription (lot 4 : Documenter / Mentionner).
+  medication:   { key: 'medication',   label: 'Médication',   icon: 'medication', summaryGroup: 'Médications' },
   lab:          { key: 'lab',          label: 'Laboratoire',  icon: 'science', summaryGroup: 'Résultats' },
   imaging:      { key: 'imaging',      label: 'Imagerie',     icon: 'radiology', summaryGroup: 'Résultats' },
   problem:      { key: 'problem',      label: 'Problème', icon: 'flag', summaryGroup: 'Problèmes' },
@@ -301,7 +303,10 @@ const MED_CATALOG = [
     label: 'Ciprofloxacine 500 mg',
     details: { molecule: 'Ciprofloxacine', dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '',
-      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique' } },
+      indication: 'Pyelonephrite / UTI compliquee', notes: 'Antibiotique',
+      // Alerte SIMULÉE pour montrer l'état « interaction de haut risque » de la
+      // puce (chipIssues, editor-schema.jsx) — pas une donnée clinique.
+      alert: { level: 'high', message: 'Interaction de haut risque avec la médication au dossier (exemple simulé, à valider cliniquement)' } } },
   { stem: 'amoxicilline-clavulanate', brand: 'Clavulin', klass: 'Antibiotique', din: '02238829',
     text: 'Amoxicilline-clavulanate 875/125 mg — 1 co BID x 7 j',
     label: 'Amoxicilline-clavulanate 875/125 mg',
@@ -384,7 +389,12 @@ const RX_OTHERS = MED_CATALOG.map(function (m, i) {
 const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 
 // Médications au dossier du patient (profil pharmacologique — cf. sommaire).
-// Affichées en tête du menu /rx pour renouvellement / référence.
+// Affichées en tête du menu /rx avec leur statut, toutes prescriptibles (spec
+// Figma « Recherche », EX-023). Statuts : 'active' (Actif), 'echue' (Échu),
+// 'cessée' (Cessé) — mêmes clés que le Sommaire (MEDS_STATUS_COLOR). Contenu
+// d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
+// profil garde le contraceptif et la nitrofurantoïne déjà au Sommaire.
+const MED_STATUS_LABEL = { active: 'Actif', echue: 'Échu', 'cessée': 'Cessé' };
 const PATIENT_MEDS = [
   { key: 'med-contraceptif', name: 'Contraceptif oral', dose: '', med: true, medStatus: 'active', medStatusLabel: 'actif',
     sig: '1 co PO DIE',
@@ -392,7 +402,20 @@ const PATIENT_MEDS = [
     details: { molecule: 'Contraceptif oral', dose: '', unit: '', form: 'comprimé', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '11',
       indication: 'Contraception', notes: 'Profil actif au dossier.' } },
-  { key: 'med-nitrofurantoine', name: 'Nitrofurantoïne', dose: '100 mg', med: true, medStatus: 'cessée', medStatusLabel: 'cessée (ITU)',
+  { key: 'med-tylenol-100', name: 'Tylenol', dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: 'actif',
+    renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
+    sig: '1 co PO PRN',
+    chipSig: '1 co PO PRN',
+    details: { molecule: 'Tylenol', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: 'Douleur', notes: 'Profil actif au dossier.' } },
+  { key: 'med-tylenol-500', name: 'Tylenol', dose: '500 mg', med: true, medStatus: 'echue', doseSteps: ['100', '325', '500', '650'], medDate: '02/2026', medStatusLabel: 'échue 02/2026',
+    sig: '2 co PO DIE',
+    chipSig: '2 co PO DIE',
+    details: { molecule: 'Tylenol', dose: '500', unit: 'mg', form: 'comprimé', qtyDose: '2', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: 'Douleur', notes: 'Échue au dossier (02/2026).' } },
+  { key: 'med-nitrofurantoine', name: 'Nitrofurantoïne', dose: '100 mg', med: true, medStatus: 'cessée', medDate: '12/2025', medStatusLabel: 'cessée (ITU)',
     sig: '1 co PO BID',
     chipSig: '1 co PO BID',
     details: { molecule: 'Nitrofurantoïne', dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
@@ -400,7 +423,109 @@ const PATIENT_MEDS = [
       indication: 'Infection urinaire', notes: 'Cessée 12/2025.' } },
 ];
 
-function searchRx(q) {
+// Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
+// médication déjà au dossier : augmenter, diminuer, renouveler, cesser (actif) ;
+// renouveler, prescrire (échu) ; prescrire (cessé). « Documenter » (l'ajouter au
+// profil sans prescrire) n'est offert que pour un produit qui n'est pas au
+// dossier : il est toujours actif, sans tweak. « Mentionner » (référencer une
+// médication du dossier sans prescription) n'est plus offert : la commande
+// `mentionner` de runOrderCommand reste. Le clic ou Entrée sur la ligne reste
+// l'action principale : `defaultMedAction` — renouveler une médication active ou
+// échue, une nouvelle prescription sans marque de renouvellement pour une cessée
+// ou un produit du catalogue (undefined). Augmenter / diminuer remplacent
+// l'ancien « Ajuster » (Figma « Recherche de prescriptions », 2026-10-15).
+function medActions(it) {
+  if (!it || !it.med) return ['documenter'];
+  if (it.medStatus === 'active') return ['augmenter', 'diminuer', 'renouveler', 'cesser'];
+  if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
+  return ['prescrire'];
+}
+// Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
+// au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,
+// que sa dose n'en est pas un, ou qu'elle est déjà au bout de l'échelle.
+function medDoseStep(it, dir) {
+  if (!it || !it.med || !it.doseSteps || !it.details) return null;
+  const steps = it.doseSteps, i = steps.indexOf(String(it.details.dose));
+  if (i < 0) return null;
+  const j = dir === 'up' ? i + 1 : i - 1;
+  return j >= 0 && j < steps.length ? { from: steps[i], to: steps[j] } : null;
+}
+// La médication avec sa dose changée d'un palier : { item, dir, from, to }, ou
+// null. La posologie de la puce est recalculée (deriveRxSig).
+function adjustMedDose(it, dir) {
+  const step = medDoseStep(it, dir);
+  if (!step) return null;
+  const unit = (it.details.unit || '').trim();
+  const details = Object.assign({}, it.details, { dose: step.to });
+  const sig = deriveRxSig(details);
+  const item = Object.assign({}, it, { dose: (step.to + ' ' + unit).trim(), sig: sig, chipSig: sig, details: details });
+  return { item: item, dir: dir, from: step.from, to: step.to, unit: unit };
+}
+
+// Filtres du menu /rx (rail à droite, Figma « Recherche de prescriptions ») :
+// Tout, Renouvelables (échues ou à renouveler bientôt), Actives, Cessées,
+// Favoris, Gabarits (ceux qui proposent une ordonnance). Le filtre vit le temps
+// d'une recherche, comme les favoris figés (endOrderSearch).
+const RX_FILTERS = [
+  { key: 'tout', label: 'Tout', icon: 'collections_bookmark' },
+  { key: 'renouvelables', label: 'Renouvelables', icon: 'history' },
+  { key: 'actives', label: 'Actives', icon: 'check_circle' },
+  { key: 'cessees', label: 'Cessées', icon: 'block' },
+  { key: 'favoris', label: 'Favoris', icon: 'favorite_border' },
+  { key: 'phrases', label: 'Phrases de prescription', icon: 'assignment' },
+];
+let _rxFilter = 'tout';
+function setRxFilter(f) { _rxFilter = RX_FILTERS.some(function (x) { return x.key === f; }) ? f : 'tout'; }
+function getRxFilter() { return _rxFilter; }
+function isRenewable(it) { return !!(it && it.med && (it.medStatus === 'echue' || it.renewSoon)); }
+// `r` = résultat de searchRx ; rend la liste du filtre choisi.
+function applyRxFilter(r, f) {
+  const none = { profil: [], favoris: [], frequents: [], autres: [] };
+  switch (f) {
+    case 'renouvelables': return Object.assign(none, { profil: r.profil.filter(isRenewable) });
+    case 'actives': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'active'; }) });
+    case 'cessees': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }) });
+    case 'favoris': return Object.assign(none, { favoris: r.favoris });
+    // Hors du dossier : les favoris, les traitements fréquents et les autres produits trouvés.
+    case 'phrases': return Object.assign(none, { favoris: r.favoris, frequents: r.frequents, autres: r.autres });
+    default: return r;
+  }
+}
+// Compteurs du rail, pour la recherche en cours. Tout = les lignes que « Tout »
+// affiche.
+function rxFilterCounts(q, favs) {
+  const r = searchRx(q, favs);
+  const tout = r.profil.length + r.favoris.length + r.frequents.length + r.autres.length;
+  return { tout: tout, renouvelables: r.profil.filter(isRenewable).length,
+    actives: r.profil.filter(function (it) { return it.medStatus === 'active'; }).length,
+    cessees: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }).length,
+    favoris: r.favoris.length, phrases: r.favoris.length + r.frequents.length + r.autres.length };
+}
+
+// Texte du statut d'une médication au profil, pour la puce documentaire :
+// « Cessé 12/2025 », « Échu 02/2026 » ; vide pour une médication active.
+function medStatusText(m) {
+  if (!m || !m.medStatus || m.medStatus === 'active') return '';
+  return MED_STATUS_LABEL[m.medStatus] + (m.medDate ? ' ' + m.medDate : '');
+}
+// « + » du Sommaire derrière le tweak « Le « + » du sommaire ajoute dans la
+// note » : ce que la boîte demande à la note. { documentAs } = région
+// diagnostic (/dx) documentée comme problème ou antécédent ; { command } =
+// fonction de la note (/rx) ; null = l'ancienne modale de la boîte.
+function summaryAddDetail(sectionId) {
+  const dx = { problems: 'probleme', history: 'antecedent' };
+  const fn = { meds: 'rx' };
+  if (dx[sectionId]) return { documentAs: dx[sectionId] };
+  if (fn[sectionId]) return { command: fn[sectionId] };
+  return null;
+}
+function defaultMedAction(it) {
+  if (!it || !it.med) return undefined;
+  return it.medStatus === 'cessée' ? undefined : 'renouveler';
+}
+
+function searchRx(q, favs) {
+  const favSet = favs || RX_FAVS;
   const nq = _norm((q || '').trim());
   const match = function (it) {
     if (!nq) return true;
@@ -410,15 +535,13 @@ function searchRx(q) {
     if (it.din && /\d/.test(nq) && it.din.includes(nq.replace(/\D/g, ''))) return true;
     return false;
   };
-  const profilAll = PATIENT_MEDS.filter(match);
-  const profil = profilAll.filter(function (it) { return !it.med || it.medStatus === 'active'; });
-  const profilCeased = profilAll.filter(function (it) { return it.med && it.medStatus !== 'active'; });
-  const favoris = RX_ALL.filter(function (it) { return RX_FAVS.has(it.key) && match(it); });
-  const frequents = RX_ALL.filter(function (it) { return it.freq && !RX_FAVS.has(it.key) && match(it); });
+  const profil = PATIENT_MEDS.filter(match); // tous les statuts : actif, échu, cessé
+  const favoris = RX_ALL.filter(function (it) { return favSet.has(it.key) && match(it); });
+  const frequents = RX_ALL.filter(function (it) { return it.freq && !favSet.has(it.key) && match(it); });
   const autres = nq
-    ? RX_ALL.filter(function (it) { return !it.freq && !RX_FAVS.has(it.key) && match(it); }).slice(0, 6)
+    ? RX_ALL.filter(function (it) { return !it.freq && !favSet.has(it.key) && match(it); }).slice(0, 6)
     : [];
-  return { profil, profilCeased, favoris, frequents, autres };
+  return { profil, favoris, frequents, autres };
 }
 
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
@@ -558,18 +681,82 @@ const REF_ITEMS = [
 // Unified order registry (rx / lab / img / ref) — shared search + favorites
 const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: 'prescrire', emptyNoun: 'produit',
-         sections: ['Favoris', 'Traitements fréquemment prescrits', 'Autres produits trouvés'],
+         sections: ['Favoris', 'Traitements fréquemment prescrits', 'Phrases de prescription'],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
-  lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse',
+  lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse', multi: true,
          sections: ['Favoris', 'Analyses fréquemment demandées', 'Autres analyses'],
-         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q) { return _searchList(LAB_ITEMS, LAB_FAVS, q); } },
-  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: 'demander',  emptyNoun: 'examen',
+         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q, favs) { return _searchList(LAB_ITEMS, favs || LAB_FAVS, q); } },
+  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: 'demander',  emptyNoun: 'examen', multi: true,
          sections: ['Favoris', 'Examens fréquemment demandés', 'Autres examens'],
-         favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q) { return _searchList(IMG_ITEMS, IMG_FAVS, q); } },
+         favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
+  // Recherche unifiée (profils + labo + imagerie) : un résultat peut être de
+  // plusieurs natures, voir `orderKind` (searchRequests).
+  req: { kbd: 'req', type: 'lab',          icon: 'lab_profile', glyph: null, verb: 'demander', emptyNoun: 'examen', multi: true,
+         sections: ['Profils', 'Laboratoire', 'Imagerie'],
+         favs: new Set(), items: function () { return LAB_PROFILES.concat(LAB_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); }), IMG_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); })); }, search: searchRequests },
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: 'référer',   emptyNoun: 'spécialité',
          sections: ['Favoris', 'Spécialités fréquentes', 'Autres spécialités'],
-         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q) { return _searchList(REF_ITEMS, REF_FAVS, q); } },
+         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
 };
+
+// Éléments structurés que l'Assistant IA propose pour la transcription
+// d'exemple (AIBox.jsx : brûlures mictionnelles, bandelette positive) — tweak
+// « IA : éléments structurés proposés ». Items du catalogue seulement ;
+// contenu SIMULÉ, à valider cliniquement (ID-10). `cat-44` = Nitrofurantoïne.
+const AI_SAMPLE_PROPOSALS = [
+  { kind: 'lab', key: 'srum' },
+  { kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } },
+];
+
+// Valeurs proposées pour les champs d'une puce — UNE source pour le
+// formulaire (ChipPopover, editor-popover.jsx) et l'éditeur inline d'un champ
+// (ChipInlineEditor, NoteEditor.jsx), D-04 : pas deux systèmes pour la même
+// prescription. Couvre toutes les valeurs du catalogue (tests/field-options).
+const FIELD_OPTIONS = {
+  route: ['PO', 'SL', 'TD', 'Inhalé', 'Nasal', 'SC', 'IM', 'IV', 'PR', 'Topique', 'Auriculaire', 'Ophtalmique'],
+  frequency: ['DIE', 'BID', 'TID', 'QID', 'HS', 'AC', 'PC', 'q4h', 'q6h', 'q8h', 'q12h',
+    'PRN', 'DIE PRN', 'BID PRN', 'TID PRN', 'QID PRN', 'HS PRN', 'q4-6h PRN', 'q6-8h PRN', 'q8-12h PRN',
+    '1× / semaine', '2× / semaine', '3× / semaine', '1× / 2 semaines', '1× / mois'],
+  refills: ['0', '1', '2', '3', '4', '5', '6', '11', '12'],
+  durationUnit: ['jours', 'semaines', 'mois'],
+  priority: ['Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'],
+  specialty: ['Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie', 'Neurologie', 'Pneumologie',
+    'Rhumatologie', 'Endocrinologie', 'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie', 'ORL',
+    'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie', 'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'],
+};
+
+// Profils de laboratoire : un raccourci qui commande plusieurs analyses du
+// catalogue (rencontre inline entity, Antoine Cloutier). Choisir un profil ne
+// crée rien d'office : ses analyses arrivent dans une seule puce labo, et
+// chacune se retire dans le formulaire. Contenu d'exemple, à valider (ID-09).
+const LAB_PROFILES = [
+  { key: 'prof-diabete', name: 'Profil diabète', labKeys: ['hba1c', 'glyc', 'creat', 'lipide'] },
+  { key: 'prof-annuel', name: 'Bilan annuel', labKeys: ['fsc', 'glyc', 'lipide', 'creat', 'tsh'] },
+  { key: 'prof-anemie', name: 'Bilan anémie', labKeys: ['fsc', 'ferritine', 'b12'] },
+].map(function (p) {
+  const items = p.labKeys.map(function (k) { return LAB_ITEMS.find(function (it) { return it.key === k; }); }).filter(Boolean);
+  const tests = [];
+  items.forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); }); });
+  return { key: p.key, name: p.name, dose: '', profile: true, orderKind: 'lab',
+    sig: 'Profil · ' + tests.length + ' analyses : ' + tests.join(', '),
+    details: { tests: tests, priority: 'Routine', fasting: items.some(function (it) { return it.details.fasting; }), context: '', profile: p.name } };
+});
+
+// Recherche unifiée des requêtes (/req) : profils, analyses et examens
+// d'imagerie dans une seule liste, en trois sections (mêmes clés que les
+// autres recherches, pour RxMenu). Chaque résultat porte son `orderKind`.
+function searchRequests(q) {
+  const tag = function (kind) { return function (it) { return Object.assign({}, it, { orderKind: kind }); }; };
+  const nq = _norm((q || '').trim());
+  const match = function (it) { return !nq || _norm(it.name).includes(nq) || _norm(it.sig || '').includes(nq); };
+  const lab = _searchList(LAB_ITEMS, LAB_FAVS, q), img = _searchList(IMG_ITEMS, IMG_FAVS, q);
+  const firstOf = function (r) { return r.favoris.concat(r.frequents, r.autres); };
+  return {
+    favoris: LAB_PROFILES.filter(match),
+    frequents: firstOf(lab).map(tag('lab')),
+    autres: firstOf(img).map(tag('img'))
+  };
+}
 
 function _searchList(list, favSet, q) {
   const nq = _norm((q || '').trim());
@@ -587,7 +774,22 @@ function orderKindForKbd(kbd) {
   const k = (kbd || '').toLowerCase();
   return ORDER_DEFS[k] ? k : null;
 }
-function searchOrder(kind, q) { const d = ORDER_DEFS[kind]; return d ? d.search(q) : { favoris: [], frequents: [], autres: [] }; }
+// Une recherche ouverte ne se réorganise pas quand on ajoute ou retire un
+// favori (cœur) : les sections gardent les favoris tels qu'ils étaient à la
+// première recherche de la session (spec « Recherche », Figma). Le cœur, lui,
+// lit toujours les favoris à jour (`ORDER_DEFS[kind].favs`). La session se
+// termine à la fermeture du menu (`endOrderSearch`, onExit du plugin « / »).
+let _favFreeze = {};
+function searchOrder(kind, q) {
+  const d = ORDER_DEFS[kind];
+  if (!d) return { favoris: [], frequents: [], autres: [] };
+  if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
+  const r = d.search(q, _favFreeze[kind]);
+  return kind === 'rx' ? applyRxFilter(r, _rxFilter) : r;
+}
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; }
+// Compteurs du rail avec les favoris figés de la recherche en cours.
+function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
 
 // Regenerate the rich-chip payload after a popover edit (lab / imaging)
@@ -631,6 +833,10 @@ const SLASH_ITEMS = [
     hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: 'Gabarits de note', icon: 'event_repeat', title: 'Examen périodique', desc: 'Antécédents, examen, conclusion', kbd: 'periodique',
     hideWhenEmpty: true, noteTemplate: 'periodique' },
+  { key: 'tpl-otite', section: 'Gabarits de note', icon: 'hearing', title: 'Otite moyenne aiguë', desc: 'Histoire, examen, conclusion + ordonnance proposée', kbd: 'otite',
+    hideWhenEmpty: true, noteTemplate: 'otite' },
+  { key: 'tpl-pneumonie', section: 'Gabarits de note', icon: 'pulmonology', title: 'Pneumonie (suspicion)', desc: 'Histoire, examen, conclusion + requêtes et ordonnance proposées', kbd: 'pneumonie',
+    hideWhenEmpty: true, noteTemplate: 'pneumonie' },
   // ── FONCTIONS ────────────────────────────────────────────
   { key: 'add-file', section: 'Fonctions', icon: 'upload_file', title: 'Ajouter des fichiers', desc: 'PDF, image depuis ordinateur…', kbd: '',
     noKbd: true, fileAction: true },
@@ -651,6 +857,8 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'lab', label: 'Demande de laboratoire', text: 'Demande de laboratoire',
       details: { tests: ['FSC'], priority: 'Routine', fasting: false, context: '', collection: 'Au CH le plus proche' } } },
+  { key: 'requests', section: 'Fonctions', icon: 'lab_profile', title: 'Requêtes', desc: 'Labo, imagerie et profils — plusieurs à la fois', kbd: 'req',
+    orderSearch: true },
   { key: 'imaging', section: 'Fonctions', icon: 'radiology', title: 'Imagerie', desc: 'Radio, écho, TDM', kbd: 'img',
     orderSearch: true,
     template: { type: 'imaging', label: "Demande d'imagerie", text: "Demande d'imagerie",
@@ -706,6 +914,43 @@ const NOTE_TEMPLATES = [
       { title: 'Conclusion', content: 'Impression : Bonne santé générale.\nPlan : ' },
     ],
   },
+  // Gabarit avec ajout proposé : `proposals` = éléments inline (ordonnance…)
+  // que le gabarit ne crée pas, il les propose — chip en attente avec ✓ / ✕
+  // (voir buildTemplateBlocks et decoratePendingChip, editor-schema.jsx).
+  // Chaque proposition pointe un item du catalogue { kind, key } (ORDER_DEFS).
+  {
+    key: 'otite', name: 'Otite moyenne aiguë',
+    raison: 'Otalgie',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Depuis : \nOtalgie (côté) : \nFièvre : \nÉcoulement / hypoacousie : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nOtoscopie droite : \nOtoscopie gauche : \nOropharynx : ' },
+      { title: 'Conclusion', content: 'Impression : Otite moyenne aiguë.\nPlan : ',
+        proposals: [{ kind: 'rx', key: 'amox500' }] },
+    ],
+  },
+  // Gabarit avec plusieurs ajouts proposés, dont une ordonnance INCOMPLÈTE
+  // (fréquence laissée vide, cas soulevé en rencontre : un gabarit de
+  // prescription qui crée une ordonnance à compléter). Contenu clinique
+  // d'exemple, à valider (ID-07). `cat-48` = Amoxicilline-clavulanate au
+  // catalogue (clé dérivée de sa position dans MED_CATALOG).
+  {
+    key: 'pneumonie', name: 'Pneumonie (suspicion)',
+    raison: 'Toux et fièvre',
+    sections: [
+      { title: 'Histoire de la maladie actuelle',
+        content: 'Toux depuis : \nFièvre : \nDyspnée / douleur thoracique : \nExpectorations : ' },
+      { title: 'Examen physique',
+        content: 'Température : \nFR / SpO2 : \nAuscultation pulmonaire : ' },
+      { title: 'Conclusion', content: 'Impression : Pneumonie acquise en communauté à confirmer.\nPlan : ',
+        proposals: [
+          { kind: 'img', key: 'rxpoumon' },
+          { kind: 'lab', key: 'fsc' },
+          { kind: 'rx', key: 'cat-48', details: { frequency: '' } }
+        ] },
+    ],
+  },
 ];
 
 const PATIENT = {
@@ -758,5 +1003,7 @@ const SCENARIOS = [
 ];
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx };
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
+  medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
+  ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

@@ -24,6 +24,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const [chipMenu, setChipMenu] = useStateE(null); // { cid, rect } — hover menu (Modifier / Prescrire / ⋮) on order chips
   const [chipDelete, setChipDelete] = useStateE(null); // { cid, rect } — delete confirmation popover
   const [chipMore, setChipMore] = useStateE(null); // { cid, rect } — sous-menu « ⋮ » du chip
+  const [chipCancel, setChipCancel] = useStateE(null); // { cid, rect } — confirmation « Annuler l'ordonnance / la requête » (chip transmis)
   const chipMenuTimerRef = useRefE(null);
   const addBtnRef = useRefE(null);
   const fileInputRef = useRefE(null);
@@ -75,6 +76,22 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const slashRef = useRefE(null); slashRef.current = slash; // lu par openSlashMenu, abonné une seule fois
   const slashCommandRef = useRefE(null); // fonction `command` fournie par le plugin pour le item courant
   const slashApiRef = useRefE(null); // { setActiveIndex, republish } — pour onHover/onToggleFav (hors du contrôleur)
+  const slashDoneRef = useRefE(false); // un item a été choisi (runSlashCommand) : la recherche ne s'est pas terminée par un abandon
+
+  // Recherche de fonction abandonnée (Échap, clic ailleurs) : « /rx amox » ne
+  // reste pas dans la note, la ligne redevient ce qu'elle était et le curseur
+  // reste là où il est (spec Figma « Recherche abandonnée »). Différé : onExit
+  // s'exécute pendant la mise à jour de la vue. Ne touche à rien si le texte à
+  // cet endroit n'est plus « /requête » (le document a changé entre-temps).
+  function removeAbandonedSearch(range, query) {
+    setTimeout(function () {
+      const editor = editorRef.current; if (!editor || !range) return;
+      const doc = editor.state.doc;
+      if (range.from < 0 || range.to > doc.content.size) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
+      editor.view.dispatch(editor.state.tr.delete(range.from, range.to));
+    }, 0);
+  }
 
   function openSlashMenu() {
     const editor = editorRef.current; if (!editor) return;
@@ -107,30 +124,55 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
     const kind = props.kind, item = props.item, action = props.action;
+    // Plusieurs résultats cochés, un profil, ou la recherche unifiée /req :
+    // une puce labo pour les analyses, une puce par examen d'imagerie
+    // (buildRequestChips, editor-schema.jsx).
+    if (props.items || kind === 'req' || (item && item.profile)) {
+      const list = props.items || (item ? [item] : []);
+      const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+      const nodes = [];
+      window.buildRequestChips(list, kind === 'req' ? null : kind).forEach(function (a) {
+        nodes.push({ type: 'chip', attrs: Object.assign(a, stamp) }, { type: 'text', text: ' ' });
+      });
+      if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
+      return;
+    }
+    // Documenter / Mentionner (lot 4) : une puce documentaire, sans prescription.
+    if ((action === 'documenter' || action === 'mentionner') && kind === 'rx' && item) {
+      const attrs = Object.assign(window.medicationChipAttrs(item, action === 'documenter' ? 'document' : 'mention'),
+        { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+      editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
+      return;
+    }
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
     if (!def || !item) return;
+    // Augmenter / diminuer (Figma, menu /rx) : la même médication, sa dose d'un
+    // palier plus haut ou plus bas (adjustMedDose). `src` est alors l'item à
+    // prescrire ; sans palier (déjà au bout de l'échelle), rien ne se passe.
+    let src = item, adjust = null;
+    if (kind === 'rx' && (action === 'augmenter' || action === 'diminuer')) {
+      adjust = window.NOTE_DATA.adjustMedDose(item, action === 'augmenter' ? 'up' : 'down');
+      if (!adjust) return;
+      src = adjust.item;
+    }
     const chipId = window.newChipId();
-    const label = (item.name + ' ' + (item.dose || '')).trim();
+    const label = (src.name + ' ' + (src.dose || '')).trim();
     const isCeasing = action === 'cesser' && kind === 'rx';
-    const itemDetails = isCeasing ? {} : (item.details || {});
+    const itemDetails = isCeasing ? {} : (src.details || {});
     // `renewal` distingue le renouvellement d'une médication déjà au dossier
     // d'une nouvelle prescription : les deux produisent le même chip, mais le
-    // checkout les affiche avec une icône différente (plan V7 §G).
+    // checkout les affiche avec une icône différente (plan V7 §G). Un
+    // ajustement de dose est un renouvellement à une autre dose (`adjust`).
     const rx = isCeasing
-      ? { name: item.name, dose: item.dose || '', sig: 'Cessé', kind: kind, ceased: true }
-      : { name: item.name, dose: item.dose || '', sig: item.chipSig || item.sig, kind: kind,
-          renewal: action === 'renouveler' };
-    const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (item.chipSig || item.sig);
+      ? { name: src.name, dose: src.dose || '', sig: 'Cessé', kind: kind, ceased: true }
+      : { name: src.name, dose: src.dose || '', sig: src.chipSig || src.sig, kind: kind,
+          renewal: action === 'renouveler' || !!adjust,
+          adjust: adjust ? adjust.dir : undefined, adjustFrom: adjust ? (item.dose || '') : undefined };
+    const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (src.chipSig || src.sig);
     editor.chain().focus().insertContentAt(range, [
       { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
     ]).run();
-    if (action === 'ajuster') {
-      requestAnimationFrame(function () {
-        const node = editor.view.dom.querySelector('[data-cid="' + chipId + '"]');
-        if (node && onChipClickRef.current) onChipClickRef.current(chipId, node.getBoundingClientRect(), { action: 'modal' });
-      });
-    }
   }
 
   // Crée (bientôt aussi : Reprend/Remplace/Cesse — dx-picker.jsx) une région
@@ -138,8 +180,14 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // corps vide, curseur placé dans ce paragraphe. makeDiagRegionAttrs
   // (diagnostics.jsx) est le seul endroit qui construit ses attributs.
   function runDiagnosticCommand(editor, range, props) {
-    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    const now = new Date().toISOString();
+    const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: now, author: window.__CURRENT_AUTHOR || null });
     if (!attrs) return;
+    // Ouvert depuis le « + » Problèmes / Antécédents du Sommaire : documenté d'emblée.
+    if (window.__DX_DOCUMENT_AS && props.action === 'nouveau' && !attrs.documentAs) {
+      Object.assign(attrs, { documentAs: window.__DX_DOCUMENT_AS, documentedAt: now, documentedBy: window.__CURRENT_AUTHOR || null });
+    }
+    window.__DX_DOCUMENT_AS = null;
     const diagId = attrs.id;
     const diagnosticContent = {
       type: 'diagnosticRegion',
@@ -171,6 +219,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // {__order, item, action, kind} (RxMenu), soit {__dx, action, pick, target}
   // (DiagnosticDropdown — voir makeDiagRegionAttrs, diagnostics.jsx).
   function runSlashCommand({ editor, range, props }) {
+    slashDoneRef.current = true;
     if (props.__order) { runOrderCommand(editor, range, props); return; }
     if (props.__dx) { runDiagnosticCommand(editor, range, props); return; }
     const it = props;
@@ -263,6 +312,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // clavier et l'affichage (voir l'en-tête de dx-picker.jsx : c'était le
     // piège de searchDx, deux appels indépendants).
     let dxState = null, dxModel = null, dxSelfRewrite = false;
+    // Sélection multiple des recherches de requêtes (ORDER_DEFS[kind].multi :
+    // /req, /lab, /img) : items cochés, gardés quand la recherche change,
+    // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
+    let checked = [];
+    // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
+    let railFocus = false;
+    function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
+    function toggleChecked(it, kind) {
+      const u = checkUid(it, kind);
+      const i = checked.findIndex(function (c) { return checkUid(c, c.__kind) === u; });
+      if (i >= 0) checked.splice(i, 1);
+      else checked.push(Object.assign({}, it, { __kind: kind }));
+    }
 
     function initialIndex() { return 0; }
 
@@ -329,7 +391,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
-        setSlash({ mode: 'order', kind: parsed.kind, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null });
+        // La liste navigable est la liste affichée (le filtre du rail la change sans
+        // que le plugin « / » ne la recalcule).
+        currentItems = window.flattenRxResults(results);
+        selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
+        setSlash({ mode: 'order', kind: parsed.kind,
+          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
+          railFocus: parsed.kind === 'rx' && railFocus,
+          counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
       if (parsed.mode === 'dx') {
@@ -347,7 +417,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const api = {
       onStart(props) {
         selectedIndex = initialIndex();
+        checked = []; railFocus = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
+        slashDoneRef.current = false;
+        window.NOTE_DATA.setRxFilter('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -366,6 +439,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           selectedIndex = initialIndex();
         }
         lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range;
+        slashDoneRef.current = false; // un item de bascule (/rx, /dx) réécrit la requête sans terminer la recherche
         slashCommandRef.current = props.command;
         publish(props.query);
       },
@@ -381,11 +455,34 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (result.effects.length === 0) publish(lastQuery);
           return true;
         }
-        if (props.event.key === 'Escape') { setSlash(null); return true; }
+        if (props.event.key === 'Escape') {
+          // Le plugin « / » ne se ferme pas de lui-même quand onKeyDown renvoie
+          // true : en mode fonction, on retire la requête du document, ce qui le
+          // ferme (onExit). Le menu générique garde son texte (texte libre).
+          if (parsed.mode === 'order' && currentRange) removeAbandonedSearch(currentRange, lastQuery);
+          setSlash(null); return true;
+        }
         // Menu générique sans aucun résultat : on n'intercepte plus les
         // flèches/Entrée (rien à sélectionner) — la frappe continue
         // normalement, le message « aucun résultat » reste affiché via publish().
         if (parsed.mode === 'menu' && currentItems.length === 0) return false;
+        // Menu /rx avec rail : Tab / ⇧ Tab bascule le focus entre la liste et le rail de
+        // filtres (Tab n'applique plus la sélection, c'est le rôle d'Entrée). Dans le rail,
+        // ↑ ↓ changent de filtre, Entrée, ← ou Échap-sans-fermer ramènent à la liste.
+        if (parsed.mode === 'order' && props.event.key === 'Tab') {
+          if (parsed.kind === 'rx') { railFocus = !railFocus; publish(lastQuery); }
+          return true;
+        }
+        if (railFocus && parsed.mode === 'order' && parsed.kind === 'rx') {
+          const key = props.event.key;
+          const filters = window.NOTE_DATA.RX_FILTERS;
+          const cur = Math.max(0, filters.findIndex(function (f) { return f.key === window.NOTE_DATA.getRxFilter(); }));
+          if (key === 'ArrowDown' || key === 'ArrowUp') {
+            const next = filters[(cur + (key === 'ArrowDown' ? 1 : filters.length - 1)) % filters.length];
+            api.setFilter(next.key); return true;
+          }
+          if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
+        }
         if (props.event.key === 'ArrowDown') {
           selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;
@@ -394,13 +491,24 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           selectedIndex = Math.max(0, selectedIndex - 1);
           publish(lastQuery); return true;
         }
-        if (props.event.key === 'Enter' || props.event.key === 'Tab') {
+        const orderDef = parsed.mode === 'order' ? window.NOTE_DATA.ORDER_DEFS[parsed.kind] : null;
+        // ⇧ Entrée : coche / décoche le résultat actif, le menu reste ouvert.
+        if (props.event.key === 'Enter' && props.event.shiftKey && orderDef && orderDef.multi) {
+          const it = currentItems[selectedIndex];
+          if (it) { toggleChecked(it, parsed.kind); publish(lastQuery); }
+          return true;
+        }
+        if (props.event.key === 'Enter' || (props.event.key === 'Tab' && parsed.mode !== 'order')) {
           if (!slashCommandRef.current) return true;
+          if (parsed.mode === 'order' && checked.length) {
+            const items = checked.slice(); checked = [];
+            slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
+            return true;
+          }
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
             if (it) {
-              const isActiveMed = it.med && it.medStatus === 'active';
-              slashCommandRef.current({ __order: true, item: it, action: isActiveMed ? 'renouveler' : undefined, kind: parsed.kind });
+              slashCommandRef.current({ __order: true, item: it, action: window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
           } else {
             const it = currentItems[selectedIndex];
@@ -410,9 +518,29 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return false;
       },
-      onExit() { setSlash(null); },
+      onExit() {
+        // Abandon d'une recherche de fonction (/rx, /lab, /img, /ref, /req) sans
+        // avoir choisi d'item : le texte « /rx amox » est retiré. Le menu
+        // générique garde son texte (« Échap pour écrire en texte libre »).
+        const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
+        const range = currentRange, query = lastQuery;
+        checked = []; window.__DX_DOCUMENT_AS = null;
+        window.NOTE_DATA.endOrderSearch();
+        setSlash(null);
+        if (abandoned) removeAbandonedSearch(range, query);
+      },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
+      // Souris (RxMenu) : case à cocher d'un résultat, bouton « Ajouter (n) ».
+      toggleCheck(it) { const parsed = parseSlashQuery(lastQuery); toggleChecked(it, parsed.kind); publish(lastQuery); },
+      addChecked() {
+        const parsed = parseSlashQuery(lastQuery);
+        if (!checked.length || !slashCommandRef.current) return;
+        const items = checked.slice(); checked = [];
+        slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
+      },
       republish() { publish(lastQuery); },
+      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
+      setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
       // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
@@ -684,6 +812,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const chipEl = e.target.closest('.chip[data-cid]');
       if (!chipEl) return;
       e.preventDefault();
+      // Ajout en attente (gabarit) : rien à ouvrir, seuls ✓ / ✕ agissent (click, ci-dessous).
+      if (chipEl.classList.contains('chip--pending')) return;
       const cid = chipEl.getAttribute('data-cid');
       const actionEl = e.target.closest('[data-action]');
       const fieldEl = e.target.closest('[data-field]');
@@ -701,10 +831,29 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       }
     });
 
+    // Double-clic sur un chip en attente : ses détails, pour le vérifier et
+    // l'ajuster avant de l'accepter (Q-07 renversée, rencontre inline entity).
+    editor.view.dom.addEventListener('dblclick', (e) => {
+      const chipEl = e.target.closest('.chip--pending[data-cid]');
+      if (!chipEl || e.target.closest('.chip-pending-btn')) return;
+      e.preventDefault();
+      onChipClickRef.current(chipEl.getAttribute('data-cid'), chipEl.getBoundingClientRect(), { action: 'modal' });
+    });
+
+    // ✓ / ✕ d'un chip en attente — sur `click` (pas mousedown) pour que Entrée /
+    // Espace au clavier sur le bouton focalisé marchent aussi.
+    editor.view.dom.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip--pending [data-pending]');
+      if (!btn) return;
+      const cid = btn.closest('.chip[data-cid]').getAttribute('data-cid');
+      if (btn.getAttribute('data-pending') === 'accept') window.acceptPendingChip(editor, cid);
+      else window.rejectPendingChip(editor, cid);
+    });
+
     // Hover menu (Modifier / Prescrire / ⋮) on order chips — show on chip hover,
     // close shortly after the pointer leaves (cancelled if it enters the menu).
     editor.view.dom.addEventListener('mouseover', (e) => {
-      const chipEl = e.target.closest('.chip--rx[data-cid]');
+      const chipEl = e.target.closest('.chip--rx[data-cid]:not(.chip--pending)');
       if (!chipEl) return;
       cancelChipMenuClose();
       const cid = chipEl.getAttribute('data-cid');
@@ -722,21 +871,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     };
   }, []);
 
-  // Reconstruit le texte lisible d'un chip d'ordonnance à partir de ses segments
-  // visibles (nom, dose, posologie…), en ignorant l'icône et les séparateurs.
+  // Texte d'un chip une fois « gardé en texte » : le même que dans la liste
+  // des notes et à l'impression (chipPrintText, editor-schema.jsx).
   function chipPlainText(cid) {
     const editor = editorRef.current; if (!editor) return '';
-    const node = editor.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
-    if (!node) return '';
-    const keep = ['chip-rx-name', 'chip-rx-dose', 'chip-rx-form', 'chip-rx-route', 'chip-rx-freq', 'chip-rx-dur', 'chip-rx-priority', 'chip-rx-sig'];
-    const parts = [];
-    node.querySelectorAll('span').forEach(function (sp) {
-      if (keep.some(function (c) { return sp.classList.contains(c); })) {
-        const t = (sp.textContent || '').trim();
-        if (t) parts.push(t);
-      }
-    });
-    return parts.join(' ').replace(/\s+/g, ' ').trim();
+    return window.chipPrintText(window.chipAttrs(editor, cid));
   }
 
   // Supprime le chip (node atom) à sa position, en remplaçant éventuellement
@@ -758,12 +897,71 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   function deleteChipFromMenu(cid) { applyChipEdit(cid, null); }
   function keepChipAsText(cid) { applyChipEdit(cid, chipPlainText(cid)); }
 
+  // Puce dont le formulaire est ouvert (NoteEditor → linkedChipId) : contour.
   useEffectE(function () {
-    if (!chipDelete && !chipMenu && !chipMore) return;
-    function onKey(e) { if (e.key === 'Escape') { setChipDelete(null); setChipMenu(null); setChipMore(null); } }
+    const editor = editorRef.current;
+    if (!editor) return undefined;
+    const dom = editor.view.dom;
+    dom.querySelectorAll('.chip--editing').forEach(function (el) { el.classList.remove('chip--editing'); });
+    const el = linkedChipId && dom.querySelector('.chip[data-cid="' + linkedChipId + '"]');
+    if (el) el.classList.add('chip--editing');
+    return function () { if (el) el.classList.remove('chip--editing'); };
+  }, [linkedChipId]);
+
+  // Fermer le dialogue de suppression sans rien faire : le focus revient à
+  // la note, la puce reste sélectionnée (Backspace de nouveau le rouvre).
+  function closeChipDelete() {
+    setChipDelete(null);
+    if (editorRef.current) editorRef.current.commands.focus();
+  }
+
+  // Demandes venues du clavier (makeChipKeysExtension, editor-schema.jsx) :
+  // Backspace / Delete sur une puce sélectionnée ou sur une sélection qui
+  // en contient → dialogue ; Entrée sur une puce sélectionnée → ses détails.
+  useEffectE(function () {
+    function chipRect(cid) {
+      const el = editorRef.current && editorRef.current.view.dom.querySelector('.chip[data-cid="' + cid + '"]');
+      return el ? el.getBoundingClientRect() : null;
+    }
+    function onDeleteRequest(e) {
+      const d = e.detail || {};
+      if (!editorRef.current || d.editor !== editorRef.current) return;
+      setChipMenu(null); setChipMore(null);
+      if (d.range) {
+        const c = editorRef.current.view.coordsAtPos(d.range.to);
+        setChipDelete({ cids: d.cids, range: d.range, rect: { left: c.left, right: c.right, top: c.top, bottom: c.bottom } });
+        return;
+      }
+      const rect = chipRect(d.cid);
+      if (rect) setChipDelete({ cid: d.cid, rect: rect });
+    }
+    function onOpenRequest(e) {
+      const d = e.detail || {};
+      if (!editorRef.current || d.editor !== editorRef.current) return;
+      const rect = chipRect(d.cid);
+      if (!rect || !onChipClickRef.current) return;
+      // Valeur secondaire ciblée au clavier (Tab) : son éditeur inline.
+      if (d.field) onChipClickRef.current(d.cid, rect, { field: d.field, fieldRect: d.fieldRect || rect });
+      else onChipClickRef.current(d.cid, rect, { action: 'modal' });
+    }
+    window.addEventListener('note:chip-delete-request', onDeleteRequest);
+    window.addEventListener('note:chip-open-request', onOpenRequest);
+    return function () {
+      window.removeEventListener('note:chip-delete-request', onDeleteRequest);
+      window.removeEventListener('note:chip-open-request', onOpenRequest);
+    };
+  }, []);
+
+  useEffectE(function () {
+    if (!chipDelete && !chipMenu && !chipMore && !chipCancel) return;
+    function onKey(e) {
+      if (e.key !== 'Escape') return;
+      if (chipDelete) closeChipDelete();
+      setChipMenu(null); setChipMore(null); setChipCancel(null);
+    }
     document.addEventListener('keydown', onKey);
     return function () { document.removeEventListener('keydown', onKey); };
-  }, [chipDelete, chipMenu, chipMore]);
+  }, [chipDelete, chipMenu, chipMore, chipCancel]);
 
   return (
     <>
@@ -801,6 +999,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const _ent = editorRef.current ? window.getChipEntity(editorRef.current, chipMenu.cid) : null;
         const _isRx = !_ent || _ent.type === 'prescription';
         const _isCeased = !!(_ent && _ent.rx && _ent.rx.ceased);
+        const _isSent = !!(_ent && _ent.transmittedAt);
         return (
           <div
             style={Object.assign({ position: 'fixed', top: top, left: left, zIndex: 200 }, cmS.bar)}
@@ -814,10 +1013,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 setChipMenu(null);
                 onChipClickRef.current(cid, rect, { action: 'modal' });
               }}>
-              <span className="material-icons-outlined" style={{ fontSize: 20 }}>edit</span>
-              Modifier
+              <span className="material-icons-outlined" style={{ fontSize: 20 }}>{_isSent ? 'visibility' : 'edit'}</span>
+              {_isSent ? 'Voir' : 'Modifier'}
             </button>
-            {!_isCeased &&
+            {!_isCeased && !_isSent &&
             <button
               style={cmS.segMid}
               onMouseDown={(e) => e.preventDefault()}
@@ -843,35 +1042,77 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       })()}
 
       {/* Confirmation de suppression — effacer ou conserver en texte */}
-      {chipDelete && (function () {
+      {/* Sélection de texte qui contient des puces (Backspace / Delete) */}
+      {chipDelete && chipDelete.range && (function () {
         const r = chipDelete.rect;
-        const W = 304;
+        const W = 340;
         const top = r.bottom + 8;
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
-        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipDelete.cid) : null;
-        const isRx = ent && ent.type === 'prescription';
-        const noun = isRx ? 'cette prescription' : 'cet élément';
+        const editor = editorRef.current;
+        const ents = editor ? chipDelete.cids.map(function (cid) { return window.getChipEntity(editor, cid); }).filter(Boolean) : [];
+        const n = ents.length;
+        const names = ents.map(function (e) { return (e.rx && e.rx.name) || e.label; }).join(', ');
+        const anySent = ents.some(function (e) { return e.transmittedAt; });
         return (
           <React.Fragment>
-            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipDelete(null)} />
-            <div style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
+            <div role="dialog" aria-label="Supprimer la sélection" style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
-                <span style={cmS.confirmTitle}>Supprimer {noun}&nbsp;?</span>
-                <button style={cmS.confirmClose} title="Annuler" onClick={() => setChipDelete(null)}>
+                <span style={cmS.confirmTitle}>Supprimer la sélection&nbsp;?</span>
+                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
               <p style={cmS.confirmBody}>
-                Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?
+                {n > 1 ? 'La sélection contient ' + n + ' éléments' : 'La sélection contient un élément'} ({names}), qui {n > 1 ? 'seront retirés' : 'sera retiré'} de la note.
+                {anySent ? ' Ce qui a été transmis n’est pas annulé et reste dans les activités de la note.' : ''}
               </p>
               <div style={cmS.confirmActions}>
-                <button style={cmS.btnKeep}
+                <button style={cmS.btnKeep} autoFocus onClick={closeChipDelete}>Annuler</button>
+                <button style={cmS.btnDelete}
+                  onClick={() => { const range = chipDelete.range; setChipDelete(null); if (editor) editor.chain().focus().deleteRange(range).run(); }}>
+                  Supprimer la sélection
+                </button>
+              </div>
+            </div>
+          </React.Fragment>
+        );
+      })()}
+
+      {chipDelete && !chipDelete.range && (function () {
+        const r = chipDelete.rect;
+        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipDelete.cid) : null;
+        const isRx = ent && ent.type === 'prescription';
+        const noun = isRx ? 'cette prescription' : 'cet élément';
+        // Chip transmis (D-05) : le retirer de la note n'annule rien.
+        const sent = !!(ent && ent.transmittedAt);
+        const W = sent ? 360 : 304; // « Retirer de la note » tient sur une ligne
+        const top = r.bottom + 8;
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+        const sentWhat = isRx ? 'l’ordonnance transmise' : 'la requête transmise';
+        return (
+          <React.Fragment>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
+            <div role="dialog" aria-label={sent ? 'Retirer de la note' : 'Supprimer'} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+              <div style={cmS.confirmHead}>
+                <span style={cmS.confirmTitle}>{sent ? 'Retirer ' + noun + ' de la note' : 'Supprimer ' + noun}&nbsp;?</span>
+                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
+                  <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
+                </button>
+              </div>
+              <p style={cmS.confirmBody}>
+                {sent
+                  ? <>Retirer {noun} de la note n’annule pas {sentWhat}. Elle reste dans les activités de la note. Pour l’annuler, utilisez le menu ⋮.</>
+                  : <>Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?</>}
+              </p>
+              <div style={cmS.confirmActions}>
+                <button style={cmS.btnKeep} autoFocus
                   onClick={() => { keepChipAsText(chipDelete.cid); setChipDelete(null); }}>
                   Garder en texte
                 </button>
                 <button style={cmS.btnDelete}
                   onClick={() => { deleteChipFromMenu(chipDelete.cid); setChipDelete(null); }}>
-                  Supprimer
+                  {sent ? 'Retirer de la note' : 'Supprimer'}
                 </button>
               </div>
             </div>
@@ -886,6 +1127,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const top = r.bottom + 8;
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
         const item = { display: 'flex', alignItems: 'center', gap: 10, width: '100%', border: 0, background: 'transparent', borderRadius: 8, padding: '9px 12px', cursor: 'pointer', font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', textAlign: 'left' };
+        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipMore.cid) : null;
+        const sent = !!(ent && ent.transmittedAt);
+        // Annuler (D-05) : action clinique séparée de l'effacement, en dernier
+        // et sans mise en avant — seulement pour un chip transmis, pas encore annulé.
+        const canCancel = sent && !ent.cancelledAt;
+        const isRx = ent && ent.type === 'prescription';
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipMore(null)} />
@@ -898,8 +1145,50 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               <button style={Object.assign({}, item, { color: 'light-dark(#ba1a1a, #e9a5a5)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { setChipDelete({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#ba1a1a, #e9a5a5)' }}>delete</span>
-                Supprimer
+                {sent ? 'Retirer de la note' : 'Supprimer'}
               </button>
+              {canCancel && <div role="separator" style={{ height: 1, margin: '6px 4px', background: 'var(--mat-sys-outline-variant)' }} />}
+              {canCancel &&
+              <button style={Object.assign({}, item, { font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4fb'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                onClick={() => { setChipCancel({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
+                <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>block</span>
+                {isRx ? 'Annuler l’ordonnance…' : 'Annuler la requête…'}
+              </button>}
+            </div>
+          </React.Fragment>
+        );
+      })()}
+
+      {/* Confirmation « Annuler l'ordonnance / la requête » — chip transmis.
+          L'envoi de l'annulation est simulé (note:chip-cancel, NoteEditor.jsx). */}
+      {chipCancel && (function () {
+        const r = chipCancel.rect;
+        const W = 320;
+        const top = r.bottom + 8;
+        const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+        const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipCancel.cid) : null;
+        const isRx = ent && ent.type === 'prescription';
+        const what = isRx ? 'l’ordonnance' : 'la requête';
+        return (
+          <React.Fragment>
+            <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipCancel(null)} />
+            <div role="dialog" aria-label={'Annuler ' + what} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+              <div style={cmS.confirmHead}>
+                <span style={cmS.confirmTitle}>Annuler {what}&nbsp;?</span>
+                <button style={cmS.confirmClose} title="Fermer" onClick={() => setChipCancel(null)}>
+                  <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
+                </button>
+              </div>
+              <p style={cmS.confirmBody}>
+                Une annulation sera envoyée au destinataire. Les activités de la note garderont la transmission, puis l’annulation.
+              </p>
+              <div style={cmS.confirmActions}>
+                <button style={cmS.btnKeep} autoFocus onClick={() => setChipCancel(null)}>Retour</button>
+                <button style={cmS.btnDelete}
+                  onClick={() => { const cid = chipCancel.cid; setChipCancel(null); window.dispatchEvent(new CustomEvent('note:chip-cancel', { detail: { cid: cid } })); }}>
+                  Envoyer l’annulation
+                </button>
+              </div>
             </div>
           </React.Fragment>
         );
@@ -937,7 +1226,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
         <RxMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - 476)), zIndex: 60 }}
+          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.kind === 'rx' ? 736 : 476))), zIndex: 60 }}
           kind={slash.kind}
           def={window.NOTE_DATA.ORDER_DEFS[slash.kind]}
           query={slash.query}
@@ -946,6 +1235,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onHover={(i) => { if (slashApiRef.current) slashApiRef.current.setActiveIndex(i); }}
           onSelect={chooseOrderItem}
           onToggleFav={(k) => { window.NOTE_DATA.toggleOrderFav(slash.kind, k); if (slashApiRef.current) slashApiRef.current.republish(); }}
+          checked={slash.checked || []}
+          onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
+          onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
+          filter={slash.filter}
+          railFocus={slash.railFocus}
+          counts={slash.counts}
+          onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
           onClose={() => setSlash(null)} />
       }
 
