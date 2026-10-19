@@ -424,24 +424,21 @@ const PATIENT_MEDS = [
 ];
 
 // Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
-// médication déjà au dossier : « Mentionner » d'abord (la référencer sans ajouter
-// de prescription), puis augmenter, diminuer, renouveler, cesser (actif) ;
-// renouveler, prescrire (échu) ; prescrire (cessé) ; « Documenter » en dernier
-// (l'ajouter au profil sans prescrire). Un produit du catalogue n'a que
-// « Documenter ». Le clic ou Entrée sur la ligne reste l'action principale :
-// `defaultMedAction` — renouveler une médication active ou échue, une nouvelle
-// prescription sans marque de renouvellement pour une cessée ou un produit du
-// catalogue (undefined). Augmenter / diminuer remplacent l'ancien « Ajuster »
-// (Figma « Recherche de prescriptions », mise à jour du 2026-10-15).
-// `docMention` false (tweak « Documenter / Mentionner », inactif par défaut dans
-// le prototype) retire « Mentionner » et « Documenter » : le travail reste, le
-// menu ne les offre pas.
-function medActions(it, docMention) {
-  const all = !it || !it.med ? ['documenter']
-    : it.medStatus === 'active' ? ['mentionner', 'augmenter', 'diminuer', 'renouveler', 'cesser', 'documenter']
-    : it.medStatus === 'echue' ? ['mentionner', 'renouveler', 'prescrire', 'documenter']
-    : ['mentionner', 'prescrire', 'documenter'];
-  return docMention === false ? all.filter(function (a) { return a !== 'mentionner' && a !== 'documenter'; }) : all;
+// médication déjà au dossier : augmenter, diminuer, renouveler, cesser (actif) ;
+// renouveler, prescrire (échu) ; prescrire (cessé). « Documenter » (l'ajouter au
+// profil sans prescrire) n'est offert que pour un produit qui n'est pas au
+// dossier : il est toujours actif, sans tweak. « Mentionner » (référencer une
+// médication du dossier sans prescription) n'est plus offert : la commande
+// `mentionner` de runOrderCommand reste. Le clic ou Entrée sur la ligne reste
+// l'action principale : `defaultMedAction` — renouveler une médication active ou
+// échue, une nouvelle prescription sans marque de renouvellement pour une cessée
+// ou un produit du catalogue (undefined). Augmenter / diminuer remplacent
+// l'ancien « Ajuster » (Figma « Recherche de prescriptions », 2026-10-15).
+function medActions(it) {
+  if (!it || !it.med) return ['documenter'];
+  if (it.medStatus === 'active') return ['augmenter', 'diminuer', 'renouveler', 'cesser'];
+  if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
+  return ['prescrire'];
 }
 // Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
 // au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,
@@ -475,33 +472,23 @@ const RX_FILTERS = [
   { key: 'actives', label: 'Actives', icon: 'check_circle' },
   { key: 'cessees', label: 'Cessées', icon: 'block' },
   { key: 'favoris', label: 'Favoris', icon: 'favorite_border' },
-  { key: 'gabarits', label: 'Gabarits', icon: 'assignment' },
+  { key: 'phrases', label: 'Phrases de prescription', icon: 'assignment' },
 ];
 let _rxFilter = 'tout';
 function setRxFilter(f) { _rxFilter = RX_FILTERS.some(function (x) { return x.key === f; }) ? f : 'tout'; }
 function getRxFilter() { return _rxFilter; }
 function isRenewable(it) { return !!(it && it.med && (it.medStatus === 'echue' || it.renewSoon)); }
-// Gabarits de note qui proposent une ordonnance : des items du menu « / »
-// (noteTemplate) affichés comme des lignes de la recherche.
-function rxGabarits(q) {
-  const nq = _norm((q || '').trim());
-  const withRx = {};
-  NOTE_TEMPLATES.forEach(function (t) {
-    if ((t.sections || []).some(function (sec) { return (sec.proposals || []).some(function (p) { return p.kind === 'rx'; }); })) withRx[t.key] = true;
-  });
-  return SLASH_ITEMS.filter(function (it) { return it.noteTemplate && withRx[it.noteTemplate] && (!nq || _norm(it.title).includes(nq)); })
-    .map(function (it) { return Object.assign({}, it, { name: it.title, dose: '', sig: it.desc }); });
-}
 // `r` = résultat de searchRx ; rend la liste du filtre choisi.
 function applyRxFilter(r, f) {
-  const none = { profil: [], favoris: [], frequents: [], autres: [], gabarits: [] };
+  const none = { profil: [], favoris: [], frequents: [], autres: [] };
   switch (f) {
     case 'renouvelables': return Object.assign(none, { profil: r.profil.filter(isRenewable) });
     case 'actives': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'active'; }) });
     case 'cessees': return Object.assign(none, { profil: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }) });
     case 'favoris': return Object.assign(none, { favoris: r.favoris });
-    case 'gabarits': return Object.assign(none, { gabarits: r.gabarits });
-    default: return Object.assign({}, r, { gabarits: [] });
+    // Hors du dossier : les favoris, les traitements fréquents et les autres produits trouvés.
+    case 'phrases': return Object.assign(none, { favoris: r.favoris, frequents: r.frequents, autres: r.autres });
+    default: return r;
   }
 }
 // Compteurs du rail, pour la recherche en cours. Tout = les lignes que « Tout »
@@ -512,7 +499,7 @@ function rxFilterCounts(q, favs) {
   return { tout: tout, renouvelables: r.profil.filter(isRenewable).length,
     actives: r.profil.filter(function (it) { return it.medStatus === 'active'; }).length,
     cessees: r.profil.filter(function (it) { return it.medStatus === 'cessée'; }).length,
-    favoris: r.favoris.length, gabarits: r.gabarits.length };
+    favoris: r.favoris.length, phrases: r.favoris.length + r.frequents.length + r.autres.length };
 }
 
 // Texte du statut d'une médication au profil, pour la puce documentaire :
@@ -554,7 +541,7 @@ function searchRx(q, favs) {
   const autres = nq
     ? RX_ALL.filter(function (it) { return !it.freq && !favSet.has(it.key) && match(it); }).slice(0, 6)
     : [];
-  return { profil, favoris, frequents, autres, gabarits: rxGabarits(q) };
+  return { profil, favoris, frequents, autres };
 }
 
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
@@ -694,7 +681,7 @@ const REF_ITEMS = [
 // Unified order registry (rx / lab / img / ref) — shared search + favorites
 const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: 'prescrire', emptyNoun: 'produit',
-         sections: ['Favoris', 'Traitements fréquemment prescrits', 'Autres produits trouvés'],
+         sections: ['Favoris', 'Traitements fréquemment prescrits', 'Phrases de prescription'],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
   lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: 'demander',  emptyNoun: 'analyse', multi: true,
          sections: ['Favoris', 'Analyses fréquemment demandées', 'Autres analyses'],
@@ -1017,6 +1004,6 @@ const SCENARIOS = [
 
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
-  medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, rxGabarits, searchRx, toggleRxFav, deriveRx,
+  medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };

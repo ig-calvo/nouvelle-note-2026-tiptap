@@ -77,14 +77,11 @@ test('texte hors éditeur : nom, dose, posologie et statut au profil, sans icôn
   assert.equal(w.chipPrintText(w.medicationChipAttrs(med('med-nitrofurantoine'), 'document')), 'Nitrofurantoïne 100 mg — 1 co PO BID, Cessé 12/2025');
 });
 
-test('tweak « Documenter / Mentionner » inactif : le menu /rx n’offre ni Mentionner ni Documenter, le reste demeure', () => {
-  assert.deepEqual(D.medActions(med('med-tylenol-100'), false), ['augmenter', 'diminuer', 'renouveler', 'cesser']);
-  assert.deepEqual(D.medActions(med('med-tylenol-500'), false), ['renouveler', 'prescrire']);
-  assert.deepEqual(D.medActions(med('med-nitrofurantoine'), false), ['prescrire']);
-  assert.deepEqual(D.medActions(D.RX_ITEMS[0], false), []);
-  // Actif (ou sans précision) : la liste complète, comme avant.
-  assert.deepEqual(D.medActions(med('med-tylenol-100'), true), D.medActions(med('med-tylenol-100')));
-  assert.ok(D.medActions(med('med-tylenol-100'), true).includes('mentionner'));
-  // L'action principale d'une ligne ne dépend pas du tweak.
-  assert.equal(D.defaultMedAction(med('med-tylenol-100')), 'renouveler');
+test('Documenter : toujours offert, sans tweak, mais seulement pour un produit hors du dossier', () => {
+  assert.deepEqual(D.medActions(D.RX_ITEMS[0]), ['documenter']);
+  for (const k of ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine', 'med-contraceptif']) {
+    assert.ok(!D.medActions(med(k)).includes('documenter'), k); // déjà au dossier : rien à documenter
+    assert.ok(!D.medActions(med(k)).includes('mentionner'), k); // Mentionner n'est plus offert
+  }
+  assert.equal(D.defaultMedAction(med('med-tylenol-100')), 'renouveler'); // l'action principale de la ligne ne change pas
 });

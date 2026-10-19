@@ -2004,7 +2004,7 @@ function parseSlashQuery(query) {
 // Aplatit {profil?, favoris, frequents, autres} dans l'ordre de rendu de
 // RxMenu — sert de liste unique pour la navigation clavier (↑↓/Entrée).
 function flattenRxResults(r) {
-  return (r.profil || []).concat(r.favoris || [], r.frequents || [], r.autres || [], r.gabarits || []);
+  return (r.profil || []).concat(r.favoris || [], r.frequents || [], r.autres || []);
 }
 
 // ---------------------------------------------------------

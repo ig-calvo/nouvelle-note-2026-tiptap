@@ -32,11 +32,11 @@ test('une médication cessée ou échue se prescrit : elle est dans la liste de 
   assert.deepEqual(keys.slice(0, 4), ['med-contraceptif', 'med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
 });
 
-test('boutons d’une ligne : Mentionner d’abord, Documenter en dernier ; actif augmente, diminue, renouvelle, cesse ; échu renouvelle ou prescrit ; cessé prescrit', () => {
-  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['mentionner', 'augmenter', 'diminuer', 'renouveler', 'cesser', 'documenter']);
-  assert.deepEqual(D.medActions(row('med-tylenol-500')), ['mentionner', 'renouveler', 'prescrire', 'documenter']);
-  assert.deepEqual(D.medActions(row('med-nitrofurantoine')), ['mentionner', 'prescrire', 'documenter']);
-  assert.deepEqual(D.medActions(D.RX_ITEMS[0]), ['documenter']); // un produit du catalogue : seulement documenter (pas au profil, rien à mentionner)
+test('boutons d’une ligne : actif augmente, diminue, renouvelle, cesse ; échu renouvelle ou prescrit ; cessé prescrit ; Documenter seulement hors du dossier', () => {
+  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['augmenter', 'diminuer', 'renouveler', 'cesser']);
+  assert.deepEqual(D.medActions(row('med-tylenol-500')), ['renouveler', 'prescrire']);
+  assert.deepEqual(D.medActions(row('med-nitrofurantoine')), ['prescrire']);
+  assert.deepEqual(D.medActions(D.RX_ITEMS[0]), ['documenter']); // un produit hors du dossier : seulement documenter
 });
 
 test('clic ou Entrée sur une ligne : renouveler (actif, échu) ou nouvelle prescription (cessé, catalogue)', () => {

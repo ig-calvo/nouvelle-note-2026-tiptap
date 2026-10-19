@@ -1,6 +1,6 @@
 // Menu /rx mis à jour d'après le Figma « Recherche de prescriptions » (section 1,
 // 2026-10-15) : rail de filtres à droite (Tout, Renouvelables, Actives, Cessées,
-// Favoris, Gabarits) et augmentation / diminution de la dose d'une prescription
+// Favoris, Phrases de prescription) et augmentation / diminution de la dose d'une prescription
 // existante. Lancer : node --test project/tests/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -37,7 +37,7 @@ test('la médication ajustée : dose, posologie recalculée, détails à jour, l
 
 test('actions : l’ancien « Ajuster » est remplacé par ↑ ↓', () => {
   for (const m of D.PATIENT_MEDS) assert.ok(!D.medActions(m).includes('ajuster'), m.key);
-  assert.deepEqual(D.medActions(med('med-tylenol-100')).slice(1, 3), ['augmenter', 'diminuer']);
+  assert.deepEqual(D.medActions(med('med-tylenol-100')).slice(0, 2), ['augmenter', 'diminuer']);
 });
 
 test('puce ajustée : badge ↑ / ↓ à la place du renouvellement, texte et checkout', () => {
@@ -61,30 +61,35 @@ test('filtres : Tout, Renouvelables, Actives, Cessées', () => {
   assert.deepEqual(keys(search('cessees').profil), ['med-nitrofurantoine']);
   for (const f of ['renouvelables', 'actives', 'cessees']) {
     const r = search(f);
-    assert.equal(r.favoris.length + r.frequents.length + r.autres.length + r.gabarits.length, 0, f);
+    assert.equal(r.favoris.length + r.frequents.length + r.autres.length, 0, f);
   }
 });
 
-test('filtres : Favoris et Gabarits ; Tout n’affiche pas les gabarits', () => {
+test('filtres : Favoris ; Phrases de prescription = hors du dossier, favoris compris', () => {
   const fav = search('favoris');
   assert.equal(fav.profil.length, 0);
   assert.ok(fav.favoris.length > 0);
-  assert.equal(search('tout').gabarits.length, 0);
-  const gab = search('gabarits');
-  assert.deepEqual(gab.gabarits.map((g) => g.noteTemplate), ['otite', 'pneumonie']); // ceux qui proposent une ordonnance
-  assert.ok(gab.gabarits.every((g) => g.name && g.sig && g.noteTemplate));
-  assert.equal(gab.profil.length + gab.favoris.length, 0);
+  const tout = search('tout');
+  const ph = search('phrases');
+  assert.equal(ph.profil.length, 0); // rien du dossier
+  assert.deepEqual(keys(ph.favoris), keys(tout.favoris)); // favoris compris
+  assert.deepEqual(keys(ph.frequents), keys(tout.frequents));
+  assert.deepEqual(keys(search('phrases', 'amox').autres), keys(search('tout', 'amox').autres)); // recherche : les autres produits trouvés
 });
 
-test('la liste navigable suit le filtre (clavier), gabarits compris', () => {
+test('la liste navigable suit le filtre (clavier), phrases comprises', () => {
   assert.deepEqual(keys(w.flattenRxResults(search('actives'))), ['med-contraceptif', 'med-tylenol-100']);
-  assert.deepEqual(w.flattenRxResults(search('gabarits')).map((g) => g.key), ['tpl-otite', 'tpl-pneumonie']);
+  const ph = search('phrases');
+  assert.deepEqual(keys(w.flattenRxResults(ph)), keys(ph.favoris.concat(ph.frequents, ph.autres)));
+  assert.ok(!keys(w.flattenRxResults(ph)).some((k) => k.startsWith('med-')));
 });
 
 test('compteurs du rail : ceux des lignes que chaque filtre affiche', () => {
   D.endOrderSearch();
   const c = D.rxCounts('');
-  assert.deepEqual([c.renouvelables, c.actives, c.cessees, c.gabarits], [2, 2, 1, 2]);
+  assert.deepEqual([c.renouvelables, c.actives, c.cessees], [2, 2, 1]);
+  const ph = search('phrases');
+  assert.equal(c.phrases, ph.favoris.length + ph.frequents.length + ph.autres.length);
   assert.equal(c.favoris, search('favoris').favoris.length);
   assert.equal(c.tout, search('tout').profil.length + search('tout').favoris.length + search('tout').frequents.length + search('tout').autres.length);
   assert.equal(D.rxCounts('nitro').cessees, 1); // la recherche filtre les compteurs
@@ -99,7 +104,7 @@ test('le filtre est remis à « Tout » à la fin de la recherche, et les filtre
   assert.equal(D.getRxFilter(), 'tout');
   D.setRxFilter('nimportequoi');
   assert.equal(D.getRxFilter(), 'tout');
-  assert.deepEqual(D.RX_FILTERS.map((f) => f.key), ['tout', 'renouvelables', 'actives', 'cessees', 'favoris', 'gabarits']);
+  assert.deepEqual(D.RX_FILTERS.map((f) => f.key), ['tout', 'renouvelables', 'actives', 'cessees', 'favoris', 'phrases']);
 });
 
 test('les filtres ne touchent que /rx : /lab garde sa liste', () => {
@@ -107,6 +112,6 @@ test('les filtres ne touchent que /rx : /lab garde sa liste', () => {
   D.setRxFilter('cessees');
   const lab = D.searchOrder('lab', '');
   assert.ok(lab.favoris.length > 0 || lab.frequents.length > 0);
-  assert.equal(lab.gabarits, undefined);
+  assert.equal(lab.phrases, undefined);
   D.endOrderSearch();
 });

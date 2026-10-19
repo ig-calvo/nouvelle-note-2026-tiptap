@@ -3,16 +3,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, rxDocMention = false }) {
+  aiProposals = false, pendingBadge = true }) {
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
   // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
   // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
   window.__INLINE_FIELD_EDIT = inlineFieldEdit !== false;
-  // Tweak « Documenter / Mentionner une médication » : inactif par défaut, le
-  // menu /rx n'offre alors ni « Mentionner » ni « Documenter » (lu par RxMenu).
-  window.__RX_DOC_MENTION = rxDocMention === true;
   React.useEffect(function() { document.documentElement.setAttribute('data-inline-edit', inlineFieldEdit !== false ? 'on' : 'off'); }, [inlineFieldEdit]);
   // Tweak « Checkout des requêtes » : lu par buildTransmissionDocs
   // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu

@@ -819,7 +819,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
 
 // =========================================================
 // RxMenu — dropdown de recherche de médicaments (commande /rx)
-// Sections : Favoris · Traitements fréquemment prescrits · Autres produits trouvés
+// Sections : Favoris · Traitements fréquemment prescrits · Phrases de prescription
 // =========================================================
 function RxNameHighlight({ name, query }) {
   const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -832,7 +832,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -851,8 +851,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  if ((results.gabarits || []).length) sections.push(['Gabarits', results.gabarits]);
-  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length + (results.gabarits || []).length;
+  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
   // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
   const railOn = kind === 'rx' && !!counts;
   let flat = -1;
@@ -864,7 +863,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const noFav = kind === 'req'; // favoris propres à chaque recherche
 
   return (
-    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '')} ref={ref} style={position} role="listbox">
+    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
       <div className="rx-menu__main">
       <div className="rx-menu__scroll">
         {total === 0 &&
@@ -877,8 +876,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               flat += 1;
               const idx = flat;
               const fav = favSet.has(it.key);
-              const docMention = window.__RX_DOC_MENTION === true;
-              const medActs = window.NOTE_DATA.medActions(it, docMention);
+              const medActs = window.NOTE_DATA.medActions(it);
               return (
                 <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
                   aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
@@ -902,17 +900,11 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   </div>
                   <div className="rx-item__actions">
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
-                        ligne prescrit (renouvelle une médication active ou échue) ; « Mentionner » est la
-                        première action d'une médication déjà au dossier (la référencer sans ajouter de
-                        prescription) ; « Documenter » ajoute au profil sans prescrire. */}
+                        ligne prescrit (renouvelle une médication active ou échue). Une médication au
+                        dossier a ses actions (↑ ↓, renouveler, cesser, prescrire) ; « Documenter » (ajouter
+                        au profil sans prescrire) n'est offert que pour un produit hors du dossier. */}
                     {it.med
                       ? <span className="rx-med-actions">
-                          {medActs.indexOf('mentionner') >= 0 &&
-                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Mentionner cette médication dans la note, sans ajouter de prescription"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'mentionner'); }}>
-                              Mentionner
-                            </button>}
                           {['augmenter', 'diminuer'].map((act) => {
                             if (medActs.indexOf(act) < 0) return null;
                             const dir = act === 'augmenter' ? 'up' : 'down';
@@ -945,20 +937,15 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
                               Prescrire
                             </button>}
-                          {kind === 'rx' && medActs.indexOf('documenter') >= 0 &&
-                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Documenter : ajouter au profil sans prescrire"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
-                              Documenter
-                            </button>}
                         </span>
-                      : (noFav || it.noteTemplate) ? null
+                      : noFav ? null
                       : <>
-                          {kind === 'rx' && docMention &&
+                          {kind === 'rx' && !it.active &&
                             <span className="rx-med-actions rx-med-actions--heart">
                               <button type="button" className="rx-med-btn rx-med-btn--text" title="Documenter : ajouter au profil sans prescrire"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
+                                <span className="material-icons-outlined" aria-hidden="true">medication</span>
                                 Documenter
                               </button>
                             </span>}
@@ -994,8 +981,9 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
         </nav>}
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>
+        {railOn && <span><kbd>⇥</kbd> {railFocus ? 'résultats' : 'filtres'}</span>}
         {multi && <span><kbd>⇧ ↵</kbd> cocher</span>}
-        <span><kbd>↵</kbd> {multi && checkedKeys.length ? 'ajouter la sélection' : d.verb}</span>
+        <span><kbd>↵</kbd> {railOn && railFocus ? 'retour aux résultats' : multi && checkedKeys.length ? 'ajouter la sélection' : d.verb}</span>
         <span><kbd>Esc</kbd> annuler</span>
         {multi && checkedKeys.length > 0 &&
           <button type="button" className="rx-add-checked" onMouseDown={(e) => e.preventDefault()} onClick={onAddChecked}>
