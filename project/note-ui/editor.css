@@ -38,6 +38,13 @@
    Titre 1 étend le même traitement à 16px, au-delà du plancher label du DS3. */
 .note-field .ql-editor h1 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 16px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 14px 0 6px !important; }
 .note-field .ql-editor h2 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 14px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 12px 0 5px !important; } /* --mat-sys-label-large */
+/* Titre verrouillé (« Détails de la consultation ») : ni éditable ni
+   sélectionnable. La sélection ProseMirror en est repoussée
+   (lockedHeadingSelection) ; ici, le navigateur ne le surligne jamais, même
+   le temps d'un glisser. Pas de user-select: none : un glisser qui part du
+   titre doit encore sélectionner le texte en dessous. */
+.note-field .ql-editor h2[data-locked="true"] { cursor: default; }
+.note-field .ql-editor h2[data-locked="true"]::selection, .note-field .ql-editor h2[data-locked="true"] *::selection { background: transparent; }
 .note-field .ql-editor h3 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 12px !important; line-height: 16px !important; letter-spacing: 0.4px; text-transform: uppercase; color: var(--fg-3); margin: 10px 0 4px !important; } /* --mat-sys-label-medium */
 .note-field .ql-editor h1:first-child, .note-field .ql-editor h2:first-child, .note-field .ql-editor h3:first-child { margin-top: 0 !important; }
 .note-field .ql-editor ul, .note-field .ql-editor ol { padding-left: 1.2em; }
