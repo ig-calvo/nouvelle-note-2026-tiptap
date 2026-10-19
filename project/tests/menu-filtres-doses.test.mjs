@@ -37,7 +37,7 @@ test('la médication ajustée : dose, posologie recalculée, détails à jour, l
 
 test('actions : l’ancien « Ajuster » est remplacé par ↑ ↓', () => {
   for (const m of D.PATIENT_MEDS) assert.ok(!D.medActions(m).includes('ajuster'), m.key);
-  assert.deepEqual(D.medActions(med('med-tylenol-100')).slice(0, 2), ['augmenter', 'diminuer']);
+  assert.deepEqual(D.medActions(med('med-tylenol-100')), ['renouveler', 'augmenter', 'diminuer', 'cesser']);
 });
 
 test('puce ajustée : badge ↑ / ↓ à la place du renouvellement, texte et checkout', () => {

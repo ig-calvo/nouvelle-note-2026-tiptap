@@ -32,9 +32,9 @@ test('une médication cessée ou échue se prescrit : elle est dans la liste de 
   assert.deepEqual(keys.slice(0, 4), ['med-contraceptif', 'med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
 });
 
-test('boutons d’une ligne : actif augmente, diminue, renouvelle, cesse ; échu renouvelle ou prescrit ; cessé prescrit ; Documenter seulement hors du dossier', () => {
-  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['augmenter', 'diminuer', 'renouveler', 'cesser']);
-  assert.deepEqual(D.medActions(row('med-tylenol-500')), ['renouveler', 'prescrire']);
+test('boutons d’une ligne : actif et échu renouvellent, augmentent, diminuent, cessent ; cessé prescrit ; Documenter seulement hors du dossier', () => {
+  assert.deepEqual(D.medActions(row('med-tylenol-100')), ['renouveler', 'augmenter', 'diminuer', 'cesser']);
+  assert.deepEqual(D.medActions(row('med-tylenol-500')), ['renouveler', 'augmenter', 'diminuer', 'cesser']);
   assert.deepEqual(D.medActions(row('med-nitrofurantoine')), ['prescrire']);
   assert.deepEqual(D.medActions(D.RX_ITEMS[0]), ['documenter']); // un produit hors du dossier : seulement documenter
 });

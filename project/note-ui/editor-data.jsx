@@ -424,8 +424,8 @@ const PATIENT_MEDS = [
 ];
 
 // Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
-// médication déjà au dossier : augmenter, diminuer, renouveler, cesser (actif) ;
-// renouveler, prescrire (échu) ; prescrire (cessé). « Documenter » (l'ajouter au
+// médication déjà au dossier : renouveler, augmenter, diminuer, cesser (active ou
+// échue) ; prescrire seul, le « + » (cessée). « Documenter » (l'ajouter au
 // profil sans prescrire) n'est offert que pour un produit qui n'est pas au
 // dossier : il est toujours actif, sans tweak. « Mentionner » (référencer une
 // médication du dossier sans prescription) n'est plus offert : la commande
@@ -436,9 +436,8 @@ const PATIENT_MEDS = [
 // l'ancien « Ajuster » (Figma « Recherche de prescriptions », 2026-10-15).
 function medActions(it) {
   if (!it || !it.med) return ['documenter'];
-  if (it.medStatus === 'active') return ['augmenter', 'diminuer', 'renouveler', 'cesser'];
-  if (it.medStatus === 'echue') return ['renouveler', 'prescrire'];
-  return ['prescrire'];
+  if (it.medStatus === 'active' || it.medStatus === 'echue') return ['renouveler', 'augmenter', 'diminuer', 'cesser'];
+  return ['prescrire']; // cessée : seulement le « + »
 }
 // Palier de dose suivant (dir 'up') ou précédent (dir 'down') d'une médication
 // au profil : { from, to } en nombre (mg), ou null quand elle n'a pas de paliers,

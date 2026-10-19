@@ -815,11 +815,9 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-item .rx-med-actions--heart { right: 52px; }
 .rx-med-btn { border: 0; background: transparent; cursor: pointer; padding: 4px; display: inline-flex; color: var(--fg-3); border-radius: 6px; transition: background 110ms, color 110ms; }
 .rx-med-btn:hover { background: rgba(25,117,209,0.10); color: var(--mat-sys-primary); }
-.rx-med-btn .material-icons-outlined { font-size: 19px; }
-.rx-med-btn--text .material-icons-outlined { font-size: 16px; }
+.rx-med-btn .material-icons-outlined,
+.rx-med-btn .material-symbols-outlined { font-size: 19px; }
 .rx-med-btn--stop:hover { background: rgba(211,47,47,0.10); color: light-dark(#d32f2f, #e9a5a5); }
-/* « Prescrire » (échu, cessé) : bouton texte, une nouvelle ordonnance sur ce médicament. */
-.rx-med-btn--text { align-items: center; gap: 4px; padding: 4px 8px; font: 600 12px/16px var(--font-body); color: var(--mat-sys-primary); }
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }
