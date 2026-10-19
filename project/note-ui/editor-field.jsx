@@ -115,8 +115,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // (sélection normale), ou 'renouveler'/'ajuster'/'cesser' (médication au
   // dossier) — voir runOrderCommand.
   function chooseOrderItem(it, action) {
-    // Ligne du filtre « Gabarits » : c'est l'item du menu « / », on applique le gabarit.
-    if (it && it.noteTemplate) { if (slashCommandRef.current) slashCommandRef.current(it); return; }
     if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
   }
 
@@ -318,6 +316,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // /req, /lab, /img) : items cochés, gardés quand la recherche change,
     // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
     let checked = [];
+    // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
+    let railFocus = false;
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
     function toggleChecked(it, kind) {
       const u = checkUid(it, kind);
@@ -397,6 +397,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
         setSlash({ mode: 'order', kind: parsed.kind,
           filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
+          railFocus: parsed.kind === 'rx' && railFocus,
           counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
@@ -416,7 +417,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const api = {
       onStart(props) {
         selectedIndex = initialIndex();
-        checked = [];
+        checked = []; railFocus = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
         window.NOTE_DATA.setRxFilter('tout');
@@ -465,6 +466,23 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // flèches/Entrée (rien à sélectionner) — la frappe continue
         // normalement, le message « aucun résultat » reste affiché via publish().
         if (parsed.mode === 'menu' && currentItems.length === 0) return false;
+        // Menu /rx avec rail : Tab / ⇧ Tab bascule le focus entre la liste et le rail de
+        // filtres (Tab n'applique plus la sélection, c'est le rôle d'Entrée). Dans le rail,
+        // ↑ ↓ changent de filtre, Entrée, ← ou Échap-sans-fermer ramènent à la liste.
+        if (parsed.mode === 'order' && props.event.key === 'Tab') {
+          if (parsed.kind === 'rx') { railFocus = !railFocus; publish(lastQuery); }
+          return true;
+        }
+        if (railFocus && parsed.mode === 'order' && parsed.kind === 'rx') {
+          const key = props.event.key;
+          const filters = window.NOTE_DATA.RX_FILTERS;
+          const cur = Math.max(0, filters.findIndex(function (f) { return f.key === window.NOTE_DATA.getRxFilter(); }));
+          if (key === 'ArrowDown' || key === 'ArrowUp') {
+            const next = filters[(cur + (key === 'ArrowDown' ? 1 : filters.length - 1)) % filters.length];
+            api.setFilter(next.key); return true;
+          }
+          if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
+        }
         if (props.event.key === 'ArrowDown') {
           selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;
@@ -480,7 +498,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (it) { toggleChecked(it, parsed.kind); publish(lastQuery); }
           return true;
         }
-        if (props.event.key === 'Enter' || props.event.key === 'Tab') {
+        if (props.event.key === 'Enter' || (props.event.key === 'Tab' && parsed.mode !== 'order')) {
           if (!slashCommandRef.current) return true;
           if (parsed.mode === 'order' && checked.length) {
             const items = checked.slice(); checked = [];
@@ -489,9 +507,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }
           if (parsed.mode === 'order') {
             const it = currentItems[selectedIndex];
-            if (it && it.noteTemplate) {
-              slashCommandRef.current(it); // filtre « Gabarits » : on applique le gabarit
-            } else if (it) {
+            if (it) {
               slashCommandRef.current({ __order: true, item: it, action: window.NOTE_DATA.defaultMedAction(it), kind: parsed.kind });
             }
           } else {
@@ -523,7 +539,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
-      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Gabarits.
+      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
       setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
@@ -1223,6 +1239,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
           filter={slash.filter}
+          railFocus={slash.railFocus}
           counts={slash.counts}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
           onClose={() => setSlash(null)} />
