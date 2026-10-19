@@ -269,7 +269,7 @@ const aiS = {
   gabaritCaret: { fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' },
   ddBg: { position: 'fixed', inset: 0, zIndex: 199 },
   gabaritDrop: { position: 'absolute', top: 'calc(100% + 6px)', left: 0, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid rgb(217,217,230)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 200, minWidth: 220, padding: '5px 0' },
-  gabaritOption: { display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', font: "400 14px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer' },
+  gabaritOption: { display: 'flex', alignItems: 'center', gap: 10, minHeight: 48, boxSizing: 'border-box', padding: '10px 14px', font: "400 14px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer' },
   gabaritOptionActive: { color: BP, fontWeight: 600 },
   checkIc: { fontSize: 16, color: BP },
 
