@@ -900,11 +900,17 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   </div>
                   <div className="rx-item__actions">
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
-                        ligne prescrit (renouvelle une médication active ou échue). Une médication au
-                        dossier a ses actions (↑ ↓, renouveler, cesser, prescrire) ; « Documenter » (ajouter
+                        ligne prescrit (renouvelle une médication active ou échue). Une médication au dossier a
+                        ses actions (active ou échue : renouveler, ↑ ↓, cesser ; cessée : « + ») ; « Documenter » (ajouter
                         au profil sans prescrire) n'est offert que pour un produit hors du dossier. */}
                     {it.med
                       ? <span className="rx-med-actions">
+                          {medActs.indexOf('renouveler') >= 0 &&
+                            <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
+                              <span className="material-icons-outlined">refresh</span>
+                            </button>}
                           {['augmenter', 'diminuer'].map((act) => {
                             if (medActs.indexOf(act) < 0) return null;
                             const dir = act === 'augmenter' ? 'up' : 'down';
@@ -919,12 +925,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                                 <span className="material-icons-outlined">{dir === 'up' ? 'arrow_upward' : 'arrow_downward'}</span>
                               </button>);
                           })}
-                          {medActs.indexOf('renouveler') >= 0 &&
-                            <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
-                              <span className="material-icons-outlined">refresh</span>
-                            </button>}
                           {medActs.indexOf('cesser') >= 0 &&
                             <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
                               onMouseDown={(e) => e.preventDefault()}
@@ -932,21 +932,20 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               <span className="material-icons-outlined">block</span>
                             </button>}
                           {medActs.indexOf('prescrire') >= 0 &&
-                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Prescrire une nouvelle ordonnance pour ce médicament"
+                            <button type="button" className="rx-med-btn" title="Prescrire une nouvelle ordonnance pour ce médicament" aria-label="Prescrire une nouvelle ordonnance pour ce médicament"
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
-                              Prescrire
+                              <span className="material-icons-outlined">add</span>
                             </button>}
                         </span>
                       : noFav ? null
                       : <>
                           {kind === 'rx' && !it.active &&
                             <span className="rx-med-actions rx-med-actions--heart">
-                              <button type="button" className="rx-med-btn rx-med-btn--text" title="Documenter : ajouter au profil sans prescrire"
+                              <button type="button" className="rx-med-btn" title="Documenter : ajouter au profil sans prescrire" aria-label="Documenter : ajouter au profil sans prescrire"
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
-                                <span className="material-icons-outlined" aria-hidden="true">medication</span>
-                                Documenter
+                                <span className="material-symbols-outlined" aria-hidden="true">edit_document</span>
                               </button>
                             </span>}
                           <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
