@@ -54,7 +54,7 @@
 .note-field .ql-editor a:hover { text-decoration-color: currentColor; }
 
 /* Inline chips */
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: var(--mat-sys-corner-small); background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 500; font-size: 14px; letter-spacing: var(--mat-sys-label-large-tracking); cursor: pointer; vertical-align: baseline; white-space: nowrap; transition: background var(--motion-duration) var(--motion-ease); }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 8px; margin: 0 1px; border-radius: var(--mat-sys-corner-small); background: var(--brand-primary-container); border: 1px solid var(--brand-primary); color: var(--brand-primary); font-weight: 500; font-size: 14px; letter-spacing: var(--mat-sys-label-large-tracking); cursor: pointer; vertical-align: -1px; white-space: nowrap; transition: background var(--motion-duration) var(--motion-ease); }
 
 /* Live "/command" highlight while the slash menu is open (décoration posée
    par le plugin @tiptap/suggestion — decorationClass: 'slash-pending') */
@@ -611,10 +611,55 @@
 /* Inline order chip (℞/lab/img · Name dose · [detail box] · free text) */
 .chip--rx { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; }
 .chip--rx:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
-/* Cessation d'une médication au dossier — distincte d'une nouvelle Rx */
-.chip--rx.chip--ceased { background: var(--mat-sys-error-container); border-color: var(--mat-sys-error); }
-.chip--rx.chip--ceased .chip-rx-name { text-decoration: line-through; text-decoration-color: var(--mat-sys-error); }
-.chip--rx.chip--ceased .chip-rx-poso { color: var(--mat-sys-on-error-container); font-weight: 500; }
+/* Cessation d'une médication au dossier : badge « Cesser » avant le nom (statuts,
+   chipStatusBadges), comme le Figma — plus de fond rouge ni de nom barré. */
+/* Médication documentée ou mentionnée (lot 4) : puce documentaire, icône neutre,
+   statut au profil en texte ; rien à envoyer. */
+.chip--med { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; cursor: default; }
+.chip--med .chip-med-icon { font-size: 16px; line-height: 1; color: var(--mat-sys-on-surface); }
+.chip--med .chip-rx-name { font-weight: 500; font-size: 14px; padding: 0 0 0 2px; }
+.chip--med .chip-rx-dose { font-weight: 500; font-size: 14px; color: var(--fg-2); }
+.chip--med .chip-rx-poso { font-weight: 500; font-size: 12px; color: var(--fg-3); }
+.chip--med-doc { border-style: dashed; }
+/* Puce documentaire / mention : sans bordure au repos (la boîte garde sa taille), la bordure
+   et le séparateur de l'icône n'apparaissent qu'au survol. */
+.chip--med { border-color: transparent; transition: border-color 110ms; }
+.chip.chip--med .chip-med-icon { border-right-color: transparent; transition: border-color 110ms; } /* après la règle de la cellule d'icône plus bas : plus spécifique */
+.chip--med:hover { border-color: var(--mat-sys-outline); }
+.chip.chip--med:hover .chip-med-icon { border-right-color: var(--mat-sys-outline-variant); }
+.chip-med-status { font: 500 12px var(--font-body); }
+.chip-med-status--ceased { color: var(--mat-sys-error); }
+.chip-med-status--echue { color: light-dark(#7a5200, #e9cca5); }
+/* Transmis (D-05) : double coche en fin de chip ; valeurs en lecture seule
+   (data-field retiré, voir decorateSentChip). Annulé : tag « Annulée » après
+   l'icône, valeurs barrées. */
+/* États de la puce (chipIssues, editor-schema.jsx) — plusieurs niveaux :
+   erreur = bordure error + icône ; interaction de haut risque = bordure 2 px
+   et fond teinté ; avertissement = icône seulement. Commentaire = bulle. */
+.chip--rx.chip--error { border-color: var(--mat-sys-error); }
+.chip--rx.chip--interaction { border-width: 2px; padding: 1px 7px; background: color-mix(in srgb, var(--mat-sys-error-container) 55%, var(--mat-sys-surface-container-lowest)); }
+.chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
+.chip-issue-icon--error { color: var(--mat-sys-error); }
+.chip-issue-icon--warning { color: light-dark(#a15c00, #e9cca5); }
+.chip-comment-icon { color: var(--mat-sys-on-surface-variant); }
+/* Détails d'un chip transmis (ChipPopover readOnly) : champs visiblement inactifs. */
+.popover fieldset:disabled { opacity: 0.72; }
+.chip-sent-icon { font-size: 16px; line-height: 1; color: light-dark(#39604d, #b9d5c7); margin-left: 2px; }
+.chip-status { font: 600 12px var(--font-body); padding: 0 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); line-height: 18px; }
+.chip-status--cancelled, .chip-status--incomplete, .chip-status--ceased { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+/* Renouveler et dose augmentée / diminuée : badge d'icône seule, ton primaire ; En suspens : ton secondaire. */
+.chip-status--renewal, .chip-status--adjust { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
+.chip-status--pending { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.chip-status--icon { display: inline-flex; align-items: center; padding: 0 2px; }
+.chip-status--icon .material-symbols-outlined { font-size: 16px; line-height: 18px; }
+/* Tweak « Badge En suspens » (html[data-pending-badge], posé par NoteEditor). */
+html:not([data-pending-badge="on"]) .chip-status--pending { display: none; }
+/* Champ requis vide (rxChipSegments) : espace réservé souligné à sa place dans
+   la puce ; le premier est entouré (Figma « Prescription incomplète »). */
+.chip--rx .chip-missing { color: var(--mat-sys-error); text-decoration: underline; text-underline-offset: 2px; }
+.chip--rx .chip-missing--first { box-shadow: inset 0 0 0 1px var(--mat-sys-error); }
+.chip--rx .chip-rx-poso > .chip-missing[data-field]:hover, .chip--rx .chip-rx-dose.chip-missing:hover { color: var(--mat-sys-error); }
+.chip--rx.chip--cancelled .chip-rx-name, .chip--rx.chip--cancelled .chip-rx-dose, .chip--rx.chip--cancelled .chip-rx-poso { text-decoration: line-through; text-decoration-color: var(--mat-sys-on-surface-variant); color: var(--mat-sys-on-surface-variant); }
 .chip--rx.open { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, var(--mat-sys-surface-container-lowest)); }
 /* Même gabarit pour les 4 types (℞ · science · radiology · person_add) : le
    caractère ℞ (police texte) et les glyphes d'icône (police symboles) n'ont
@@ -627,6 +672,23 @@
 }
 .chip--rx .chip-rx-icon { font-family: var(--font-display); font-weight: 500; font-size: 16px; color: var(--mat-sys-on-surface); line-height: 1; }
 .chip--rx .chip-rx-glyph { font-size: 16px !important; line-height: 1; color: var(--mat-sys-on-surface); }
+/* Où va la puce (data-dest, chipDestination) : l'icône de début de puce dit si la
+   puce est une action en attente au checkout (icône blanche, la cellule d'icône
+   prend tout le fond bleu) ou quelque chose qui est déjà au dossier (icône noire
+   sur fond blanc). Pour la prescription (℞) et la médication documentée ; les
+   autres fonctions suivent (PLAN-fonctions-inline.md). La cellule va d'un bord à
+   l'autre de la puce, en haut, en bas et à gauche : marges négatives égales au
+   remplissage de la puce, coins arrondis du rayon intérieur de la bordure. */
+.chip--rx .chip-rx-icon, .chip--med .chip-med-icon {
+  box-sizing: border-box; align-self: stretch; width: auto; height: auto; min-width: 30px; padding: 0 6px;
+  margin: -2px 0 -2px -8px; border-radius: calc(var(--mat-sys-corner-small) - 1px) 0 0 calc(var(--mat-sys-corner-small) - 1px);
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.chip--rx.chip--interaction .chip-rx-icon { margin: -1px 0 -1px -7px; } /* bordure de 2 px, remplissage de 1 px */
+.chip--rx .chip-rx-icon { font-size: 17px; }
+.chip--med .chip-med-icon { font-size: 17px; }
+.chip[data-dest="a-envoyer"] .chip-rx-icon { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.chip--rx:not([data-dest="a-envoyer"]) .chip-rx-icon, .chip--med .chip-med-icon { background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); border-right: 1px solid var(--mat-sys-outline-variant); }
 .chip--lab .chip-rx-glyph { color: var(--mat-sys-primary); }
 .chip--img .chip-rx-glyph { color: var(--mat-sys-tertiary); }
 .chip--rx .chip-rx-name { font-weight: 500; font-size: 14px; color: var(--fg-1); padding: 0 0 0 2px; }
@@ -643,6 +705,12 @@
 /* Indice « éditable » : surbrillance claire au survol des segments cliquables */
 .chip--rx .chip-rx-dose:hover,
 .chip--rx .chip-rx-poso > span[data-field]:hover { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 1px #c9c0ef; }
+/* Valeur secondaire ciblée au clavier (Tab sur une puce sélectionnée). */
+.chip--rx .chip-field--kbd { background: light-dark(#ece9fb, #2b244c); color: var(--mat-sys-primary); box-shadow: inset 0 0 0 2px var(--mat-sys-primary); border-radius: 4px; }
+/* Édition inline désactivée (tweak, portée Q1 2027) : la puce entière ouvre
+   le formulaire, les valeurs ne se signalent plus une à une au survol. */
+html[data-inline-edit="off"] .chip--rx .chip-rx-dose:hover,
+html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { background: transparent; color: inherit; box-shadow: none; }
 /* ℞ icon and lab/img/ref glyph open full modal on click */
 .chip--rx .chip-rx-icon { cursor: pointer; }
 .chip--rx .chip-rx-icon:hover { opacity: 0.75; }
@@ -651,13 +719,75 @@
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
 
+/* Ajout en attente (proposé par un gabarit, pas encore accepté) : même chip,
+   contour en tirets + fond teinté, rien de cliquable sauf ✓ (accepter) et
+   ✕ (refuser). Le contour en tirets n'est pas le seul indice : les deux
+   boutons le disent aussi. */
+.chip--rx.chip--pending { border-style: dashed; padding-right: 4px; cursor: default; background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--rx.chip--pending:hover { background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest)); }
+.chip--pending .chip-rx-icon, .chip--pending .chip-rx-glyph, .chip--pending .chip-rx-dose, .chip--pending .chip-rx-poso > span { cursor: default; }
+.chip--pending .chip-rx-icon:hover, .chip--pending .chip-rx-glyph:hover { opacity: 1; }
+.chip--pending .chip-rx-dose:hover, .chip--pending .chip-rx-poso > span:hover { background: transparent; color: inherit; box-shadow: none; }
+.chip-pending-actions { display: inline-flex; align-items: center; gap: 2px; margin-left: 2px; padding-left: 4px; border-left: 1px solid var(--mat-sys-outline-variant); }
+.chip-pending-btn { width: 24px; height: 24px; padding: 0; border: 0; border-radius: var(--mat-sys-corner-small); background: transparent; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); }
+.chip-pending-btn .material-symbols-outlined { font-size: 18px; line-height: 1; }
+.chip-pending-btn--accept { color: var(--mat-sys-primary); }
+.chip-pending-btn:hover { background: color-mix(in srgb, currentColor 8%, transparent); }
+.chip-pending-btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.chip--rx.chip--pending.chip--ai { border-color: var(--omd-primary-400, #6967d1); }
+.chip-ai-icon { font-size: 14px; line-height: 1; color: var(--omd-primary-400, #6967d1); margin-right: -2px; }
+
+/* Tweak « Style des suggestions » (html[data-suggestion-style], posé par
+   NoteEditor) — trois propositions de la rencontre inline entity, à tester :
+   « tirets » (défaut, ci-dessus) ; « opacite » (Alex) : puce estompée,
+   ✓ / ✕ sous la puce au survol ou au focus ; « violet » (Xavier) : puce
+   mauve, ✓ / ✕ en pastilles dans le coin supérieur droit. */
+.chip--pending { position: relative; }
+html[data-suggestion-style="opacite"] .chip--rx.chip--pending { border-style: solid; background: var(--mat-sys-surface-container-lowest); padding-right: 8px; }
+html[data-suggestion-style="opacite"] .chip--pending > :not(.chip-pending-actions) { opacity: 0.55; }
+html[data-suggestion-style="opacite"] .chip--pending .chip-pending-actions { position: absolute; top: calc(100% + 2px); left: 0; z-index: 5; margin: 0; padding: 2px; border: 1px solid var(--mat-sys-outline-variant); border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-lowest); box-shadow: var(--mat-sys-level2, 0 2px 6px rgba(0,0,0,.15)); visibility: hidden; }
+html[data-suggestion-style="opacite"] .chip--pending:hover .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending:focus-within .chip-pending-actions,
+html[data-suggestion-style="opacite"] .chip--pending.ProseMirror-selectednode .chip-pending-actions { visibility: visible; }
+html[data-suggestion-style="violet"] .chip--rx.chip--pending { border-style: solid; border-color: light-dark(#7a3ec2, #c4aae4); background: light-dark(#f3ecfb, #2e2340); padding-right: 14px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-actions { position: absolute; top: -9px; right: -9px; margin: 0; padding: 0; border: 0; gap: 2px; }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#7a3ec2, #c4aae4); color: light-dark(#7a3ec2, #c4aae4); }
+html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-symbols-outlined { font-size: 14px; }
+
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
 .rx-menu__scroll { overflow-y: auto; max-height: 380px; padding-bottom: 6px; }
+/* Menu /rx avec le rail de filtres à droite (Figma « Recherche de prescriptions ») :
+   la liste à gauche, les filtres à droite, le pied de raccourcis sous les deux. */
+.rx-menu--rail { width: 720px; display: grid; grid-template-columns: minmax(0, 1fr) 200px; grid-template-rows: minmax(0, 1fr) auto; }
+.rx-menu--rail .rx-menu__main { min-width: 0; display: flex; flex-direction: column; }
+.rx-menu--rail .rx-menu__foot { grid-column: 1 / -1; }
+.rx-rail { border-left: 1px solid var(--border-subtle); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.rx-rail__item { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 12px; border: 0; border-radius: 8px; background: transparent; cursor: pointer; font: 500 13px var(--font-body); color: var(--mat-sys-on-surface); text-align: left; }
+.rx-rail__item:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.rx-rail__item .material-icons-outlined { font-size: 20px; color: var(--mat-sys-on-surface-variant); }
+.rx-rail__label { flex: 1; }
+.rx-rail__count { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
+.rx-rail__item.is-on { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); font-weight: 700; }
+.rx-menu.is-rail-focus .rx-item.is-active { --rx-row-bg: transparent; }
+.rx-menu.is-rail-focus .rx-item.is-active .rx-med-actions { visibility: hidden; }
+.rx-menu.is-rail-focus .rx-rail__item.is-on { outline: 2px solid var(--mat-sys-primary); outline-offset: -2px; }
+.rx-rail__item.is-on .material-icons-outlined, .rx-rail__item.is-on .rx-rail__count { color: inherit; }
+/* Actions d'une ligne : visibles sur la ligne survolée ou choisie (Figma), pas sur toutes. */
+.rx-item .rx-med-actions { visibility: hidden; }
+.rx-item.is-active .rx-med-actions, .rx-item:hover .rx-med-actions, .rx-item:focus-within .rx-med-actions { visibility: visible; }
+.rx-med-btn:disabled { opacity: 0.35; cursor: default; }
+.rx-med-btn:disabled:hover { background: transparent; color: var(--fg-3); }
+.rx-check { flex-shrink: 0; width: 32px; height: 32px; margin: 0 2px 0 -6px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.rx-check .material-symbols-outlined { font-size: 20px; }
+.rx-item.is-checked .rx-check { color: var(--mat-sys-primary); }
+.rx-item.is-checked { --rx-row-bg: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-lowest)); }
+.rx-check:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.rx-add-checked { margin-left: auto; border: 0; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 12.5px var(--font-body); padding: 5px 10px; cursor: pointer; }
 .rx-sec { font-size: 13px; color: var(--fg-2); padding: 12px 16px 9px; border-bottom: 1px solid var(--mat-sys-secondary-container); margin-bottom: 4px; }
 .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 6px; }
-.rx-item { display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
-.rx-item.is-active { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.rx-item { --rx-row-bg: var(--mat-sys-surface-container-lowest); position: relative; background: var(--rx-row-bg); display: flex; align-items: flex-start; gap: 12px; padding: 9px 16px; cursor: pointer; transition: background 110ms; }
+.rx-item.is-active { --rx-row-bg: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
 .rx-item__body { flex: 1; min-width: 0; }
 .rx-item__name { font-size: 15px; font-weight: 600; color: var(--fg-1); }
 .rx-sec-count { color: var(--fg-3); font-weight: 500; }
@@ -668,23 +798,27 @@
 .rx-heart:hover { color: light-dark(#e0245e, #e9a5ba); background: rgba(224,36,94,0.08); }
 .rx-heart .material-icons { font-size: 22px; }
 .rx-heart.is-fav { color: light-dark(#e8112d, #e9a5ae); }
-/* Pastille de statut (médication cessée au dossier) */
-.rx-status { display: inline-flex; align-items: center; font: 600 11px/16px var(--font-body); padding: 2px 8px; border-radius: 4px; white-space: nowrap; letter-spacing: 0.2px; }
+/* Étiquette de statut d'une médication au dossier : Actif / Échu / Cessé (Figma « État du médicament au profil »). */
+.rx-status { display: inline-flex; align-items: center; font: 600 11px/16px var(--font-body); padding: 0 8px; border-radius: 4px; white-space: nowrap; letter-spacing: 0.2px; margin-left: 8px; vertical-align: 1px; }
+.rx-status--active { background: light-dark(#e1efe6, #1f3a2b); color: light-dark(#1d5c36, #b9d5c7); }
+.rx-status--echue { background: light-dark(#f7ebcf, #43361a); color: light-dark(#7a5200, #e9cca5); }
 .rx-status--ceased { background: light-dark(#ecdfe0, #462a2c); color: light-dark(#7a1f26, #e8a6ab); }
 .rx-active { width: 22px; height: 22px; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-/* Section « Médicaments cessés » repliable — non sélectionnable, informative seulement */
-.rx-sec--toggle { display: flex; align-items: center; gap: 2px; width: 100%; border: 0; background: transparent; cursor: pointer; font: inherit; text-align: left; }
-.rx-item--ceased { cursor: default; opacity: 0.72; }
-.rx-item--ceased:hover { background: transparent; }
-.rx-item--ceased .chip-rx-name, .rx-item--ceased .rx-item__name { text-decoration: line-through; text-decoration-color: light-dark(#b04a4a, #deb0b0); }
 .rx-active .material-icons { font-size: 15px; }
 /* Actions sur une médication active au dossier — donne un sens distinct
    entre renouveler/ajuster une Rx existante et en créer une nouvelle. */
 .rx-med-actions { display: flex; align-items: center; gap: 2px; }
+/* Boutons de ligne en surimpression à droite (fond de la ligne) : ils ne prennent pas de place quand ils sont cachés,
+   le nom et la posologie gardent toute la largeur. */
+.rx-item .rx-med-actions { position: absolute; right: 12px; top: 6px; padding-left: 16px; background: var(--rx-row-bg); box-shadow: -12px 0 10px -4px var(--rx-row-bg); }
+.rx-item .rx-med-actions--heart { right: 52px; }
 .rx-med-btn { border: 0; background: transparent; cursor: pointer; padding: 4px; display: inline-flex; color: var(--fg-3); border-radius: 6px; transition: background 110ms, color 110ms; }
 .rx-med-btn:hover { background: rgba(25,117,209,0.10); color: var(--mat-sys-primary); }
 .rx-med-btn .material-icons-outlined { font-size: 19px; }
+.rx-med-btn--text .material-icons-outlined { font-size: 16px; }
 .rx-med-btn--stop:hover { background: rgba(211,47,47,0.10); color: light-dark(#d32f2f, #e9a5a5); }
+/* « Prescrire » (échu, cessé) : bouton texte, une nouvelle ordonnance sur ce médicament. */
+.rx-med-btn--text { align-items: center; gap: 4px; padding: 4px 8px; font: 600 12px/16px var(--font-body); color: var(--mat-sys-primary); }
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }
@@ -787,6 +921,15 @@
 /* Chip popover */
 .popover { position: fixed; width: 380px; background: var(--surface-2); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); box-shadow: var(--elev-4); z-index: 1000; overflow: hidden; animation: pop-in 180ms var(--motion-ease); }
 @keyframes pop-in { from { opacity: 0; transform: translateY(-4px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+/* Ouverture du formulaire d'une puce (placePopover, editor-popover.jsx) :
+   centré = voile léger derrière ; bottom sheet = collé au bas de l'écran,
+   coins du haut arrondis, entrée par le bas. */
+.popover-scrim { position: fixed; inset: 0; z-index: 2090; background: color-mix(in srgb, var(--mat-sys-scrim, #000) 24%, transparent); animation: sheet-scrim-in 160ms ease-out; }
+.popover.popover--center { box-shadow: var(--mat-sys-level3, 0 12px 32px rgba(0,0,0,.24)); }
+.popover.popover--sheet { border-radius: 16px 16px 0 0 !important; border-bottom: 0; box-shadow: 0 -8px 24px rgba(37,36,94,0.18); animation: sheet-up 240ms cubic-bezier(.16,1,.3,1); }
+/* Puce dont le formulaire est ouvert : le lien reste visible (surtout quand
+   le formulaire est centré ou en bottom sheet, loin de la puce). */
+.chip.chip--editing { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
 .popover-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--divider); }
 .popover-head .ic { width: 32px; height: 32px; border-radius: 8px; background: var(--brand-primary-container); color: var(--brand-primary); display: inline-flex; align-items: center; justify-content: center; }
 .popover-head .ic .material-symbols-outlined { font-size: 18px; }
@@ -797,6 +940,14 @@
 .popover-head .close:hover { background: var(--bg-subtle); color: var(--fg-1); }
 .popover-body { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 10px; max-height: 60vh; overflow: auto; }
 .popover-body .field { display: flex; flex-direction: column; gap: 4px; }
+.lab-tests { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-test { display: inline-flex; align-items: center; gap: 2px; padding: 2px 2px 2px 10px; border: 1px solid var(--mat-sys-outline); border-radius: var(--mat-sys-corner-small); font-size: 13px; color: var(--mat-sys-on-surface); background: var(--mat-sys-surface-container-lowest); }
+.lab-test__remove { width: 24px; height: 24px; padding: 0; border: 0; background: transparent; border-radius: var(--mat-sys-corner-small); display: inline-flex; align-items: center; justify-content: center; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.lab-test__remove .material-symbols-outlined { font-size: 16px; }
+.lab-test__remove:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.lab-test__remove:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.lab-tests__empty { font-size: 13px; color: var(--mat-sys-on-surface-variant); }
+.lab-profile-note { font-size: 12px; color: var(--mat-sys-on-surface-variant); }
 .popover-body .field label { font-size: 11px; font-weight: 600; color: var(--fg-2); letter-spacing: 0.2px; }
 .popover-body .field input, .popover-body .field select, .popover-body .field textarea { border: 1px solid var(--border-default); background: var(--surface-2); border-radius: var(--radius-sm); padding: 8px 10px; font: inherit; font-size: 13px; color: var(--fg-1); outline: none; }
 .popover-body .field input:focus, .popover-body .field select:focus, .popover-body .field textarea:focus { border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(46,56,166,0.16); }

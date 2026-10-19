@@ -57,16 +57,19 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
   // Déjà transmis : on grise, comme le « Transmettre » du checkout complet.
   // Un renvoi passe par la reprise après échec (hors périmètre, plan §E),
   // pas par un second clic sur la même action.
-  const sendDisabled = noRecipient || doc.transmitted;
+  // Un item incomplet empêche de compléter, donc d'envoyer ou d'imprimer.
+  const blocked = !doc.complete && (doc.blocking || []).length > 0;
+  const sendDisabled = noRecipient || doc.transmitted || blocked;
   const sendTitle = doc.transmitted
     ? 'Document déjà transmis'
+    : blocked ? (doc.blocking || []).join('\n')
     : (noRecipient ? 'Aucun destinataire sélectionné' : undefined);
 
   function completeAndSend() {
     if (sendDisabled) return;
     if (!doc.complete && onComplete) onComplete(doc.id);
     patch({ transmitted: true });
-    if (window.toast) window.toast('Document transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Document transmis', { icon: 'check_circle' });
     onCancel();
   }
   function onPrintDone() {
@@ -126,6 +129,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={Object.assign({}, qs.itemLabel, it.ceased ? { textDecoration: 'line-through', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' } : {})}>{it.label}</div>
                       {it.sub ? <div style={qs.itemSub}>{it.sub}</div> : null}
+                      <window.ChipIssueLines issues={it.issues} />
                     </div>
                   </div>
                 );
@@ -244,7 +248,8 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             <button style={qs.linkBtn} onClick={onOpenFull}>Voir tous les documents</button>
           }
           <div style={{ flex: 1 }} />
-          <button style={qs.printBtn} title="Imprimer" onClick={function () { setPrinting(true); }}>
+          <button style={Object.assign({}, qs.printBtn, blocked ? qs.btnDisabled : {})} disabled={blocked}
+            title={blocked ? (doc.blocking || []).join('\n') : 'Imprimer'} onClick={function () { setPrinting(true); }}>
             <span className="material-icons-outlined" style={{ fontSize: 20 }}>print</span>
           </button>
           <button

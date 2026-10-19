@@ -35,6 +35,8 @@ var INIT_DATA = {
   ],
   meds: [
     { name:'Contraceptif…',      detail:'1 co DIE — actif',  status:'active',  pinned:true },
+    { name:'Tylenol 100 mg',     detail:'1 co PRN — actif',  status:'active' },
+    { name:'Tylenol 500 mg',     detail:'2 co DIE — échue',  status:'echue',   date:'02/2026' },
     { name:'Nitrofurantoïne…',   detail:'cessée (ITU)',       status:'cessée',  date:'12/2025' },
   ],
   immun: [
@@ -73,7 +75,17 @@ var SECTION_CFG = [
 
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
 
-function Summary() {
+// addToNote (tweak « Le « + » du sommaire ajoute dans la note », piste de
+// vision — rencontre inline entity, Xavier Boilard) : pour Problèmes et
+// Antécédents, le « + » ouvre la recherche de diagnostic DANS la note
+// (note:summary-add, NoteEditor.jsx) au lieu de l'ancienne modale. Pour
+// Médications (lot 6 du plan « Prescription inline »), qui n'avait pas de « + »,
+// il ouvre la recherche de médication « /rx » dans la note — le Figma
+// (« Ajouter une prescription depuis le sommaire ») y prescrit par défaut.
+// Ce que le « + » d'une boîte fait dans la note : NOTE_DATA.summaryAddDetail
+// (editor-data.jsx), { documentAs } pour /dx, { command } pour /rx, null pour
+// l'ancienne modale.
+function Summary({ addToNote }) {
   var [data, setData] = React.useState(INIT_DATA);
   var [modal, setModal] = React.useState(null);   // { section, type:'add'|'list' }
   var [reorder, setReorder] = React.useState(false);
@@ -141,7 +153,7 @@ function Summary() {
   // Un diagnostic suit son propre mécanisme (dxOverlay/dxView ci-dessus),
   // pas cette liste générique.
   React.useEffect(function() {
-    var MAP = { prescription:'meds', problem:'problems', lab:'results', imaging:'results' };
+    var MAP = { prescription:'meds', medication:'meds', problem:'problems', lab:'results', imaging:'results' };
     function onItems(e) {
       var list = (e.detail && e.detail.items) || [];
       var grouped = {};
@@ -288,7 +300,15 @@ function Summary() {
               onDragEnd={function(){ setDragSrc(null); }}
               onNoteDragStart={function(e){ startNoteDrag(e, cfg, items); }}
               onNoteDragEnd={endNoteDrag}
-              onAdd={function(){ setModal({ section:cfg.id, type:'add' }); }}
+              canAdd={cfg.add || (!!addToNote && !!window.NOTE_DATA.summaryAddDetail(cfg.id))}
+              onAdd={function(){
+                var addDetail = addToNote ? window.NOTE_DATA.summaryAddDetail(cfg.id) : null;
+                if (addDetail) {
+                  window.dispatchEvent(new CustomEvent('note:summary-add', { detail: addDetail }));
+                  return;
+                }
+                setModal({ section:cfg.id, type:'add' });
+              }}
               onTitle={function(){
                 if (cfg.link) { if (window.toast) window.toast(cfg.label + ' — à venir', { icon: 'info' }); return; }
                 if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });
@@ -304,7 +324,7 @@ function Summary() {
   );
 }
 
-function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, onAdd, onTitle }) {
+function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, canAdd, onAdd, onTitle }) {
   pending = pending || [];
   // Réordonnancement actif uniquement en mode `reorder`. Sinon ces handlers NE
   // doivent PAS exister : le dragstart du <span> « Glisser vers la note » remonte
@@ -337,7 +357,7 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
             <span className="material-icons" style={{ fontSize:20 }}>more_vert</span>
           </button>
         )}
-        {cfg.add && (
+        {canAdd && (
           <button style={suS.addBtn} onClick={onAdd} title="Ajouter">
             <span className="material-icons" style={{ fontSize:20 }}>add</span>
           </button>

@@ -1,7 +1,36 @@
 // =========================================================
 // popover.jsx — Chip popover + slash menu
 // =========================================================
-const { useState: useStateP, useEffect: useEffectP, useRef: useRefP } = React;
+const { useState: useStateP, useEffect: useEffectP, useLayoutEffect: useLayoutEffectP, useRef: useRefP } = React;
+
+// Place un popover `position: fixed` selon choosePopoverPlacement
+// (popover-placement.jsx) et renvoie la décision ({ kind, … }). opts : mode
+// (tweak « Ouverture du formulaire »), width (largeur de base, rétablie avant
+// de mesurer), column (rect de la colonne de la note, pour le bottom sheet).
+// top/left/maxHeight/width sont posés sur le DOM : ne pas les passer en style
+// React. Les classes popover--sheet / popover--center portent l'habillage.
+window.placePopover = placePopover;
+function placePopover(el, anchorRect, opts) {
+  opts = opts || {};
+  const vw = window.innerWidth, vh = window.innerHeight;
+  if (opts.width) el.style.width = opts.width + 'px';
+  el.style.maxHeight = (vh - 24) + 'px';
+  const p = window.choosePopoverPlacement({
+    mode: opts.mode, anchor: anchorRect, column: opts.column,
+    size: { w: el.offsetWidth, h: el.offsetHeight }, viewport: { w: vw, h: vh }
+  });
+  el.classList.toggle('popover--sheet', p.kind === 'sheet');
+  el.classList.toggle('popover--center', p.kind === 'center');
+  el.style.maxHeight = p.maxHeight + 'px';
+  el.style.left = p.left + 'px';
+  if (p.kind === 'sheet') {
+    // Plus large que la largeur mesurée : la hauteur change, on la relit.
+    el.style.width = p.width + 'px';
+    p.top = vh - Math.min(el.offsetHeight, p.maxHeight);
+  }
+  el.style.top = p.top + 'px';
+  return p;
+}
 
 // ─────────────────────────────────────────────────────────
 // Posologie structurée (Prescription) — refonte d'après Figma
@@ -10,26 +39,31 @@ const { useState: useStateP, useEffect: useEffectP, useRef: useRefP } = React;
 // secondary-container #dedbef / #3a3167, radius 8.
 // ─────────────────────────────────────────────────────────
 const rxS = {
-  panel: { width: 600, maxWidth: 'calc(100vw - 24px)', maxHeight: 'calc(100vh - 24px)', display: 'flex', flexDirection: 'column', padding: 0 },
-  head: { display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
-  rxIcon: { fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 22, fontWeight: 700, color: 'var(--mat-sys-on-surface)', width: 32, textAlign: 'center', flexShrink: 0 },
-  molName: { font: "500 15px 'Poppins', sans-serif", color: 'var(--mat-sys-on-surface)', whiteSpace: 'nowrap' },
+  panel: { width: 640, borderRadius: 16, overflow: 'hidden', maxWidth: 'calc(100vw - 24px)', maxHeight: 'calc(100vh - 24px)', display: 'flex', flexDirection: 'column', padding: 0 },
+  head: { display: 'flex', alignItems: 'center', gap: 12, padding: '8px 16px', minHeight: 60, boxSizing: 'border-box', flexShrink: 0 },
+  rxWrap: { width: 32, height: 32, borderRadius: 4, background: 'light-dark(#eceaf6, #2a244c)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  rxIcon: { fontFamily: 'Georgia, "Times New Roman", serif', fontSize: 20, fontWeight: 700, color: 'var(--mat-sys-primary)', lineHeight: 1 },
+  molName: { font: "600 18px 'Poppins', sans-serif", color: 'var(--mat-sys-on-surface)', whiteSpace: 'nowrap' },
   ramq: { display: 'inline-flex', alignItems: 'center', gap: 3, font: "500 12px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap' },
   alertChip: { display: 'inline-flex', alignItems: 'center', gap: 4, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, padding: '4px 8px', flexShrink: 0 },
-  alertBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '12px 18px 0', padding: '8px 14px', background: 'light-dark(#f8f7fd, #2b244c)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8 },
-  pedsBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '8px 18px 0', padding: '8px 14px', background: 'light-dark(#f5f0fa, #38244c)', border: '1px solid light-dark(#d9c9ea, #38244c)', borderRadius: 8 },
+  alertBandError: { background: 'var(--mat-sys-error-container)', border: '1px solid var(--mat-sys-error)', alignItems: 'flex-start' },
+  alertBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '0 16px', padding: '8px 14px', background: 'light-dark(#f8f7fd, #2b244c)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8 },
+  pedsBand: { display: 'flex', alignItems: 'center', gap: 10, margin: '8px 16px 0', padding: '8px 14px', background: 'light-dark(#f5f0fa, #38244c)', border: '1px solid light-dark(#d9c9ea, #38244c)', borderRadius: 8 },
   pedsApply: { flexShrink: 0, border: '1px solid light-dark(#8a5cb8, #c7b1dd)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#8a5cb8, #c7b1dd)', borderRadius: 6, padding: '6px 12px', font: "600 12px 'Inter',sans-serif", cursor: 'pointer' },
   closeBtn: { width: 36, height: 36, border: 0, background: 'transparent', borderRadius: 8, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
-  body: { padding: '16px 18px 4px', overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
-  sec: { font: "700 11px 'Inter', sans-serif", letterSpacing: '0.7px', textTransform: 'uppercase', color: 'var(--mat-sys-primary)', margin: '6px 0 16px' },
-  row: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 20 },
-  foot: { display: 'flex', alignItems: 'center', padding: '12px 18px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0 },
-  btnCancel: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
-  btnSave: { border: 0, background: 'light-dark(#dedbef, #2a244c)', color: 'light-dark(#3a3167, #bab3db)', borderRadius: 8, padding: '9px 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
+  body: { padding: '16px 16px 8px', overflowY: 'auto', flex: '1 1 auto', minHeight: 0 },
+  sec: { font: "600 14px 'Inter', sans-serif", letterSpacing: '0.3px', textTransform: 'uppercase', color: 'var(--mat-sys-primary)', display: 'flex', alignItems: 'center', gap: 8, minHeight: 28, margin: '4px 0 12px' },
+  row: { display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16 },
+  fieldset: { border: 0, margin: 0, padding: 0, minWidth: 0 },
+  foot: { display: 'flex', alignItems: 'center', padding: '8px 16px 16px', flexShrink: 0 },
+  btnCancel: { border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface-variant)', borderRadius: 8, height: 40, padding: '0 18px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
+  btnSave: { border: 0, background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', borderRadius: 8, height: 40, padding: '0 22px', font: "600 14px 'Inter', sans-serif", cursor: 'pointer' },
   fieldWrap: { position: 'relative', border: '1.5px solid var(--mat-sys-outline-variant)', borderRadius: 8, height: 44, display: 'flex', alignItems: 'center', background: 'var(--mat-sys-surface-container-lowest)', boxSizing: 'border-box' },
   flabel: { position: 'absolute', top: -8, left: 10, background: 'var(--mat-sys-surface-container-lowest)', padding: '0 4px', font: "500 11px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface-variant)', lineHeight: '16px', pointerEvents: 'none', whiteSpace: 'nowrap' },
   input: { border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 12px', font: "400 14px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface)' },
   select: { appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none', border: 0, outline: 'none', background: 'transparent', width: '100%', padding: '0 30px 0 12px', font: "400 14px 'Inter', sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer' },
+  alertPill: { display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 8px', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, boxSizing: 'border-box', flexShrink: 0 },
+  precBtn: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', height: 40, padding: '0 16px 0 24px', border: 0, borderRadius: 12, background: 'light-dark(#f8f7fd, #2b244c)', color: 'var(--mat-sys-on-surface)', font: "500 14px 'Inter', sans-serif", cursor: 'pointer', textAlign: 'left', boxSizing: 'border-box' },
   chev: { position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--mat-sys-on-surface-variant)', fontSize: 20 },
 };
 
@@ -58,7 +92,30 @@ function RxSel({ label, required, value, onChange, options, placeholder, flex, w
       <select style={rxS.select} value={value == null ? '' : value}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onChange && onChange(e.target.value)}>
-        {placeholder ? <option value="">{placeholder}</option> : null}
+        {/* Sans option vide, une valeur vide afficherait la 1re option (« DIE »)
+            alors que rien n'est saisi — et contredirait « à préciser : fréquence ». */}
+        {(placeholder || value == null || value === '') ? <option value="">{placeholder || (required ? 'À préciser' : '—')}</option> : null}
+        {opts.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+      <span className="material-icons-outlined" style={rxS.chev}>expand_more</span>
+    </div>
+  );
+}
+// Champ composé du Figma (« 30 jours », « 30 comprimés ») : un nombre et son
+// unité dans le même contour.
+function RxCompound({ label, value, onChange, unit, onUnit, units, placeholder, flex }) {
+  const [foc, setFoc] = useStateP(false);
+  const opts = _rxOpts(units, unit);
+  return (
+    <div style={Object.assign({}, rxS.fieldWrap, foc ? { borderColor: 'var(--mat-sys-primary)' } : {}, { flex: flex || 1 })}>
+      <span style={Object.assign({}, rxS.flabel, foc ? { color: 'var(--mat-sys-primary)' } : {})}>{label}</span>
+      <input style={Object.assign({}, rxS.input, { width: '40%', minWidth: 0 })} value={value == null ? '' : value} placeholder={placeholder || ''}
+        onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
+        onChange={(e) => onChange && onChange(e.target.value)} />
+      <select aria-label={label + ' : unité'} style={Object.assign({}, rxS.select, { width: '60%', paddingLeft: 4 })} value={unit == null ? '' : unit}
+        onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
+        onChange={(e) => onUnit && onUnit(e.target.value)}>
+        <option value="">—</option>
         {opts.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
       <span className="material-icons-outlined" style={rxS.chev}>expand_more</span>
@@ -95,7 +152,7 @@ function RxSourceToggle({ value, onChange }) {
   );
 }
 
-function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) {
+function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, readOnly, pending, onReject, openMode }) {
   const [draft, setDraft] = useStateP(chip.entity);
   const ref = useRefP(null);
   useEffectP(() => { setDraft(chip.entity); }, [chip.id]);
@@ -106,17 +163,72 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
     document.addEventListener('keydown', onKey);
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [onClose]);
-  if (!anchorRect) return null;
   const isRx = draft.type === 'prescription';
-  const W = isRx ? 600 : 380;
-  const top = anchorRect.bottom + 8;
-  let left = anchorRect.left;
-  if (left + W > window.innerWidth - 16) left = Math.max(12, window.innerWidth - W - 16);
+  const W = isRx ? 640 : 380;
+  // Où le formulaire s'est ouvert (below / above / center / sheet) : centré,
+  // un voile signale que la note est en attente ; bottom sheet, la puce est
+  // amenée au-dessus du panneau si celui-ci la cache (une fois par ouverture).
+  const [placed, setPlaced] = useStateP(null);
+  const sheetScrolledRef = useRefP(false);
+  const [precOpen, setPrecOpen] = useStateP(null); // « Précisions » : null = par défaut (voir plus bas)
+  // À chaque rendu : la hauteur change avec le contenu (bandeau pédiatrique, etc.).
+  useLayoutEffectP(() => {
+    if (!anchorRect || !ref.current) return;
+    const el = ref.current;
+    const chipEl = document.querySelector('.ProseMirror .chip[data-cid="' + chip.id + '"]');
+    const shell = chipEl && chipEl.closest('.note-field-shell');
+    const place = () => {
+      const col = shell ? shell.getBoundingClientRect() : null;
+      const p = placePopover(el, anchorRect, { mode: openMode || 'auto', width: W, column: col ? { left: col.left, width: col.width } : null });
+      if (p.kind !== placed) setPlaced(p.kind);
+      if (p.kind === 'sheet' && chipEl && !sheetScrolledRef.current) {
+        sheetScrolledRef.current = true;
+        // La note ne défile que si le panneau cache la puce.
+        if (chipEl.getBoundingClientRect().bottom > p.top - 8) {
+          chipEl.style.scrollMarginBottom = (window.innerHeight - p.top + 16) + 'px';
+          chipEl.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    };
+    place();
+    window.addEventListener('resize', place);
+    return () => window.removeEventListener('resize', place);
+  });
+  if (!anchorRect) return null;
+  const scrim = placed === 'center' ? <div className="popover-scrim" aria-hidden="true" /> : null;
   const meta = window.NOTE_DATA.ENTITY_TYPES[draft.type] || {};
   function up(f, v) { setDraft(d => ({ ...d, details: { ...d.details, [f]: v } })); }
+  // Chip transmis (D-05) : mêmes champs, désactivés par le <fieldset> ; le
+  // pied ne propose que Fermer. Annuler passe par le menu ⋮ du chip.
+  const sentNote = readOnly
+    ? (chip.entity.cancelledAt ? 'Annulée le ' + window.formatChipStamp(chip.entity.cancelledAt) : 'Transmise le ' + window.formatChipStamp(chip.entity.transmittedAt)) + ' : lecture seule.'
+    : '';
+  // Ajout en attente (gabarit) : on vérifie, on ajuste, puis on accepte ou
+  // on refuse — accepter enregistre les modifications en même temps.
+  const pendingFoot = (footStyle, btnGhost, btnPrimary) => (
+    <div style={footStyle}>
+      <button style={btnGhost} onClick={() => onReject && onReject(chip.id)}>Refuser</button>
+      <span style={{ flex: 1 }} />
+      <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', marginRight: 10 }}>{chip.entity.proposedBy ? 'Proposé par ' + chip.entity.proposedBy : 'Ajout proposé'}</span>
+      <button style={btnPrimary} onClick={() => onSave(chip.id, draft, true)}>Accepter</button>
+    </div>
+  );
+  const readOnlyFoot = (footStyle, btnStyle) => (
+    <div style={footStyle}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
+        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 18 }}>{chip.entity.cancelledAt ? 'block' : 'done_all'}</span>
+        {sentNote}
+      </span>
+      <span style={{ flex: 1 }} />
+      <button style={btnStyle} onClick={onClose}>Fermer</button>
+    </div>
+  );
 
   if (isRx) {
     const d = draft.details || {};
+    // Mêmes états que la puce, recalculés sur le brouillon : le bandeau suit
+    // la saisie (une fréquence ajoutée fait disparaître « incomplète »).
+    const rxIssues = window.chipIssues(Object.assign({}, draft, { transmittedAt: null })).filter(function (i) { return i.kind !== 'transmission'; });
     const pedsW = window.__PEDIATRIC_WEIGHT;
     const peds = d.pedsDosing && pedsW ? d.pedsDosing : null;
     let pedsCalc = null;
@@ -126,25 +238,38 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
       const capped = peds.maxMgPerDose ? Math.min(rounded, peds.maxMgPerDose) : rounded;
       pedsCalc = { raw, suggested: capped, wasCapped: capped < rounded };
     }
-    return (
-      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { top: top, left: left, width: W })} role="dialog">
+    // Pastille d'alertes de l'en-tête (Figma) : remplace le bandeau « Aucune
+    // alerte » ; les constantes du patient sont dans son infobulle.
+    const constants = 'Créatinine sérique : N/A · eGFR : N/A · Poids : ' + (pedsW ? pedsW.kg + ' kg (pesée du ' + pedsW.weighedOn + ')' : 'N/A');
+    const alertText = rxIssues.length ? rxIssues.map(function (i) { return i.message; }).join(' · ') : 'Aucune alerte';
+    const alertTone = rxIssues.some(function (i) { return i.level === 'error'; }) ? 'var(--mat-sys-error)' : rxIssues.length ? 'light-dark(#a15c00, #e9cca5)' : 'light-dark(#39604d, #b9d5c7)';
+    // « Précisions » (Figma) : replié, sauf s'il contient déjà quelque chose ou
+    // que la puce est en lecture seule.
+    // L'intention (indication du catalogue) ne l'ouvre pas : presque toutes les
+    // ordonnances en ont une. La note, elle, était visible avant ce lot.
+    const precHasValue = !!(d.comment || d.exceptionCode || d.nps);
+    const precIsOpen = precOpen == null ? (precHasValue || !!readOnly) : precOpen;
+    return (<>
+      {scrim}
+      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog" aria-label={'Prescription : ' + (d.molecule || '')} aria-modal={placed === 'center' ? 'true' : undefined}>
         <div style={rxS.head}>
-          <span style={rxS.rxIcon}>℞</span>
+          <span style={rxS.rxWrap}><span style={rxS.rxIcon}>℞</span></span>
           <span style={rxS.molName}>{d.molecule || 'Prescription'}</span>
+          <span style={rxS.alertPill} role="img" aria-label={alertText + '. ' + constants} title={alertText + '\n' + constants}>
+            <span className="material-icons-outlined" style={{ fontSize: 20, color: alertTone }}>{rxIssues.length ? 'report' : 'verified_user'}</span>
+            {rxIssues.length > 0 && <span className="material-icons-outlined" style={{ fontSize: 20, color: alertTone }}>warning</span>}
+          </span>
           <span style={{ flex: 1 }} />
-          <button style={rxS.closeBtn} onClick={onClose}><span className="material-icons-outlined">close</span></button>
+          <button style={rxS.closeBtn} onClick={onClose} aria-label="Fermer"><span className="material-icons-outlined">close</span></button>
         </div>
-        <div style={rxS.alertBand}>
-          <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#39604d, #b9d5c7)', flexShrink: 0 }}>verified_user</span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-            <span style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>Aucune alerte</span>
-            <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>
-              Créatinine sérique : N/A&nbsp;&nbsp;·&nbsp;&nbsp;eGFR : N/A&nbsp;&nbsp;·&nbsp;&nbsp;
-              Poids : {pedsW ? pedsW.kg + ' kg (pesée du ' + pedsW.weighedOn + ')' : 'N/A'}
-            </span>
-          </div>
-        </div>
-        {peds &&
+        {rxIssues.length > 0 &&
+          <div style={Object.assign({}, rxS.alertBand, rxS.alertBandError, { marginBottom: 4 })} role="status">
+            <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-error)', flexShrink: 0 }}>report</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+              {rxIssues.map(function (i) { return <span key={i.kind} style={{ font: "500 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-error-container)' }}>{i.message}</span>; })}
+            </div>
+          </div>}
+        {peds && !readOnly &&
           <div style={rxS.pedsBand}>
             <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#8a5cb8, #c7b1dd)', flexShrink: 0 }}>child_care</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
@@ -157,67 +282,90 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
             </div>
             <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>Appliquer</button>
           </div>}
-        <div style={rxS.body}>
-          <div style={rxS.sec}>Médicament et posologie</div>
+        {/* Le <div> défile (un <fieldset> ne rogne pas son contenu : les champs
+            débordaient par-dessus le pied quand la hauteur est plafonnée) ; le
+            <fieldset> ne sert qu'à désactiver les champs d'une puce transmise. */}
+        <div style={rxS.body}><fieldset disabled={!!readOnly} style={rxS.fieldset}>
           <div style={rxS.row}>
-            <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={2} />
-            <span style={rxS.ramq}>RAMQ <span className="material-icons-outlined" style={{ fontSize: 16, color: 'light-dark(#cc3340, #e9a5ab)' }}>do_not_disturb_on</span></span>
+            <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={1} />
+            <RxFF label="Forme et teneur" value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1} />
+            <span style={rxS.ramq}>RAMQ <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#cc3340, #e9a5ab)' }}>do_not_disturb_on</span></span>
+          </div>
+          <div style={rxS.sec}>
+            <span>Posologie et médicament</span>
+            <span style={{ flex: 1 }} />
             <RxSourceToggle value={d.source || 'sub'} onChange={(v) => up('source', v)} />
           </div>
           <div style={rxS.row}>
-            <RxFF label="Dose visée" required value={d.dose} onChange={(v) => up('dose', v)} suffix={d.unit || 'mg'} flex={1.2} />
-            <span className="material-icons-outlined" style={{ color: 'var(--mat-sys-on-surface-variant)', fontSize: 22, flexShrink: 0 }}>link</span>
-            <RxFF label="Dose" value={d.qtyDose} onChange={(v) => up('qtyDose', v)} placeholder="1" flex={0.9} />
-            <RxFF label="Forme et teneur" value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1.9} />
-          </div>
-          <div style={rxS.row}>
-            <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={['PO', 'IM', 'IV', 'SC', 'Inhalé', 'SL', 'Top.', 'Rect.']} flex={1.2} />
-            <RxSel label="Site" value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder="Site" flex={1.2} />
-            <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={['DIE', 'BID', 'TID', 'QID', 'HS', 'q4-6h PRN', 'QID PRN', 'AC', 'PC']} flex={1.6} />
-            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <RxFF label="Dose" required value={d.dose} onChange={(v) => up('dose', v)} suffix={d.unit || 'mg'} flex={1.15} />
+            <RxFF label="Unités" value={d.qtyDose} onChange={(v) => up('qtyDose', v)} placeholder="1" flex={0.7} />
+            <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={window.NOTE_DATA.FIELD_OPTIONS.route} flex={0.95} />
+            <RxSel label="Site" value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder="Site" flex={1} />
+            <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={window.NOTE_DATA.FIELD_OPTIONS.frequency} flex={1.2} />
+            <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 16px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <input type="checkbox" checked={!!d.prn} onChange={(e) => up('prn', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--mat-sys-primary)' }} />
               PRN
             </label>
           </div>
           <div style={rxS.sec}>Durée et renouvellement</div>
           <div style={rxS.row}>
-            <RxSel label="Durée" value={d.duration} onChange={(v) => up('duration', v)} options={['7', '10', '14', '21', '30', '60', '90', '180', '365']} flex={1} />
-            <RxSel label="Unité" value={d.durationUnit} onChange={(v) => up('durationUnit', v)} options={['jours', 'semaines', 'mois']} flex={1} />
-            <RxFF label="Quantité" value={d.quantity} onChange={(v) => up('quantity', v)} placeholder="Quantité" flex={1} />
-            <RxSel label="Unité" value={d.quantityUnit} onChange={(v) => up('quantityUnit', v)} options={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} placeholder="Unité" flex={1} />
+            <RxCompound label="Durée" value={d.duration} onChange={(v) => up('duration', v)} unit={d.durationUnit} onUnit={(v) => up('durationUnit', v)} units={window.NOTE_DATA.FIELD_OPTIONS.durationUnit} flex={1.2} />
+            <RxCompound label="Quantité" value={d.quantity} onChange={(v) => up('quantity', v)} unit={d.quantityUnit} onUnit={(v) => up('quantityUnit', v)} units={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} flex={1.3} />
+            {/* Vide = R0 partout dans le prototype (puce, chipIssues, Q-12) : le formulaire affiche 0. */}
+            <RxSel label="Renouvel." required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={window.NOTE_DATA.FIELD_OPTIONS.refills} flex={0.8} />
+            <RxFF label="Fin du traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="aaaa-mm-jj" flex={1.2} />
           </div>
-          <div style={rxS.row}>
-            <RxSel label="Renouvellement" required value={d.refills} onChange={(v) => up('refills', v)} options={['0', '1', '2', '3', '4', '5', '6', '11', '12']} flex={1.3} />
-            <RxFF label="Fin de traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="Fin de traitement" flex={2} />
-            <RxSel label="Mois" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="Mois" flex={2} />
-          </div>
-        </div>
+          <button type="button" style={rxS.precBtn} aria-expanded={precIsOpen} aria-controls="rx-precisions"
+            onClick={() => setPrecOpen(!precIsOpen)}>
+            <span>Précisions</span>
+            <span style={{ flex: 1 }} />
+            <span style={{ font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Intention, note, code d’exception, NPS</span>
+            <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>{precIsOpen ? 'expand_less' : 'expand_more'}</span>
+          </button>
+          {precIsOpen &&
+            <div id="rx-precisions" style={{ marginTop: 20 }}>
+              <div style={rxS.row}>
+                <RxFF label="Intention" value={d.indication} onChange={(v) => up('indication', v)} placeholder="Indication" flex={1} />
+                <RxFF label="Code d’exception" value={d.exceptionCode} onChange={(v) => up('exceptionCode', v)} flex={1} />
+                <RxFF label="NPS" value={d.nps} onChange={(v) => up('nps', v)} flex={0.7} />
+              </div>
+              <div style={rxS.row}>
+                {/* Le « commentaire au pharmacien » (RA-07) est la note de ce volet (Q-28). */}
+                <RxFF label="Note (au pharmacien)" value={d.comment} onChange={(v) => up('comment', v)} placeholder="Commentaire au pharmacien" flex={2} />
+                <RxSel label="Intervalle de renouvellement" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="—" flex={1.3} />
+              </div>
+            </div>}
+        </fieldset></div>
+        {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) : pending ? pendingFoot(rxS.foot, rxS.btnCancel, rxS.btnSave) :
         <div style={rxS.foot}>
           <button style={rxS.btnCancel} onClick={onClose}>Annuler</button>
           <span style={{ flex: 1 }} />
           <button style={rxS.btnSave} onClick={() => onSave(chip.id, draft)}>Enregistrer</button>
-        </div>
+        </div>}
       </div>
-    );
+    </>);
   }
 
-  return (
-    <div className="popover" ref={ref} style={{ top, left }} role="dialog">
+  return (<>
+    {scrim}
+    <div className="popover" ref={ref} style={{ display: 'flex', flexDirection: 'column', maxWidth: 'calc(100vw - 24px)', zIndex: 2100 }} role="dialog" aria-modal={placed === 'center' ? 'true' : undefined}>
       <div className="popover-head">
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
           <div className="ttl">{meta.label}</div>
-          <div className="sub">Modifier les détails structurés</div>
+          <div className="sub">{readOnly ? 'Transmis : lecture seule' : pending ? 'Ajout proposé : vérifier, puis accepter' : 'Modifier les détails structurés'}</div>
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
-      <div className="popover-body">
+      <div className="popover-body" style={{ flex: '1 1 auto', minHeight: 0 }}><fieldset disabled={!!readOnly} style={Object.assign({ display: 'flex', flexDirection: 'column', gap: 10 }, rxS.fieldset)}>
         {draft.type === 'lab' && <LabFields d={draft.details} up={up} />}
         {draft.type === 'imaging' && <ImgFields d={draft.details} up={up} />}
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
         {draft.type === 'instructions' && <InsFields d={draft.details} up={up} />}
         {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
-      </div>
+      </fieldset></div>
+      {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
+      pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
       <div className="popover-footer">
         <button className="btn btn-t btn-sm" onClick={() => onRevert(chip.id)}>
           <span className="material-symbols-outlined">undo</span>Reconvertir en texte
@@ -227,9 +375,9 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete }) 
           <span className="material-symbols-outlined">delete</span>
         </button>
         <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>Confirmer</button>
-      </div>
+      </div>}
     </div>
-  );
+  </>);
 }
 
 function RxFields({ d, up }) {
@@ -271,24 +419,67 @@ function RxFields({ d, up }) {
     <div className="field"><label>Notes</label><textarea rows={2} value={d.notes} onChange={e => up('notes', e.target.value)} /></div>
   </>);
 }
+// Priorité d'une requête — mêmes valeurs que l'éditeur inline (FIELD_OPTIONS).
+// Vide = Routine, comme sur la puce.
+function PrioritySelect({ value, onChange }) {
+  return (
+    <select value={value || 'Routine'} onChange={e => onChange(e.target.value)}>
+      {window.NOTE_DATA.FIELD_OPTIONS.priority.map((o) => <option key={o}>{o}</option>)}
+    </select>
+  );
+}
+
+// Analyses d'une puce labo : une pastille retirable par analyse (profil ou
+// sélection multiple — on retire celle qu'on ne veut pas, cas d'Antoine
+// Cloutier), et une liste pour en ajouter une du catalogue.
+function LabTestsField({ tests, onChange }) {
+  const list = tests || [];
+  const catalog = [];
+  window.NOTE_DATA.ORDER_DEFS.lab.items().forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (catalog.indexOf(t) < 0 && list.indexOf(t) < 0) catalog.push(t); }); });
+  return (
+    <div className="field">
+      <label id="lab-tests-label">Analyses</label>
+      <div className="lab-tests" role="group" aria-labelledby="lab-tests-label">
+        {list.map((t) => (
+          <span key={t} className="lab-test">
+            {t}
+            <button type="button" className="lab-test__remove" aria-label={'Retirer ' + t} title={'Retirer ' + t}
+              onClick={() => onChange(list.filter((x) => x !== t))}>
+              <span className="material-symbols-outlined" aria-hidden="true">close</span>
+            </button>
+          </span>
+        ))}
+        {list.length === 0 && <span className="lab-tests__empty">Aucune analyse</span>}
+      </div>
+      <select aria-label="Ajouter une analyse" value="" onChange={(e) => { if (e.target.value) onChange(list.concat([e.target.value])); }}>
+        <option value="">Ajouter une analyse…</option>
+        {catalog.map((t) => <option key={t} value={t}>{t}</option>)}
+      </select>
+    </div>
+  );
+}
 function LabFields({ d, up }) { return (<>
-  <div className="field"><label>Analyses</label><textarea rows={2} value={(d.tests||[]).join(', ')} onChange={e => up('tests', e.target.value.split(',').map(s=>s.trim()))} /></div>
+  {d.profile && <div className="lab-profile-note">Depuis le profil « {d.profile} »</div>}
+  <LabTestsField tests={d.tests} onChange={(v) => up('tests', v)} />
   <div className="row">
-    <div className="field"><label>Priorité</label><select value={d.priority} onChange={e=>up('priority', e.target.value)}><option>Routine</option><option>Semi-urgent</option><option>Urgent</option></select></div>
+    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
     <div className="field"><label>À jeun</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">Non</option><option value="oui">Oui</option></select></div>
   </div>
-  <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au laboratoire</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function ImgFields({ d, up }) { return (<>
   <div className="row">
     <div className="field"><label>Modalité</label><select value={d.modality} onChange={e=>up('modality', e.target.value)}><option>Radiographie</option><option>Échographie</option><option>TDM</option><option>IRM</option></select></div>
-    <div className="field"><label>Priorité</label><select value={d.priority} onChange={e=>up('priority', e.target.value)}><option>Routine</option><option>Semi-urgent</option><option>Urgent</option></select></div>
+    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
   <div className="row">
     <div className="field"><label>Région</label><input value={d.region} onChange={e=>up('region', e.target.value)} /></div>
     <div className="field"><label>Vues</label><input value={d.views} onChange={e=>up('views', e.target.value)} /></div>
   </div>
-  <div className="field"><label>Contexte</label><input value={d.context} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Latéralité</label><select value={d.laterality || ''} onChange={e=>up('laterality', e.target.value)}><option value="">—</option><option>Gauche</option><option>Droite</option><option>Bilatéral</option></select></div>
+  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au service d’imagerie</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function PbFields({ d, up }) { return (<>
   <div className="field"><label>Problème</label><input value={d.name} onChange={e=>up('name', e.target.value)} /></div>
@@ -306,23 +497,16 @@ function RefFields({ d, up }) { return (<>
   <div className="field"><label>Spécialité</label>
     <select value={d.specialty||''} onChange={e=>up('specialty', e.target.value)}>
       <option value="">— Choisir —</option>
-      <option>Cardiologie</option><option>Orthopédie</option><option>Dermatologie</option>
-      <option>Gastroentérologie</option><option>Neurologie</option><option>Pneumologie</option>
-      <option>Rhumatologie</option><option>Endocrinologie</option><option>Néphrologie</option>
-      <option>Urologie</option><option>Gynécologie</option><option>Ophtalmologie</option>
-      <option>ORL</option><option>Chirurgie générale</option><option>Chirurgie vasculaire</option>
-      <option>Hématologie</option><option>Oncologie</option><option>Psychiatrie</option>
-      <option>Gériatrie</option><option>Médecine interne</option>
+      {window.NOTE_DATA.FIELD_OPTIONS.specialty.map((o) => <option key={o}>{o}</option>)}
     </select></div>
   <div className="field"><label>Question clinique</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
   <div className="row">
     <div className="field"><label>Priorité</label>
-      <select value={d.priority||'Routine'} onChange={e=>up('priority', e.target.value)}>
-        <option>Routine</option><option>Semi-urgent</option><option>Urgent</option><option>STAT</option>
-      </select></div>
+      <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
   <div className="field"><label>Indication</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
   <div className="field"><label>CRDS / guichet</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>
+  <div className="field"><label>Commentaire au spécialiste</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 
 // Slash menu
@@ -635,7 +819,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
 
 // =========================================================
 // RxMenu — dropdown de recherche de médicaments (commande /rx)
-// Sections : Favoris · Traitements fréquemment prescrits · Autres produits trouvés
+// Sections : Favoris · Traitements fréquemment prescrits · Phrases de prescription
 // =========================================================
 function RxNameHighlight({ name, query }) {
   const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -648,9 +832,8 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus }) {
   const ref = useRefP(null);
-  const [showCeased, setShowCeased] = useStateP(false);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
     // Différé d'un tick : l'item du SlashMenu déclenche sur mousedown et React
@@ -663,68 +846,116 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const d = def || window.NOTE_DATA.ORDER_DEFS.rx;
   const favSet = d.favs;
   const profil = results.profil || [];
-  const profilCeased = results.profilCeased || [];
   const sections = [];
   if (profil.length) sections.push(['Médications au dossier', profil]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = profil.length + profilCeased.length + results.favoris.length + results.frequents.length + results.autres.length;
+  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
+  // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
+  const railOn = kind === 'rx' && !!counts;
   let flat = -1;
+  // Sélection multiple (/req, /lab, /img) : case à cocher par résultat ; dès
+  // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
+  const multi = !!d.multi;
+  const checkedKeys = checked || [];
+  const uid = (it) => (it.orderKind || kind) + ':' + it.key;
+  const noFav = kind === 'req'; // favoris propres à chaque recherche
 
   return (
-    <div className="rx-menu" ref={ref} style={position} role="listbox">
+    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
+      <div className="rx-menu__main">
       <div className="rx-menu__scroll">
         {total === 0 &&
           <div className="rx-empty">Aucun {d.emptyNoun} trouvé{query ? <> pour « {query} »</> : null}.</div>
         }
-        {sections.map(([ttl, list]) => list.length === 0 ? null : (
+        {sections.map(([ttl, list]) => { if (list.length === 0) return null; return (
           <div key={ttl} className="rx-sec-block">
             <div className="rx-sec">{ttl} <span className="rx-sec-count">({list.length})</span></div>
             {list.map((it) => {
               flat += 1;
               const idx = flat;
               const fav = favSet.has(it.key);
-              const isActiveMed = it.med && it.medStatus === 'active';
+              const medActs = window.NOTE_DATA.medActions(it);
               return (
-                <div key={it.key} role="option" aria-selected={idx === activeIndex}
-                  className={'rx-item' + (idx === activeIndex ? ' is-active' : '')}
+                <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
+                  aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
+                  className={'rx-item' + (idx === activeIndex ? ' is-active' : '') + (multi && checkedKeys.indexOf(uid(it)) >= 0 ? ' is-checked' : '')}
                   onMouseEnter={() => onHover(idx)}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => onSelect(it, isActiveMed ? 'renouveler' : undefined)}>
+                  onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, window.NOTE_DATA.defaultMedAction(it)))}>
+                  {multi &&
+                    <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
+                      aria-label={(checkedKeys.indexOf(uid(it)) >= 0 ? 'Décocher ' : 'Cocher ') + it.name}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => { e.stopPropagation(); onToggleCheck(it); }}>
+                      <span className="material-symbols-outlined" aria-hidden="true">{checkedKeys.indexOf(uid(it)) >= 0 ? 'check_box' : 'check_box_outline_blank'}</span>
+                    </button>}
                   <div className="rx-item__body">
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
+                      {it.med && <span className={'rx-status rx-status--' + (it.medStatus === 'cessée' ? 'ceased' : it.medStatus)} title={it.medStatusLabel || ''}>{window.NOTE_DATA.MED_STATUS_LABEL[it.medStatus]}</span>}
                     </div>
                     <div className="rx-item__sig">{it.sig}</div>
                   </div>
                   <div className="rx-item__actions">
+                    {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
+                        ligne prescrit (renouvelle une médication active ou échue). Une médication au
+                        dossier a ses actions (↑ ↓, renouveler, cesser, prescrire) ; « Documenter » (ajouter
+                        au profil sans prescrire) n'est offert que pour un produit hors du dossier. */}
                     {it.med
-                      ? (isActiveMed
-                          ? <span className="rx-med-actions">
-                              <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
+                      ? <span className="rx-med-actions">
+                          {['augmenter', 'diminuer'].map((act) => {
+                            if (medActs.indexOf(act) < 0) return null;
+                            const dir = act === 'augmenter' ? 'up' : 'down';
+                            const step = window.NOTE_DATA.medDoseStep(it, dir);
+                            const unit = (it.details && it.details.unit) || '';
+                            const title = step ? (act === 'augmenter' ? 'Augmenter la dose : ' : 'Diminuer la dose : ') + step.from + ' → ' + step.to + ' ' + unit
+                              : (it.doseSteps ? (dir === 'up' ? 'Dose maximale atteinte' : 'Dose minimale atteinte') : 'Pas de palier de dose connu');
+                            return (
+                              <button key={act} type="button" className="rx-med-btn" title={title.trim()} aria-label={title.trim()} disabled={!step}
                                 onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
-                                <span className="material-icons-outlined">refresh</span>
-                              </button>
-                              <button type="button" className="rx-med-btn" title="Ajuster la posologie"
+                                onClick={(e) => { e.stopPropagation(); if (step) onSelect(it, act); }}>
+                                <span className="material-icons-outlined">{dir === 'up' ? 'arrow_upward' : 'arrow_downward'}</span>
+                              </button>);
+                          })}
+                          {medActs.indexOf('renouveler') >= 0 &&
+                            <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
+                              <span className="material-icons-outlined">refresh</span>
+                            </button>}
+                          {medActs.indexOf('cesser') >= 0 &&
+                            <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
+                              <span className="material-icons-outlined">block</span>
+                            </button>}
+                          {medActs.indexOf('prescrire') >= 0 &&
+                            <button type="button" className="rx-med-btn rx-med-btn--text" title="Prescrire une nouvelle ordonnance pour ce médicament"
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
+                              Prescrire
+                            </button>}
+                        </span>
+                      : noFav ? null
+                      : <>
+                          {kind === 'rx' && !it.active &&
+                            <span className="rx-med-actions rx-med-actions--heart">
+                              <button type="button" className="rx-med-btn rx-med-btn--text" title="Documenter : ajouter au profil sans prescrire"
                                 onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'ajuster'); }}>
-                                <span className="material-icons-outlined">tune</span>
+                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
+                                <span className="material-icons-outlined" aria-hidden="true">medication</span>
+                                Documenter
                               </button>
-                              <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
-                                <span className="material-icons-outlined">block</span>
-                              </button>
-                            </span>
-                          : <span className="rx-status rx-status--ceased" title={it.medStatusLabel || ''}>Cessé</span>)
-                      : <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
-                          title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-                          onMouseDown={(e) => e.preventDefault()}
-                          onClick={(e) => { e.stopPropagation(); onToggleFav(it.key); }}>
-                          <span className="material-icons">{fav ? 'favorite' : 'favorite_border'}</span>
-                        </button>
+                            </span>}
+                          <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
+                            title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={(e) => { e.stopPropagation(); onToggleFav(it.key); }}>
+                            <span className="material-icons">{fav ? 'favorite' : 'favorite_border'}</span>
+                          </button>
+                        </>
                     }
                     {it.active &&
                       <span className="rx-active" title="Déjà au dossier">
@@ -735,33 +966,29 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                 </div>);
             })}
           </div>
-        ))}
-        {profilCeased.length > 0 &&
-          <div className="rx-sec-block">
-            <button type="button" className="rx-sec rx-sec--toggle" onClick={() => setShowCeased((v) => !v)}>
-              <span className="material-icons-outlined" style={{ fontSize: 15, verticalAlign: 'middle' }}>
-                {showCeased ? 'expand_less' : 'expand_more'}
-              </span>
-              {' '}Médicaments cessés <span className="rx-sec-count">({profilCeased.length})</span>
-            </button>
-            {showCeased && profilCeased.map((it) => (
-              <div key={it.key} className="rx-item rx-item--ceased">
-                <div className="rx-item__body">
-                  <div className="rx-item__name"><RxNameHighlight name={it.name} query={query} /> {it.dose}</div>
-                  <div className="rx-item__sig">{it.medStatusLabel || 'Cessé'}</div>
-                </div>
-                <div className="rx-item__actions">
-                  <span className="rx-status rx-status--ceased">Cessé</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        }
+        ); })}
       </div>
+      </div>
+      {railOn &&
+        <nav className="rx-rail" aria-label="Filtres des médications">
+          {window.NOTE_DATA.RX_FILTERS.map((f) => (
+            <button key={f.key} type="button" className={'rx-rail__item' + (filter === f.key ? ' is-on' : '')} aria-pressed={filter === f.key}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => onFilter && onFilter(f.key)}>
+              <span className="material-icons-outlined" aria-hidden="true">{f.icon}</span>
+              <span className="rx-rail__label">{f.label}</span>
+              <span className="rx-rail__count">{counts[f.key]}</span>
+            </button>))}
+        </nav>}
       <div className="rx-menu__foot">
         <span><kbd>↑ ↓</kbd> naviguer</span>
-        <span><kbd>↵</kbd> {d.verb}</span>
+        {railOn && <span><kbd>⇥</kbd> {railFocus ? 'résultats' : 'filtres'}</span>}
+        {multi && <span><kbd>⇧ ↵</kbd> cocher</span>}
+        <span><kbd>↵</kbd> {railOn && railFocus ? 'retour aux résultats' : multi && checkedKeys.length ? 'ajouter la sélection' : d.verb}</span>
         <span><kbd>Esc</kbd> annuler</span>
+        {multi && checkedKeys.length > 0 &&
+          <button type="button" className="rx-add-checked" onMouseDown={(e) => e.preventDefault()} onClick={onAddChecked}>
+            Ajouter ({checkedKeys.length})
+          </button>}
       </div>
     </div>);
 }

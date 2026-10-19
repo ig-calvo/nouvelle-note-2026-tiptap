@@ -84,55 +84,12 @@ const NOTE_ITEMS_TEMPLATE = [
   },
 ];
 
-function roChipLabel(entity) {
-  var d = entity.details || {};
-  if (entity.type === 'prescription') {
-    var rx = entity.rx || {};
-    var name = rx.name || d.molecule || entity.label;
-    var dose = rx.dose || (d.dose ? d.dose + ' ' + (d.unit || '') : '');
-    var freq = d.frequency || rx.sig || '';
-    return [name, dose, freq].filter(Boolean).join(' ');
-  }
-  if (entity.type === 'lab') return d.tests && d.tests.length ? d.tests.join(', ') : entity.label;
-  if (entity.type === 'imaging') return [d.modality, d.region].filter(Boolean).join(' ') || entity.label;
-  if (entity.type === 'referral') return d.specialty || entity.label;
-  if (entity.type === 'problem') return d.name || entity.label;
-  if (entity.type === 'instructions') return d.title || entity.label;
-  return entity.label;
-}
-
-function roChipStyle(type) {
-  var isOrder = type === 'prescription' || type === 'lab' || type === 'imaging' || type === 'referral';
-  // Même habillage que .chip / .chip--rx (editor.css) : coin small, pas d'ombre ;
-  // ordres = fond lowest + bordure outline, autres = tonal primary.
-  return {
-    display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)',
-    padding: isOrder ? '2px 8px 2px 6px' : '2px 9px 2px 7px',
-    borderRadius: 'var(--mat-sys-corner-small)',
-    background: isOrder ? 'var(--mat-sys-surface-container-lowest)' : 'var(--brand-primary-container)',
-    border: isOrder ? '1px solid var(--mat-sys-outline)' : '1px solid var(--brand-primary)',
-    color: isOrder ? 'var(--mat-sys-on-surface)' : 'var(--brand-primary)',
-    fontSize: 14, fontWeight: 500, verticalAlign: 'baseline',
-    whiteSpace: 'nowrap', margin: '0 2px', lineHeight: 1.5,
-  };
-}
-
-// Rendu read-only d'un chip (nœud atom Tiptap 'chip' — attrs = entité complète).
-function ChipPill({ attrs, keyProp }) {
-  var type = attrs.type;
-  var isPrx = type === 'prescription';
-  var iconMap = { lab: 'science', imaging: 'radiology', referral: 'person_add', problem: 'flag', instructions: 'menu_book', diagnostic: 'local_hospital', file: 'attach_file' };
-  var label = roChipLabel(attrs);
-  var iconColor = type === 'lab' ? 'var(--mat-sys-primary)' : type === 'imaging' ? 'var(--mat-sys-tertiary)' : type === 'referral' ? 'var(--mat-sys-secondary)' : 'var(--mat-sys-on-surface-variant)';
-  return (
-    <span key={keyProp} style={roChipStyle(type)}>
-      {isPrx
-        ? <span style={{ fontFamily: "'Poppins',sans-serif", fontWeight: 500, fontSize: 16, color: 'var(--mat-sys-on-surface)', lineHeight: 1 }}>℞</span>
-        : <span className="material-symbols-outlined" style={{ fontSize: 14, color: iconColor }}>{iconMap[type] || 'bookmark'}</span>
-      }
-      <span>{label}</span>
-    </span>
-  );
+// Chip en lecture (note complétée, liste des notes) : son texte seulement,
+// comme à l'impression — ni pastille, ni icône, ni état (chipPrintText,
+// editor-schema.jsx). Rencontre inline entity : la note doit rester lisible
+// dans les anciens systèmes et en PDF.
+function ChipText({ attrs, keyProp }) {
+  return <span key={keyProp}>{window.chipPrintText(attrs)}</span>;
 }
 
 // Rendu read-only d'un nœud inline (texte avec marques, chip, ou renvoi à un
@@ -149,7 +106,7 @@ function DocInline({ node, keyProp, dxModel }) {
     });
     return <React.Fragment key={keyProp}>{el}</React.Fragment>;
   }
-  if (node.type === 'chip') return <ChipPill attrs={node.attrs} keyProp={keyProp} />;
+  if (node.type === 'chip') return <ChipText attrs={node.attrs} keyProp={keyProp} />;
   if (node.type === 'diagnosticRef') {
     var a = node.attrs || {};
     var thread = dxModel && (dxModel.byKey[a.dxKey] || (a.diagId && dxModel.byId[a.diagId] && dxModel.byKey[dxModel.byId[a.diagId].dxKey]));
@@ -190,7 +147,7 @@ function DocView({ doc, blocks, dxModel }) {
       var Tag = 'h' + Math.min(3, Math.max(1, level));
       var hStyle = level <= 1 ? nlStyles.roHeading1 : level === 2 ? nlStyles.roHeading2 : nlStyles.roHeading3;
       return React.createElement(Tag, { key: 'h-' + bi, style: hStyle },
-        (node.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; }));
+        window.separateAdjacentChips(node.content).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; }));
     }
     if (node.type === 'reference') {
       return (
@@ -206,7 +163,7 @@ function DocView({ doc, blocks, dxModel }) {
     if (node.type === 'paragraph') {
       var kids = node.content || [];
       if (!kids.length) return null;
-      return <p key={'p-' + bi} style={{ margin: '0 0 8px' }}>{kids.map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}</p>;
+      return <p key={'p-' + bi} style={{ margin: '0 0 8px' }}>{window.separateAdjacentChips(kids).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}</p>;
     }
     if (node.type === 'diagnosticRegion') {
       var a = node.attrs || {};
@@ -227,7 +184,7 @@ function DocView({ doc, blocks, dxModel }) {
               return (
                 <p key={pi} style={nlStyles.roDiagLine}>
                   <span className="material-icons-outlined" aria-hidden="true" style={nlStyles.roDiagArrow}>subdirectory_arrow_right</span>
-                  {(p.content || []).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}
+                  {window.separateAdjacentChips(p.content).map(function(c, ci) { return <DocInline key={ci} node={c} keyProp={ci} dxModel={model} />; })}
                 </p>
               );
             })}
@@ -328,7 +285,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     // Notes de démonstration : documents figés dans le gabarit (txDocs).
     if (n.txDocs) return n.txDocs;
     if (!n.doc || !window.scanDoc || !window.buildTransmissionDocs) return [];
-    try { return window.buildTransmissionDocs(window.scanDoc(n.doc), n.txState || {}); }
+    try { return window.buildTransmissionDocs(window.scanDoc(n.doc), n.txState || {}, { groupRequests: !!n.groupRequests }); }
     catch (e) { return []; }
   }
 

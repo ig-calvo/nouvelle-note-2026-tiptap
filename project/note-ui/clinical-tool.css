@@ -349,6 +349,12 @@
 .action-log__body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .action-log__row-title { font: 500 13px var(--font-body); color: var(--fg-1); }
 .action-log__meta { font: 400 12px var(--font-body); color: var(--fg-4); }
+.action-log__row--static { cursor: default; }
+.action-log__row--static:hover { background: transparent; }
+.action-log__tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.action-log__tag { font: 500 11px var(--font-body); padding: 1px 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface-variant); }
+.action-log__tag--transmis { background: light-dark(#e3f1ea, #1f3a2d); color: light-dark(#2f5d46, #b9d5c7); }
+.action-log__tag--annule { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
 .action-log-flash { animation: action-log-flash-kf 900ms var(--motion-ease); }
 @keyframes action-log-flash-kf {
   0%, 100% { background-color: transparent; }
