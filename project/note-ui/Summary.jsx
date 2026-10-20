@@ -68,7 +68,7 @@ var SECTION_CFG = [
   { id:'results',  icon:'science',        label:'Résultats',                 add:true,  list:true },
   { id:'requests', icon:'request_page',   label:'Requêtes',                  link:true },
   { id:'immun',    icon:'vaccines',       label:'Immunisation et vaccins',   add:true,  list:true },
-  { id:'problems', icon:'hub',            label:'Problèmes',                 add:true,  list:true },
+  { id:'problems', icon:'healing',        label:'Problèmes',                 add:true,  list:true },
   { id:'history',  icon:'assignment',     label:'Antécédents',               add:true,  list:true },
   { id:'family',   icon:'folder_open',    label:'Antécédents familiaux',     add:true,  list:true },
 ];

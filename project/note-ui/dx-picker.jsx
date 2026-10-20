@@ -112,7 +112,7 @@ function dxThreadItem(t) {
 function dxSommaireItem(r) {
   return {
     key: 'som:' + r.sommaireId, idx: 0, kind: 'sommaire', label: r.name, code: r.code || null,
-    lead: 'inventory_2', sub: r.meta || null, tags: dxTagsFor(r), actions: dxActionsFor(r),
+    lead: r.sommaireKind === 'probleme' ? 'healing' : 'assignment', sub: r.meta || null, tags: dxTagsFor(r), actions: dxActionsFor(r),
     selectable: true, nav: null, ref: r
   };
 }

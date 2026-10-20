@@ -60,6 +60,12 @@ test('un fil de la note est présenté une fois, avec son numéro et son code', 
   assert.deepEqual(noteItem.actions, ['reprendre', 'remplacer', 'cesser']);
 });
 
+test('icône de tête : mêmes icônes que le sommaire — « healing » pour un problème, « assignment » pour un antécédent', () => {
+  const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), '', ctxWith(null));
+  assert.equal(model.flat.find((it) => it.key === 'som:pb1').lead, 'healing');
+  assert.equal(model.flat.find((it) => it.key === 'som:hx1').lead, 'assignment');
+});
+
 test('un problème du sommaire propose Reprendre/Remplacer/Cesser ; un antécédent seulement Reprendre/Remplacer', () => {
   const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), '', ctxWith(null));
   const asthme = model.flat.find((it) => it.key === 'som:pb1');
