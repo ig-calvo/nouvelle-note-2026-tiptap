@@ -9,7 +9,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
   // de la note (allergies, grossesse) référait à une autre patiente.
   const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
   const patientName = P.name || 'Geneviève Tremblay';
-  const sexLabel = P.sex === 'M' ? 'Homme né le' : 'Femme née le';
+  const sexLabel = P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text');
   const patientSub = sexLabel + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
   const patientRamq = P.ramq || 'TREG 8705 0301';
 
@@ -47,7 +47,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
             <div style={pbStyles.collapsedMeta}>
               <span style={pbStyles.collapsedSub}>{patientSub}</span>
               <span style={pbStyles.collapsedRamq}>{patientRamq}</span>
-              <span style={pbStyles.collapsedExp}>EXP. 03/28</span>
+              <span style={pbStyles.collapsedExp}>{t('patientBanner.exp0328.text')}</span>
               <span style={pbStyles.collapsedFileChip}>
                 <span className="material-icons-outlined" style={{ fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" }}>folder_open</span>
                 654189
@@ -57,32 +57,32 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
           </div>
         </div>
         <div style={pbStyles.collapsedActions}>
-          <button style={pbStyles.iconBtn} aria-label="agenda">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.agenda.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>calendar_today</span>
           </button>
-          <button style={pbStyles.iconBtn} aria-label="notes">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.notes.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>assignment</span>
           </button>
-          <button style={pbStyles.iconBtn} aria-label="médecin">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.medecin.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>medical_services</span>
           </button>
-          <button style={pbStyles.iconBtn} aria-label="pharmacie">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.pharmacie.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>local_pharmacy</span>
           </button>
-          <button style={pbStyles.consentBadge} aria-label="consentement valide">
+          <button style={pbStyles.consentBadge} aria-label={t('patientBanner.consentementValide.aria')}>
             <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>thumb_up</span>
           </button>
           {portalActive &&
-            <button style={pbStyles.portalBadge} aria-label="portail patient actif" title="Portail patient actif">
+            <button style={pbStyles.portalBadge} aria-label={t('patientBanner.portailPatientActif.aria')} title={t('patientBanner.portailPatientActif.tooltip')}>
               <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>verified_user</span>
             </button>}
-          <button style={pbStyles.iconBtn} aria-label="imprimer">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.imprimer.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>print</span>
           </button>
-          <button style={pbStyles.iconBtn} aria-label="documents">
+          <button style={pbStyles.iconBtn} aria-label={t('patientBanner.documents.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>description</span>
           </button>
-          <button style={{ ...pbStyles.iconBtn, border: 0 }} aria-label="étendre" onClick={() => setPhase('expanded')}>
+          <button style={{ ...pbStyles.iconBtn, border: 0 }} aria-label={t('patientBanner.etendre.aria')} onClick={() => setPhase('expanded')}>
             <span className="material-icons" style={{ ...pbStyles.iconBtnIc, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" }}>keyboard_arrow_down</span>
           </button>
         </div>
@@ -105,7 +105,7 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
           <div style={pbStyles.sub}>{patientSub}</div>
           <div style={pbStyles.ramqRow}>
             <span style={pbStyles.ramq}>{patientRamq}</span>
-            <span style={{ ...pbStyles.exp, color: "rgb(138, 138, 138)" }}>EXP. 03/28</span>
+            <span style={{ ...pbStyles.exp, color: "rgb(138, 138, 138)" }}>{t('patientBanner.exp0328.text')}</span>
           </div>
           <div style={pbStyles.fileRow}>
             <span style={pbStyles.fileChip}>
@@ -121,12 +121,12 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
       <div style={{ ...pbStyles.contactCol, flexGrow: 1, flexShrink: 1, flexBasis: 0, width: undefined }} data-comment-anchor="6d4d1b26f2-div-28-7">
         <div style={pbStyles.contactRow}>
           <span className="material-icons-outlined" style={pbStyles.contactIcon}>contact_phone</span>
-          <span style={pbStyles.muted}>Cellulaire</span>
+          <span style={pbStyles.muted}>{t('patientBanner.cellulaire.text')}</span>
           <span style={pbStyles.link}>819-555-0456</span>
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
         <div style={{ ...pbStyles.contactRow, paddingLeft: 30 }}>
-          <span style={pbStyles.email}>genevieve.tremblay.test@example.com</span>
+          <span style={pbStyles.email}>{t('patientBanner.genevieveTremblayTestExample.text')}</span>
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
       </div>
@@ -137,13 +137,13 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
           <span className="material-icons-outlined" style={pbStyles.contactIcon}>medical_services</span>
           <div>
             <div style={pbStyles.clinicName}>{clinicName}</div>
-            <div style={pbStyles.muted}>Inscription de groupe</div>
+            <div style={pbStyles.muted}>{t('patientBanner.inscriptionGroupe.text')}</div>
           </div>
         </div>
         <div style={pbStyles.contactRow}>
           <span className="material-icons-outlined" style={pbStyles.contactIcon}>local_pharmacy</span>
           <div>
-            <div style={pbStyles.clinicName}>PJC Jean-coutu Centre-ville</div>
+            <div style={pbStyles.clinicName}>{t('patientBanner.pjcJeanCoutuCentre.text')}</div>
             <div style={pbStyles.addrRow}>
               <span style={pbStyles.muted}>2333 ch. du boulevard, Sherbrooke, QC…</span>
               <span className="material-icons" style={pbStyles.sendIcon}>send</span>
@@ -155,16 +155,16 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
 
       {/* Actions */}
       <div style={pbStyles.actions}>
-        <button style={{ ...pbStyles.calBtn, background: "rgb(240, 243, 250)" }} aria-label="agenda">
+        <button style={{ ...pbStyles.calBtn, background: "rgb(240, 243, 250)" }} aria-label={t('patientBanner.agenda.aria')}>
           <span className="material-icons" style={{ fontSize: 22, color: "rgb(126, 126, 126)" }}>calendar_today</span>
         </button>
-        <button style={pbStyles.ghostBtn} aria-label="imprimer">
+        <button style={pbStyles.ghostBtn} aria-label={t('patientBanner.imprimer.aria')}>
           <span className="material-icons-outlined" style={pbStyles.ghostIcon}>print</span>
         </button>
-        <button style={pbStyles.ghostBtn} aria-label="documents">
+        <button style={pbStyles.ghostBtn} aria-label={t('patientBanner.documents.aria')}>
           <span className="material-icons-outlined" style={pbStyles.ghostIcon}>description</span>
         </button>
-        <button style={pbStyles.ghostBtn} aria-label="réduire" onClick={() => setPhase('collapsed')}>
+        <button style={pbStyles.ghostBtn} aria-label={t('patientBanner.reduire.aria')} onClick={() => setPhase('collapsed')}>
           <span className="material-icons" style={pbStyles.ghostIcon}>keyboard_arrow_up</span>
         </button>
       </div>
@@ -173,12 +173,12 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
       <div style={pbStyles.statusStack}>
         <div style={pbStyles.statusRow}>
           <span className="material-icons" style={{ fontSize: 20, color: "light-dark(#39ab49, #abe3b3)" }}>thumb_up</span>
-          <span style={pbStyles.consentText}>Consentement valide</span>
+          <span style={pbStyles.consentText}>{t('patientBanner.consentementValide.text')}</span>
         </div>
         {portalActive &&
           <div style={pbStyles.statusRow}>
             <span className="material-icons" style={{ fontSize: 18, color: "var(--mat-sys-primary)" }}>verified_user</span>
-            <span style={pbStyles.portalText}>Portail patient actif</span>
+            <span style={pbStyles.portalText}>{t('patientBanner.portailPatientActif.text')}</span>
           </div>}
       </div>
     </div>

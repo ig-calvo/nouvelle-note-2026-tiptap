@@ -23,11 +23,11 @@ const SECTION_SPLIT = 'sectionSplit';
 
 // Étiquette du bloc de conclusion. Sert à la fois de libellé permanent dans
 // l'éditeur (au-dessus de la ligne) et de titre de l'aperçu dans la liste.
-const CONCLUSION_LABEL = 'Conclusion';
+const CONCLUSION_LABEL = t('sections.conclusion.heading');
 
 // Titre de la première zone. Il s'affiche HORS du composant d'écriture (au-dessus
 // de l'éditeur, voir editor-field.jsx) : il n'est plus un nœud du document.
-const DETAILS_LABEL = 'Détails de la consultation';
+const DETAILS_LABEL = t('sections.details.heading');
 
 function splitNode() { return { type: SECTION_SPLIT }; }
 
@@ -214,8 +214,8 @@ function splitMovePlan(plan) {
 function splitAriaValueText(docJson) {
   const total = splitMaxSlot(docJson);
   const inConclusion = conclusionLineCount(docJson);
-  if (inConclusion === 0) return 'Conclusion vide';
-  return inConclusion + (inConclusion > 1 ? ' lignes' : ' ligne') + ' sur ' + total + ' dans la conclusion';
+  if (inConclusion === 0) return t('sections.split.empty.aria');
+  return tn('sections.split.lines.aria', inConclusion, { total: total });
 }
 
 Object.assign(window, {

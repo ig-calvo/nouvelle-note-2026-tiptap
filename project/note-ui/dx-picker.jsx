@@ -46,14 +46,14 @@ const DX_COPY = {
   browse: 'Parcourir la CIM-10 par chapitre',
   loading: 'Chargement de la CIM-10…',
   freeText: {
-    nouveau: function (term) { return { title: 'Nouveau diagnostic : ' + term, sub: 'Texte libre, sans code CIM-10' }; },
-    remplacer: function (term) { return { title: 'Remplacer par : ' + term, sub: null }; },
-    edit: function (term, hadCode) { return { title: 'Renommer : ' + term, sub: hadCode ? 'Le code sera retiré' : null }; }
+    nouveau: function (term) { return { title: t('dx.freeText.new.title', { term: term }), sub: 'Texte libre, sans code CIM-10' }; },
+    remplacer: function (term) { return { title: t('dx.freeText.replace.title', { term: term }), sub: null }; },
+    edit: function (term, hadCode) { return { title: t('dx.freeText.rename.title', { term: term }), sub: hadCode ? 'Le code sera retiré' : null }; }
   },
   banner: {
-    remplacer: function (target) { return 'Remplacer n° ' + target.number + ' « ' + target.name + ' » par…'; },
-    edit: function (region) { return 'Modifier « ' + region.name + ' »'; },
-    refine: function (region) { return 'Préciser « ' + (region.code || region.name) + ' »'; }
+    remplacer: function (target) { return t('dx.banner.replace.text', { number: target.number, name: target.name }); },
+    edit: function (region) { return t('dx.banner.edit.text', { name: region.name }); },
+    refine: function (region) { return t('dx.banner.refine.text', { name: region.code || region.name }); }
   },
   actions: {
     reprendre: { label: 'Reprendre', title: 'Reprendre ce diagnostic (même numéro)' },
@@ -61,9 +61,9 @@ const DX_COPY = {
     cesser: { label: 'Cesser', title: 'Cesser : passe aux antécédents du sommaire, résolu aujourd’hui' }
   },
   empty: {
-    none: function (term) { return 'Aucun diagnostic trouvé pour « ' + term + ' ».'; },
+    none: function (term) { return t('dx.empty.none.text', { term: term }); },
     noneHint: '↵ pour l’utiliser en texte libre, ou parcourir la CIM-10.',
-    cim: function (term) { return 'Aucun code CIM-10 pour « ' + term + ' ».'; },
+    cim: function (term) { return t('dx.empty.cim.text', { term: term }); },
     browseLeaf: 'Aucun code sous ce niveau.',
     replace: 'Rechercher le nouveau diagnostic ou parcourir la CIM-10.'
   },

@@ -30,13 +30,12 @@ function tokensCim10(s) {
   return normCim10(s).split(/[^a-z0-9]+/).filter(Boolean);
 }
 function cim10CountLabel(n, unit) {
-  const forms = {
-    code: ['code précis', 'codes précis'],
-    category: ['catégorie', 'catégories'],
-    block: ['bloc', 'blocs'],
+  const keys = {
+    code: tk('cim10.count.code'),
+    category: tk('cim10.count.category'),
+    block: tk('cim10.count.block'),
   };
-  const f = forms[unit] || forms.code;
-  return n + ' ' + (n === 1 ? f[0] : f[1]);
+  return tn(keys[unit] || keys.code, n);
 }
 
 // Ordre des enfants d'une catégorie : chiffres, puis X, puis + (extensions

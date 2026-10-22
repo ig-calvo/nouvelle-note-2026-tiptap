@@ -178,8 +178,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
         <div style={nap.warnBanner}>
           <span className="material-icons-outlined" style={{ fontSize: 19, color: 'light-dark(#a15c00, #e9cca5)', flexShrink: 0, marginTop: 1 }}>warning</span>
           <div style={nap.warnText}>
-            Cette note contient {pendingDocs.length} document{pendingDocs.length > 1 ? 's' : ''} non transmis
-            {' '}({pendingDocs.map(function (d) { return d.title; }).join(', ')}) — sélectionnez-les dans la liste à gauche pour les compléter.
+            {tn('transmission.pending.hint', pendingDocs.length, { titles: pendingDocs.map(function (d) { return d.title; }).join(', ') })}
           </div>
         </div>
       }
@@ -326,7 +325,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function transmitAll() {
     var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(tn('transmission.sent.toast', ids.length), { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
@@ -465,7 +464,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               {readyCount > 0 &&
                 <React.Fragment>
                   <span className="material-icons-outlined" style={{ fontSize: 18, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>outbox</span>
-                  {readyCount} document{readyCount > 1 ? 's' : ''} prêt{readyCount > 1 ? 's' : ''} à transmettre
+                  {tn('transmission.ready.label', readyCount)}
                 </React.Fragment>
               }
             </div>
@@ -497,7 +496,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     const m = TX_META[d.kind];
     const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
-      ? d.items.length + ' prescription' + (d.items.length > 1 ? 's' : '')
+      ? tn('transmission.prescriptions.label', d.items.length)
       : (d.subtitle || (d.items[0] && d.items[0].sub) || '');
     const dest = d.recipients.length
       ? d.recipients.map(function (r) { return r.name; }).join(', ')

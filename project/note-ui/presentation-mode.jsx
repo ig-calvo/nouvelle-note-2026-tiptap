@@ -668,7 +668,7 @@ function PresentationMode({ noteOpen, onOpenNote }) {
               {PRESENTATION_CHAPTERS.map(function (c, i) {
                 return (
                   <button key={c.id} type="button" role="listitem" className="pm-dot" data-done={i < idx}
-                    aria-current={i === idx ? 'step' : undefined} aria-label={'Chapitre ' + (i + 1) + ' : ' + c.label}
+                    aria-current={i === idx ? 'step' : undefined} aria-label={t('presentation.chapter.aria', { n: i + 1, label: c.label })}
                     title={c.label} onClick={function () { go(i); }} />
                 );
               })}

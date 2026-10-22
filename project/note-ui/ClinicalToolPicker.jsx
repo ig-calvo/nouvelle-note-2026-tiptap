@@ -183,7 +183,7 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
           <div style={ctpS.empty}>Cliquez sur ♡ pour ajouter des favoris.</div>
         }
         {displayed.length === 0 && q &&
-          <div style={ctpS.empty}>Aucun résultat pour «&nbsp;{query}&nbsp;».</div>
+          <div style={ctpS.empty}>{t('clinicalTool.picker.noResult.empty', { query: query })}</div>
         }
       </div>
 
