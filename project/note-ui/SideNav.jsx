@@ -1,5 +1,5 @@
 /* global React */
-function SideNav({ collapsed = false }) {
+function SideNav({ collapsed = false, presenting = false, onTogglePresentation }) {
   const [blueOpen, setBlueOpen] = React.useState(true);
   const primary = [
   { label: "Nouvelles", icon: "home" },
@@ -84,7 +84,14 @@ function SideNav({ collapsed = false }) {
         <div style={{ height: 24 }} />
       </div>
 
-      <button style={{ ...snStyles.chatFab, ...(collapsed ? snStyles.chatFabCollapsed : {}) }} aria-label="aide">
+      {/* Bulle d'aide : bascule le mode présentation (presentation-mode.jsx).
+          pointerEvents « auto » : en présentation le rail latéral est inerte,
+          mais cette bulle doit rester cliquable pour en sortir. */}
+      <button style={{ ...snStyles.chatFab, ...(collapsed ? snStyles.chatFabCollapsed : {}), pointerEvents: 'auto' }}
+        aria-label={onTogglePresentation ? 'Mode présentation' : 'aide'}
+        aria-pressed={onTogglePresentation ? !!presenting : undefined}
+        title={onTogglePresentation ? (presenting ? 'Quitter le mode présentation' : 'Mode présentation') : undefined}
+        onClick={onTogglePresentation}>
         <span className="material-icons" style={{ color: "#fff", fontSize: 28 }}>chat_bubble</span>
       </button>
     </aside>);

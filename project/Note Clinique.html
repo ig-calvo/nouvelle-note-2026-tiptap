@@ -285,7 +285,8 @@
     'note-ui/NotesList.jsx',
     'note-ui/FloatingToolbar.jsx',
     'note-ui/SummaryModals.jsx',
-    'note-ui/Summary.jsx'
+    'note-ui/Summary.jsx',
+    'note-ui/presentation-mode.jsx'
   ];
   var bust = '?v=' + Date.now();
   for (var i = 0; i < srcs.length; i++) {
@@ -404,7 +405,23 @@ function docPillStyle(done) {
 }
 
 function App() {
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [tUser, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  // Mode présentation (?presentation, voir presentation-mode.jsx) : réglages
+  // figés par-dessus les écarts locaux, et pas de panneau Tweaks.
+  const [presenting, setPresenting] = React.useState(isPresentationMode);
+  // La bulle du menu latéral bascule le mode à chaud (sans recharger : la note
+  // en cours reste). L'URL suit, pour qu'un rechargement garde le mode.
+  function togglePresentation() {
+    var next = !presenting;
+    try {
+      var url = new URL(window.location.href);
+      if (next) { url.searchParams.set('presentation', ''); url.hash = '#ch=1'; }
+      else { url.searchParams.delete('presentation'); url.hash = ''; }
+      window.history.replaceState(null, '', url.toString().replace('presentation=', 'presentation'));
+    } catch (e) {}
+    setPresenting(next);
+  }
+  const t = presenting ? Object.assign({}, tUser, PRESENTATION_TWEAKS) : tUser;
 
   // Mode clair / sombre : mêmes classes que le DS (omnimed-light / omnimed-dark
   // sur <html>) — elles posent `color-scheme`, ce qui retourne tous les jetons.
@@ -511,10 +528,10 @@ function App() {
     setBannerCollapsed(false);
   }
   return (
-    <div className={"app diag-style-" + (t.diagStyle || 'actuel')}>
+    <div className={"app diag-style-" + (t.diagStyle || 'actuel') + (presenting ? ' presentation' : '')}>
       <TopBar user={t.doctorName} clinic={t.clinicName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
-        <SideNav collapsed={navCollapsed} />
+        <SideNav collapsed={navCollapsed} presenting={presenting} onTogglePresentation={togglePresentation} />
         <div className="content">
           <div className="center-wrap">
           <PatientBanner forceCollapsed={bannerCollapsed} portalActive={t.portalActive} clinicName={t.clinicName} />
@@ -592,6 +609,8 @@ function App() {
           onCancel={() => setSmartModal(false)}
           onConfirm={() => { setSmartModal(false); setSmartActive(true); handleNoteOpen(); }} />
       }
+      {presenting && <PresentationMode noteOpen={noteOpen} onOpenNote={handleNoteOpen} />}
+      {!presenting &&
       <TweaksPanel title="Tweaks">
         <TweakSection label="Identité" />
         <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
@@ -686,7 +705,7 @@ function App() {
                       { value: 'etiquette', label: 'Étiquette' },
                     ]}
                     onChange={(v) => setTweak('diagStyle', v)} />
-      </TweaksPanel>
+      </TweaksPanel>}
     </div>);
 
 }
