@@ -88,7 +88,7 @@ function readLiteral(src, i) {
 }
 
 // `window.t(` compte comme `t(` : c'est la forme à employer là où une variable locale masque t.
-const CALL = /(?<![\w$.])(?:window\.)?(t|tn|tk|L)\(\s*/g;
+const CALL = /(?<![\w$.])(?:window\.)?(tRich|t|tn|tk|L)\(\s*/g;
 
 // Les appels d'un fichier : [{ fn, kind, key|text, line, ... }] et les problèmes.
 export function scanSource(src, file) {
@@ -98,7 +98,7 @@ export function scanSource(src, file) {
   let m;
   CALL.lastIndex = 0;
   while ((m = CALL.exec(clean))) {
-    const fn = m[1];
+    const fn = m[1] === 'tRich' ? 't' : m[1];
     const start = m.index + m[0].length;
     const line = clean.slice(0, m.index).split('\n').length;
     const where = `${file}:${line}`;

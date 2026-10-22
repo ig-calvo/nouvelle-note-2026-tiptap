@@ -52,11 +52,11 @@ function DocumentViewerModal({ file, onClose }) {
 
   return (
     <div style={dvS.scrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onClose(); }}>
-      <div style={dvS.sheet} role="dialog" aria-label="Aperçu du document">
+      <div style={dvS.sheet} role="dialog" aria-label={t('documentViewer.apercuDocument.aria')}>
         <div style={dvS.header}>
           <span className="material-icons-outlined" style={dvS.headerIcon}>{fileIconForKind(file.kind)}</span>
           <span style={dvS.headerTitle} title={file.name}>{file.name}</span>
-          <button type="button" style={dvS.closeBtn} onClick={onClose} title="Fermer">
+          <button type="button" style={dvS.closeBtn} onClick={onClose} title={t('documentViewer.fermer.tooltip')}>
             <span className="material-icons-outlined" style={{ fontSize: 22 }}>close</span>
           </button>
         </div>
@@ -65,7 +65,7 @@ function DocumentViewerModal({ file, onClose }) {
           {loading ? (
             <div style={dvS.loadingWrap}>
               <span className="material-symbols-outlined" style={dvS.spinner}>progress_activity</span>
-              <span style={dvS.loadingLabel}>Ouverture du fichier en cours...</span>
+              <span style={dvS.loadingLabel}>{t('documentViewer.ouvertureFichierCours.text')}</span>
             </div>
           ) : file.kind === 'pdf' ? (
             // Plein cadre, sans carte ni zoom custom : le viewer PDF natif du
@@ -81,7 +81,7 @@ function DocumentViewerModal({ file, onClose }) {
                 {file.kind === 'file' &&
                   <div style={dvS.unsupported}>
                     <span className="material-icons-outlined" style={{ fontSize: 40, color: 'rgba(0,0,0,0.35)' }}>description</span>
-                    <span>Aperçu non disponible pour ce type de fichier</span>
+                    <span>{t('documentViewer.apercuNonDisponibleType.text')}</span>
                   </div>}
               </div>
             </div>
@@ -92,16 +92,16 @@ function DocumentViewerModal({ file, onClose }) {
           <div style={dvS.footer}>
             {file.kind !== 'pdf' &&
               <div style={dvS.zoomGroup}>
-                <button type="button" style={dvS.zoomBtn} onClick={function () { zoomBy(-10); }} title="Réduire" disabled={zoom <= 50}>
+                <button type="button" style={dvS.zoomBtn} onClick={function () { zoomBy(-10); }} title={t('documentViewer.reduire.tooltip')} disabled={zoom <= 50}>
                   <span className="material-icons-outlined" style={{ fontSize: 20 }}>zoom_out</span>
                 </button>
                 <span style={dvS.zoomPct}>{zoom}%</span>
-                <button type="button" style={dvS.zoomBtn} onClick={function () { zoomBy(10); }} title="Agrandir" disabled={zoom >= 200}>
+                <button type="button" style={dvS.zoomBtn} onClick={function () { zoomBy(10); }} title={t('documentViewer.agrandir.tooltip')} disabled={zoom >= 200}>
                   <span className="material-icons-outlined" style={{ fontSize: 20 }}>zoom_in</span>
                 </button>
               </div>}
             <div style={{ flex: 1 }} />
-            <button type="button" style={dvS.closePrimaryBtn} onClick={onClose}>Fermer</button>
+            <button type="button" style={dvS.closePrimaryBtn} onClick={onClose}>{t('documentViewer.fermer.button')}</button>
           </div>}
       </div>
     </div>

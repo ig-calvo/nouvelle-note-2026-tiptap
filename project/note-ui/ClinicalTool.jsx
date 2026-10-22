@@ -54,7 +54,7 @@ function CTYesNo({ label, name, fields, onFieldChange }) {
   return (
     <div className="ct-qrow">
       <span className="ct-qrow__lbl">{label}</span>
-      <CTSeg options={["Oui", "Non"]} value={v} onChange={function (val) { onFieldChange(name, val); }} />
+      <CTSeg options={[t('clinicalTool.oui.label'), t('clinicalTool.non.label')]} value={v} onChange={function (val) { onFieldChange(name, val); }} />
     </div>);
 }
 
@@ -103,10 +103,10 @@ function ctBuildSummary(root) {
     if (lbl) parts.push(t('common.labelValue.text', { label: lbl, value: input.value }));
   });
 
-  if (!parts.length) return 'Aucune donnée saisie';
+  if (!parts.length) return t('clinicalTool.noData.text');
   const MAX = 4;
   const shown = parts.slice(0, MAX).join(' · ');
-  return parts.length > MAX ? shown + ' · +' + (parts.length - MAX) + ' autres' : shown;
+  return parts.length > MAX ? t('clinicalTool.summaryMore.text', { shown: shown, n: parts.length - MAX }) : shown;
 }
 
 function ClinicalTool({ fields, onFieldChange, collapsedSections, onToggleSection, favorite, onToggleFavorite, bodyCollapsed, onBodyCollapseChange, onClose }) {
@@ -143,19 +143,19 @@ function ClinicalTool({ fields, onFieldChange, collapsedSections, onToggleSectio
       <div className="ct-bar">
         <span className="ct-bar__wrench"><span className="material-icons-outlined">link</span></span>
         <span className="ct-bar__txt">
-          <span className="ct-bar__overline">Outil clinique</span>
-          <span className="ct-bar__title">Symptômes d'une infection urinaire</span>
+          <span className="ct-bar__overline">{t('clinicalTool.outilClinique.text')}</span>
+          <span className="ct-bar__title">{t('clinicalTool.symptomesInfectionUrinaire.text')}</span>
         </span>
         {bodyCollapsed && summary &&
           <span className="ct-bar__summary">{summary}</span>}
         <span className="ct-bar__actions">
-          <button className={"ct-iconbtn" + (favorite ? " is-fav" : "")} title="Favori" onClick={onToggleFavorite}>
-            <span className="material-icons">{favorite ? "favorite" : "favorite_border"}</span>
+          <button className={"ct-iconbtn" + (favorite ? " is-fav" : "")} title={t('clinicalTool.favori.tooltip')} onClick={onToggleFavorite}>
+            <span className="material-icons">{favorite ? 'favorite' : "favorite_border"}</span>
           </button>
-          <button className="ct-iconbtn is-accent" title="Envoyer"><span className="material-icons-outlined">mail</span></button>
-          <button className="ct-iconbtn is-accent" title="Imprimer"><span className="material-icons-outlined">print</span></button>
-          <button className="ct-iconbtn is-accent" title="Fermer" onClick={onClose}><span className="material-icons-outlined">close</span></button>
-          <button className="ct-iconbtn is-accent" title={bodyCollapsed ? "Déplier l'outil" : "Replier l'outil"}
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.envoyer.tooltip')}><span className="material-icons-outlined">mail</span></button>
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.imprimer.tooltip')}><span className="material-icons-outlined">print</span></button>
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.fermer.tooltip')} onClick={onClose}><span className="material-icons-outlined">close</span></button>
+          <button className="ct-iconbtn is-accent" title={bodyCollapsed ? t('clinicalTool.deplierOutil.tooltip') : t('clinicalTool.replierOutil.tooltip')}
             onClick={function () { onBodyCollapseChange(!bodyCollapsed); }}>
             <span className="material-icons-outlined">{bodyCollapsed ? "expand_more" : "expand_less"}</span>
           </button>
@@ -164,188 +164,187 @@ function ClinicalTool({ fields, onFieldChange, collapsedSections, onToggleSectio
 
       <div className="ct-body" ref={bodyRef} style={bodyCollapsed ? { display: "none" } : null}>
         <div className="ct-effrow">
-          <F name="effDate" label="Date d'entrée en vigueur" type="date" />
+          <F name="effDate" label={t('clinicalTool.dateEntreeVigueur.label')} type="date" />
         </div>
 
-        <p className="ct-doctitle">Symptômes d'une infection urinaire</p>
+        <p className="ct-doctitle">{t('clinicalTool.symptomesInfectionUrinaire.text')}</p>
 
         {/* ---- HISTOIRE ---- */}
-        <CTSection id="hist" name="Histoire" collapsed={isCol("hist")} onToggle={toggle}>
+        <CTSection id="hist" name={t('clinicalTool.histoire.heading')} collapsed={isCol("hist")} onToggle={toggle}>
           <div className="ct-grid ct-grid--3">
-            <F name="sx_depuis" label="Présence de sx urinaires depuis :" />
-            <F name="apparition_type" label="Type d'apparition :" />
-            <F name="douleur_type" label="Type de douleur :" />
-            <F name="irradiation" label="Irradiation :" />
-            <F name="douleur_echelle" label="Échelle de la douleur :" />
-            <F name="soulage_par" label="Soulagé par :" />
+            <F name="sx_depuis" label={t('clinicalTool.presenceSxUrinairesDepuis.label')} />
+            <F name="apparition_type" label={t('clinicalTool.typeApparition.label')} />
+            <F name="douleur_type" label={t('clinicalTool.typeDouleur.label')} />
+            <F name="irradiation" label={t('clinicalTool.irradiation.label')} />
+            <F name="douleur_echelle" label={t('clinicalTool.echelleDouleur.label')} />
+            <F name="soulage_par" label={t('clinicalTool.soulage.label')} />
           </div>
 
-          <p className="ct-sub ct-sub--plain">Présence de :</p>
+          <p className="ct-sub ct-sub--plain">{t('clinicalTool.presence.text')}</p>
           <div className="ct-checks ct-checks--3">
-            <Chk name="sx_dysurie" label="Dysurie" />
-            <Chk name="sx_urgence" label="Urgence mictionnelle" />
-            <Chk name="sx_pollakiurie" label="Pollakiurie" />
-            <Chk name="sx_dlr_suspubien" label="Douleur ou malaise sus-pubien" />
-            <Chk name="sx_hematurie" label="Hématurie" />
-            <Chk name="sx_fievre" label="Fièvre" />
-            <Chk name="sx_dlr_costovert" label="Douleur costo-vertébrale (au dos) ou au flanc" />
+            <Chk name="sx_dysurie" label={t('clinicalTool.dysurie.label')} />
+            <Chk name="sx_urgence" label={t('clinicalTool.urgenceMictionnelle.label')} />
+            <Chk name="sx_pollakiurie" label={t('clinicalTool.pollakiurie.label')} />
+            <Chk name="sx_dlr_suspubien" label={t('clinicalTool.douleurMalaiseSusPubien.label')} />
+            <Chk name="sx_hematurie" label={t('clinicalTool.hematurie.label')} />
+            <Chk name="sx_fievre" label={t('clinicalTool.fievre.label')} />
+            <Chk name="sx_dlr_costovert" label={t('clinicalTool.douleurCostoVertebraleDos.label')} />
           </div>
-          <p className="ct-note">***Si présence d'<strong>AU MOINS 2 signes</strong> ou Sx d'apparition récente = <strong>CYSTITE</strong></p>
+          <p className="ct-note">{tRich('clinicalTool.noteCystite.text')}</p>
 
-          <p className="ct-sub">Présence CRITÈRES COMPLEXES ou à RISQUE :</p>
+          <p className="ct-sub">{t('clinicalTool.presenceCriteresComplexesRisque.text')}</p>
           <div className="ct-checks ct-checks--3">
-            <Chk name="risque_homme" label="Homme" />
-            <Chk name="risque_grossesse" label="Grossesse" />
-            <Chk name="risque_immunosup" label="Immunosuppression" />
-            <Chk name="risque_diabete" label="Diabète mal contrôlé" />
-            <Chk name="risque_irc" label="Insuffisance rénale sévère (DFG-30)" />
-            <Chk name="risque_recidive" label="Infection urinaire récidivante" />
-            <Chk name="risque_antibiores" label="Risque d'antibiorésistance" />
+            <Chk name="risque_homme" label={t('clinicalTool.homme.label')} />
+            <Chk name="risque_grossesse" label={t('clinicalTool.grossesse.label')} />
+            <Chk name="risque_immunosup" label={t('clinicalTool.immunosuppression.label')} />
+            <Chk name="risque_diabete" label={t('clinicalTool.diabeteMalControle.label')} />
+            <Chk name="risque_irc" label={t('clinicalTool.insuffisanceRenaleSevereDfg.label')} />
+            <Chk name="risque_recidive" label={t('clinicalTool.infectionUrinaireRecidivante.label')} />
+            <Chk name="risque_antibiores" label={t('clinicalTool.risqueAntibioresistance.label')} />
           </div>
-          <p className="ct-note">** Présence d'un critère = <strong>CYSTITE COMPLIQUÉE</strong> OU aucun critère = <strong>CYSTITE SIMPLE</strong></p>
-          <p className="ct-note">** Présence d'un critère ou plus de pyélonéphrite : fièvre, douleur costo-vertébrale (au dos) ou au flanc = <strong>PYÉLONÉPHRITE</strong></p>
+          <p className="ct-note">{tRich('clinicalTool.noteComplicated.text')}</p>
+          <p className="ct-note">{tRich('clinicalTool.notePyelo.text')}</p>
 
-          <p className="ct-sub">Présence autres Sx :</p>
+          <p className="ct-sub">{t('clinicalTool.presenceAutresSx.text')}</p>
           <div className="ct-checks ct-checks--3">
-            <Chk name="sx_nausee" label="Nausée" />
-            <Chk name="sx_vomissement" label="Vomissement" />
-            <Chk name="sx_dlr_abdo" label="Douleur abdominale" />
-            <Chk name="risque_itss" label="Risque ITSS*" />
+            <Chk name="sx_nausee" label={t('clinicalTool.nausee.label')} />
+            <Chk name="sx_vomissement" label={t('clinicalTool.vomissement.label')} />
+            <Chk name="sx_dlr_abdo" label={t('clinicalTool.douleurAbdominale.label')} />
+            <Chk name="risque_itss" label={t('clinicalTool.risqueItss.label')} />
           </div>
-          <p className="ct-note"><span className="ct-link">* Se référer au questionnaire ITSS prn</span></p>
+          <p className="ct-note"><span className="ct-link">{t('clinicalTool.refererQuestionnaireItssPrn.text')}</span></p>
 
           <div className="ct-grid ct-grid--2" style={{ marginTop: 8 }}>
             <div>
-              <p className="ct-sub">Femme :</p>
+              <p className="ct-sub">{t('clinicalTool.femme.text')}</p>
               <div className="ct-checks ct-checks--1">
-                <Chk name="f_ecoulement_vaginal" label="Écoulement vaginal AN" />
-                <Chk name="f_lesions_vulvaires" label="Lésions vulvaires de novo" />
-                <Chk name="f_prurit_vulvaire" label="Prurit vulvaire" />
+                <Chk name="f_ecoulement_vaginal" label={t('clinicalTool.ecoulementVaginalAn.label')} />
+                <Chk name="f_lesions_vulvaires" label={t('clinicalTool.lesionsVulvairesNovo.label')} />
+                <Chk name="f_prurit_vulvaire" label={t('clinicalTool.pruritVulvaire.label')} />
               </div>
               <div className="ct-grid ct-grid--2" style={{ marginTop: 12, marginBottom: 0 }}>
-                <F name="f_risque_grossesse" label="Risque de grossesse ?" />
-                <F name="f_ddm" label="DDM :" />
+                <F name="f_risque_grossesse" label={t('clinicalTool.risqueGrossesse.label')} />
+                <F name="f_ddm" label={t('clinicalTool.ddm.label')} />
               </div>
             </div>
             <div>
-              <p className="ct-sub">Homme :</p>
+              <p className="ct-sub">{t('clinicalTool.homme.text')}</p>
               <div className="ct-checks ct-checks--1">
-                <Chk name="h_ecoulement_penien" label="Écoulement pénien" />
-                <Chk name="h_lesions_genitales" label="Lésions génitales de novo" />
-                <Chk name="h_prurit_genital" label="Prurit génital" />
+                <Chk name="h_ecoulement_penien" label={t('clinicalTool.ecoulementPenien.label')} />
+                <Chk name="h_lesions_genitales" label={t('clinicalTool.lesionsGenitalesNovo.label')} />
+                <Chk name="h_prurit_genital" label={t('clinicalTool.pruritGenital.label')} />
               </div>
             </div>
           </div>
         </CTSection>
 
         {/* ---- DÉCISION CLINIQUE ---- */}
-        <CTSection id="dec" name="Décision clinique" collapsed={isCol("dec")} onToggle={toggle}>
+        <CTSection id="dec" name={t('clinicalTool.decisionClinique.heading')} collapsed={isCol("dec")} onToggle={toggle}>
           <div className="ct-checks ct-checks--1">
-            <Chk name="dec_rencontre_oc11" label="Le patient rencontre les critères pour l'application de l'OC #11" />
-            <Chk name="dec_refere" label="Le patient ne rencontre pas les critères pour l'application de l'OC, il a été référé à une IPSPL ou un MD" />
+            <Chk name="dec_rencontre_oc11" label={t('clinicalTool.patientRencontreCriteresApplicatio.label')} />
+            <Chk name="dec_refere" label={t('clinicalTool.patientNeRencontrePas.label')} />
           </div>
         </CTSection>
 
         {/* ---- CONDUITE À TENIR / PLAN ---- */}
-        <CTSection id="plan" name="Conduite à tenir / Plan" collapsed={isCol("plan")} onToggle={toggle}>
-          <p className="ct-sub">Traitement pharmacologique :</p>
+        <CTSection id="plan" name={t('clinicalTool.conduiteATenirPlan.heading')} collapsed={isCol("plan")} onToggle={toggle}>
+          <p className="ct-sub">{t('clinicalTool.traitementPharmacologique.text')}</p>
           <div className="ct-grid" style={{ gridTemplateColumns: "1fr", marginBottom: 16 }}>
             <F name="plan_traitement_pharmaco" label="" />
           </div>
 
           <div className="ct-qrow" style={{ marginBottom: 14 }}>
-            <span className="ct-qrow__lbl">Analyse de laboratoire de contrôle nécessaire :</span>
-            <CTSeg options={["Oui", "Non"]} {...bind("plan_lab_necessaire")} />
+            <span className="ct-qrow__lbl">{t('clinicalTool.analyseLaboratoireControleNecessai.text')}</span>
+            <CTSeg options={[t('clinicalTool.oui.label'), t('clinicalTool.non.label')]} {...bind("plan_lab_necessaire")} />
           </div>
-          <p className="ct-note">Si oui = Culture d'urine et contrôle 1 semaine post-fin de tx</p>
+          <p className="ct-note">{t('clinicalTool.siOuiCultureUrine.text')}</p>
 
           <div className="ct-checks ct-checks--2">
-            <Chk name="plan_requete_remise" label="Requête remise au patient" />
-            <Chk name="plan_avise_contact" label="Avisé qu'il sera contacté lorsque résultats disponibles" />
+            <Chk name="plan_requete_remise" label={t('clinicalTool.requeteRemisePatient.label')} />
+            <Chk name="plan_avise_contact" label={t('clinicalTool.aviseQuIlSera.label')} />
           </div>
 
-          <p className="ct-sub" style={{ marginTop: 16 }}>Counselling :</p>
+          <p className="ct-sub" style={{ marginTop: 16 }}>{t('clinicalTool.counselling.text')}</p>
           <div className="ct-checks ct-checks--1">
-            <Chk name="couns_douleur" label="Pour le soulagement de la douleur, envisager la prise d'acétaminophène ou d'ibuprofène, à moins d'une contre-indication." />
-            <Chk name="couns_hydratation" label="Boire suffisamment d'eau (au moins 1.5 L par jour, sauf si contre-indiqué) pour aller uriner fréquemment." />
-            <Chk name="couns_reconsulter" label="Consulter à nouveau en cas de persistance, d'aggravation des signes et symptômes ou de détérioration de l'état général de la personne dans les 48-72 heures suivant le début des antibiotiques." />
-            <Chk name="couns_comportements" label="Donner des conseils sur les comportements qui peuvent aider à réduire le risque d'infection urinaire (hydratation abondante, essuyage de l'avant vers l'arrière après la défécation, miction post-coïtale, vidange complète de la vessie lors des mictions)." />
+            <Chk name="couns_douleur" label={t('clinicalTool.soulagementDouleurEnvisagerPrise.label')} />
+            <Chk name="couns_hydratation" label={t('clinicalTool.boireSuffisammentEauMoins.label')} />
+            <Chk name="couns_reconsulter" label={t('clinicalTool.consulterNouveauCasPersistance.label')} />
+            <Chk name="couns_comportements" label={t('clinicalTool.donnerConseilsComportementsPeuvent.label')} />
           </div>
         </CTSection>
 
         {/* ---- RECOMMANDATIONS / FILET DE SÉCURITÉ ---- */}
-        <CTSection id="reco" name="Recommandations / Filet de sécurité" collapsed={isCol("reco")} onToggle={toggle}>
+        <CTSection id="reco" name={t('clinicalTool.recommandationsFiletSecurite.heading')} collapsed={isCol("reco")} onToggle={toggle}>
           <div className="ct-grid ct-grid--2" style={{ marginBottom: 6 }}>
-            <Chk name="reco_urgence_info" label="Patient informé de consulter une IPSPL ou médecin en urgence si :" />
+            <Chk name="reco_urgence_info" label={t('clinicalTool.patientInformeConsulterIpspl.label')} />
             <p className="ct-note" style={{ margin: 0 }}>
-              - Signes de réaction allergique <strong>*Doit cesser le traitement immédiatement*</strong><br />
-              - T°, dlr aiguë, N, V ou DEG dans les 48-72 h après le début des antibiotiques
+              {tRich('clinicalTool.noteSafetyNet.text')}
             </p>
           </div>
           <div className="ct-checks ct-checks--2">
-            <Chk name="reco_reconsulter_2_4sem" label="Avisé qu'il doit reconsulter si retour des symptômes dans les 2 à 4 semaines suivant le traitement" />
-            <Chk name="reco_fiche_remise" label="Fiche conseil remise" />
-            <Chk name="reco_fiche_faxee" label="Fiche de liaison faxée à la pharmacie" />
-            <Chk name="reco_satisfait" label="Patient dit être satisfait de la consultation" />
-            <Chk name="reco_tache_suivi" label="Tâche ajoutée pour faire un suivi téléphonique d'ici 3-5 jours" />
+            <Chk name="reco_reconsulter_2_4sem" label={t('clinicalTool.aviseQuIlDoit.label')} />
+            <Chk name="reco_fiche_remise" label={t('clinicalTool.ficheConseilRemise.label')} />
+            <Chk name="reco_fiche_faxee" label={t('clinicalTool.ficheLiaisonFaxeePharmacie.label')} />
+            <Chk name="reco_satisfait" label={t('clinicalTool.patientDitEtreSatisfait.label')} />
+            <Chk name="reco_tache_suivi" label={t('clinicalTool.tacheAjouteeFaireSuivi.label')} />
           </div>
         </CTSection>
 
         {/* ---- EXAMEN PHYSIQUE ---- */}
-        <CTSection id="exam" name="Examen physique" collapsed={isCol("exam")} onToggle={toggle}>
+        <CTSection id="exam" name={t('clinicalTool.examenPhysique.heading')} collapsed={isCol("exam")} onToggle={toggle}>
           <div className="ct-grid ct-grid--3">
-            <F name="exam_apparence" label="Apparence générale" span={3} />
+            <F name="exam_apparence" label={t('clinicalTool.apparenceGenerale.label')} span={3} />
 
-            <F name="exam_signes_vitaux" label="Signes vitaux :" />
-            <F name="exam_ta" label="TA :" />
-            <F name="exam_fc" label="FC :" />
+            <F name="exam_signes_vitaux" label={t('clinicalTool.signesVitaux.label')} />
+            <F name="exam_ta" label={t('clinicalTool.ta.label')} />
+            <F name="exam_fc" label={t('clinicalTool.fc.label')} />
 
-            <F name="exam_fr" label="FR :" />
-            <F name="exam_spo2" label="SpO2 % :" />
-            <F name="exam_temp" label="T° :" />
+            <F name="exam_fr" label={t('clinicalTool.fr.label')} />
+            <F name="exam_spo2" label={t('clinicalTool.spo2.label')} />
+            <F name="exam_temp" label={t('clinicalTool.t.label')} />
 
-            <F name="exam_coeur" label="Cœur :" options={PHYS} />
-            <F name="exam_coeur_anormal" label="Si anormal :" />
+            <F name="exam_coeur" label={t('clinicalTool.cUr.label')} options={PHYS} />
+            <F name="exam_coeur_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="exam_poumons" label="Poumons :" options={PHYS} />
-            <F name="exam_poumons_anormal" label="Si anormal :" />
+            <F name="exam_poumons" label={t('clinicalTool.poumons.label')} options={PHYS} />
+            <F name="exam_poumons_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="exam_abdomen" label="Abdomen :" options={PHYS} />
+            <F name="exam_abdomen" label={t('clinicalTool.abdomen.label')} options={PHYS} />
             <span /><span />
 
-            <F name="exam_dlr_abdo_loc" label="Si douleur abdomen :" options={["Sus-pubienne", "Lombaire", "Diffuse", "Autre"]} />
+            <F name="exam_dlr_abdo_loc" label={t('clinicalTool.siDouleurAbdomen.label')} options={[t('clinicalTool.susPubienne.label'), t('clinicalTool.lombaire.label'), t('clinicalTool.diffuse.label'), t('clinicalTool.autre.label')]} />
             <span /><span />
 
-            <F name="exam_punch_renaux" label="Punch rénaux :" options={["Négatif", "Positif droit", "Positif gauche", "Positif bilatéral"]} />
+            <F name="exam_punch_renaux" label={t('clinicalTool.punchRenaux.label')} options={[t('clinicalTool.negatif.label'), t('clinicalTool.positifDroit.label'), t('clinicalTool.positifGauche.label'), t('clinicalTool.positifBilateral.label')]} />
             <span /><span />
 
-            <F name="exam_anorectal" label="Anorectal :" options={PHYS} />
-            <F name="exam_tr" label="TR :" />
-            <F name="exam_prostate" label="Prostate :" options={["Normale", "Augmentée", "Sensible", "Anormale"]} />
+            <F name="exam_anorectal" label={t('clinicalTool.anorectal.label')} options={PHYS} />
+            <F name="exam_tr" label={t('clinicalTool.tr.label')} />
+            <F name="exam_prostate" label={t('clinicalTool.prostate.label')} options={[t('clinicalTool.normale.label'), t('clinicalTool.augmentee.label'), t('clinicalTool.sensible.label'), t('clinicalTool.anormale.label')]} />
 
-            <F name="exam_anus" label="Anus :" options={PHYS} />
-            <F name="exam_anus_anormal" label="Si anormal :" />
+            <F name="exam_anus" label={t('clinicalTool.anus.label')} options={PHYS} />
+            <F name="exam_anus_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="exam_oge" label="OGE :" />
-            <F name="exam_testicules" label="Testicules :" />
-            <F name="exam_penis" label="Pénis :" />
+            <F name="exam_oge" label={t('clinicalTool.oge.label')} />
+            <F name="exam_testicules" label={t('clinicalTool.testicules.label')} />
+            <F name="exam_penis" label={t('clinicalTool.penis.label')} />
 
-            <F name="exam_gyneco" label="Gynéco :" />
-            <F name="exam_vulve" label="Vulve :" />
-            <F name="exam_vagin" label="Vagin :" />
+            <F name="exam_gyneco" label={t('clinicalTool.gyneco.label')} />
+            <F name="exam_vulve" label={t('clinicalTool.vulve.label')} />
+            <F name="exam_vagin" label={t('clinicalTool.vagin.label')} />
 
-            <F name="exam_col" label="Col :" options={PHYS} />
-            <F name="exam_uterus" label="Utérus :" options={PHYS} />
-            <F name="exam_annexes" label="Annexes :" options={PHYS} />
+            <F name="exam_col" label={t('clinicalTool.col.label')} options={PHYS} />
+            <F name="exam_uterus" label={t('clinicalTool.uterus.label')} options={PHYS} />
+            <F name="exam_annexes" label={t('clinicalTool.annexes.label')} options={PHYS} />
 
-            <F name="exam_annexes_anormal" label="Si annexes anormal :" />
+            <F name="exam_annexes_anormal" label={t('clinicalTool.siAnnexesAnormal.label')} />
             <div className="ct-field">
-              <label>Sensibilité à la mobilisation du col</label>
+              <label>{t('clinicalTool.sensibiliteMobilisationCol.label')}</label>
               <div style={{ paddingTop: 4 }}>
-                <CTSeg options={["Oui", "Non"]} {...bind("exam_smc")} />
+                <CTSeg options={[t('clinicalTool.oui.label'), t('clinicalTool.non.label')]} {...bind("exam_smc")} />
               </div>
             </div>
             <span />
@@ -353,61 +352,61 @@ function ClinicalTool({ fields, onFieldChange, collapsedSections, onToggleSectio
         </CTSection>
 
         {/* ---- INTERVENTION / PRÉLÈVEMENTS ---- */}
-        <CTSection id="interv" name="Intervention / Prélèvements" collapsed={isCol("interv")} onToggle={toggle}>
+        <CTSection id="interv" name={t('clinicalTool.interventionPrelevements.heading')} collapsed={isCol("interv")} onToggle={toggle}>
           <div className="ct-grid ct-grid--3">
-            <F name="interv_bandelette" label="Bandelette urinaire :" />
-            <F name="interv_leuco" label="Leuco :" />
-            <F name="interv_nitrite" label="Nitrite :" />
+            <F name="interv_bandelette" label={t('clinicalTool.bandeletteUrinaire.label')} />
+            <F name="interv_leuco" label={t('clinicalTool.leuco.label')} />
+            <F name="interv_nitrite" label={t('clinicalTool.nitrite.label')} />
             <span />
-            <F name="interv_hb" label="Hb :" />
-            <F name="interv_proteines" label="Protéines :" />
+            <F name="interv_hb" label={t('clinicalTool.hb.label')} />
+            <F name="interv_proteines" label={t('clinicalTool.proteines.label')} />
           </div>
 
           <div className="ct-grid ct-grid--3" style={{ alignItems: "end" }}>
             <label className="ct-check" style={{ paddingBottom: 6 }}>
-              <CTCheckInner name="interv_ac_urine" label="A+C d'urine" fields={fields} onFieldChange={onFieldChange} />
+              <CTCheckInner name="interv_ac_urine" label={t('clinicalTool.cUrine.label')} fields={fields} onFieldChange={onFieldChange} />
             </label>
             <div className="ct-field">
-              <label>BHcg urinaire :</label>
+              <label>{t('clinicalTool.bhcgUrinaire.label')}</label>
               <div style={{ paddingTop: 4 }}>
                 <CTBhcg name="interv_bhcg" fields={fields} onFieldChange={onFieldChange} />
               </div>
             </div>
-            <F name="interv_autres" label="Autres :" />
+            <F name="interv_autres" label={t('clinicalTool.autres.label')} />
           </div>
 
-          <p className="ct-note"><strong>Cystite simple :</strong> Si absence de leuco = A+C d'urine &amp; attendre les résultats</p>
-          <p className="ct-note ct-note--ital">*Si présence de sang et ou de protéines, envoyer une A+C d'urine*</p>
+          <p className="ct-note">{tRich('clinicalTool.noteSimpleCystitis.text')}</p>
+          <p className="ct-note ct-note--ital">{t('clinicalTool.siPresenceSangProteines.text')}</p>
 
           <div className="ct-grid" style={{ gridTemplateColumns: "1fr", marginTop: 8, marginBottom: 0 }}>
-            <F name="interv_imp" label="IMP :" />
-            <F name="interv_sx_apparentant" label="Sx s'apparentant à :" options={["Cystite simple", "Cystite compliquée", "Pyélonéphrite", "Autre"]} />
+            <F name="interv_imp" label={t('clinicalTool.imp.label')} />
+            <F name="interv_sx_apparentant" label={t('clinicalTool.sxApparentant.label')} options={[t('clinicalTool.cystiteSimple.label'), t('clinicalTool.cystiteCompliquee.label'), t('clinicalTool.pyelonephrite.label'), t('clinicalTool.autre.label')]} />
           </div>
         </CTSection>
 
         {/* ---- CONTRE-INDICATIONS ABSOLUES ---- */}
-        <CTSection id="ci" name="Présence de contre-indications absolues : Oui / Non" collapsed={isCol("ci")} onToggle={toggle}>
+        <CTSection id="ci" name={t('clinicalTool.contreIndicationsAbsolues.heading')} collapsed={isCol("ci")} onToggle={toggle}>
           <div className="ct-qgrid">
-            <YN name="ci_anomalie_anatomique" label="Anomalie anatomique ou fonctionnelle de l'appareil urinaire" />
-            <YN name="ci_hemodialyse" label="Hémodialyse ou pathologie rénale chronique autre que l'insuffisance rénale sévère" />
-            <YN name="ci_chirurgie_recente" label="Chirurgie de l'appareil urinaire — 3 mois" />
-            <YN name="ci_catheter" label="Port d'un cathéter urinaire (sonde à demeure)" />
-            <YN name="ci_antibio" label="Contre-indication à l'usage de tous les antibiotiques recommandés" />
-            <YN name="ci_instabilite" label="Instabilité hémodynamique et ou suspicion de sepsis" />
-            <YN name="ci_grossesse_14sem" label="Femme enceinte de plus de 14 semaines" />
-            <YN name="ci_symptomato" label="Symptomatologie compatible avec une prostatite, une orchiépididymite ou une pathologie gynécologique" />
+            <YN name="ci_anomalie_anatomique" label={t('clinicalTool.anomalieAnatomiqueFonctionnelleApp.label')} />
+            <YN name="ci_hemodialyse" label={t('clinicalTool.hemodialysePathologieRenaleChroniq.label')} />
+            <YN name="ci_chirurgie_recente" label={t('clinicalTool.chirurgieAppareilUrinaire3.label')} />
+            <YN name="ci_catheter" label={t('clinicalTool.portCatheterUrinaireSonde.label')} />
+            <YN name="ci_antibio" label={t('clinicalTool.contreIndicationUsageTous.label')} />
+            <YN name="ci_instabilite" label={t('clinicalTool.instabiliteHemodynamiqueSuspicionS.label')} />
+            <YN name="ci_grossesse_14sem" label={t('clinicalTool.femmeEnceintePlus14.label')} />
+            <YN name="ci_symptomato" label={t('clinicalTool.symptomatologieCompatibleAvecProst.label')} />
           </div>
         </CTSection>
 
         {/* ---- SITUATION QUI NÉCESSITE UNE DISCUSSION ---- */}
-        <CTSection id="disc" name="Situation qui nécessite une discussion avec le MD / IPSPL : Oui / Non" collapsed={isCol("disc")} onToggle={toggle}>
+        <CTSection id="disc" name={t('clinicalTool.discussionMdIpspl.heading')} collapsed={isCol("disc")} onToggle={toggle}>
           <div className="ct-qgrid">
-            <YN name="disc_itss" label="Facteurs de risque ITSS chez une personne symptomatique ET que l'inf. évaluatrice n'est pas habilitée à faire la prise en charge des ITSS ET que collègues inf. clin. habilitée n'est pas disponible" />
-            <YN name="disc_ic_ir_immuno" label="Insuffisance cardiaque, insuffisance rénale et ou patient immunosupprimé" />
-            <YN name="disc_hemodynamique" label="État hémodynamique instable : état toxique, temps élevé, vomissement aigu, SV instable" />
-            <YN name="disc_hematurie_macro" label="Hématurie macroscopique" />
-            <YN name="disc_age_extreme" label="Enfant de moins de 14 ans et adulte de 75 ans et plus" />
-            <YN name="disc_personne_agee" label="Personne âgée (75 ans et plus) : patient confus et ou présence de rétention urinaire depuis plus de 16 h" />
+            <YN name="disc_itss" label={t('clinicalTool.facteursRisqueItssChez.label')} />
+            <YN name="disc_ic_ir_immuno" label={t('clinicalTool.insuffisanceCardiaqueInsuffisanceR.label')} />
+            <YN name="disc_hemodynamique" label={t('clinicalTool.etatHemodynamiqueInstableEtat.label')} />
+            <YN name="disc_hematurie_macro" label={t('clinicalTool.hematurieMacroscopique.label')} />
+            <YN name="disc_age_extreme" label={t('clinicalTool.enfantMoins14Ans.label')} />
+            <YN name="disc_personne_agee" label={t('clinicalTool.personneAgee75Ans.label')} />
           </div>
         </CTSection>
       </div>
@@ -426,7 +425,7 @@ function CTCheckInner({ label, name, fields, onFieldChange }) {
 
 function CTBhcg({ name, fields, onFieldChange }) {
   const v = (fields && fields[name]) || null;
-  return <CTSeg options={["Négatif", "Positif"]} value={v} onChange={function (val) { onFieldChange(name, val); }} />;
+  return <CTSeg options={[t('clinicalTool.negatif.label'), t('clinicalTool.positif.label')]} value={v} onChange={function (val) { onFieldChange(name, val); }} />;
 }
 
 // =========================================================
@@ -459,19 +458,19 @@ function ClinicalToolExamCourt({ fields, onFieldChange, collapsedSections, onTog
       <div className="ct-bar">
         <span className="ct-bar__wrench"><span className="material-icons-outlined">link</span></span>
         <span className="ct-bar__txt">
-          <span className="ct-bar__overline">Outil clinique</span>
-          <span className="ct-bar__title">Examen physique - Version courte</span>
+          <span className="ct-bar__overline">{t('clinicalTool.outilClinique.text')}</span>
+          <span className="ct-bar__title">{t('clinicalTool.examenPhysiqueVersionCourte.text')}</span>
         </span>
         {bodyCollapsed && summary &&
           <span className="ct-bar__summary">{summary}</span>}
         <span className="ct-bar__actions">
-          <button className={"ct-iconbtn" + (favorite ? " is-fav" : "")} title="Favori" onClick={onToggleFavorite}>
-            <span className="material-icons">{favorite ? "favorite" : "favorite_border"}</span>
+          <button className={"ct-iconbtn" + (favorite ? " is-fav" : "")} title={t('clinicalTool.favori.tooltip')} onClick={onToggleFavorite}>
+            <span className="material-icons">{favorite ? 'favorite' : "favorite_border"}</span>
           </button>
-          <button className="ct-iconbtn is-accent" title="Envoyer"><span className="material-icons-outlined">mail</span></button>
-          <button className="ct-iconbtn is-accent" title="Imprimer"><span className="material-icons-outlined">print</span></button>
-          <button className="ct-iconbtn is-accent" title="Fermer" onClick={onClose}><span className="material-icons-outlined">close</span></button>
-          <button className="ct-iconbtn is-accent" title={bodyCollapsed ? "Déplier l'outil" : "Replier l'outil"}
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.envoyer.tooltip')}><span className="material-icons-outlined">mail</span></button>
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.imprimer.tooltip')}><span className="material-icons-outlined">print</span></button>
+          <button className="ct-iconbtn is-accent" title={t('clinicalTool.fermer.tooltip')} onClick={onClose}><span className="material-icons-outlined">close</span></button>
+          <button className="ct-iconbtn is-accent" title={bodyCollapsed ? t('clinicalTool.deplierOutil.tooltip') : t('clinicalTool.replierOutil.tooltip')}
             onClick={function () { onBodyCollapseChange(!bodyCollapsed); }}>
             <span className="material-icons-outlined">{bodyCollapsed ? "expand_more" : "expand_less"}</span>
           </button>
@@ -480,56 +479,56 @@ function ClinicalToolExamCourt({ fields, onFieldChange, collapsedSections, onTog
 
       <div className="ct-body" ref={bodyRef} style={bodyCollapsed ? { display: "none" } : null}>
         <div className="ct-effrow">
-          <F name="effDate" label="Date d'entrée en vigueur" type="date" />
+          <F name="effDate" label={t('clinicalTool.dateEntreeVigueur.label')} type="date" />
         </div>
 
-        <p className="ct-doctitle">Examen physique - Version courte</p>
+        <p className="ct-doctitle">{t('clinicalTool.examenPhysiqueVersionCourte.text')}</p>
 
-        <CTSection id="sv" name="Signes vitaux" collapsed={isCol("sv")} onToggle={toggle}>
+        <CTSection id="sv" name={t('clinicalTool.signesVitaux.heading')} collapsed={isCol("sv")} onToggle={toggle}>
           <div className="ct-grid ct-grid--3">
-            <F name="sv_ta" label="TA :" />
-            <F name="sv_fc" label="FC :" />
-            <F name="sv_fr" label="FR :" />
-            <F name="sv_spo2" label="SpO2 % :" />
-            <F name="sv_temp" label="T° :" />
-            <F name="sv_poids" label="Poids :" />
+            <F name="sv_ta" label={t('clinicalTool.ta.label')} />
+            <F name="sv_fc" label={t('clinicalTool.fc.label')} />
+            <F name="sv_fr" label={t('clinicalTool.fr.label')} />
+            <F name="sv_spo2" label={t('clinicalTool.spo2.label')} />
+            <F name="sv_temp" label={t('clinicalTool.t.label')} />
+            <F name="sv_poids" label={t('clinicalTool.poids.label')} />
           </div>
         </CTSection>
 
-        <CTSection id="gen" name="Apparence générale" collapsed={isCol("gen")} onToggle={toggle}>
+        <CTSection id="gen" name={t('clinicalTool.apparenceGenerale.heading')} collapsed={isCol("gen")} onToggle={toggle}>
           <div className="ct-grid" style={{ gridTemplateColumns: "1fr", marginBottom: 0 }}>
-            <F name="gen_apparence" label="Apparence générale" span={3} />
+            <F name="gen_apparence" label={t('clinicalTool.apparenceGenerale.label')} span={3} />
           </div>
         </CTSection>
 
-        <CTSection id="sys" name="Examen par système" collapsed={isCol("sys")} onToggle={toggle}>
+        <CTSection id="sys" name={t('clinicalTool.examenParSysteme.heading')} collapsed={isCol("sys")} onToggle={toggle}>
           <div className="ct-grid ct-grid--3">
-            <F name="sys_coeur" label="Cœur :" options={PHYS} />
-            <F name="sys_coeur_anormal" label="Si anormal :" />
+            <F name="sys_coeur" label={t('clinicalTool.cUr.label')} options={PHYS} />
+            <F name="sys_coeur_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="sys_poumons" label="Poumons :" options={PHYS} />
-            <F name="sys_poumons_anormal" label="Si anormal :" />
+            <F name="sys_poumons" label={t('clinicalTool.poumons.label')} options={PHYS} />
+            <F name="sys_poumons_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="sys_abdomen" label="Abdomen :" options={PHYS} />
-            <F name="sys_abdomen_anormal" label="Si anormal :" />
+            <F name="sys_abdomen" label={t('clinicalTool.abdomen.label')} options={PHYS} />
+            <F name="sys_abdomen_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="sys_neuro" label="Neuro :" options={PHYS} />
-            <F name="sys_neuro_anormal" label="Si anormal :" />
+            <F name="sys_neuro" label={t('clinicalTool.neuro.label')} options={PHYS} />
+            <F name="sys_neuro_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
 
-            <F name="sys_peau" label="Peau / téguments :" options={PHYS} />
-            <F name="sys_peau_anormal" label="Si anormal :" />
+            <F name="sys_peau" label={t('clinicalTool.peauTeguments.label')} options={PHYS} />
+            <F name="sys_peau_anormal" label={t('clinicalTool.siAnormal.label')} />
             <span />
           </div>
         </CTSection>
 
-        <CTSection id="imp" name="Impression / Plan" collapsed={isCol("imp")} onToggle={toggle}>
+        <CTSection id="imp" name={t('clinicalTool.impressionPlan.heading')} collapsed={isCol("imp")} onToggle={toggle}>
           <div className="ct-grid" style={{ gridTemplateColumns: "1fr", marginBottom: 0 }}>
-            <F name="imp_impression" label="Impression :" />
-            <F name="imp_plan" label="Plan :" />
+            <F name="imp_impression" label={t('clinicalTool.impression.label')} />
+            <F name="imp_plan" label={t('clinicalTool.plan.label')} />
           </div>
         </CTSection>
       </div>

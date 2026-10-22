@@ -3,8 +3,8 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 741,
-    "donnees": 657
+    "interface": 1087,
+    "donnees": 691
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -190,7 +190,7 @@
       "empreinte": "cf66d4fe2da4",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:385"
+        "Note Clinique.html:386"
       ]
     },
     "app.error.title": {
@@ -198,7 +198,7 @@
       "empreinte": "a834b7056422",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:383"
+        "Note Clinique.html:384"
       ]
     },
     "app.finaliser.button": {
@@ -206,7 +206,7 @@
       "empreinte": "ad181d5f077f",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:622"
+        "Note Clinique.html:623"
       ]
     },
     "app.noteClinique.tooltip": {
@@ -214,7 +214,7 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "info-bulle",
       "fichiers": [
-        "Note Clinique.html:535"
+        "Note Clinique.html:536"
       ]
     },
     "app.portailPatientActif.toast": {
@@ -222,7 +222,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "notification",
       "fichiers": [
-        "Note Clinique.html:491"
+        "Note Clinique.html:492"
       ]
     },
     "app.sauvegarder.button": {
@@ -230,7 +230,7 @@
       "empreinte": "9ada14395d66",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:620"
+        "Note Clinique.html:621"
       ]
     },
     "app.tiptap.hint": {
@@ -238,7 +238,7 @@
       "empreinte": "955c4aefdc02",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:334"
+        "Note Clinique.html:335"
       ]
     },
     "app.tiptap.text": {
@@ -246,7 +246,7 @@
       "empreinte": "3b6db230e91d",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:338"
+        "Note Clinique.html:339"
       ]
     },
     "app.tiptap.title": {
@@ -254,7 +254,7 @@
       "empreinte": "fb68cc17996b",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:332"
+        "Note Clinique.html:333"
       ]
     },
     "cim10.count.block": {
@@ -290,12 +290,1596 @@
         "note-ui/cim10-index.jsx:34"
       ]
     },
+    "clinicalTool.abdomen.label": {
+      "fr": "Abdomen :",
+      "empreinte": "3598d500ce21",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:314",
+        "note-ui/ClinicalTool.jsx:514"
+      ]
+    },
+    "clinicalTool.analyseLaboratoireControleNecessai.text": {
+      "fr": "Analyse de laboratoire de contrôle nécessaire :",
+      "empreinte": "2bfb484d428b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:257"
+      ]
+    },
+    "clinicalTool.annexes.label": {
+      "fr": "Annexes :",
+      "empreinte": "b488d1e7ebd2",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:341"
+      ]
+    },
+    "clinicalTool.anomalieAnatomiqueFonctionnelleApp.label": {
+      "fr": "Anomalie anatomique ou fonctionnelle de l'appareil urinaire",
+      "empreinte": "52b529d02ecd",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:390"
+      ]
+    },
+    "clinicalTool.anorectal.label": {
+      "fr": "Anorectal :",
+      "empreinte": "602dd5bb66d0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:323"
+      ]
+    },
+    "clinicalTool.anormale.label": {
+      "fr": "Anormale",
+      "empreinte": "3b276d5ce6a1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:325"
+      ]
+    },
+    "clinicalTool.anus.label": {
+      "fr": "Anus :",
+      "empreinte": "37332221ff62",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:327"
+      ]
+    },
+    "clinicalTool.apparenceGenerale.heading": {
+      "fr": "Apparence générale",
+      "empreinte": "72097c987d04",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:498"
+      ]
+    },
+    "clinicalTool.apparenceGenerale.label": {
+      "fr": "Apparence générale",
+      "empreinte": "72097c987d04",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:296",
+        "note-ui/ClinicalTool.jsx:500"
+      ]
+    },
+    "clinicalTool.augmentee.label": {
+      "fr": "Augmentée",
+      "empreinte": "e88ced3e217a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:325"
+      ]
+    },
+    "clinicalTool.autre.label": {
+      "fr": "Autre",
+      "empreinte": "43dacf9e4764",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:317",
+        "note-ui/ClinicalTool.jsx:383"
+      ]
+    },
+    "clinicalTool.autres.label": {
+      "fr": "Autres :",
+      "empreinte": "3360a98d3f10",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:375"
+      ]
+    },
+    "clinicalTool.aviseQuIlDoit.label": {
+      "fr": "Avisé qu'il doit reconsulter si retour des symptômes dans les 2 à 4 semaines suivant le traitement",
+      "empreinte": "f79bf75261c7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:285"
+      ]
+    },
+    "clinicalTool.aviseQuIlSera.label": {
+      "fr": "Avisé qu'il sera contacté lorsque résultats disponibles",
+      "empreinte": "cdcdfe14de77",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:264"
+      ]
+    },
+    "clinicalTool.bandeletteUrinaire.label": {
+      "fr": "Bandelette urinaire :",
+      "empreinte": "3e72722ebea4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:357"
+      ]
+    },
+    "clinicalTool.bhcgUrinaire.label": {
+      "fr": "BHcg urinaire :",
+      "empreinte": "80d8019722ff",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:370"
+      ]
+    },
+    "clinicalTool.boireSuffisammentEauMoins.label": {
+      "fr": "Boire suffisamment d'eau (au moins 1.5 L par jour, sauf si contre-indiqué) pour aller uriner fréquemment.",
+      "empreinte": "1795bf3bab21",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:270"
+      ]
+    },
+    "clinicalTool.cUr.label": {
+      "fr": "Cœur :",
+      "empreinte": "a44217633955",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:306",
+        "note-ui/ClinicalTool.jsx:506"
+      ]
+    },
+    "clinicalTool.cUrine.label": {
+      "fr": "A+C d'urine",
+      "empreinte": "4072a3f0e0d4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:367"
+      ]
+    },
+    "clinicalTool.chirurgieAppareilUrinaire3.label": {
+      "fr": "Chirurgie de l'appareil urinaire — 3 mois",
+      "empreinte": "c2f2fa3321d8",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:392"
+      ]
+    },
+    "clinicalTool.col.label": {
+      "fr": "Col :",
+      "empreinte": "1695b5a30166",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:339"
+      ]
+    },
+    "clinicalTool.conduiteATenirPlan.heading": {
+      "fr": "Conduite à tenir / Plan",
+      "empreinte": "4eee3abf2778",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:250"
+      ]
+    },
+    "clinicalTool.consulterNouveauCasPersistance.label": {
+      "fr": "Consulter à nouveau en cas de persistance, d'aggravation des signes et symptômes ou de détérioration de l'état général de la personne dans les 48-72 heures suivant le début des antibiotiques.",
+      "empreinte": "9bf8fe40bc39",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:271"
+      ]
+    },
+    "clinicalTool.contreIndicationUsageTous.label": {
+      "fr": "Contre-indication à l'usage de tous les antibiotiques recommandés",
+      "empreinte": "fdd66f81f4d7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:394"
+      ]
+    },
+    "clinicalTool.contreIndicationsAbsolues.heading": {
+      "fr": "Présence de contre-indications absolues : Oui / Non",
+      "empreinte": "ec77fe3ca2c1",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:388"
+      ]
+    },
+    "clinicalTool.counselling.text": {
+      "fr": "Counselling :",
+      "empreinte": "66c997cf3244",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:267"
+      ]
+    },
+    "clinicalTool.cystiteCompliquee.label": {
+      "fr": "Cystite compliquée",
+      "empreinte": "ed1f84f958e6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:383"
+      ]
+    },
+    "clinicalTool.cystiteSimple.label": {
+      "fr": "Cystite simple",
+      "empreinte": "862576d69359",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:383"
+      ]
+    },
+    "clinicalTool.dateEntreeVigueur.label": {
+      "fr": "Date d'entrée en vigueur",
+      "empreinte": "37dabb7bf404",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:167",
+        "note-ui/ClinicalTool.jsx:482"
+      ]
+    },
+    "clinicalTool.ddm.label": {
+      "fr": "DDM :",
+      "empreinte": "0c6579eaaaaf",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:227"
+      ]
+    },
+    "clinicalTool.decisionClinique.heading": {
+      "fr": "Décision clinique",
+      "empreinte": "0cb646796d0a",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:242"
+      ]
+    },
+    "clinicalTool.deplierOutil.tooltip": {
+      "fr": "Déplier l'outil",
+      "empreinte": "1905e832f045",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:158",
+        "note-ui/ClinicalTool.jsx:473"
+      ]
+    },
+    "clinicalTool.diabeteMalControle.label": {
+      "fr": "Diabète mal contrôlé",
+      "empreinte": "0ebbb0edb01f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:200"
+      ]
+    },
+    "clinicalTool.diffuse.label": {
+      "fr": "Diffuse",
+      "empreinte": "3c550fc092fa",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:317"
+      ]
+    },
+    "clinicalTool.discussionMdIpspl.heading": {
+      "fr": "Situation qui nécessite une discussion avec le MD / IPSPL : Oui / Non",
+      "empreinte": "350b573fa427",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:402"
+      ]
+    },
+    "clinicalTool.donnerConseilsComportementsPeuvent.label": {
+      "fr": "Donner des conseils sur les comportements qui peuvent aider à réduire le risque d'infection urinaire (hydratation abondante, essuyage de l'avant vers l'arrière après la défécation, miction post-coïtale, vidange complète de la vessie lors des mictions).",
+      "empreinte": "caa8c4b18514",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:272"
+      ]
+    },
+    "clinicalTool.douleurAbdominale.label": {
+      "fr": "Douleur abdominale",
+      "empreinte": "2f7266322a21",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:212"
+      ]
+    },
+    "clinicalTool.douleurCostoVertebraleDos.label": {
+      "fr": "Douleur costo-vertébrale (au dos) ou au flanc",
+      "empreinte": "977d5108527e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:191"
+      ]
+    },
+    "clinicalTool.douleurMalaiseSusPubien.label": {
+      "fr": "Douleur ou malaise sus-pubien",
+      "empreinte": "926041bfb7c0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:188"
+      ]
+    },
+    "clinicalTool.dysurie.label": {
+      "fr": "Dysurie",
+      "empreinte": "fd7d4304193e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:185"
+      ]
+    },
+    "clinicalTool.echelleDouleur.label": {
+      "fr": "Échelle de la douleur :",
+      "empreinte": "412e79751fb7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:179"
+      ]
+    },
+    "clinicalTool.ecoulementPenien.label": {
+      "fr": "Écoulement pénien",
+      "empreinte": "dba7ab64017d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:233"
+      ]
+    },
+    "clinicalTool.ecoulementVaginalAn.label": {
+      "fr": "Écoulement vaginal AN",
+      "empreinte": "dc8495871ddd",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:221"
+      ]
+    },
+    "clinicalTool.enfantMoins14Ans.label": {
+      "fr": "Enfant de moins de 14 ans et adulte de 75 ans et plus",
+      "empreinte": "80142e4937de",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:408"
+      ]
+    },
+    "clinicalTool.envoyer.tooltip": {
+      "fr": "Envoyer",
+      "empreinte": "e9ce243b4a8a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:155",
+        "note-ui/ClinicalTool.jsx:470"
+      ]
+    },
+    "clinicalTool.etatHemodynamiqueInstableEtat.label": {
+      "fr": "État hémodynamique instable : état toxique, temps élevé, vomissement aigu, SV instable",
+      "empreinte": "9f48e0ffc08e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:406"
+      ]
+    },
+    "clinicalTool.examenParSysteme.heading": {
+      "fr": "Examen par système",
+      "empreinte": "5feb83c9bd95",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:504"
+      ]
+    },
+    "clinicalTool.examenPhysique.heading": {
+      "fr": "Examen physique",
+      "empreinte": "18c07c15a5dc",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:294"
+      ]
+    },
+    "clinicalTool.examenPhysiqueVersionCourte.text": {
+      "fr": "Examen physique - Version courte",
+      "empreinte": "2d854507c050",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:462",
+        "note-ui/ClinicalTool.jsx:485"
+      ]
+    },
+    "clinicalTool.facteursRisqueItssChez.label": {
+      "fr": "Facteurs de risque ITSS chez une personne symptomatique ET que l'inf. évaluatrice n'est pas habilitée à faire la prise en charge des ITSS ET que collègues inf. clin. habilitée n'est pas disponible",
+      "empreinte": "dc468d77428e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:404"
+      ]
+    },
+    "clinicalTool.favori.tooltip": {
+      "fr": "Favori",
+      "empreinte": "5321195dda20",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:152",
+        "note-ui/ClinicalTool.jsx:467"
+      ]
+    },
+    "clinicalTool.fc.label": {
+      "fr": "FC :",
+      "empreinte": "466e3cbafb6f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:300",
+        "note-ui/ClinicalTool.jsx:490"
+      ]
+    },
+    "clinicalTool.femme.text": {
+      "fr": "Femme :",
+      "empreinte": "9d6c90c9de97",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:219"
+      ]
+    },
+    "clinicalTool.femmeEnceintePlus14.label": {
+      "fr": "Femme enceinte de plus de 14 semaines",
+      "empreinte": "fa206fc86dd0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:396"
+      ]
+    },
+    "clinicalTool.fermer.tooltip": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:157",
+        "note-ui/ClinicalTool.jsx:472"
+      ]
+    },
+    "clinicalTool.ficheConseilRemise.label": {
+      "fr": "Fiche conseil remise",
+      "empreinte": "e00060a17c65",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:286"
+      ]
+    },
+    "clinicalTool.ficheLiaisonFaxeePharmacie.label": {
+      "fr": "Fiche de liaison faxée à la pharmacie",
+      "empreinte": "92a5e604dbcb",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:287"
+      ]
+    },
+    "clinicalTool.fievre.label": {
+      "fr": "Fièvre",
+      "empreinte": "1510c8d8f996",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:190"
+      ]
+    },
+    "clinicalTool.fr.label": {
+      "fr": "FR :",
+      "empreinte": "9795dc979011",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:302",
+        "note-ui/ClinicalTool.jsx:491"
+      ]
+    },
+    "clinicalTool.grossesse.label": {
+      "fr": "Grossesse",
+      "empreinte": "f27caa97a578",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:198"
+      ]
+    },
+    "clinicalTool.gyneco.label": {
+      "fr": "Gynéco :",
+      "empreinte": "ef4ca97eb07f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:335"
+      ]
+    },
+    "clinicalTool.hb.label": {
+      "fr": "Hb :",
+      "empreinte": "b683d5eda465",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:361"
+      ]
+    },
+    "clinicalTool.hematurie.label": {
+      "fr": "Hématurie",
+      "empreinte": "7e4e1c1a195e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:189"
+      ]
+    },
+    "clinicalTool.hematurieMacroscopique.label": {
+      "fr": "Hématurie macroscopique",
+      "empreinte": "807d4d7074db",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:407"
+      ]
+    },
+    "clinicalTool.hemodialysePathologieRenaleChroniq.label": {
+      "fr": "Hémodialyse ou pathologie rénale chronique autre que l'insuffisance rénale sévère",
+      "empreinte": "6b7aa434cf11",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:391"
+      ]
+    },
+    "clinicalTool.histoire.heading": {
+      "fr": "Histoire",
+      "empreinte": "4aad65dddf3b",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:173"
+      ]
+    },
+    "clinicalTool.homme.label": {
+      "fr": "Homme",
+      "empreinte": "bb08c468b12d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:197"
+      ]
+    },
+    "clinicalTool.homme.text": {
+      "fr": "Homme :",
+      "empreinte": "1ccc5c471ca1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:231"
+      ]
+    },
+    "clinicalTool.immunosuppression.label": {
+      "fr": "Immunosuppression",
+      "empreinte": "d1c72fdb6fcd",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:199"
+      ]
+    },
+    "clinicalTool.imp.label": {
+      "fr": "IMP :",
+      "empreinte": "cfcf68f69ad3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:382"
+      ]
+    },
+    "clinicalTool.impression.label": {
+      "fr": "Impression :",
+      "empreinte": "153eb1e55884",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:530"
+      ]
+    },
+    "clinicalTool.impressionPlan.heading": {
+      "fr": "Impression / Plan",
+      "empreinte": "ae6686dc6f5d",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:528"
+      ]
+    },
+    "clinicalTool.imprimer.tooltip": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:156",
+        "note-ui/ClinicalTool.jsx:471"
+      ]
+    },
+    "clinicalTool.infectionUrinaireRecidivante.label": {
+      "fr": "Infection urinaire récidivante",
+      "empreinte": "cbca78fbae51",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:202"
+      ]
+    },
+    "clinicalTool.instabiliteHemodynamiqueSuspicionS.label": {
+      "fr": "Instabilité hémodynamique et ou suspicion de sepsis",
+      "empreinte": "4d6d8238eb81",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:395"
+      ]
+    },
+    "clinicalTool.insuffisanceCardiaqueInsuffisanceR.label": {
+      "fr": "Insuffisance cardiaque, insuffisance rénale et ou patient immunosupprimé",
+      "empreinte": "b593652460ad",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:405"
+      ]
+    },
+    "clinicalTool.insuffisanceRenaleSevereDfg.label": {
+      "fr": "Insuffisance rénale sévère (DFG-30)",
+      "empreinte": "01d99391436c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:201"
+      ]
+    },
+    "clinicalTool.interventionPrelevements.heading": {
+      "fr": "Intervention / Prélèvements",
+      "empreinte": "ba5627a6d95e",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:355"
+      ]
+    },
+    "clinicalTool.irradiation.label": {
+      "fr": "Irradiation :",
+      "empreinte": "b03a80699dfe",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:178"
+      ]
+    },
+    "clinicalTool.lesionsGenitalesNovo.label": {
+      "fr": "Lésions génitales de novo",
+      "empreinte": "cbc4d5593b72",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:234"
+      ]
+    },
+    "clinicalTool.lesionsVulvairesNovo.label": {
+      "fr": "Lésions vulvaires de novo",
+      "empreinte": "5f71d4c56f1b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:222"
+      ]
+    },
+    "clinicalTool.leuco.label": {
+      "fr": "Leuco :",
+      "empreinte": "c005d84adf50",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:358"
+      ]
+    },
+    "clinicalTool.lombaire.label": {
+      "fr": "Lombaire",
+      "empreinte": "85fb22e8ec79",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:317"
+      ]
+    },
+    "clinicalTool.nausee.label": {
+      "fr": "Nausée",
+      "empreinte": "4724ab88967e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:210"
+      ]
+    },
+    "clinicalTool.negatif.label": {
+      "fr": "Négatif",
+      "empreinte": "7e3a8774cce5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:320",
+        "note-ui/ClinicalTool.jsx:428"
+      ]
+    },
+    "clinicalTool.neuro.label": {
+      "fr": "Neuro :",
+      "empreinte": "2a75ce6fc514",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:518"
+      ]
+    },
+    "clinicalTool.nitrite.label": {
+      "fr": "Nitrite :",
+      "empreinte": "c34f71fc2c94",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:359"
+      ]
+    },
+    "clinicalTool.noData.text": {
+      "fr": "Aucune donnée saisie",
+      "empreinte": "7dce5f79d89b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:106"
+      ]
+    },
+    "clinicalTool.non.label": {
+      "fr": "Non",
+      "empreinte": "a72199390141",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:258",
+        "note-ui/ClinicalTool.jsx:347",
+        "note-ui/ClinicalTool.jsx:57"
+      ]
+    },
+    "clinicalTool.normale.label": {
+      "fr": "Normale",
+      "empreinte": "c82c13b2dd81",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:325"
+      ]
+    },
+    "clinicalTool.noteComplicated.text": {
+      "fr": "** Présence d'un critère = <strong>CYSTITE COMPLIQUÉE</strong> OU aucun critère = <strong>CYSTITE SIMPLE</strong>",
+      "empreinte": "6e4b708533ca",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:205"
+      ]
+    },
+    "clinicalTool.noteCystite.text": {
+      "fr": "***Si présence d'<strong>AU MOINS 2 signes</strong> ou Sx d'apparition récente = <strong>CYSTITE</strong>",
+      "empreinte": "f85d20c8f357",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:193"
+      ]
+    },
+    "clinicalTool.notePyelo.text": {
+      "fr": "** Présence d'un critère ou plus de pyélonéphrite : fièvre, douleur costo-vertébrale (au dos) ou au flanc = <strong>PYÉLONÉPHRITE</strong>",
+      "empreinte": "18e645ce3a30",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:206"
+      ]
+    },
+    "clinicalTool.noteSafetyNet.text": {
+      "fr": "- Signes de réaction allergique <strong>*Doit cesser le traitement immédiatement*</strong><br>- T°, dlr aiguë, N, V ou DEG dans les 48-72 h après le début des antibiotiques",
+      "empreinte": "97d5d408dfd2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:281"
+      ]
+    },
+    "clinicalTool.noteSimpleCystitis.text": {
+      "fr": "<strong>Cystite simple :</strong> Si absence de leuco = A+C d'urine & attendre les résultats",
+      "empreinte": "8d7e543d24e2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:378"
+      ]
+    },
+    "clinicalTool.oge.label": {
+      "fr": "OGE :",
+      "empreinte": "da36cc6f4136",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:331"
+      ]
+    },
+    "clinicalTool.oui.label": {
+      "fr": "Oui",
+      "empreinte": "eaa02f3f3362",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:258",
+        "note-ui/ClinicalTool.jsx:347",
+        "note-ui/ClinicalTool.jsx:57"
+      ]
+    },
+    "clinicalTool.outilClinique.text": {
+      "fr": "Outil clinique",
+      "empreinte": "b1be8383fb3b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:146",
+        "note-ui/ClinicalTool.jsx:461"
+      ]
+    },
+    "clinicalTool.patientDitEtreSatisfait.label": {
+      "fr": "Patient dit être satisfait de la consultation",
+      "empreinte": "5ef74b7487d3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:288"
+      ]
+    },
+    "clinicalTool.patientInformeConsulterIpspl.label": {
+      "fr": "Patient informé de consulter une IPSPL ou médecin en urgence si :",
+      "empreinte": "443ed5f088d8",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:279"
+      ]
+    },
+    "clinicalTool.patientNeRencontrePas.label": {
+      "fr": "Le patient ne rencontre pas les critères pour l'application de l'OC, il a été référé à une IPSPL ou un MD",
+      "empreinte": "76e619602467",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:245"
+      ]
+    },
+    "clinicalTool.patientRencontreCriteresApplicatio.label": {
+      "fr": "Le patient rencontre les critères pour l'application de l'OC #11",
+      "empreinte": "1870e50c23ee",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:244"
+      ]
+    },
+    "clinicalTool.peauTeguments.label": {
+      "fr": "Peau / téguments :",
+      "empreinte": "62f7f4f93f72",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:522"
+      ]
+    },
+    "clinicalTool.penis.label": {
+      "fr": "Pénis :",
+      "empreinte": "38d09894ed73",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:333"
+      ]
+    },
+    "clinicalTool.personneAgee75Ans.label": {
+      "fr": "Personne âgée (75 ans et plus) : patient confus et ou présence de rétention urinaire depuis plus de 16 h",
+      "empreinte": "cf53f81adc3f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:409"
+      ]
+    },
     "clinicalTool.picker.noResult.empty": {
       "fr": "Aucun résultat pour « {query} ».",
       "empreinte": "8cccd7bde0e7",
       "contexte": "état vide",
       "fichiers": [
         "note-ui/ClinicalToolPicker.jsx:186"
+      ]
+    },
+    "clinicalTool.plan.label": {
+      "fr": "Plan :",
+      "empreinte": "6cdee91f5bd5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:531"
+      ]
+    },
+    "clinicalTool.poids.label": {
+      "fr": "Poids :",
+      "empreinte": "6f0466755741",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:494"
+      ]
+    },
+    "clinicalTool.pollakiurie.label": {
+      "fr": "Pollakiurie",
+      "empreinte": "b4b940df7aa0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:187"
+      ]
+    },
+    "clinicalTool.portCatheterUrinaireSonde.label": {
+      "fr": "Port d'un cathéter urinaire (sonde à demeure)",
+      "empreinte": "964967e92918",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:393"
+      ]
+    },
+    "clinicalTool.positif.label": {
+      "fr": "Positif",
+      "empreinte": "e764b2c7115d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:428"
+      ]
+    },
+    "clinicalTool.positifBilateral.label": {
+      "fr": "Positif bilatéral",
+      "empreinte": "07c6c4c62150",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:320"
+      ]
+    },
+    "clinicalTool.positifDroit.label": {
+      "fr": "Positif droit",
+      "empreinte": "9d649a376f50",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:320"
+      ]
+    },
+    "clinicalTool.positifGauche.label": {
+      "fr": "Positif gauche",
+      "empreinte": "27070f11cbaa",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:320"
+      ]
+    },
+    "clinicalTool.poumons.label": {
+      "fr": "Poumons :",
+      "empreinte": "2bfda68a2797",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:310",
+        "note-ui/ClinicalTool.jsx:510"
+      ]
+    },
+    "clinicalTool.presence.text": {
+      "fr": "Présence de :",
+      "empreinte": "e52623788930",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:183"
+      ]
+    },
+    "clinicalTool.presenceAutresSx.text": {
+      "fr": "Présence autres Sx :",
+      "empreinte": "febcaaaba710",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:208"
+      ]
+    },
+    "clinicalTool.presenceCriteresComplexesRisque.text": {
+      "fr": "Présence CRITÈRES COMPLEXES ou à RISQUE :",
+      "empreinte": "17ea16e3acd9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:195"
+      ]
+    },
+    "clinicalTool.presenceSxUrinairesDepuis.label": {
+      "fr": "Présence de sx urinaires depuis :",
+      "empreinte": "5d69fb4e5ce1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:175"
+      ]
+    },
+    "clinicalTool.prostate.label": {
+      "fr": "Prostate :",
+      "empreinte": "ce6b0e6c3f0c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:325"
+      ]
+    },
+    "clinicalTool.proteines.label": {
+      "fr": "Protéines :",
+      "empreinte": "507d748bd243",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:362"
+      ]
+    },
+    "clinicalTool.pruritGenital.label": {
+      "fr": "Prurit génital",
+      "empreinte": "e98c0406f5e1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:235"
+      ]
+    },
+    "clinicalTool.pruritVulvaire.label": {
+      "fr": "Prurit vulvaire",
+      "empreinte": "3039e910f926",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:223"
+      ]
+    },
+    "clinicalTool.punchRenaux.label": {
+      "fr": "Punch rénaux :",
+      "empreinte": "6078eb80065e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:320"
+      ]
+    },
+    "clinicalTool.pyelonephrite.label": {
+      "fr": "Pyélonéphrite",
+      "empreinte": "7ae6952c994c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:383"
+      ]
+    },
+    "clinicalTool.recommandationsFiletSecurite.heading": {
+      "fr": "Recommandations / Filet de sécurité",
+      "empreinte": "785bd747d101",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:277"
+      ]
+    },
+    "clinicalTool.refererQuestionnaireItssPrn.text": {
+      "fr": "* Se référer au questionnaire ITSS prn",
+      "empreinte": "55fd190ce0d8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:215"
+      ]
+    },
+    "clinicalTool.replierOutil.tooltip": {
+      "fr": "Replier l'outil",
+      "empreinte": "4edb9bc805df",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:158",
+        "note-ui/ClinicalTool.jsx:473"
+      ]
+    },
+    "clinicalTool.requeteRemisePatient.label": {
+      "fr": "Requête remise au patient",
+      "empreinte": "54b3c5a6c2b3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:263"
+      ]
+    },
+    "clinicalTool.risqueAntibioresistance.label": {
+      "fr": "Risque d'antibiorésistance",
+      "empreinte": "d7dc580841bd",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:203"
+      ]
+    },
+    "clinicalTool.risqueGrossesse.label": {
+      "fr": "Risque de grossesse ?",
+      "empreinte": "95f3d9718e71",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:226"
+      ]
+    },
+    "clinicalTool.risqueItss.label": {
+      "fr": "Risque ITSS*",
+      "empreinte": "d16359d04022",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:213"
+      ]
+    },
+    "clinicalTool.sensibiliteMobilisationCol.label": {
+      "fr": "Sensibilité à la mobilisation du col",
+      "empreinte": "092f61e86628",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:345"
+      ]
+    },
+    "clinicalTool.sensible.label": {
+      "fr": "Sensible",
+      "empreinte": "6f4ce2d935b1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:325"
+      ]
+    },
+    "clinicalTool.siAnnexesAnormal.label": {
+      "fr": "Si annexes anormal :",
+      "empreinte": "8cdc2f680971",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:343"
+      ]
+    },
+    "clinicalTool.siAnormal.label": {
+      "fr": "Si anormal :",
+      "empreinte": "55b20aaec349",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:307",
+        "note-ui/ClinicalTool.jsx:311",
+        "note-ui/ClinicalTool.jsx:328",
+        "note-ui/ClinicalTool.jsx:507",
+        "note-ui/ClinicalTool.jsx:511",
+        "note-ui/ClinicalTool.jsx:515",
+        "note-ui/ClinicalTool.jsx:519",
+        "note-ui/ClinicalTool.jsx:523"
+      ]
+    },
+    "clinicalTool.siDouleurAbdomen.label": {
+      "fr": "Si douleur abdomen :",
+      "empreinte": "750868ea2409",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:317"
+      ]
+    },
+    "clinicalTool.siOuiCultureUrine.text": {
+      "fr": "Si oui = Culture d'urine et contrôle 1 semaine post-fin de tx",
+      "empreinte": "e2c6989fd973",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:260"
+      ]
+    },
+    "clinicalTool.siPresenceSangProteines.text": {
+      "fr": "*Si présence de sang et ou de protéines, envoyer une A+C d'urine*",
+      "empreinte": "0766878996f7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:379"
+      ]
+    },
+    "clinicalTool.signesVitaux.heading": {
+      "fr": "Signes vitaux",
+      "empreinte": "352f9a509cab",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:487"
+      ]
+    },
+    "clinicalTool.signesVitaux.label": {
+      "fr": "Signes vitaux :",
+      "empreinte": "552d9bba60c3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:298"
+      ]
+    },
+    "clinicalTool.soulage.label": {
+      "fr": "Soulagé par :",
+      "empreinte": "8df35f8a86fc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:180"
+      ]
+    },
+    "clinicalTool.soulagementDouleurEnvisagerPrise.label": {
+      "fr": "Pour le soulagement de la douleur, envisager la prise d'acétaminophène ou d'ibuprofène, à moins d'une contre-indication.",
+      "empreinte": "620c19a17e23",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:269"
+      ]
+    },
+    "clinicalTool.spo2.label": {
+      "fr": "SpO2 % :",
+      "empreinte": "13004979ee9e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:303",
+        "note-ui/ClinicalTool.jsx:492"
+      ]
+    },
+    "clinicalTool.summaryMore.text": {
+      "fr": "{shown} · +{n} autres",
+      "empreinte": "a110c4c8c5cf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:109"
+      ]
+    },
+    "clinicalTool.susPubienne.label": {
+      "fr": "Sus-pubienne",
+      "empreinte": "7ff46404730a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:317"
+      ]
+    },
+    "clinicalTool.sxApparentant.label": {
+      "fr": "Sx s'apparentant à :",
+      "empreinte": "dbef21b76b54",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:383"
+      ]
+    },
+    "clinicalTool.symptomatologieCompatibleAvecProst.label": {
+      "fr": "Symptomatologie compatible avec une prostatite, une orchiépididymite ou une pathologie gynécologique",
+      "empreinte": "2db2d31acbfe",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:397"
+      ]
+    },
+    "clinicalTool.symptomesInfectionUrinaire.text": {
+      "fr": "Symptômes d'une infection urinaire",
+      "empreinte": "336e697288c4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:147",
+        "note-ui/ClinicalTool.jsx:170"
+      ]
+    },
+    "clinicalTool.t.label": {
+      "fr": "T° :",
+      "empreinte": "05b010803bcb",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:304",
+        "note-ui/ClinicalTool.jsx:493"
+      ]
+    },
+    "clinicalTool.ta.label": {
+      "fr": "TA :",
+      "empreinte": "93dd42a4dbc6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:299",
+        "note-ui/ClinicalTool.jsx:489"
+      ]
+    },
+    "clinicalTool.tacheAjouteeFaireSuivi.label": {
+      "fr": "Tâche ajoutée pour faire un suivi téléphonique d'ici 3-5 jours",
+      "empreinte": "e73f9b56dcd3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:289"
+      ]
+    },
+    "clinicalTool.testicules.label": {
+      "fr": "Testicules :",
+      "empreinte": "1d701e79b171",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:332"
+      ]
+    },
+    "clinicalTool.tr.label": {
+      "fr": "TR :",
+      "empreinte": "09e3aaeb9ff4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:324"
+      ]
+    },
+    "clinicalTool.traitementPharmacologique.text": {
+      "fr": "Traitement pharmacologique :",
+      "empreinte": "ad8834ca8b97",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:251"
+      ]
+    },
+    "clinicalTool.typeApparition.label": {
+      "fr": "Type d'apparition :",
+      "empreinte": "5ba199d0b847",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:176"
+      ]
+    },
+    "clinicalTool.typeDouleur.label": {
+      "fr": "Type de douleur :",
+      "empreinte": "94be465ca0aa",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:177"
+      ]
+    },
+    "clinicalTool.urgenceMictionnelle.label": {
+      "fr": "Urgence mictionnelle",
+      "empreinte": "3f1def06f86c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:186"
+      ]
+    },
+    "clinicalTool.uterus.label": {
+      "fr": "Utérus :",
+      "empreinte": "6d457170a903",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:340"
+      ]
+    },
+    "clinicalTool.vagin.label": {
+      "fr": "Vagin :",
+      "empreinte": "bef299652065",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:337"
+      ]
+    },
+    "clinicalTool.vomissement.label": {
+      "fr": "Vomissement",
+      "empreinte": "d665b34d3365",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:211"
+      ]
+    },
+    "clinicalTool.vulve.label": {
+      "fr": "Vulve :",
+      "empreinte": "351ba85b64a6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:336"
+      ]
+    },
+    "clinicalToolPicker.ajouterFavoris.tooltip": {
+      "fr": "Ajouter aux favoris",
+      "empreinte": "721554924ba7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:172"
+      ]
+    },
+    "clinicalToolPicker.bientot.text": {
+      "fr": "Bientôt",
+      "empreinte": "a60303f4b215",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:178"
+      ]
+    },
+    "clinicalToolPicker.bientotDisponible.tooltip": {
+      "fr": "Bientôt disponible",
+      "empreinte": "cd7ecb5d490b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:164"
+      ]
+    },
+    "clinicalToolPicker.certificatMedicalHydroQuebec.label": {
+      "fr": "Certificat médical - Hydro-Québec",
+      "empreinte": "b22389e50d5b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:22"
+      ]
+    },
+    "clinicalToolPicker.cliquezAjouterFavoris.text": {
+      "fr": "Cliquez sur ♡ pour ajouter des favoris.",
+      "empreinte": "1025049384bb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:183"
+      ]
+    },
+    "clinicalToolPicker.cystiteFormulaireLiaisonAttention.label": {
+      "fr": "Cystite - Formulaire de liaison à l'attention du pharmacien communautaire",
+      "empreinte": "25f6c406b068",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:15"
+      ]
+    },
+    "clinicalToolPicker.diabeteType2Formulaire.label": {
+      "fr": "Diabète de type 2 - Formulaire d'adhésion à l'ordonnance collective",
+      "empreinte": "dc69a23a3672",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:17"
+      ]
+    },
+    "clinicalToolPicker.douleurThoracique.label": {
+      "fr": "Douleur thoracique",
+      "empreinte": "783dad81f380",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:9"
+      ]
+    },
+    "clinicalToolPicker.examenMentalCompletGabarit.label": {
+      "fr": "Examen mental complet - Gabarit",
+      "empreinte": "a7bee0cec6b3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:7"
+      ]
+    },
+    "clinicalToolPicker.examenPhysiqueCompletGabarit.label": {
+      "fr": "Examen physique complet - Gabarit",
+      "empreinte": "2a7e4a13ad2f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:6"
+      ]
+    },
+    "clinicalToolPicker.examenPhysiqueVersionCourte.label": {
+      "fr": "Examen physique - Version courte",
+      "empreinte": "2d854507c050",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:5"
+      ]
+    },
+    "clinicalToolPicker.favori.button": {
+      "fr": "Favori",
+      "empreinte": "5321195dda20",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:144"
+      ]
+    },
+    "clinicalToolPicker.fermer.tooltip": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:108"
+      ]
+    },
+    "clinicalToolPicker.feuilleRouteSymptomesUrinaires.label": {
+      "fr": "Feuille de route - Symptômes urinaires",
+      "empreinte": "1bbbd6771382",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:4"
+      ]
+    },
+    "clinicalToolPicker.fichePreventionClinique.label": {
+      "fr": "Fiche de prévention clinique",
+      "empreinte": "2248c1ef5b6f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:10"
+      ]
+    },
+    "clinicalToolPicker.findrisc.label": {
+      "fr": "Findrisc",
+      "empreinte": "cc649989071b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:12"
+      ]
+    },
+    "clinicalToolPicker.groupes.button": {
+      "fr": "Groupes",
+      "empreinte": "ceb6173a0911",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:150"
+      ]
+    },
+    "clinicalToolPicker.hypertensionArterielleFormulaireAd.label": {
+      "fr": "Hypertension artérielle - Formulaire d'adhésion à l'ordonnance collective",
+      "empreinte": "3b2c21b08b82",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:16"
+      ]
+    },
+    "clinicalToolPicker.mmas8MoriskyMedication.label": {
+      "fr": "MMAS-8 - Morisky Medication Adherence Scale",
+      "empreinte": "0da1fcc32e8a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:24"
+      ]
+    },
+    "clinicalToolPicker.noteEvolutionAh253.label": {
+      "fr": "Note d'évolution (AH-253)",
+      "empreinte": "43c2d9877f66",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:11"
+      ]
+    },
+    "clinicalToolPicker.outilsCliniques.text": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:107"
+      ]
+    },
+    "clinicalToolPicker.prescriptionExercicesDemandeConsul.label": {
+      "fr": "Prescription d'exercices et demande de consultation",
+      "empreinte": "7020b79e9cff",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:19"
+      ]
+    },
+    "clinicalToolPicker.recherche.text": {
+      "fr": "Recherche",
+      "empreinte": "787b54924ae6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:117"
+      ]
+    },
+    "clinicalToolPicker.referencementLuci.label": {
+      "fr": "Référencement Luci",
+      "empreinte": "c75e0a0f3b33",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:20"
+      ]
+    },
+    "clinicalToolPicker.reperageProcessusMenantDiagnostic.label": {
+      "fr": "Repérage et processus menant au diagnostic - Alzheimer et TNC",
+      "empreinte": "be34340b43e9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:18"
+      ]
+    },
+    "clinicalToolPicker.retirerFavoris.tooltip": {
+      "fr": "Retirer des favoris",
+      "empreinte": "dcaac849fc33",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:172"
+      ]
+    },
+    "clinicalToolPicker.retour.tooltip": {
+      "fr": "Retour",
+      "empreinte": "e5befb1f9671",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:104"
+      ]
+    },
+    "clinicalToolPicker.saisieRapideSommaireGabarit.label": {
+      "fr": "Saisie rapide du sommaire - Gabarit",
+      "empreinte": "3fb9a82b0b9b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:8"
+      ]
+    },
+    "clinicalToolPicker.sansRendezGabarit.label": {
+      "fr": "Sans rendez-vous - Gabarit",
+      "empreinte": "4ab06d98b0be",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:21"
+      ]
+    },
+    "clinicalToolPicker.suiviInr.label": {
+      "fr": "Suivi INR",
+      "empreinte": "07ad00b61439",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:14"
+      ]
+    },
+    "clinicalToolPicker.tableauGlycemies.label": {
+      "fr": "Tableau des glycémies",
+      "empreinte": "1ddde1e9173c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:13"
+      ]
+    },
+    "clinicalToolPicker.traitementRemplacementNicotine.label": {
+      "fr": "Traitement de remplacement de la nicotine",
+      "empreinte": "7335da3dc835",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:25"
+      ]
+    },
+    "clinicalToolPicker.urgenceConsultationExterneAh.label": {
+      "fr": "Urgence - Consultation externe (AH-280)",
+      "empreinte": "ef4744cee3d1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:23"
       ]
     },
     "common.and.text": {
@@ -606,7 +2190,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:397"
+        "Note Clinique.html:398"
       ]
     },
     "document.kind.imaging": {
@@ -614,7 +2198,7 @@
       "empreinte": "876ab0ce03e2",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:398"
+        "Note Clinique.html:399"
       ]
     },
     "document.kind.instructions": {
@@ -622,7 +2206,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:399"
+        "Note Clinique.html:400"
       ]
     },
     "document.kind.lab": {
@@ -630,7 +2214,7 @@
       "empreinte": "0f78e26d87bf",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:398"
+        "Note Clinique.html:399"
       ]
     },
     "document.kind.prescription": {
@@ -638,7 +2222,7 @@
       "empreinte": "212f9846068b",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:397"
+        "Note Clinique.html:398"
       ]
     },
     "document.kind.referral": {
@@ -646,7 +2230,7 @@
       "empreinte": "f8130bb03a28",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:399"
+        "Note Clinique.html:400"
       ]
     },
     "document.pill.aria": {
@@ -657,7 +2241,533 @@
       "empreinte": "bf0aa7983972",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "Note Clinique.html:405"
+        "Note Clinique.html:406"
+      ]
+    },
+    "documentAction.addRecipientHint.text": {
+      "fr": "Ajouter une pharmacie ou un professionnel de la santé pour transmettre {noun}",
+      "empreinte": "b5c06a1a1dc5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:332"
+      ]
+    },
+    "documentAction.agrandir.tooltip": {
+      "fr": "Agrandir",
+      "empreinte": "0811e108abbd",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:384"
+      ]
+    },
+    "documentAction.ajouter.tooltip": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:36"
+      ]
+    },
+    "documentAction.ajouterDepuisBottin.button": {
+      "fr": "Ajouter depuis le bottin",
+      "empreinte": "f318f1bbc49f",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:335"
+      ]
+    },
+    "documentAction.ajouterDestinataire.text": {
+      "fr": "Ajouter un destinataire",
+      "empreinte": "a1e13eb790d0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:364"
+      ]
+    },
+    "documentAction.ajouterDestinataire.tooltip": {
+      "fr": "Ajouter un destinataire",
+      "empreinte": "a1e13eb790d0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:317"
+      ]
+    },
+    "documentAction.alreadyCompleted.tooltip": {
+      "fr": "Document déjà complété",
+      "empreinte": "fd3cf9a6aec5",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:193"
+      ]
+    },
+    "documentAction.alreadyTransmitted.tooltip": {
+      "fr": "Document déjà transmis",
+      "empreinte": "94ba984dfa76",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:197",
+        "note-ui/QuickSendModal.jsx:64"
+      ]
+    },
+    "documentAction.aucunDestinataire.text": {
+      "fr": "Aucun destinataire",
+      "empreinte": "72efbe9121c3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:330"
+      ]
+    },
+    "documentAction.aucunDestinataireEteChoisi.text": {
+      "fr": "Aucun destinataire n'a été choisi pour ce document.",
+      "empreinte": "155244992218",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:324"
+      ]
+    },
+    "documentAction.aucunePieceJointe.text": {
+      "fr": "Aucune pièce jointe.",
+      "empreinte": "7a2abc76f470",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:279"
+      ]
+    },
+    "documentAction.complete.button": {
+      "fr": "Compléter {noun}",
+      "empreinte": "a54ead538c35",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:228"
+      ]
+    },
+    "documentAction.completee.text": {
+      "fr": "Complétée",
+      "empreinte": "67f9e8d80427",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:207"
+      ]
+    },
+    "documentAction.completer.button": {
+      "fr": "Compléter",
+      "empreinte": "449b5006156f",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:235"
+      ]
+    },
+    "documentAction.completerDocumentAvantImpression.tooltip": {
+      "fr": "Compléter le document avant impression",
+      "empreinte": "f88bb2273f1d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:216"
+      ]
+    },
+    "documentAction.completerFaxer.button": {
+      "fr": "Compléter et faxer",
+      "empreinte": "b8aecd530ba1",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:237"
+      ]
+    },
+    "documentAction.completerFaxer2.button": {
+      "fr": "Compléter et faxer à",
+      "empreinte": "ace8df884094",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:238"
+      ]
+    },
+    "documentAction.completerImprimer.button": {
+      "fr": "Compléter et imprimer",
+      "empreinte": "c2f0e4f3202a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:236"
+      ]
+    },
+    "documentAction.details.label": {
+      "fr": "Détails",
+      "empreinte": "aaa029e6a255",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:261"
+      ]
+    },
+    "documentAction.imprimer.tooltip": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:216"
+      ]
+    },
+    "documentAction.masquerSuggestions.tooltip": {
+      "fr": "Masquer les suggestions",
+      "empreinte": "d11985674d77",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:359"
+      ]
+    },
+    "documentAction.modifier.tooltip": {
+      "fr": "Modifier",
+      "empreinte": "f260e757cec7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:90"
+      ]
+    },
+    "documentAction.noRecipient.tooltip": {
+      "fr": "Aucun destinataire sélectionné",
+      "empreinte": "5c12481d1d0c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:195",
+        "note-ui/DocumentActionPanel.jsx:198",
+        "note-ui/QuickSendModal.jsx:66"
+      ]
+    },
+    "documentAction.nonCompletee.text": {
+      "fr": "Non complétée",
+      "empreinte": "f9ae195d2624",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:207"
+      ]
+    },
+    "documentAction.nonTransmise.text": {
+      "fr": "Non transmise",
+      "empreinte": "24303a19b65c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:210"
+      ]
+    },
+    "documentAction.notCompleted.tooltip": {
+      "fr": "{title} non complétée",
+      "empreinte": "e59b76a3e31d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:198"
+      ]
+    },
+    "documentAction.piecesJointes.label": {
+      "fr": "Pièces jointes",
+      "empreinte": "98d89a25004b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:273"
+      ]
+    },
+    "documentAction.prescriptions.label": {
+      "fr": "Prescriptions",
+      "empreinte": "d7d1c0636806",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:261"
+      ]
+    },
+    "documentAction.preview.label": {
+      "fr": "APERÇU",
+      "empreinte": "f8141f9629c6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:383"
+      ]
+    },
+    "documentAction.recipients.label": {
+      "fr": "DESTINATAIRE ({n})",
+      "empreinte": "800c2dfde9f9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:315"
+      ]
+    },
+    "documentAction.retirer.tooltip": {
+      "fr": "Retirer",
+      "empreinte": "54ec24a19c21",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:286",
+        "note-ui/DocumentActionPanel.jsx:93"
+      ]
+    },
+    "documentAction.retirerDestinataire.tooltip": {
+      "fr": "Retirer ce destinataire",
+      "empreinte": "80483f55b318",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:145"
+      ]
+    },
+    "documentAction.sendByEmail.tooltip": {
+      "fr": "Transmettre par courriel",
+      "empreinte": "bb3aeefdaa9e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:142"
+      ]
+    },
+    "documentAction.sendByFax.tooltip": {
+      "fr": "Transmettre par fax",
+      "empreinte": "bf0f89b3b208",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:141"
+      ]
+    },
+    "documentAction.sentByEmail.tooltip": {
+      "fr": "Transmis par courriel",
+      "empreinte": "a4ba75cb997e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:142"
+      ]
+    },
+    "documentAction.sentByFax.tooltip": {
+      "fr": "Transmis par fax",
+      "empreinte": "6894eec7fd63",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:141"
+      ]
+    },
+    "documentAction.suggestions.label": {
+      "fr": "SUGGESTION {n}",
+      "empreinte": "f9fe3b4fd405",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:358"
+      ]
+    },
+    "documentAction.transmise.text": {
+      "fr": "Transmise",
+      "empreinte": "bead84ab0c20",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:210"
+      ]
+    },
+    "documentAction.transmit.button": {
+      "fr": "Transmettre {noun}",
+      "empreinte": "1834175109ba",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:248"
+      ]
+    },
+    "documentPreview.apercuDocumentNonComplete.text": {
+      "fr": "Aperçu — document non complété (brouillon, sans valeur légale)",
+      "empreinte": "3bd76895ae4f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:112"
+      ]
+    },
+    "documentPreview.aucunContenu.text": {
+      "fr": "Aucun contenu.",
+      "empreinte": "043511cb7c45",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:92"
+      ]
+    },
+    "documentPreview.cesse.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:88"
+      ]
+    },
+    "documentPreview.clinicContact.text": {
+      "fr": "Tél. : {phone} / Téléc. : {fax}",
+      "empreinte": "e1dabeb8f8ff",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:58"
+      ]
+    },
+    "documentPreview.date.text": {
+      "fr": "Date : {date}",
+      "empreinte": "791f4644ce18",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:79"
+      ]
+    },
+    "documentPreview.ddn.text": {
+      "fr": "DDN :",
+      "empreinte": "a6f54e485f99",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:68"
+      ]
+    },
+    "documentPreview.documentCompleteElectroniquement.text": {
+      "fr": "Document complété électroniquement",
+      "empreinte": "0f52f6131c44",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:102"
+      ]
+    },
+    "documentPreview.documentConfidentiel.text": {
+      "fr": "Ce document est confidentiel.",
+      "empreinte": "71045e967909",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:114"
+      ]
+    },
+    "documentPreview.etablissementActuel.text": {
+      "fr": "Établissement actuel",
+      "empreinte": "ee5c8090bcec",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:56"
+      ]
+    },
+    "documentPreview.finDocument.text": {
+      "fr": "— Fin du document —",
+      "empreinte": "0e102a7ce328",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:95"
+      ]
+    },
+    "documentPreview.medecinActuel.text": {
+      "fr": "Médecin actuel",
+      "empreinte": "896bb7dd988c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:103",
+        "note-ui/DocumentPreview.jsx:55",
+        "note-ui/TransmissionModal.jsx:122"
+      ]
+    },
+    "documentPreview.nam.text": {
+      "fr": "NAM :",
+      "empreinte": "16e55ff6f0bf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:65"
+      ]
+    },
+    "documentPreview.nom.text": {
+      "fr": "Nom :",
+      "empreinte": "6532966ee969",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:64"
+      ]
+    },
+    "documentPreview.patient.text": {
+      "fr": "Patient",
+      "empreinte": "de5c57ff7257",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:64"
+      ]
+    },
+    "documentPreview.ref.text": {
+      "fr": "Réf. : {ref}",
+      "empreinte": "2cf7948a54da",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:104"
+      ]
+    },
+    "documentPreview.requete.text": {
+      "fr": "Requête",
+      "empreinte": "15968bd96bc4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:78"
+      ]
+    },
+    "documentPreview.signature.text": {
+      "fr": "Signature :",
+      "empreinte": "44c3741c241a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:107"
+      ]
+    },
+    "documentPreview.signedBy.text": {
+      "fr": "Par {name} le {date}",
+      "empreinte": "d7b204941a1f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:103"
+      ]
+    },
+    "documentPreview.telephone.text": {
+      "fr": "Téléphone :",
+      "empreinte": "e219088fbeb1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:69"
+      ]
+    },
+    "documentViewer.agrandir.tooltip": {
+      "fr": "Agrandir",
+      "empreinte": "0811e108abbd",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:99"
+      ]
+    },
+    "documentViewer.apercuDocument.aria": {
+      "fr": "Aperçu du document",
+      "empreinte": "cd37d3a507cf",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:55"
+      ]
+    },
+    "documentViewer.apercuNonDisponibleType.text": {
+      "fr": "Aperçu non disponible pour ce type de fichier",
+      "empreinte": "3bbacfa3edf9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:84"
+      ]
+    },
+    "documentViewer.fermer.button": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:104"
+      ]
+    },
+    "documentViewer.fermer.tooltip": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:59"
+      ]
+    },
+    "documentViewer.ouvertureFichierCours.text": {
+      "fr": "Ouverture du fichier en cours...",
+      "empreinte": "553c095ca7b0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:68"
+      ]
+    },
+    "documentViewer.reduire.tooltip": {
+      "fr": "Réduire",
+      "empreinte": "86a5250550e6",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentViewerModal.jsx:95"
       ]
     },
     "dx.banner.edit.text": {
@@ -781,6 +2891,119 @@
       "contexte": "aide",
       "fichiers": [
         "note-ui/editor-popover.jsx:810"
+      ]
+    },
+    "fax.aucunResultat.text": {
+      "fr": "Aucun résultat.",
+      "empreinte": "53a595bf9894",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:79"
+      ]
+    },
+    "fax.cercleSoins.text": {
+      "fr": "Cercle de soins",
+      "empreinte": "446353dc2e1f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:55"
+      ]
+    },
+    "fax.choisir.tooltip": {
+      "fr": "Choisir",
+      "empreinte": "b030d590c21c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:73"
+      ]
+    },
+    "fax.destinataire.placeholder": {
+      "fr": "Destinataire",
+      "empreinte": "56579042c774",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:85"
+      ]
+    },
+    "fax.envoyer.text": {
+      "fr": "Envoyer à",
+      "empreinte": "42eaf4d28937",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:84"
+      ]
+    },
+    "fax.etablissementActuel.text": {
+      "fr": "Établissement actuel",
+      "empreinte": "ee5c8090bcec",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:49",
+        "note-ui/TransmissionModal.jsx:123"
+      ]
+    },
+    "fax.faxer.button": {
+      "fr": "Faxer",
+      "empreinte": "a18da2aae02b",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:94"
+      ]
+    },
+    "fax.faxerDocument.text": {
+      "fr": "Faxer un document",
+      "empreinte": "09c434acfbeb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:43"
+      ]
+    },
+    "fax.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:44"
+      ]
+    },
+    "fax.nonDisponiblePrototype.tooltip": {
+      "fr": "Non disponible dans ce prototype",
+      "empreinte": "aef7c0e1881e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:55"
+      ]
+    },
+    "fax.numeroFax.text": {
+      "fr": "Numéro de fax",
+      "empreinte": "02c507a8df23",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:88"
+      ]
+    },
+    "fax.repertoire.text": {
+      "fr": "Répertoire",
+      "empreinte": "c71dc3cfd075",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:54"
+      ]
+    },
+    "fax.ressource.placeholder": {
+      "fr": "Ressource",
+      "empreinte": "23ef58b6a41c",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:62"
+      ]
+    },
+    "fax.sender.text": {
+      "fr": "Expéditeur : {name}",
+      "empreinte": "01a156169a6a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:49"
       ]
     },
     "field.afficherBarreMiseForme.tooltip": {
@@ -1790,6 +4013,14 @@
         "note-ui/NoteStartCards.jsx:20"
       ]
     },
+    "notesList.allNotes.text": {
+      "fr": "Toutes les notes",
+      "empreinte": "6126cdb92a71",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:327"
+      ]
+    },
     "notesList.au.label": {
       "fr": "Au",
       "empreinte": "7a1732d5ccbc",
@@ -1927,6 +4158,14 @@
         "note-ui/NotesList.jsx:180"
       ]
     },
+    "notesList.sortEffectiveDate.text": {
+      "fr": "Date d'entrée en vigueur",
+      "empreinte": "37dabb7bf404",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:328"
+      ]
+    },
     "notesList.triees.label": {
       "fr": "triées par",
       "empreinte": "94cee64eb3c6",
@@ -1965,7 +4204,8 @@
       "empreinte": "5ff6be055082",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12"
+        "note-ui/PatientBanner.jsx:12",
+        "note-ui/TransmissionModal.jsx:261"
       ]
     },
     "patientBanner.bornMale.text": {
@@ -1973,7 +4213,8 @@
       "empreinte": "3f88e32511a7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12"
+        "note-ui/PatientBanner.jsx:12",
+        "note-ui/TransmissionModal.jsx:261"
       ]
     },
     "patientBanner.cellulaire.text": {
@@ -3222,7 +5463,7 @@
       "empreinte": "3cc0b7c2227d",
       "contexte": "libellé",
       "fichiers": [
-        "Note Clinique.html:416"
+        "Note Clinique.html:417"
       ]
     },
     "presentation.chapter.aria": {
@@ -3231,6 +5472,230 @@
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
         "note-ui/presentation-mode.jsx:671"
+      ]
+    },
+    "print.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:42"
+      ]
+    },
+    "print.copies.text": {
+      "fr": "Copies",
+      "empreinte": "58d744ee4c8e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:35"
+      ]
+    },
+    "print.destination.text": {
+      "fr": "Destination",
+      "empreinte": "d42713493ca8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:24"
+      ]
+    },
+    "print.imprimanteDefaut.text": {
+      "fr": "Imprimante par défaut",
+      "empreinte": "01f33c43306b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:27"
+      ]
+    },
+    "print.imprimer.button": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:43"
+      ]
+    },
+    "print.imprimer.text": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:21"
+      ]
+    },
+    "print.pages.text": {
+      "fr": "Pages",
+      "empreinte": "600584c2d5cc",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:31"
+      ]
+    },
+    "print.toutes.text": {
+      "fr": "Toutes",
+      "empreinte": "c5f641e4d1cc",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PrintDialog.jsx:32"
+      ]
+    },
+    "quickSend.addRecipientWarning.text": {
+      "fr": "Ajouter un destinataire pour transmettre {noun}.",
+      "empreinte": "438b627e79a3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:150"
+      ]
+    },
+    "quickSend.ajouter.tooltip": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:117"
+      ]
+    },
+    "quickSend.ajouterDestinataire.tooltip": {
+      "fr": "Ajouter un destinataire",
+      "empreinte": "a1e13eb790d0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:141"
+      ]
+    },
+    "quickSend.ajouterPieceJointe.tooltip": {
+      "fr": "Ajouter une pièce jointe",
+      "empreinte": "fec460dc11f7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:208"
+      ]
+    },
+    "quickSend.attachments.label": {
+      "fr": "PIÈCES JOINTES",
+      "empreinte": "6748eadc2548",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:207"
+      ]
+    },
+    "quickSend.completee.text": {
+      "fr": "Complétée",
+      "empreinte": "67f9e8d80427",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:108"
+      ]
+    },
+    "quickSend.completerEnvoyer.button": {
+      "fr": "Compléter et envoyer",
+      "empreinte": "a755968cc11f",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:261"
+      ]
+    },
+    "quickSend.detailsCount.label": {
+      "fr": "DÉTAILS ({n})",
+      "empreinte": "40c547632c7e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:116"
+      ]
+    },
+    "quickSend.documentTransmis.toast": {
+      "fr": "Document transmis",
+      "empreinte": "502a24794aaf",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:72"
+      ]
+    },
+    "quickSend.envoiRapide.text": {
+      "fr": "Envoi rapide",
+      "empreinte": "75c03282d377",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:96"
+      ]
+    },
+    "quickSend.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:97"
+      ]
+    },
+    "quickSend.imprimer.tooltip": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:252"
+      ]
+    },
+    "quickSend.masquerSuggestions.tooltip": {
+      "fr": "Masquer les suggestions",
+      "empreinte": "d11985674d77",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:179"
+      ]
+    },
+    "quickSend.nonCompletee.text": {
+      "fr": "Non complétée",
+      "empreinte": "f9ae195d2624",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:108"
+      ]
+    },
+    "quickSend.nonTransmise.text": {
+      "fr": "Non transmise",
+      "empreinte": "24303a19b65c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:111"
+      ]
+    },
+    "quickSend.noteDestinataire.placeholder": {
+      "fr": "Note pour le destinataire",
+      "empreinte": "981fa83b26d1",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:234"
+      ]
+    },
+    "quickSend.prescriptionsCount.label": {
+      "fr": "PRESCRIPTIONS ({n})",
+      "empreinte": "5e2f551e92d7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:116"
+      ]
+    },
+    "quickSend.recipients.label": {
+      "fr": "DESTINATAIRE ({n})",
+      "empreinte": "800c2dfde9f9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:140"
+      ]
+    },
+    "quickSend.retirer.tooltip": {
+      "fr": "Retirer",
+      "empreinte": "54ec24a19c21",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:164"
+      ]
+    },
+    "quickSend.suggestions.label": {
+      "fr": "SUGGESTION {n}",
+      "empreinte": "f9fe3b4fd405",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:178"
       ]
     },
     "quickSend.summary.text": {
@@ -3242,6 +5707,22 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/QuickSendModal.jsx:90"
+      ]
+    },
+    "quickSend.transmise.text": {
+      "fr": "Transmise",
+      "empreinte": "bead84ab0c20",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:111"
+      ]
+    },
+    "quickSend.voirTousDocuments.button": {
+      "fr": "Voir tous les documents",
+      "empreinte": "c6ba5b476d37",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:248"
       ]
     },
     "result.normality.abnormal": {
@@ -6002,12 +8483,165 @@
         "note-ui/TopBar.jsx:11"
       ]
     },
+    "topBar.onMyBehalf.text": {
+      "fr": "En mon nom",
+      "empreinte": "797839edafeb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TopBar.jsx:4"
+      ]
+    },
     "topBar.rechercherPatient.placeholder": {
       "fr": "Rechercher un patient...",
       "empreinte": "fb14241a7921",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
         "note-ui/TopBar.jsx:18"
+      ]
+    },
+    "transmission.ajoutDocumentVenir.toast": {
+      "fr": "Ajout de document — à venir",
+      "empreinte": "25c2d8a26161",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:433"
+      ]
+    },
+    "transmission.ajouterDocument.button": {
+      "fr": "Ajouter un document",
+      "empreinte": "166900369afc",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:436"
+      ]
+    },
+    "transmission.aucunDestinataire.text": {
+      "fr": "Aucun destinataire",
+      "empreinte": "72efbe9121c3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:512"
+      ]
+    },
+    "transmission.autresDocuments.tooltip": {
+      "fr": "AUTRES DOCUMENTS",
+      "empreinte": "ec9183b57fc6",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:253"
+      ]
+    },
+    "transmission.completerNote.button": {
+      "fr": "Compléter la note",
+      "empreinte": "bcbd6c13a269",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:206"
+      ]
+    },
+    "transmission.consignes.tooltip": {
+      "fr": "CONSIGNES",
+      "empreinte": "b1fa3935eee0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:90"
+      ]
+    },
+    "transmission.documentTransmis.toast": {
+      "fr": "Document transmis",
+      "empreinte": "502a24794aaf",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:317"
+      ]
+    },
+    "transmission.documentsNote.text": {
+      "fr": "Documents de la note",
+      "empreinte": "cd5c4dd1dd15",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:385"
+      ]
+    },
+    "transmission.etablissement.text": {
+      "fr": "Établissement",
+      "empreinte": "e2d294e40fb4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:199"
+      ]
+    },
+    "transmission.faireSuivreNote.text": {
+      "fr": "Faire suivre la note",
+      "empreinte": "aeb5d14ea254",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:187"
+      ]
+    },
+    "transmission.faireSuivreSigner.text": {
+      "fr": "Faire suivre et signer",
+      "empreinte": "df73e45aaddb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:417"
+      ]
+    },
+    "transmission.faxEnvoye.toast": {
+      "fr": "Fax envoyé",
+      "empreinte": "5822abb56476",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:350"
+      ]
+    },
+    "transmission.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:394"
+      ]
+    },
+    "transmission.medecin.text": {
+      "fr": "Médecin",
+      "empreinte": "f569ce3bcd51",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:195"
+      ]
+    },
+    "transmission.noteClinique.text": {
+      "fr": "Note clinique",
+      "empreinte": "d2d1b9bf123d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:171",
+        "note-ui/TransmissionModal.jsx:416"
+      ]
+    },
+    "transmission.noteCompletee.toast": {
+      "fr": "Note complétée",
+      "empreinte": "ad268aa92811",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:338"
+      ]
+    },
+    "transmission.ordonnance.tooltip": {
+      "fr": "ORDONNANCE",
+      "empreinte": "77a161f07e12",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:87"
+      ]
+    },
+    "transmission.outilsCliniques.tooltip": {
+      "fr": "OUTILS CLINIQUES",
+      "empreinte": "549721bea26b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:89"
       ]
     },
     "transmission.pending.hint": {
@@ -6043,6 +8677,22 @@
         "note-ui/TransmissionModal.jsx:467"
       ]
     },
+    "transmission.requetes.tooltip": {
+      "fr": "REQUÊTES",
+      "empreinte": "46a856aac02a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:88"
+      ]
+    },
+    "transmission.selectionnezDocumentListe.text": {
+      "fr": "Sélectionnez un document dans la liste.",
+      "empreinte": "42b85210c46e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:456"
+      ]
+    },
     "transmission.sent.toast": {
       "fr": {
         "one": "{n} document transmis",
@@ -6052,6 +8702,166 @@
       "contexte": "notification",
       "fichiers": [
         "note-ui/TransmissionModal.jsx:328"
+      ]
+    },
+    "transmission.signature.text": {
+      "fr": "Signature",
+      "empreinte": "2f32be1dc741",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:192"
+      ]
+    },
+    "transmission.statusDone.text": {
+      "fr": "Finalisé",
+      "empreinte": "f514de0dc919",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:110"
+      ]
+    },
+    "transmission.statusReady.text": {
+      "fr": "Prêt",
+      "empreinte": "c5e3c29f8857",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:110"
+      ]
+    },
+    "transmission.statusTodo.text": {
+      "fr": "À compléter",
+      "empreinte": "b06198e13a28",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:110"
+      ]
+    },
+    "transmission.transmettreDocumentPret.button": {
+      "fr": "Transmettre le document prêt",
+      "empreinte": "e49f915877e8",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:475"
+      ]
+    },
+    "transmission.transmissionDocuments.text": {
+      "fr": "Transmission des documents",
+      "empreinte": "b2dd47025606",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:385"
+      ]
+    },
+    "transmission.transmitAll.button": {
+      "fr": "Tout transmettre ({n})",
+      "empreinte": "e9f25e7d87c6",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:481"
+      ]
+    },
+    "transmission.txNoteImaging.label": {
+      "fr": "Note pour le service d’imagerie",
+      "empreinte": "082afcd97fe3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:47"
+      ]
+    },
+    "transmission.txNoteLab.label": {
+      "fr": "Note pour le laboratoire",
+      "empreinte": "f7ac75b0a13f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:36"
+      ]
+    },
+    "transmission.txNotePatient.label": {
+      "fr": "Note pour le patient",
+      "empreinte": "6d204161ad03",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:78"
+      ]
+    },
+    "transmission.txNotePharmacist.label": {
+      "fr": "Note pour le pharmacien",
+      "empreinte": "939b0e0cee84",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:25"
+      ]
+    },
+    "transmission.txNoteRecipient.label": {
+      "fr": "Note pour le destinataire",
+      "empreinte": "981fa83b26d1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:68"
+      ]
+    },
+    "transmission.txNoteSpecialist.label": {
+      "fr": "Note pour le spécialiste",
+      "empreinte": "03e6e64a4886",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:57"
+      ]
+    },
+    "transmission.txNounDocument.text": {
+      "fr": "le document",
+      "empreinte": "ddfec0abde4c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:75"
+      ]
+    },
+    "transmission.txNounForm.text": {
+      "fr": "le formulaire",
+      "empreinte": "0d3ffe1d4fb7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:64"
+      ]
+    },
+    "transmission.txNounImaging.text": {
+      "fr": "la requête d'imagerie",
+      "empreinte": "a74a1f17eedd",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:44"
+      ]
+    },
+    "transmission.txNounLab.text": {
+      "fr": "la requête de laboratoire",
+      "empreinte": "a4cfe115f162",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:33"
+      ]
+    },
+    "transmission.txNounPrescription.text": {
+      "fr": "l'ordonnance",
+      "empreinte": "865fb7372a15",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:22"
+      ]
+    },
+    "transmission.txNounReferral.text": {
+      "fr": "la référence",
+      "empreinte": "fb8878d96c68",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:54"
+      ]
+    },
+    "transmission.txTitlePrefixTool.text": {
+      "fr": "Outil clinique",
+      "empreinte": "b1be8383fb3b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:65"
       ]
     },
     "visit.type.clinic": {
@@ -6080,6 +8890,15 @@
     }
   },
   "donnees": [
+    {
+      "fr": "03 mai 1987",
+      "empreinte": "96c90129d600",
+      "contexte": "donnée de démonstration",
+      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 1987')) + ' (' + (P.age |",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:261"
+      ]
+    },
     {
       "fr": "03 mai 1987",
       "empreinte": "1abe3d930eb8",
@@ -6228,13 +9047,41 @@
       ]
     },
     {
+      "fr": "1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1",
+      "empreinte": "5471a80b3c7f",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Clinique de radiologie de Sherbrooke'), address: L('1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1'), phone: '819 562-3131', fax: '819 562-3132', f",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:50"
+      ]
+    },
+    {
+      "fr": "12 rue Principale, Sherbrooke (Québec) J1H 4E4",
+      "empreinte": "1bfdadec85f4",
+      "contexte": "donnée de démonstration",
+      "extrait": "address: L('12 rue Principale, Sherbrooke (Québec) J1H 4E4'),",
+      "fichiers": [
+        "note-ui/DocumentPreview.jsx:15"
+      ]
+    },
+    {
+      "fr": "1200 rue King Est, Sherbrooke (Québec) J1G 1E5",
+      "empreinte": "8a6cc51520fe",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('GMF Sherbrooke-Est'), address: L('1200 rue King Est, Sherbrooke (Québec) J1G 1E5'), phone: '819 565-1200', fax: '819 565-1201', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:71"
+      ]
+    },
+    {
       "fr": "1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2",
       "empreinte": "17cd9f097491",
       "contexte": "donnée de démonstration",
       "extrait": "recipients: [{ id: 'r-demo-pjc', name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595'",
       "fichiers": [
         "note-ui/NotesList.jsx:25",
-        "note-ui/NotesList.jsx:49"
+        "note-ui/NotesList.jsx:49",
+        "note-ui/TransmissionModal.jsx:27"
       ]
     },
     {
@@ -6253,6 +9100,33 @@
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
         "note-ui/NoteEditor.jsx:1294"
+      ]
+    },
+    {
+      "fr": "1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1",
+      "empreinte": "3a3fb6a02aec",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Biron Groupe Santé'), address: L('1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1'), phone: '819 562-8000', fax: '819 562-8001', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:39"
+      ]
+    },
+    {
+      "fr": "2 JUILLET 2026 09:10",
+      "empreinte": "7a373bef047e",
+      "contexte": "donnée de démonstration",
+      "extrait": "date: L(\"2 JUILLET 2026 09:10\"),",
+      "fichiers": [
+        "note-ui/NotesList.jsx:30"
+      ]
+    },
+    {
+      "fr": "2 JUILLET 2026 13:45",
+      "empreinte": "4234bd3a347c",
+      "contexte": "donnée de démonstration",
+      "extrait": "date: L(\"2 JUILLET 2026 13:45\"),",
+      "fichiers": [
+        "note-ui/NotesList.jsx:4"
       ]
     },
     {
@@ -6317,6 +9191,15 @@
       "extrait": "{ id: 'r2', ttl: L('TSH — 12 janv 2026'), meta: L('2,1 mUI/L'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
         "note-ui/editor-data.jsx:978"
+      ]
+    },
+    {
+      "fr": "2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8",
+      "empreinte": "a9b718bc03b1",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false }",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:29"
       ]
     },
     {
@@ -6455,12 +9338,43 @@
       ]
     },
     {
+      "fr": "300 rue King Est, Sherbrooke (Québec) J1G 1B1",
+      "empreinte": "4568fcf0b528",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fa",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:59"
+      ]
+    },
+    {
       "fr": "3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4",
       "empreinte": "6e06e8e89104",
       "contexte": "donnée de démonstration",
       "extrait": "recipients: [{ id: 'r-demo-chus', name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 ",
       "fichiers": [
-        "note-ui/NotesList.jsx:45"
+        "note-ui/NotesList.jsx:45",
+        "note-ui/TransmissionModal.jsx:38",
+        "note-ui/TransmissionModal.jsx:49",
+        "note-ui/TransmissionModal.jsx:60",
+        "note-ui/TransmissionModal.jsx:70"
+      ]
+    },
+    {
+      "fr": "375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1",
+      "empreinte": "02cf14f33f04",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Dynacare'), address: L('375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1'), phone: '819 566-3000', fax: '819 566-3001', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:40"
+      ]
+    },
+    {
+      "fr": "38 ans",
+      "empreinte": "5dd4224e7cf9",
+      "contexte": "donnée de démonstration",
+      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 1987')) + ' (' + (P.age |",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:261"
       ]
     },
     {
@@ -6470,6 +9384,15 @@
       "extrait": "age: L('38 ans'),",
       "fichiers": [
         "note-ui/editor-data.jsx:959"
+      ]
+    },
+    {
+      "fr": "5 JUIN 2025 10:30",
+      "empreinte": "8142e5e70d19",
+      "contexte": "donnée de démonstration",
+      "extrait": "date: L(\"5 JUIN 2025 10:30\"),",
+      "fichiers": [
+        "note-ui/NotesList.jsx:70"
       ]
     },
     {
@@ -6488,6 +9411,15 @@
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
         "note-ui/NoteEditor.jsx:1294"
+      ]
+    },
+    {
+      "fr": "560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3",
+      "empreinte": "a2c3704c7089",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', f",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:28"
       ]
     },
     {
@@ -6551,6 +9483,15 @@
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
         "note-ui/NoteEditor.jsx:1294"
+      ]
+    },
+    {
+      "fr": "8 DÉCEMBRE 2025 09:15",
+      "empreinte": "31d60b83b801",
+      "contexte": "donnée de démonstration",
+      "extrait": "date: L(\"8 DÉCEMBRE 2025 09:15\"),",
+      "fichiers": [
+        "note-ui/NotesList.jsx:54"
       ]
     },
     {
@@ -6627,7 +9568,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:534"
+        "Note Clinique.html:535"
       ]
     },
     {
@@ -7323,6 +10264,15 @@
       ]
     },
     {
+      "fr": "Autre professionnel de la santé",
+      "empreinte": "b09ade1467f0",
+      "contexte": "donnée de démonstration",
+      "extrait": "L('Autre professionnel de la santé'),",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:98"
+      ]
+    },
+    {
       "fr": "Avec aérochambre.",
       "empreinte": "f22e57b513c5",
       "contexte": "donnée de démonstration",
@@ -7598,6 +10548,15 @@
       ]
     },
     {
+      "fr": "Biron Groupe Santé",
+      "empreinte": "1c5bbea4fb73",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Biron Groupe Santé'), address: L('1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1'), phone: '819 562-8000', fax: '819 562-8001', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:39"
+      ]
+    },
+    {
       "fr": "Bisoprolol",
       "empreinte": "ce8287894676",
       "contexte": "donnée de démonstration",
@@ -7671,6 +10630,16 @@
       ]
     },
     {
+      "fr": "CIUSSS de l’Estrie — CHUS",
+      "empreinte": "fa0771287cd3",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('CIUSSS de l’Estrie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1111', favorite: t",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:38",
+        "note-ui/TransmissionModal.jsx:70"
+      ]
+    },
+    {
       "fr": "CNESST",
       "empreinte": "79f79eadf5d6",
       "contexte": "donnée de démonstration",
@@ -7687,6 +10656,15 @@
       "fichiers": [
         "note-ui/Summary.jsx:46",
         "note-ui/SummaryModals.jsx:576"
+      ]
+    },
+    {
+      "fr": "CRDS Estrie — Centre de répartition des demandes de service",
+      "empreinte": "19d0a4239c7e",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fa",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:59"
       ]
     },
     {
@@ -7752,6 +10730,15 @@
       "fichiers": [
         "note-ui/NoteEditor.jsx:1800",
         "note-ui/editor-data.jsx:643"
+      ]
+    },
+    {
+      "fr": "Cardiologie — CHUS",
+      "empreinte": "2c108f279a2f",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Cardiologie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1113', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:60"
       ]
     },
     {
@@ -7925,6 +10912,25 @@
       "extrait": "text: L('Citalopram 20 mg — 1 co DIE'),",
       "fichiers": [
         "note-ui/editor-data.jsx:182"
+      ]
+    },
+    {
+      "fr": "Clinique de radiologie de Sherbrooke",
+      "empreinte": "01613d077626",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Clinique de radiologie de Sherbrooke'), address: L('1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1'), phone: '819 562-3131', fax: '819 562-3132', f",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:50"
+      ]
+    },
+    {
+      "fr": "Clinique médicale King Ouest",
+      "empreinte": "7519c931d8ef",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Clinique médicale King Ouest'), phone: '819 555-0166', fax: '819 555-0167' },",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:14",
+        "note-ui/TransmissionModal.jsx:101"
       ]
     },
     {
@@ -8353,6 +11359,33 @@
       ]
     },
     {
+      "fr": "Dr Julien Gagnon",
+      "empreinte": "63bc33093814",
+      "contexte": "donnée de démonstration",
+      "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:100"
+      ]
+    },
+    {
+      "fr": "Dr Marc Lefebvre",
+      "empreinte": "bb0e233d43f0",
+      "contexte": "donnée de démonstration",
+      "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:100"
+      ]
+    },
+    {
+      "fr": "Dre Sophie Bouchard",
+      "empreinte": "8113e4c7c9a6",
+      "contexte": "donnée de démonstration",
+      "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:100"
+      ]
+    },
+    {
       "fr": "Drogue",
       "empreinte": "ee8a4d17c57b",
       "contexte": "donnée de démonstration",
@@ -8368,6 +11401,15 @@
       "extrait": "{ left:L('Drogues'), name:L('Drogues'), mid:L('Aucune'),               detail:L('Aucune') },",
       "fichiers": [
         "note-ui/Summary.jsx:51"
+      ]
+    },
+    {
+      "fr": "Dynacare",
+      "empreinte": "bb8e6218105b",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Dynacare'), address: L('375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1'), phone: '819 566-3000', fax: '819 566-3001', favorite: false },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:40"
       ]
     },
     {
@@ -8859,6 +11901,17 @@
       ]
     },
     {
+      "fr": "GMF Sherbrooke-Est",
+      "empreinte": "79959a1ebf36",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('GMF Sherbrooke-Est'), phone: '819 555-0142', fax: '819 555-0143' },",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:13",
+        "note-ui/TransmissionModal.jsx:101",
+        "note-ui/TransmissionModal.jsx:71"
+      ]
+    },
+    {
       "fr": "Gabapentine",
       "empreinte": "3e608ec55264",
       "contexte": "donnée de démonstration",
@@ -9215,6 +12268,16 @@
       "extrait": "var VACCINE_SUGG = [L('HPV (Gardasil)'),L('dCaT (Tétanos-diphtérie)'),L('Influenza'),L('COVID-19'),L('RRO'),L('Varicelle'),L('Hépatite B'),L('Méningocoque')];",
       "fichiers": [
         "note-ui/SummaryModals.jsx:576"
+      ]
+    },
+    {
+      "fr": "Hôpital Fleurimont — CHUS",
+      "empreinte": "1cb816edb2c8",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Hôpital Fleurimont — CHUS'), phone: '819 346-1110', fax: '819 346-1199' },",
+      "fichiers": [
+        "note-ui/FaxScreen.jsx:12",
+        "note-ui/TransmissionModal.jsx:101"
       ]
     },
     {
@@ -9691,7 +12754,10 @@
       "extrait": "complete: true, transmitted: true, attachments: [L('Liste de médicaments active')], note: '' },",
       "fichiers": [
         "note-ui/NotesList.jsx:26",
-        "note-ui/NotesList.jsx:50"
+        "note-ui/NotesList.jsx:50",
+        "note-ui/TransmissionModal.jsx:23",
+        "note-ui/TransmissionModal.jsx:24",
+        "note-ui/TransmissionModal.jsx:55"
       ]
     },
     {
@@ -9982,7 +13048,17 @@
       "fichiers": [
         "note-ui/NotesList.jsx:33",
         "note-ui/NotesList.jsx:7",
-        "note-ui/NotesList.jsx:73"
+        "note-ui/NotesList.jsx:73",
+        "note-ui/TransmissionModal.jsx:95"
+      ]
+    },
+    {
+      "fr": "Médecin référent",
+      "empreinte": "29ddc7d1f4c0",
+      "contexte": "donnée de démonstration",
+      "extrait": "L('Médecin référent'),",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:96"
       ]
     },
     {
@@ -10067,6 +13143,15 @@
       "extrait": "text: L('Naproxene 500 mg — 1 co BID c. repas'),",
       "fichiers": [
         "note-ui/editor-data.jsx:272"
+      ]
+    },
+    {
+      "fr": "Ne pas faire suivre",
+      "empreinte": "a26f3973e24a",
+      "contexte": "donnée de démonstration",
+      "extrait": "L('Ne pas faire suivre'),",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:94"
       ]
     },
     {
@@ -10176,7 +13261,14 @@
       "contexte": "donnée de démonstration",
       "extrait": "complete: true, transmitted: true, attachments: [L('Note clinique')], note: '' },",
       "fichiers": [
-        "note-ui/NotesList.jsx:46"
+        "note-ui/NotesList.jsx:46",
+        "note-ui/TransmissionModal.jsx:23",
+        "note-ui/TransmissionModal.jsx:34",
+        "note-ui/TransmissionModal.jsx:45",
+        "note-ui/TransmissionModal.jsx:55",
+        "note-ui/TransmissionModal.jsx:56",
+        "note-ui/TransmissionModal.jsx:66",
+        "note-ui/TransmissionModal.jsx:76"
       ]
     },
     {
@@ -10343,7 +13435,8 @@
       "extrait": "recipients: [{ id: 'r-demo-pjc', name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595'",
       "fichiers": [
         "note-ui/NotesList.jsx:25",
-        "note-ui/NotesList.jsx:49"
+        "note-ui/NotesList.jsx:49",
+        "note-ui/TransmissionModal.jsx:27"
       ]
     },
     {
@@ -10352,7 +13445,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:534",
+        "Note Clinique.html:535",
         "note-ui/NotesList.jsx:34",
         "note-ui/NotesList.jsx:58",
         "note-ui/NotesList.jsx:74",
@@ -10403,6 +13496,15 @@
       "extrait": "conclusion: L(\"Pas de problème actif identifié. Plan : Renouvellement contraceptif oral pour 1 an. Rappel dépistage col utérin à planifier. Conseils hygiéno-dié",
       "fichiers": [
         "note-ui/NotesList.jsx:79"
+      ]
+    },
+    {
+      "fr": "Patient (portail sécurisé)",
+      "empreinte": "02868c68273c",
+      "contexte": "donnée de démonstration",
+      "extrait": "L('Patient (portail sécurisé)'),",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:97"
       ]
     },
     {
@@ -10461,6 +13563,15 @@
       ]
     },
     {
+      "fr": "Pharmacie Brunet — Wellington Sud",
+      "empreinte": "f9f9c1580abd",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', f",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:28"
+      ]
+    },
+    {
       "fr": "Phosphatase alcaline",
       "empreinte": "6a50cb3bc1e5",
       "contexte": "donnée de démonstration",
@@ -10515,6 +13626,15 @@
         "note-ui/Summary.jsx:13",
         "note-ui/Summary.jsx:191",
         "note-ui/editor-data.jsx:973"
+      ]
+    },
+    {
+      "fr": "Portail patient sécurisé",
+      "empreinte": "41ad616c25e7",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Portail patient sécurisé'), address: '', phone: '', fax: '', favorite: true },",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:80"
       ]
     },
     {
@@ -10807,7 +13927,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "recipients: [{ id: 'r-demo-chus', name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 ",
       "fichiers": [
-        "note-ui/NotesList.jsx:45"
+        "note-ui/NotesList.jsx:45",
+        "note-ui/TransmissionModal.jsx:49"
       ]
     },
     {
@@ -11071,6 +14192,16 @@
       "fichiers": [
         "note-ui/editor-data.jsx:8",
         "note-ui/editor-data.jsx:9"
+      ]
+    },
+    {
+      "fr": "Résultats antérieurs",
+      "empreinte": "8b85a9d106cb",
+      "contexte": "donnée de démonstration",
+      "extrait": "attachments: [L('Note clinique'), L('Résultats antérieurs')],",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:34",
+        "note-ui/TransmissionModal.jsx:45"
       ]
     },
     {
@@ -11833,6 +14964,15 @@
       "extrait": "indication: L('UTI compliquee'), notes: L('Antibiotique') } },",
       "fichiers": [
         "note-ui/editor-data.jsx:315"
+      ]
+    },
+    {
+      "fr": "Uniprix — King Ouest",
+      "empreinte": "425637812646",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false }",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:29"
       ]
     },
     {

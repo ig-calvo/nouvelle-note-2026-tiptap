@@ -1,7 +1,7 @@
 /* global React */
 const NOTE_ITEMS_TEMPLATE = [
   {
-    date: "2 JUILLET 2026 13:45",
+    date: L("2 JUILLET 2026 13:45"),
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
     role: L("Médecin de famille"),
@@ -27,7 +27,7 @@ const NOTE_ITEMS_TEMPLATE = [
     ],
   },
   {
-    date: "2 JUILLET 2026 09:10",
+    date: L("2 JUILLET 2026 09:10"),
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
     role: L("Médecin de famille"),
@@ -51,7 +51,7 @@ const NOTE_ITEMS_TEMPLATE = [
     ],
   },
   {
-    date: "8 DÉCEMBRE 2025 09:15",
+    date: L("8 DÉCEMBRE 2025 09:15"),
     author: "Dr Marc Lefebvre",
     clinic: "%%CLINIC%%",
     role: L("Médecine d'urgence"),
@@ -67,7 +67,7 @@ const NOTE_ITEMS_TEMPLATE = [
     ],
   },
   {
-    date: "5 JUIN 2025 10:30",
+    date: L("5 JUIN 2025 10:30"),
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
     role: L("Médecin de famille"),
@@ -324,8 +324,8 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
       <div style={nlStyles.title}>{t('notesList.listeNotesCliniques.text')}</div>
 
       <div style={nlStyles.filterRow}>
-        <Filter label={t('notesList.voir.label')} value="Toutes les notes" width={190} />
-        <Filter label={t('notesList.triees.label')} value="Date d'entrée en vigueur" width={250} />
+        <Filter label={t('notesList.voir.label')} value={t('notesList.allNotes.text')} width={190} />
+        <Filter label={t('notesList.triees.label')} value={t('notesList.sortEffectiveDate.text')} width={250} />
         <Filter label={t('notesList.du.label')} value="15/10/2023" width={150} cal />
         <Filter label={t('notesList.au.label')} value="15/10/2023" width={150} cal />
       </div>

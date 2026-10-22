@@ -1,7 +1,7 @@
 /* global React */
 function TopBar({
   user = "Véronique Charland",
-  mandate = "En mon nom",
+  mandate = t('topBar.onMyBehalf.text'),
   clinic = "Clinique du Centre-ville",
   onMenuClick
 }) {

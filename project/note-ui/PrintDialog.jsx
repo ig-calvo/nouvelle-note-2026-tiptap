@@ -18,29 +18,29 @@ function PrintDialog({ doc, doctorName, institution, onCancel, onDone }) {
         <window.DocumentPreview doc={doc} doctorName={doctorName} institution={institution} scale={1} />
       </div>
       <div style={pd.panel}>
-        <div style={pd.panelTitle}>Imprimer</div>
+        <div style={pd.panelTitle}>{t('print.imprimer.text')}</div>
 
         <div style={pd.field}>
-          <div style={pd.fieldLabel}>Destination</div>
+          <div style={pd.fieldLabel}>{t('print.destination.text')}</div>
           <div style={pd.fieldValue}>
             <span className="material-icons-outlined" style={{ fontSize: 18, color: 'rgba(0,0,0,0.5)' }}>print</span>
-            Imprimante par défaut
+            {t('print.imprimanteDefaut.text')}
           </div>
         </div>
         <div style={pd.field}>
-          <div style={pd.fieldLabel}>Pages</div>
-          <div style={pd.fieldValue}>Toutes</div>
+          <div style={pd.fieldLabel}>{t('print.pages.text')}</div>
+          <div style={pd.fieldValue}>{t('print.toutes.text')}</div>
         </div>
         <div style={pd.field}>
-          <div style={pd.fieldLabel}>Copies</div>
+          <div style={pd.fieldLabel}>{t('print.copies.text')}</div>
           <div style={pd.fieldValue}>1</div>
         </div>
 
         <div style={{ flex: 1 }} />
 
         <div style={pd.actions}>
-          <button style={pd.cancelBtn} onClick={onCancel}>Annuler</button>
-          <button style={pd.printBtn} onClick={onDone}>Imprimer</button>
+          <button style={pd.cancelBtn} onClick={onCancel}>{t('print.annuler.button')}</button>
+          <button style={pd.printBtn} onClick={onDone}>{t('print.imprimer.button')}</button>
         </div>
       </div>
     </div>

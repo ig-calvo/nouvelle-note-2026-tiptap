@@ -1,28 +1,28 @@
 /* global React */
 
 const CLINICAL_TOOLS = [
-  { id: 'itu', label: 'Feuille de route - Symptômes urinaires', hasTool: true },
-  { id: 'exam-court', label: 'Examen physique - Version courte', hasTool: true },
-  { id: 'ep-gabarit', label: 'Examen physique complet - Gabarit' },
-  { id: 'em-gabarit', label: 'Examen mental complet - Gabarit' },
-  { id: 'sommaire', label: 'Saisie rapide du sommaire - Gabarit' },
-  { id: 'douleur-thoracique', label: 'Douleur thoracique' },
-  { id: 'prevention', label: 'Fiche de prévention clinique' },
-  { id: 'ah253', label: "Note d'évolution (AH-253)" },
-  { id: 'findrisc', label: 'Findrisc' },
-  { id: 'glycemies', label: 'Tableau des glycémies' },
-  { id: 'inr', label: 'Suivi INR' },
-  { id: 'cystite', label: "Cystite - Formulaire de liaison à l'attention du pharmacien communautaire" },
-  { id: 'hta-oc', label: "Hypertension artérielle - Formulaire d'adhésion à l'ordonnance collective" },
-  { id: 'diabete-oc', label: "Diabète de type 2 - Formulaire d'adhésion à l'ordonnance collective" },
-  { id: 'alzheimer', label: 'Repérage et processus menant au diagnostic - Alzheimer et TNC' },
-  { id: 'exercices', label: "Prescription d'exercices et demande de consultation" },
-  { id: 'luci', label: 'Référencement Luci' },
-  { id: 'srdv', label: 'Sans rendez-vous - Gabarit' },
-  { id: 'hydro', label: 'Certificat médical - Hydro-Québec' },
-  { id: 'ah280', label: 'Urgence - Consultation externe (AH-280)' },
-  { id: 'mmas8', label: 'MMAS-8 - Morisky Medication Adherence Scale' },
-  { id: 'nicotine', label: 'Traitement de remplacement de la nicotine' },
+  { id: 'itu', label: t('clinicalToolPicker.feuilleRouteSymptomesUrinaires.label'), hasTool: true },
+  { id: 'exam-court', label: t('clinicalToolPicker.examenPhysiqueVersionCourte.label'), hasTool: true },
+  { id: 'ep-gabarit', label: t('clinicalToolPicker.examenPhysiqueCompletGabarit.label') },
+  { id: 'em-gabarit', label: t('clinicalToolPicker.examenMentalCompletGabarit.label') },
+  { id: 'sommaire', label: t('clinicalToolPicker.saisieRapideSommaireGabarit.label') },
+  { id: 'douleur-thoracique', label: t('clinicalToolPicker.douleurThoracique.label') },
+  { id: 'prevention', label: t('clinicalToolPicker.fichePreventionClinique.label') },
+  { id: 'ah253', label: t('clinicalToolPicker.noteEvolutionAh253.label') },
+  { id: 'findrisc', label: t('clinicalToolPicker.findrisc.label') },
+  { id: 'glycemies', label: t('clinicalToolPicker.tableauGlycemies.label') },
+  { id: 'inr', label: t('clinicalToolPicker.suiviInr.label') },
+  { id: 'cystite', label: t('clinicalToolPicker.cystiteFormulaireLiaisonAttention.label') },
+  { id: 'hta-oc', label: t('clinicalToolPicker.hypertensionArterielleFormulaireAd.label') },
+  { id: 'diabete-oc', label: t('clinicalToolPicker.diabeteType2Formulaire.label') },
+  { id: 'alzheimer', label: t('clinicalToolPicker.reperageProcessusMenantDiagnostic.label') },
+  { id: 'exercices', label: t('clinicalToolPicker.prescriptionExercicesDemandeConsul.label') },
+  { id: 'luci', label: t('clinicalToolPicker.referencementLuci.label') },
+  { id: 'srdv', label: t('clinicalToolPicker.sansRendezGabarit.label') },
+  { id: 'hydro', label: t('clinicalToolPicker.certificatMedicalHydroQuebec.label') },
+  { id: 'ah280', label: t('clinicalToolPicker.urgenceConsultationExterneAh.label') },
+  { id: 'mmas8', label: t('clinicalToolPicker.mmas8MoriskyMedication.label') },
+  { id: 'nicotine', label: t('clinicalToolPicker.traitementRemplacementNicotine.label') },
 ];
 
 function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
@@ -101,11 +101,11 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
 
       {/* Header */}
       <div style={ctpS.header}>
-        <button style={ctpS.iconBtn} onClick={onBack || onClose} title="Retour">
+        <button style={ctpS.iconBtn} onClick={onBack || onClose} title={t('clinicalToolPicker.retour.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        <span style={ctpS.title}>Outils cliniques</span>
-        <button style={ctpS.iconBtn} onClick={onClose} title="Fermer">
+        <span style={ctpS.title}>{t('clinicalToolPicker.outilsCliniques.text')}</span>
+        <button style={ctpS.iconBtn} onClick={onClose} title={t('clinicalToolPicker.fermer.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
         </button>
       </div>
@@ -114,7 +114,7 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
       <div style={ctpS.searchOuter}>
         <div style={Object.assign({}, ctpS.searchBox, inputFocused ? ctpS.searchBoxFocused : {})}>
           <span style={Object.assign({}, ctpS.searchLabel, (inputFocused || query) ? ctpS.searchLabelFloat : {})}>
-            Recherche
+            {t('clinicalToolPicker.recherche.text')}
           </span>
           <span className="material-icons-outlined" style={ctpS.searchLeadIcon}>list</span>
           <input
@@ -141,13 +141,13 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
           <span className="material-icons-outlined" style={{ fontSize: 15 }}>
             {tab === 'favori' ? 'favorite' : 'favorite_border'}
           </span>
-          Favori
+          {t('clinicalToolPicker.favori.button')}
         </button>
         <button
           style={Object.assign({}, ctpS.tab, tab === 'all' ? ctpS.tabActive : {})}
           onClick={function () { setTab('all'); }}>
           <span className="material-icons-outlined" style={{ fontSize: 15 }}>folder</span>
-          Groupes
+          {t('clinicalToolPicker.groupes.button')}
         </button>
       </div>
 
@@ -161,7 +161,7 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
             <div
               key={tool.id}
               style={Object.assign({}, ctpS.item, disabled ? ctpS.itemDisabled : (isHov ? ctpS.itemHov : {}))}
-              title={disabled ? 'Bientôt disponible' : undefined}
+              title={disabled ? t('clinicalToolPicker.bientotDisponible.tooltip') : undefined}
               onMouseEnter={function () { if (!disabled) setHovered(tool.id); }}
               onMouseLeave={function () { setHovered(null); }}
               onClick={function () { if (!disabled) onSelect(tool); }}>
@@ -169,18 +169,18 @@ function ClinicalToolPicker({ anchorRect, onClose, onSelect, onBack }) {
                 style={ctpS.heartBtn}
                 onMouseDown={function (e) { e.stopPropagation(); }}
                 onClick={function (e) { toggleFav(tool.id, e); }}
-                title={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}>
+                title={isFav ? t('clinicalToolPicker.retirerFavoris.tooltip') : t('clinicalToolPicker.ajouterFavoris.tooltip')}>
                 <span className="material-icons" style={{ fontSize: 20, color: isFav ? 'light-dark(#e8112d, #e9a5ae)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent)' }}>
                   {isFav ? 'favorite' : 'favorite_border'}
                 </span>
               </button>
               <span style={Object.assign({}, ctpS.itemLabel, disabled ? ctpS.itemLabelDisabled : {})}>{tool.label}</span>
-              {disabled && <span style={ctpS.soonBadge}>Bientôt</span>}
+              {disabled && <span style={ctpS.soonBadge}>{t('clinicalToolPicker.bientot.text')}</span>}
             </div>
           );
         })}
         {displayed.length === 0 && tab === 'favori' && !q &&
-          <div style={ctpS.empty}>Cliquez sur ♡ pour ajouter des favoris.</div>
+          <div style={ctpS.empty}>{t('clinicalToolPicker.cliquezAjouterFavoris.text')}</div>
         }
         {displayed.length === 0 && q &&
           <div style={ctpS.empty}>{t('clinicalTool.picker.noResult.empty', { query: query })}</div>

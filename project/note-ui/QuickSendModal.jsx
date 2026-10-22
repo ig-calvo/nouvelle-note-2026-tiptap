@@ -61,15 +61,15 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
   const blocked = !doc.complete && (doc.blocking || []).length > 0;
   const sendDisabled = noRecipient || doc.transmitted || blocked;
   const sendTitle = doc.transmitted
-    ? 'Document déjà transmis'
+    ? t('documentAction.alreadyTransmitted.tooltip')
     : blocked ? (doc.blocking || []).join('\n')
-    : (noRecipient ? 'Aucun destinataire sélectionné' : undefined);
+    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
 
   function completeAndSend() {
     if (sendDisabled) return;
     if (!doc.complete && onComplete) onComplete(doc.id);
     patch({ transmitted: true });
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Document transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(t('quickSend.documentTransmis.toast'), { icon: 'check_circle' });
     onCancel();
   }
   function onPrintDone() {
@@ -93,8 +93,8 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
     <div style={qs.overlay} onMouseDown={onCancel}>
       <div style={qs.dialog} onMouseDown={function (e) { e.stopPropagation(); }} role="dialog" aria-modal="true">
         <div style={qs.head}>
-          <div style={qs.title}>Envoi rapide</div>
-          <button style={qs.closeBtn} onClick={onCancel} aria-label="Fermer">
+          <div style={qs.title}>{t('quickSend.envoiRapide.text')}</div>
+          <button style={qs.closeBtn} onClick={onCancel} aria-label={t('quickSend.fermer.aria')}>
             <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>close</span>
           </button>
         </div>
@@ -105,16 +105,16 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
               <span className="material-icons-outlined" style={{ fontSize: 21, color: meta.accent }}>{meta.icon}</span>
               <span style={qs.docTitle}>{doc.title}</span>
               <span style={Object.assign({}, qs.badge, doc.complete ? qs.badgeOn : {})}>
-                {doc.complete ? 'Complétée' : 'Non complétée'}
+                {doc.complete ? t('quickSend.completee.text') : t('quickSend.nonCompletee.text')}
               </span>
               <span style={Object.assign({}, qs.badge, doc.transmitted ? qs.badgeOn : {})}>
-                {doc.transmitted ? 'Transmise' : 'Non transmise'}
+                {doc.transmitted ? t('quickSend.transmise.text') : t('quickSend.nonTransmise.text')}
               </span>
             </div>
 
             <div style={qs.sectionLabel}>
-              {doc.kind === 'prescription' ? 'PRESCRIPTIONS (' + doc.items.length + ')' : 'DÉTAILS (' + doc.items.length + ')'}
-              <button style={qs.iconAdd} title="Ajouter" onClick={function () {}}>
+              {doc.kind === 'prescription' ? t('quickSend.prescriptionsCount.label', { n: doc.items.length }) : t('quickSend.detailsCount.label', { n: doc.items.length })}
+              <button style={qs.iconAdd} title={t('quickSend.ajouter.tooltip')} onClick={function () {}}>
                 <span className="material-icons" style={{ fontSize: 17 }}>add</span>
               </button>
             </div>
@@ -137,8 +137,8 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             </div>
 
             <div style={qs.sectionLabel}>
-              DESTINATAIRE ({recipientCount})
-              <button style={qs.iconAdd} title="Ajouter un destinataire"
+              {t('quickSend.recipients.label', { n: recipientCount })}
+              <button style={qs.iconAdd} title={t('quickSend.ajouterDestinataire.tooltip')}
                 onClick={function () { setPickerOpen(!pickerOpen); }}>
                 <span className="material-icons" style={{ fontSize: 17 }}>add</span>
               </button>
@@ -147,7 +147,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             {noRecipient &&
               <div style={qs.warnBanner}>
                 <span className="material-icons-outlined" style={{ fontSize: 18, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
-                <span style={qs.warnText}>Ajouter un destinataire pour transmettre {meta.nounPhrase}.</span>
+                <span style={qs.warnText}>{t('quickSend.addRecipientWarning.text', { noun: meta.nounPhrase })}</span>
               </div>
             }
 
@@ -161,7 +161,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                     </div>
                     <div style={qs.recipientMeta}>{[r.phone, r.fax].filter(Boolean).join(' · ')}</div>
                   </div>
-                  <button style={qs.removeBtn} onClick={function () { removeRecipient(r.id); }} title="Retirer">
+                  <button style={qs.removeBtn} onClick={function () { removeRecipient(r.id); }} title={t('quickSend.retirer.tooltip')}>
                     <span className="material-icons-outlined" style={{ fontSize: 17 }}>close</span>
                   </button>
                 </div>
@@ -175,8 +175,8 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                 {showSuggestions &&
                   <div style={qs.pickerHead}>
                     <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
-                    SUGGESTION {meta.suggestions.length}
-                    <button style={qs.pickerHideBtn} title="Masquer les suggestions"
+                    {t('quickSend.suggestions.label', { n: meta.suggestions.length })}
+                    <button style={qs.pickerHideBtn} title={t('quickSend.masquerSuggestions.tooltip')}
                       onClick={function () { setSuggestHidden(true); }}>
                       <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
                     </button>
@@ -204,8 +204,8 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             {attachOptions.length > 0 &&
               <React.Fragment>
                 <div style={qs.sectionLabel}>
-                  PIÈCES JOINTES
-                  <button style={qs.iconAdd} title="Ajouter une pièce jointe" onClick={function () {}}>
+                  {t('quickSend.attachments.label')}
+                  <button style={qs.iconAdd} title={t('quickSend.ajouterPieceJointe.tooltip')} onClick={function () {}}>
                     <span className="material-icons" style={{ fontSize: 17 }}>add</span>
                   </button>
                 </div>
@@ -231,7 +231,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
               <textarea
                 style={qs.noteField}
                 maxLength={500}
-                placeholder={meta.noteLabel || 'Note pour le destinataire'}
+                placeholder={meta.noteLabel || t('quickSend.noteDestinataire.placeholder')}
                 value={doc.note}
                 onChange={function (e) { patch({ note: e.target.value.slice(0, 500) }); }} />
               <div style={qs.noteCount}>{(doc.note || '').length}/500</div>
@@ -245,11 +245,11 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             {summary}
           </div>
           {onOpenFull &&
-            <button style={qs.linkBtn} onClick={onOpenFull}>Voir tous les documents</button>
+            <button style={qs.linkBtn} onClick={onOpenFull}>{t('quickSend.voirTousDocuments.button')}</button>
           }
           <div style={{ flex: 1 }} />
           <button style={Object.assign({}, qs.printBtn, blocked ? qs.btnDisabled : {})} disabled={blocked}
-            title={blocked ? (doc.blocking || []).join('\n') : 'Imprimer'} onClick={function () { setPrinting(true); }}>
+            title={blocked ? (doc.blocking || []).join('\n') : t('quickSend.imprimer.tooltip')} onClick={function () { setPrinting(true); }}>
             <span className="material-icons-outlined" style={{ fontSize: 20 }}>print</span>
           </button>
           <button
@@ -258,7 +258,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             title={sendTitle}
             onClick={completeAndSend}>
             <span className="material-icons-outlined" style={{ fontSize: 19 }}>send</span>
-            Compléter et envoyer
+            {t('quickSend.completerEnvoyer.button')}
           </button>
         </div>
       </div>
