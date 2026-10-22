@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "version": 1,
+    "date": "2026-10-22",
+    "source": "note-ui/i18n/fr.js (empreintes du catalogue A0)",
+    "usage": "Empreinte sha1 (12 car.) du texte français au moment de la traduction. Différence = retraduire la clé."
+  },
+  "empreintes": {
+    "app.error.hint": "cf66d4fe2da4",
+    "app.error.title": "a834b7056422",
+    "app.tiptap.hint": "955c4aefdc02",
+    "app.tiptap.text": "3b6db230e91d",
+    "app.tiptap.title": "fb68cc17996b",
+    "document.kind.clinicalTool": "9e17acf5815e",
+    "document.kind.imaging": "876ab0ce03e2",
+    "document.kind.instructions": "c05b9dfd4653",
+    "document.kind.lab": "0f78e26d87bf",
+    "document.kind.prescription": "212f9846068b",
+    "document.kind.referral": "f8130bb03a28"
+  }
+}
