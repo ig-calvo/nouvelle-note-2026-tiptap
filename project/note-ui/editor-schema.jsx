@@ -2414,7 +2414,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
 
   var docs = [];
   var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
-  if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
+  if (rxItems.length) docs.push(withTx('rx', 'prescription', t('schema.rxDocument.title'), rxItems));
   var grouped = groupRequests ? ['lab', 'imaging'] : [];
   [['lab', t('schema.labRequestFull.label')], ['imaging', t('schema.imagingRequest.label')]].forEach(function(g) {
     if (grouped.indexOf(g[0]) < 0) return;
