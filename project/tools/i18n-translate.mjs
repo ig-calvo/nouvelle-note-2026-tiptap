@@ -266,7 +266,11 @@ async function construire(fichierCim10, fichierSnomed) {
     },
     concepts: snomed.concepts.map((c) => [...c, t(ts, idConcept(c))]),
   });
-  await ecrire(path.join(NOTE_UI, 'i18n', 'traductions.meta.json'), {
+  // Fusion avec le fichier existant : construire ne réécrit que les trois fichiers CIM-10 et SNOMED.
+  const metaFichier = path.join(NOTE_UI, 'i18n', 'traductions.meta.json');
+  const meta = await lire(metaFichier).catch(() => ({}));
+  await ecrire(metaFichier, {
+    ...meta,
     'cim10-en-clinique.json': { traduction: 'automatique', sens: 'fr → en-CA', lignes: lignes.length, date: DATE },
     'cim10-hierarchy-en.json': { traduction: 'automatique', sens: 'fr → en-CA', libelles: hier.chapters.length + hier.blocks.length + hier.parents.length + hier.ajouts.length, date: DATE },
     'snomed-diagnostics-fr.json': { traduction: 'automatique', sens: 'en → fr', lignes: snomed.concepts.length, date: DATE },

@@ -119,7 +119,7 @@
   'BID PRN': 'BID PRN',
   'Benzodiazepine': 'Benzodiazepine',
   'Betabloquant': 'Beta blocker',
-  'Bilan annuel': 'Annual workup',
+  'Bilan annuel': 'Annual checkup',
   'Bilan annuel. HTA et dyslipidémie suivis. Pas de plainte.\nTA 138/86, FC 72 rég. Auscultation normale.': 'Annual checkup. Hypertension and dyslipidemia being followed. No complaints.\nBP 138/86, HR 72 reg. Normal auscultation.',
   'Bilan anémie': 'Anemia workup',
   'Bilan hépatique': 'Liver panel',
