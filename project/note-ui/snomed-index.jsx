@@ -6,7 +6,9 @@
 //
 // Source : note-ui/snomed-diagnostics.json, généré par
 // tools/csv-to-snomed-json.py depuis l'export Infoway (refset « Most commonly
-// used clinical problems… », 4 219 concepts, TERMES EN ANGLAIS). Liste plate :
+// used clinical problems… », 4 219 concepts, TERMES EN ANGLAIS), et
+// note-ui/snomed-diagnostics-fr.json (même liste, plus le terme français en 5e
+// colonne ; lot A5 du plan bilingue). Liste plate :
 // pas de hiérarchie à parcourir, seulement de la recherche par texte ou par
 // identifiant de concept.
 //
@@ -51,21 +53,35 @@ function snomedMatchTokens(tok, qTokens) {
   return null;
 }
 
-function buildSnomedIndex(data) {
+// `options.lang` : 'fr' affiche le terme français quand il existe ; sinon le
+// terme anglais de `data`. `options.alt` : le fichier de l'autre langue, dont on
+// ne lit que le terme français (recherche bilingue, lot A5). Sans options,
+// comme avant : terme anglais, pas de recherche française.
+function buildSnomedIndex(data, options) {
+  const lang = (options && options.lang) || 'en';
   const tags = (data && data._meta && data._meta.tags) || [];
+  const frById = new Map();
+  ((options && options.alt && options.alt.concepts) || []).forEach(function (r) { if (r[4]) frById.set(String(r[0]), r[4]); });
   const items = ((data && data.concepts) || []).map(function (r) {
-    const label = r[1];
+    const en = r[1];
+    const fr = r[4] || frById.get(String(r[0])) || null;
+    const label = (lang === 'fr' && fr) ? fr : en;
     const fsn = r[2] ? r[2] : null;
-    const tok = snomedQueryTokens(label);
+    // Listes de tokens par lesquelles le concept se trouve : le terme affiché,
+    // puis l'autre terme, puis le nom complet.
+    const toks = [snomedQueryTokens(label)];
+    if (en && en !== label) toks.push(snomedQueryTokens(en));
+    if (fr && fr !== label) toks.push(snomedQueryTokens(fr));
+    if (fsn) toks.push(snomedQueryTokens(fsn));
     return {
-      id: r[0], label: label, fsn: fsn, tag: r[3] >= 0 ? (tags[r[3]] || null) : null,
-      tok: tok, fsnTok: fsn ? snomedQueryTokens(fsn) : null,
+      id: r[0], label: label, en: en !== label ? en : null, fsn: fsn, tag: r[3] >= 0 ? (tags[r[3]] || null) : null,
+      toks: toks,
     };
   });
   const byId = new Map(items.map(function (it) { return [it.id, it]; }));
 
   function view(it, score) {
-    return { id: it.id, label: it.label, fsn: it.fsn, tag: it.tag, score: score };
+    return { id: it.id, label: it.label, en: it.en, fsn: it.fsn, tag: it.tag, score: score };
   }
 
   let memo = null;
@@ -87,8 +103,11 @@ function buildSnomedIndex(data) {
     } else {
       const qt = snomedQueryTokens(qn);
       items.forEach(function (it) {
-        const a = snomedMatchTokens(it.tok, qt), b = snomedMatchTokens(it.fsnTok, qt);
-        const cls = a == null ? b : (b == null ? a : Math.min(a, b));
+        let cls = null;
+        it.toks.forEach(function (tk) {
+          const c = snomedMatchTokens(tk, qt);
+          if (c != null && (cls == null || c < cls)) cls = c;
+        });
         if (cls == null) return;
         // À classe égale, le libellé le plus court (le plus général) d'abord.
         matches.push({ it: it, score: cls + Math.min(0.99, it.label.length / 200) });
@@ -120,14 +139,14 @@ function buildSnomedIndex(data) {
 // données changent de référence.
 // ---------------------------------------------------------
 let _snomedInstance = null;
-let _snomedBuiltFrom = null;
+let _snomedBuiltFrom = [];
 
 function snomedEnsure() {
-  const data = window.SNOMED_DATA;
+  const data = window.SNOMED_DATA, alt = window.SNOMED_ALT || null;
   if (!data) return null;
-  if (_snomedInstance && _snomedBuiltFrom === data) return _snomedInstance;
-  _snomedInstance = buildSnomedIndex(data);
-  _snomedBuiltFrom = data;
+  if (_snomedInstance && _snomedBuiltFrom[0] === data && _snomedBuiltFrom[1] === alt) return _snomedInstance;
+  _snomedInstance = buildSnomedIndex(data, { lang: (window.I18N && window.I18N.lang) || 'fr', alt: alt });
+  _snomedBuiltFrom = [data, alt];
   return _snomedInstance;
 }
 
