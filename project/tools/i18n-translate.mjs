@@ -47,6 +47,16 @@ const CONSIGNES = {
     'Conserver les {valeurs} entre accolades à l\'identique.',
     'Appliquer le glossaire quand un de ses termes figure dans le texte.',
   ],
+  'fr-en-donnees': [
+    'Traduire chaque texte de démonstration (médicament, posologie, analyse, imagerie, référence, patient, gabarit) en anglais canadien (en-CA).',
+    'Les noms de marque (Lipitor, Crestor, Norvasc…) restent identiques.',
+    'Les noms génériques suivent l\'orthographe anglaise courante (Warfarine → Warfarin, Atorvastatine → Atorvastatin).',
+    'Dans une posologie, traduire les abréviations : co / comp. → tab., caps → cap., DIE → once daily, HS → at bedtime, AM → in the morning, c. repas → with meals. BID, PO et TID restent tels quels.',
+    'Garder les nombres, unités et symboles à l\'identique (mg, mL, %, —).',
+    'Un texte sans rien à traduire (nom propre, sigle, nombre) est repris tel quel.',
+    'Conserver les {valeurs} entre accolades à l\'identique.',
+    'Appliquer le glossaire quand un de ses termes figure dans le texte.',
+  ],
   'en-fr': [
     'Traduire chaque terme préféré SNOMED CT (anglais) en français clinique, tel qu\'employé au Québec.',
     'Utiliser le terme français d\'usage quand il existe (ex. « Hypernatremia » → « Hypernatrémie »).',
@@ -106,11 +116,51 @@ async function entrees(dossier) {
   console.log(`CIM-10 : ${cim10.length} entrées ; SNOMED : ${concepts.length} entrées → ${dossier}`);
 }
 
+// ---------- données de démonstration (B2)
+
+// Chaînes françaises de note-ui/editor-data.jsx : littéraux entre guillemets qui
+// contiennent une lettre, sauf identifiants (« pill »), URL, couleurs et commentaires.
+// Id = le texte français lui-même : data-en.js est une table « français → anglais ».
+async function donneesEntrees(sortie) {
+  const lignes = (await readFile(path.join(NOTE_UI, 'editor-data.jsx'), 'utf8')).split('\n');
+  const vues = new Map();
+  const motif = /'((?:[^'\\\n]|\\.)*)'|"((?:[^"\\\n]|\\.)*)"/g;
+  lignes.forEach((ligne, i) => {
+    const t = ligne.trim();
+    if (t.startsWith('//')) return;
+    for (const m of ligne.matchAll(motif)) {
+      // Séquences d'échappement JS : \n et \t deviennent de vrais caractères, le reste vaut son caractère.
+      const texte = (m[1] ?? m[2]).replace(/\\(.)/g, (_, c) => ({ n: '\n', t: '\t' })[c] ?? c);
+      if (texte.length < 2 || !/\p{L}/u.test(texte)) continue;
+      if (/^[a-z0-9_.\-]+$/.test(texte) || /^(https?:|#|\/)/.test(texte)) continue;
+      if (!vues.has(texte)) vues.set(texte, { id: texte, texte, ctx: `editor-data.jsx ligne ${i + 1} : ${t.slice(0, 140)}` });
+    }
+  });
+  const items = [...vues.values()];
+  await ecrire(sortie, { sens: 'fr-en-donnees', items });
+  console.log(`${items.length} chaînes uniques → ${sortie}`);
+}
+
+async function donnees(fichierTrad) {
+  const table = await lire(fichierTrad);
+  const cles = Object.keys(table).sort();
+  const q = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\t/g, '\\t')}'`;
+  const corps = cles.map((k) => `  ${q(k)}: ${q(table[k])},`).join('\n');
+  const fichier = path.join(NOTE_UI, 'i18n', 'data-en.js');
+  await mkdir(path.dirname(fichier), { recursive: true });
+  await writeFile(fichier, `// Données de démonstration en anglais canadien : traduction automatique, sans relecture\n// humaine (PLAN-bilingue-fr-en.md, piste B, lot B2). Table « texte français → anglais » :\n// une entrée absente affiche le français. Les noms de marque restent identiques.\n(window.I18N_DATA = window.I18N_DATA || {}).en = {\n${corps}\n};\n`, 'utf8');
+  const metaFichier = path.join(NOTE_UI, 'i18n', 'traductions.meta.json');
+  const meta = await lire(metaFichier).catch(() => ({}));
+  meta['data-en.js'] = { traduction: 'automatique', sens: 'fr → en-CA', textes: cles.length, date: DATE };
+  await ecrire(metaFichier, meta);
+  console.log(`écrit : data-en.js (${cles.length} textes)`);
+}
+
 // ---------- lots
 
 async function lots(fichierEntrees, dossier, taille = 500) {
   const { sens, items } = await lire(fichierEntrees);
-  const glossaire = sens === 'fr-en' ? (await lire(GLOSSAIRE)).termes.map(({ fr, en, ne_pas }) => ({ fr, en, ne_pas: ne_pas ?? [] })) : [];
+  const glossaire = sens.startsWith('fr-en') ? (await lire(GLOSSAIRE)).termes.map(({ fr, en, ne_pas }) => ({ fr, en, ne_pas: ne_pas ?? [] })) : [];
   const n = Math.ceil(items.length / taille);
   for (let i = 0; i < n; i++) {
     const num = String(i + 1).padStart(3, '0');
@@ -156,7 +206,7 @@ async function fusion(dossier, sortie) {
         continue;
       }
       if (valeurs(it.texte) !== valeurs(t)) erreurs.push(`${it.id} : {valeurs} différentes (« ${it.texte} » → « ${t} »)`);
-      if (lot.sens === 'fr-en') {
+      if (lot.sens.startsWith('fr-en')) {
         for (const terme of lot.glossaire) {
           if (contientMot(it.texte, terme.fr) && !t.toLowerCase().includes(terme.en.toLowerCase())) {
             avertissements.push(`${it.id} : « ${terme.fr} » devrait être « ${terme.en} » (obtenu « ${t} »)`);
@@ -231,12 +281,16 @@ const AIDE = `usage :
   node tools/i18n-translate.mjs entrees <dossier>
   node tools/i18n-translate.mjs lots <entrees.json> <dossier> [taille]
   node tools/i18n-translate.mjs fusion <dossier> <sortie.json>
-  node tools/i18n-translate.mjs construire <trad-cim10.json> <trad-snomed.json>`;
+  node tools/i18n-translate.mjs construire <trad-cim10.json> <trad-snomed.json>
+  node tools/i18n-translate.mjs donnees-entrees <sortie.json>
+  node tools/i18n-translate.mjs donnees <trad-donnees.json>`;
 
 const [commande, ...args] = process.argv.slice(2);
 try {
   switch (commande) {
     case 'entrees': await entrees(args[0]); break;
+    case 'donnees-entrees': await donneesEntrees(args[0]); break;
+    case 'donnees': await donnees(args[0]); break;
     case 'lots': await lots(args[0], args[1], args[2] ? Number(args[2]) : undefined); break;
     case 'fusion': await fusion(args[0], args[1]); break;
     case 'construire': await construire(args[0], args[1]); break;
