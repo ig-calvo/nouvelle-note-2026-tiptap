@@ -86,7 +86,7 @@ function ctBuildSummary(root) {
     const field = !row ? btn.closest('.ct-field') : null;
     const lblEl = row ? row.querySelector('.ct-qrow__lbl') : (field ? field.querySelector('label') : null);
     const lbl = cleanLabel(lblEl && lblEl.textContent);
-    if (lbl) parts.push(lbl + ' : ' + btn.textContent);
+    if (lbl) parts.push(t('common.labelValue.text', { label: lbl, value: btn.textContent }));
   });
 
   root.querySelectorAll('.ct-check input[type="checkbox"]:checked').forEach(function (cb) {
@@ -100,7 +100,7 @@ function ctBuildSummary(root) {
     const input = f.querySelector('input, select');
     if (!label || !input || !input.value || input.type === 'date') return;
     const lbl = cleanLabel(label.textContent);
-    if (lbl) parts.push(lbl + ' : ' + input.value);
+    if (lbl) parts.push(t('common.labelValue.text', { label: lbl, value: input.value }));
   });
 
   if (!parts.length) return 'Aucune donnée saisie';

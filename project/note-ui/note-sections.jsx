@@ -214,8 +214,8 @@ function splitMovePlan(plan) {
 function splitAriaValueText(docJson) {
   const total = splitMaxSlot(docJson);
   const inConclusion = conclusionLineCount(docJson);
-  if (inConclusion === 0) return 'Conclusion vide';
-  return inConclusion + (inConclusion > 1 ? ' lignes' : ' ligne') + ' sur ' + total + ' dans la conclusion';
+  if (inConclusion === 0) return t('sections.split.empty.aria');
+  return tn('sections.split.lines.aria', inConclusion, { total: total });
 }
 
 Object.assign(window, {

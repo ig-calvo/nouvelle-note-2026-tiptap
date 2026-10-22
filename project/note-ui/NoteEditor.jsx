@@ -145,7 +145,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
-  const [visitType, setVisitType] = React.useState('Visite en clinique');
+  const [visitType, setVisitType] = React.useState('clinic');
   const [showTags, setShowTags] = React.useState(false);
   const [tags, setTags] = React.useState([]);
 
@@ -352,11 +352,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var d = entity.details || {};
     if (entity.type === 'prescription') {
       var head = [d.molecule, d.dose ? d.dose + ' ' + d.unit : ''].filter(Boolean).join(' ');
-      var _n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
-      var _ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
-      var qty = _n + ' ' + _ab;
+      var qty = window.RX_TEXT.qtyLabel(d);
       var _rf = (d.refills === undefined || d.refills === null || String(d.refills) === '') ? '0' : d.refills;
-      var tail = [qty, d.route, d.frequency + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : ''), d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : '', 'R' + _rf].filter(Boolean).join(' ');
+      var tail = [qty, d.route, d.frequency + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : ''), d.duration ? '× ' + window.RX_TEXT.durationLong(d) : '', 'R' + _rf].filter(Boolean).join(' ');
       return [head, tail].filter(Boolean).join(' — ') || entity.label;
     }
     if (entity.type === 'lab') return d.tests && d.tests[0] ? d.tests.join(', ').slice(0, 40) : entity.label;
@@ -445,15 +443,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       } else if (field === 'route') {
         details.route = val;
       } else if (field === 'duration_refills') {
-        var drm = /^(\d+)\s*(jours?|semaines?|mois)(?:\s+R(\d+))?$/i.exec(val.trim());
-        if (drm) { details.duration = drm[1]; details.durationUnit = drm[2]; if (drm[3] !== undefined) details.refills = drm[3]; }
-        else if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
+        var drm = window.RX_TEXT.parseDurationRefills(val);
+        if (drm) { details.duration = drm.duration; details.durationUnit = drm.unit; if (drm.refills !== '') details.refills = drm.refills; }
+        else if (window.RX_TEXT.isLongTerm(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
         else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
       } else if (field === 'duration') {
-        if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; }
+        if (window.RX_TEXT.isLongTerm(val)) { details.duration = ''; details.durationUnit = ''; }
         else {
-          var dm2 = /^(\d+)\s*(jours?|semaines?|mois|an|ans|année?s?)?/i.exec(val.trim());
-          if (dm2) { details.duration = dm2[1]; if (dm2[2]) details.durationUnit = /an|ann/i.test(dm2[2]) ? 'mois' : dm2[2].replace(/s$/, '') + (/jour|semaine/i.test(dm2[2]) ? 's' : ''); }
+          var dm2 = window.RX_TEXT.parseDuration(val);
+          if (dm2) { details.duration = dm2.duration; if (dm2.unit) details.durationUnit = dm2.unit; }
           else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
         }
       } else if (field === 'refills') {
@@ -937,7 +935,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <div style={neStyles.fieldsGroup}>
           <DsDateField label="Date" width={190} value={noteDate} onChange={setNoteDate} />
           <DsTimeField label="Heure" width={140} value={noteTime} onChange={setNoteTime} />
-          <FloatField label="Type de visite" width={230} grow select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
+          <FloatField label="Type de visite" width={230} grow select value={visitType} onValueChange={setVisitType} options={VISIT_TYPES} />
         </div>
         <button
           type="button"
@@ -970,7 +968,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         // l'assistant propose aussi des puces, en attente comme celles d'un
         // gabarit — rien n'est créé avant d'être accepté.
         if (aiProposals) {
-          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, 'Assistant IA'); }).filter(Boolean);
+          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, t('ai.assistant.name')); }).filter(Boolean);
           // Pas de libellé en texte : il resterait seul si tout est refusé ; la
           // puce dit elle-même qui la propose (infobulle, style « IA »).
           var inline = [];
@@ -1151,7 +1149,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           institution={institution}
           initialSelectedId={transmissionOnlyId}
           showSuggestions={checkoutSuggestions}
-          noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
+          noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
           onPatchArchivedNote={onPatchArchivedTx}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
@@ -1252,11 +1250,11 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     initialVal = details.route || '';
   } else if (field === 'duration_refills') {
     var dp0 = [];
-    if (details.duration) dp0.push(details.duration + ' ' + (details.durationUnit || 'jours'));
+    if (details.duration) dp0.push(window.RX_TEXT.durationLong(details));
     if (details.refills) dp0.push('R' + details.refills);
     initialVal = dp0.join(' ');
   } else if (field === 'duration') {
-    initialVal = details.duration ? (details.duration + ' ' + (details.durationUnit || 'jours')) : '';
+    initialVal = details.duration ? window.RX_TEXT.durationLong(details) : '';
   } else if (field === 'refills') {
     initialVal = 'R' + (details.refills != null ? details.refills : '0');
   } else if (field === 'priority') {
@@ -1406,6 +1404,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
   );
 }
 
+// Type de visite : le code est ce qu'on garde et compare ('phone' → mode « appel »
+// dans la liste des notes) ; le libellé suit la langue.
+const VISIT_TYPE_LABEL = {
+  clinic: t('visit.type.clinic'), phone: t('visit.type.phone'), update: t('visit.type.update')
+};
+const VISIT_TYPES = Object.keys(VISIT_TYPE_LABEL).map(function(code) { return { value: code, label: VISIT_TYPE_LABEL[code] }; });
+
 function FloatField({ label, children, width, flex, grow, error, input, type, select, options, value: controlledValue, onValueChange, onFocus: onFocusProp }) {
   const [focused, setFocused] = React.useState(false);
   const [internalValue, setInternalValue] = React.useState('');
@@ -1442,7 +1447,7 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
               onChange={handleChange}
               onFocus={function() { setFocused(true); }}
               onBlur={function() { setFocused(false); }}>
-              {(options || []).map(function(o) { return <option key={o} value={o}>{o}</option>; })}
+              {(options || []).map(function(o) { var v = typeof o === 'string' ? o : o.value; return <option key={v} value={v}>{typeof o === 'string' ? o : o.label}</option>; })}
             </select>
             <span className="material-icons-outlined" style={neStyles.fieldIcon}>arrow_drop_down</span>
           </React.Fragment>
@@ -1462,8 +1467,8 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
 // ─── Sélecteurs date / heure DS3 ────────────────────────────────────────────
 // Équivalents prototype de MatDatepicker / MatTimepicker : champ texte (saisie
 // clavier) + bouton d'ouverture + panneau (container-low, élévation 5). Format
-// FR — « 28 sept. 2026 », « 15:35 » (24 h) — indépendant de la locale du
-// navigateur. Les valeurs restent 'AAAA-MM-JJ' et 'HH:MM' pour le reste de l'app.
+// de la langue du prototype (« 28 sept. 2026 », « 15:35 » en français) — jamais
+// de celle du navigateur. Les valeurs restent 'AAAA-MM-JJ' et 'HH:MM' pour le reste de l'app.
 function pad2(n) { return String(n).padStart(2, '0'); }
 function isoOf(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
 function localIsoDate(dt) { return isoOf(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
@@ -1477,7 +1482,7 @@ function isRealDate(y, m, d) {
 }
 function fmtDateFr(iso) {
   const p = parseIso(iso);
-  return p ? new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(p.y, p.m, p.d)) : '';
+  return p ? new Intl.DateTimeFormat(window.I18N.locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(p.y, p.m, p.d)) : '';
 }
 // Accepte 2026-09-28, 28/09/2026, 28-9-2026 ; null si invalide.
 function parseDateInput(text) {
@@ -1601,10 +1606,10 @@ function DsCalendar({ value, onSelect }) {
     moveFocus.current = false;
   }, [cursor]);
 
-  const monthFmt = new Intl.DateTimeFormat('fr-CA', { month: 'long', year: 'numeric' });
-  const wdShort = new Intl.DateTimeFormat('fr-CA', { weekday: 'narrow' });
-  const wdLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long' });
-  const dayLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const monthFmt = new Intl.DateTimeFormat(window.I18N.locale, { month: 'long', year: 'numeric' });
+  const wdShort = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'narrow' });
+  const wdLong = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'long' });
+  const dayLong = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const first = new Date(cursor.y, cursor.m, 1);
   const daysInMonth = new Date(cursor.y, cursor.m + 1, 0).getDate();
   const cells = [];

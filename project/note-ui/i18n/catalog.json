@@ -3,16 +3,26 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 11,
+    "interface": 72,
     "donnees": 0
   },
   "interface": {
+    "ai.assistant.name": {
+      "fr": "Assistant IA",
+      "empreinte": "94f6f208e9ce",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:971",
+        "note-ui/editor-schema.jsx:297",
+        "note-ui/review-mode.jsx:28"
+      ]
+    },
     "app.error.hint": {
       "fr": "Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.",
       "empreinte": "cf66d4fe2da4",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:384"
+        "Note Clinique.html:385"
       ]
     },
     "app.error.title": {
@@ -20,7 +30,7 @@
       "empreinte": "a834b7056422",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:382"
+        "Note Clinique.html:383"
       ]
     },
     "app.tiptap.hint": {
@@ -28,7 +38,7 @@
       "empreinte": "955c4aefdc02",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:333"
+        "Note Clinique.html:334"
       ]
     },
     "app.tiptap.text": {
@@ -36,7 +46,7 @@
       "empreinte": "3b6db230e91d",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:337"
+        "Note Clinique.html:338"
       ]
     },
     "app.tiptap.title": {
@@ -44,7 +54,86 @@
       "empreinte": "fb68cc17996b",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:331"
+        "Note Clinique.html:332"
+      ]
+    },
+    "cim10.count.block": {
+      "fr": {
+        "one": "{n} bloc",
+        "other": "{n} blocs"
+      },
+      "empreinte": "2b6dd7ac05b5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/cim10-index.jsx:36"
+      ]
+    },
+    "cim10.count.category": {
+      "fr": {
+        "one": "{n} catégorie",
+        "other": "{n} catégories"
+      },
+      "empreinte": "0fd5dbdfbb24",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/cim10-index.jsx:35"
+      ]
+    },
+    "cim10.count.code": {
+      "fr": {
+        "one": "{n} code précis",
+        "other": "{n} codes précis"
+      },
+      "empreinte": "95f65e473ece",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/cim10-index.jsx:34"
+      ]
+    },
+    "clinicalTool.picker.noResult.empty": {
+      "fr": "Aucun résultat pour « {query} ».",
+      "empreinte": "8cccd7bde0e7",
+      "contexte": "état vide",
+      "fichiers": [
+        "note-ui/ClinicalToolPicker.jsx:186"
+      ]
+    },
+    "common.and.text": {
+      "fr": "{a} et {b}",
+      "empreinte": "621a5bd11560",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:476"
+      ]
+    },
+    "common.labelValue.text": {
+      "fr": "{label} : {value}",
+      "empreinte": "9675d6c62cb5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ClinicalTool.jsx:103",
+        "note-ui/ClinicalTool.jsx:89",
+        "note-ui/DocumentActionPanel.jsx:170",
+        "note-ui/editor-schema.jsx:132",
+        "note-ui/editor-schema.jsx:2386",
+        "note-ui/editor-schema.jsx:318"
+      ]
+    },
+    "date.atTime": {
+      "fr": "{date} à {time}",
+      "empreinte": "3bae2e4a13a8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:279",
+        "note-ui/review-mode.jsx:59"
+      ]
+    },
+    "date.numeric": {
+      "fr": "{day}/{month}/{year}",
+      "empreinte": "85f67d1ffdfd",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:496"
       ]
     },
     "document.kind.clinicalTool": {
@@ -52,7 +141,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:396"
+        "Note Clinique.html:397"
       ]
     },
     "document.kind.imaging": {
@@ -60,7 +149,7 @@
       "empreinte": "876ab0ce03e2",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:397"
+        "Note Clinique.html:398"
       ]
     },
     "document.kind.instructions": {
@@ -68,7 +157,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:398"
+        "Note Clinique.html:399"
       ]
     },
     "document.kind.lab": {
@@ -76,7 +165,7 @@
       "empreinte": "0f78e26d87bf",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:397"
+        "Note Clinique.html:398"
       ]
     },
     "document.kind.prescription": {
@@ -84,7 +173,7 @@
       "empreinte": "212f9846068b",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:396"
+        "Note Clinique.html:397"
       ]
     },
     "document.kind.referral": {
@@ -92,7 +181,477 @@
       "empreinte": "f8130bb03a28",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:398"
+        "Note Clinique.html:399"
+      ]
+    },
+    "document.pill.aria": {
+      "fr": {
+        "one": "{kind} : {n} sur {total} complété",
+        "other": "{kind} : {n} sur {total} complétés"
+      },
+      "empreinte": "bf0aa7983972",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "Note Clinique.html:405"
+      ]
+    },
+    "dx.banner.edit.text": {
+      "fr": "Modifier « {name} »",
+      "empreinte": "a6f38457a59d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:55"
+      ]
+    },
+    "dx.banner.refine.text": {
+      "fr": "Préciser « {name} »",
+      "empreinte": "fb797fa1f04d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:56"
+      ]
+    },
+    "dx.banner.replace.text": {
+      "fr": "Remplacer n° {number} « {name} » par…",
+      "empreinte": "8ea2d276007d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:54"
+      ]
+    },
+    "dx.empty.cim.text": {
+      "fr": "Aucun code CIM-10 pour « {term} ».",
+      "empreinte": "970103644d23",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:66"
+      ]
+    },
+    "dx.empty.none.text": {
+      "fr": "Aucun diagnostic trouvé pour « {term} ».",
+      "empreinte": "67923d530daf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:64"
+      ]
+    },
+    "dx.freeText.new.title": {
+      "fr": "Nouveau diagnostic : {term}",
+      "empreinte": "6ebcba0c8a0c",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:49"
+      ]
+    },
+    "dx.freeText.rename.title": {
+      "fr": "Renommer : {term}",
+      "empreinte": "b10e75107868",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:51"
+      ]
+    },
+    "dx.freeText.replace.title": {
+      "fr": "Remplacer par : {term}",
+      "empreinte": "f054be887b2d",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/dx-picker.jsx:50"
+      ]
+    },
+    "dx.pending.added.text": {
+      "fr": "Ajouté par la note en cours",
+      "empreinte": "f488623b5ef6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:501"
+      ]
+    },
+    "dx.pending.ceased.text": {
+      "fr": "Cessé dans la note en cours",
+      "empreinte": "7c022ef3ad59",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:503"
+      ]
+    },
+    "dx.pending.codeChanged.text": {
+      "fr": "Code modifié par la note en cours",
+      "empreinte": "5c595fc7ea9f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:505"
+      ]
+    },
+    "dx.pending.moved.text": {
+      "fr": "Déplacé par la note en cours",
+      "empreinte": "93483b42535f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:502"
+      ]
+    },
+    "dx.pending.replaced.text": {
+      "fr": "Remplacé (note en cours)",
+      "empreinte": "5c7962498657",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:504"
+      ]
+    },
+    "dx.pending.replaces.text": {
+      "fr": "Remplace « {name} » (note en cours)",
+      "empreinte": "a0b2d5846800",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:504"
+      ]
+    },
+    "dx.rename.hint": {
+      "fr": {
+        "one": "Renomme aussi {n} autre mention de ce diagnostic.",
+        "other": "Renomme aussi {n} autres mentions de ce diagnostic."
+      },
+      "empreinte": "341e5bfbb2ce",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:812"
+      ]
+    },
+    "field.removeSelection.hint": {
+      "fr": {
+        "one": "La sélection contient un élément ({names}), qui sera retiré de la note.",
+        "other": "La sélection contient {n} éléments ({names}), qui seront retirés de la note."
+      },
+      "empreinte": "2a487b9fd939",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1068"
+      ]
+    },
+    "lab.profileNote.text": {
+      "fr": "Depuis le profil « {profile} »",
+      "empreinte": "1b8620ce8489",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:462"
+      ]
+    },
+    "noteStart.drafts.label": {
+      "fr": {
+        "one": "Brouillon",
+        "other": "{n} brouillons"
+      },
+      "empreinte": "5a3cce470afa",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:62"
+      ]
+    },
+    "picker.none.text": {
+      "fr": "Aucun {noun} trouvé.",
+      "empreinte": "acac7665d270",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:870"
+      ]
+    },
+    "picker.noneFor.text": {
+      "fr": "Aucun {noun} trouvé pour « {query} ».",
+      "empreinte": "efe57c10db02",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:870"
+      ]
+    },
+    "portal.pill.label": {
+      "fr": {
+        "one": "Portail patient : {n} élément partagé",
+        "other": "Portail patient : {n} éléments partagés"
+      },
+      "empreinte": "3cc0b7c2227d",
+      "contexte": "libellé",
+      "fichiers": [
+        "Note Clinique.html:416"
+      ]
+    },
+    "presentation.chapter.aria": {
+      "fr": "Chapitre {n} : {label}",
+      "empreinte": "b0e8e0a6e908",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:671"
+      ]
+    },
+    "quickSend.summary.text": {
+      "fr": {
+        "one": "1 document · {n} destination",
+        "other": "1 document · {n} destinations"
+      },
+      "empreinte": "2663a42480c3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/QuickSendModal.jsx:90"
+      ]
+    },
+    "result.normality.abnormal": {
+      "fr": "Anormal",
+      "empreinte": "9938631fcadd",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:772"
+      ]
+    },
+    "result.normality.borderline": {
+      "fr": "Limite",
+      "empreinte": "23e002b2751a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:772"
+      ]
+    },
+    "result.normality.normal": {
+      "fr": "Normal",
+      "empreinte": "45e118d0563e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:772"
+      ]
+    },
+    "review.count.label": {
+      "fr": {
+        "one": "{n} modification",
+        "other": "{n} modifications"
+      },
+      "empreinte": "ea96c425faea",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/review-mode.jsx:429"
+      ]
+    },
+    "review.pending.chips.text": {
+      "fr": {
+        "one": "{n} ajout",
+        "other": "{n} ajouts"
+      },
+      "empreinte": "0e609e7f9477",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:474"
+      ]
+    },
+    "review.pending.lines.text": {
+      "fr": {
+        "one": "{n} ligne de texte",
+        "other": "{n} lignes de texte"
+      },
+      "empreinte": "24c45d33e5d3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:475"
+      ]
+    },
+    "review.pending.text": {
+      "fr": {
+        "one": "Il reste {n} modification en révision dans cette note. Que voulez-vous faire avant de compléter ?",
+        "other": "Il reste {n} modifications en révision dans cette note. Que voulez-vous faire avant de compléter ?"
+      },
+      "empreinte": "e37de6333b9c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:455"
+      ]
+    },
+    "rx.adjust.down.title": {
+      "fr": "Dose diminuée",
+      "empreinte": "418459918d98",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:131"
+      ]
+    },
+    "rx.adjust.up.title": {
+      "fr": "Dose augmentée",
+      "empreinte": "17cece4ad3ef",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:131"
+      ]
+    },
+    "rx.duration.days": {
+      "fr": {
+        "one": "jour",
+        "other": "jours"
+      },
+      "empreinte": "f165804e326c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:27"
+      ]
+    },
+    "rx.duration.days.short": {
+      "fr": "j",
+      "empreinte": "5c2dd944dde9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:69"
+      ]
+    },
+    "rx.duration.months": {
+      "fr": {
+        "one": "mois",
+        "other": "mois"
+      },
+      "empreinte": "b3f3c53b92aa",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:29"
+      ]
+    },
+    "rx.duration.weeks": {
+      "fr": {
+        "one": "semaine",
+        "other": "semaines"
+      },
+      "empreinte": "3bd1c89efd30",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:28"
+      ]
+    },
+    "rx.qty.capsule": {
+      "fr": "caps.",
+      "empreinte": "1ca7b231fcfe",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:21"
+      ]
+    },
+    "rx.qty.dose": {
+      "fr": "dose",
+      "empreinte": "fddd2dca7e8e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:23"
+      ]
+    },
+    "rx.qty.gelcap": {
+      "fr": "gél",
+      "empreinte": "07a058d6d59d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:20"
+      ]
+    },
+    "rx.qty.inhaler": {
+      "fr": "inh",
+      "empreinte": "605d63d07b39",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:19"
+      ]
+    },
+    "rx.qty.tablet": {
+      "fr": "comp.",
+      "empreinte": "78595811c391",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/rx-text.jsx:18"
+      ]
+    },
+    "sections.split.empty.aria": {
+      "fr": "Conclusion vide",
+      "empreinte": "32c3a6292527",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/note-sections.jsx:217"
+      ]
+    },
+    "sections.split.lines.aria": {
+      "fr": {
+        "one": "{n} ligne sur {total} dans la conclusion",
+        "other": "{n} lignes sur {total} dans la conclusion"
+      },
+      "empreinte": "21223d850225",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/note-sections.jsx:218"
+      ]
+    },
+    "template.source.label": {
+      "fr": "Gabarit « {name} »",
+      "empreinte": "2545b76f4262",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2674"
+      ]
+    },
+    "transmission.pending.hint": {
+      "fr": {
+        "one": "Cette note contient {n} document non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter.",
+        "other": "Cette note contient {n} documents non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter."
+      },
+      "empreinte": "5e518ba15a91",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:181"
+      ]
+    },
+    "transmission.prescriptions.label": {
+      "fr": {
+        "one": "{n} prescription",
+        "other": "{n} prescriptions"
+      },
+      "empreinte": "de94c1473a68",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:499"
+      ]
+    },
+    "transmission.ready.label": {
+      "fr": {
+        "one": "{n} document prêt à transmettre",
+        "other": "{n} documents prêts à transmettre"
+      },
+      "empreinte": "ffd0451eda25",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:467"
+      ]
+    },
+    "transmission.sent.toast": {
+      "fr": {
+        "one": "{n} document transmis",
+        "other": "{n} documents transmis"
+      },
+      "empreinte": "5f529d873568",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:328"
+      ]
+    },
+    "visit.type.clinic": {
+      "fr": "Visite en clinique",
+      "empreinte": "c73d6f09340e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1410"
+      ]
+    },
+    "visit.type.phone": {
+      "fr": "Appel téléphonique",
+      "empreinte": "6536a7ce83c4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1410"
+      ]
+    },
+    "visit.type.update": {
+      "fr": "Mise à jour",
+      "empreinte": "f1241990ae57",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1410"
       ]
     }
   },

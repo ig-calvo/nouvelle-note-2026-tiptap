@@ -766,6 +766,15 @@ var RESULT_SUGG = [
   'APS (PSA)','CRP','CRP haute sensibilité','hCG','HBsAg','Sérologie VIH','Sérologie hépatite B','Sérologie hépatite C',
 ];
 
+// Normalité d'un résultat : le code est ce qu'on garde et compare (couleur du
+// libellé) ; le libellé suit la langue.
+var NORMALITY_LABEL = {
+  normal: t('result.normality.normal'), abnormal: t('result.normality.abnormal'), borderline: t('result.normality.borderline')
+};
+var NORMALITY_COLOR = {
+  normal: 'light-dark(#1b8a3f, #a5e9bb)', abnormal: 'light-dark(#c62828, #e9a5a5)', borderline: 'light-dark(#c07a00, #e9d0a5)'
+};
+
 function ResultsModal({ items, onClose, onAdd }) {
   var [test, setTest] = React.useState('');
   var [result, setResult] = React.useState('');
@@ -783,7 +792,7 @@ function ResultsModal({ items, onClose, onAdd }) {
                 <div style={{ flex:1 }}>
                   <span style={smS.listName}>{it.name||it.left}</span>
                   {it.result && <span style={{ ...smS.listSub, marginLeft:8 }}>{it.result}</span>}
-                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: it.normality==='Normal'?'light-dark(#1b8a3f, #a5e9bb)':it.normality==='Anormal'?'light-dark(#c62828, #e9a5a5)':'light-dark(#c07a00, #e9d0a5)' }}>{it.normality}</span>}
+                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: NORMALITY_COLOR[it.normality] || NORMALITY_COLOR.borderline }}>{NORMALITY_LABEL[it.normality] || it.normality}</span>}
                 </div>
                 {it.right && <span style={smS.listMeta}>{it.right}</span>}
               </div>
@@ -811,9 +820,7 @@ function ResultsModal({ items, onClose, onAdd }) {
         <input style={{ ...smS.input, flex:1, minWidth:90 }} value={result} onChange={function(e){ setResult(e.target.value); }} placeholder="Résultat" />
         <select style={{ ...smS.input, flex:1, minWidth:110 }} value={normality} onChange={function(e){ setNormality(e.target.value); }}>
           <option value="">Normalité</option>
-          <option>Normal</option>
-          <option>Anormal</option>
-          <option>Limite</option>
+          {Object.keys(NORMALITY_LABEL).map(function(code){ return <option key={code} value={code}>{NORMALITY_LABEL[code]}</option>; })}
         </select>
         <div style={{ ...smS.searchBox, flex:1, minWidth:150 }}>
           <input style={smS.searchInner} value={sampDate} onChange={function(e){ setSampDate(e.target.value); }} placeholder="Date de prélèvement" />

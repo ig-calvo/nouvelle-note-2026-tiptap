@@ -348,16 +348,14 @@ function _cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
 // Nombre d'unités par prise (modale « Dose ») + abréviation de forme → « 2 comp. »
 function _rxQty(d) {
-  const n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
-  const ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
-  return n + ' ' + ab;
+  return window.RX_TEXT.qtyLabel(d);
 }
 function _rxFreq(d) {
   return (d.frequency || '') + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : '');
 }
 function deriveRxSig(d) {
   const dur = d.duration && d.duration !== '—'
-    ? d.duration + (d.durationUnit === 'jours' || !d.durationUnit ? 'j' : ' ' + d.durationUnit)
+    ? window.RX_TEXT.durationShort(d)
     : '';
   return [_rxQty(d), d.route, _rxFreq(d),
     d.quantity && /^\d+$/.test(d.quantity) ? '#' + d.quantity : '',

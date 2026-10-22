@@ -45,7 +45,7 @@ test('puce ajustée : badge ↑ / ↓ à la place du renouvellement, texte et ch
   const attrs = Object.assign(w.orderChipAttrs('rx', adj.item), {});
   attrs.rx = Object.assign({}, attrs.rx, { renewal: true, adjust: 'up', adjustFrom: '100 mg' });
   assert.deepEqual(w.chipStatusBadges(attrs).map((b) => [b.kind, b.icon]), [['adjust', 'arrow_upward']]);
-  assert.match(w.chipStatusBadges(attrs)[0].title, /Dose augmentée : 100 mg → 325 mg/);
+  assert.equal(w.chipStatusBadges(attrs)[0].title, w.t('common.labelValue.text', { label: w.t('rx.adjust.up.title'), value: '100 mg → 325 mg' }));
   const down = Object.assign({}, attrs, { rx: Object.assign({}, attrs.rx, { adjust: 'down' }) });
   assert.equal(w.chipStatusBadges(down)[0].icon, 'arrow_downward');
   assert.match(w.chipPrintText(attrs), /^Augmentée Tylenol 325 mg/);

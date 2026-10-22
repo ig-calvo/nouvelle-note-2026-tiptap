@@ -25,7 +25,7 @@
 // elle dépend du type de changement (ajout/suppression), avec l'IA en
 // exception pour ses ajouts.
 // ---------------------------------------------------------
-const REVIEW_AI_AUTHOR = { id: 'ai', name: 'Assistant IA' };
+const REVIEW_AI_AUTHOR = { id: 'ai', name: t('ai.assistant.name') };
 
 function reviewHumanAuthors(doctorName) {
   return [
@@ -56,8 +56,10 @@ function reviewMarkColor(kind, authorId) {
 function fmtReviewDate(ts) {
   if (!ts) return '';
   const d = new Date(ts);
-  const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-  return d.getDate() + ' ' + months[d.getMonth()] + ' à ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  return t('date.atTime', {
+    date: d.toLocaleDateString(window.I18N.locale, { day: 'numeric', month: 'short' }),
+    time: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+  });
 }
 
 // ---------------------------------------------------------
@@ -424,7 +426,7 @@ function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAl
       {active && count > 0 &&
         <div style={{ position: 'relative' }}>
           <button type="button" style={rvwS.countBtn} onClick={function () { setMenuOpen(function (v) { return !v; }); }}>
-            {count} modification{count > 1 ? 's' : ''}
+            {tn('review.count.label', count)}
             <span className="material-icons-outlined" style={{ fontSize: 16 }}>arrow_drop_down</span>
           </button>
           {menuOpen &&
@@ -450,7 +452,7 @@ function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCance
       <div style={rvwS.dialogBox} role="dialog">
         <div style={rvwS.dialogTitle}>Modifications en attente</div>
         <p style={rvwS.dialogText}>
-          Il reste {count} modification{count > 1 ? 's' : ''} en révision dans cette note. Que voulez-vous faire avant de compléter ?
+          {tn('review.pending.text', count)}
         </p>
         <div style={rvwS.dialogActions}>
           <button type="button" style={rvwS.dialogBtnGhost} onClick={onCancel}>Annuler</button>
@@ -469,9 +471,9 @@ function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCance
 // ---------------------------------------------------------
 function pendingSummaryText(summary) {
   const parts = [];
-  if (summary.chips) parts.push(summary.chips + ' ajout' + (summary.chips > 1 ? 's' : ''));
-  if (summary.paragraphs) parts.push(summary.paragraphs + ' ligne' + (summary.paragraphs > 1 ? 's' : '') + ' de texte');
-  return parts.join(' et ');
+  if (summary.chips) parts.push(tn('review.pending.chips.text', summary.chips));
+  if (summary.paragraphs) parts.push(tn('review.pending.lines.text', summary.paragraphs));
+  return parts.length === 2 ? t('common.and.text', { a: parts[0], b: parts[1] }) : parts.join('');
 }
 
 function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {

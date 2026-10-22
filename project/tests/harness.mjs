@@ -22,6 +22,8 @@ export function readProjectJSON(rel) {
 // puis les dictionnaires (le français toujours, l'anglais seulement s'il est
 // demandé ET qu'il existe — son absence est le repli sur le français).
 const I18N_SOURCES = ['note-ui/i18n.js', 'note-ui/i18n/fr.js'];
+// Ce que les fichiers du prototype supposent déjà chargé (comme dans l'HTML), après la langue.
+const SHARED_SOURCES = ['note-ui/rx-text.jsx'];
 const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
 
 // `lang` : 'fr' (défaut) ou 'en'. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
@@ -47,6 +49,7 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
     for (const rel of I18N_SOURCES_EN) if (fs.existsSync(path.join(projectDir, rel))) evaluate(rel);
   }
   globals = [win.I18N.t, win.I18N.tn, win.I18N.L, win.I18N.tk];
+  for (const rel of SHARED_SOURCES) evaluate(rel);
   for (const rel of files) evaluate(rel);
   return win;
 }

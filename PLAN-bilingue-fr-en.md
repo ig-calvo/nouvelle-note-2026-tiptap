@@ -111,6 +111,10 @@ Chaque lot laisse le français identique à avant (comparaison par captures et p
 | **A8 Vérification** | Débordements de mise en page en anglais, parcours des 12 étapes dans les deux langues, comparaison du français avant / après | tout | 1,5 à 2 |
 | **Total piste A** | | | **9,5 à 13,5** |
 
+**Règle des codes (posée par A1).** Une valeur énumérée que la logique lit (`form`, `durationUnit`, `status`, `visitType`, `normality`…) est un **code** : jamais traduite (ni `L()`, ni piste B), jamais comparée à ce qui s'affiche ; seul son libellé passe par `t()`. Certains codes gardent une orthographe française par héritage (`'comprimé'`, `'cessée'`, `'Sans'`) ; `tests/i18n.test.mjs` liste ces exceptions (`CODES_FRANCAIS`) et refuse toute nouvelle comparaison avec un libellé. Le texte tapé par le médecin (« 3 jours », « 2 weeks ») n'est pas un code : `rx-text.jsx` le lit dans les deux langues. Le même test refuse un `t()` appelé dans une portée qui déclare une variable `t`.
+
+*Reste à traiter plus loin* : les listes de raccourcis de forme (`'1 co'`, `'2 inh'`, `fmMap` dans `NoteEditor`) sont des textes affichés qui servent de clés (A3) ; les valeurs d'options à libellé = valeur (`FIELD_OPTIONS`, `Jours / Semaines / Mois`, priorité `Normal / Urgent / Faible`) passent à `{ value, label }` en A2.
+
 ## 6. Piste B — Traduire
 
 Tout est fait par IA, par lots, avec un script reproductible (`tools/i18n-translate.*`). Aucune revue humaine ; deux garde-fous peu coûteux : le glossaire commun et le test de parité.

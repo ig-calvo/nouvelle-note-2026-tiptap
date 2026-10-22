@@ -59,7 +59,7 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
             }}>
             <span className="material-icons-outlined" style={Object.assign({}, nscStyles.icon, { color: 'light-dark(#b3742e, #e8c9a6)' })}>edit_note</span>
             <span style={nscStyles.textCol}>
-              <span style={nscStyles.overline}>{draftList.length > 1 ? draftList.length + ' brouillons' : 'Brouillon'}</span>
+              <span style={nscStyles.overline}>{tn('noteStart.drafts.label', draftList.length)}</span>
               <span style={nscStyles.title}>Continuer la note</span>
             </span>
             {draftList.length > 1 &&

@@ -215,3 +215,145 @@ test('parité : data-en.js ne traduit que des textes qui existent encore en fran
   }
   assert.deepEqual(problems, []);
 });
+
+// --- lot A1 : le français d'avant, accords, dates ---
+
+const fr = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx', 'note-ui/cim10-index.jsx']);
+const NB = ' ';
+
+test('français : les pluriels écrits à la main donnent les mêmes phrases qu’avant', () => {
+  const cases = [
+    [fr.tn('document.pill.aria', 1, { kind: 'Ordonnance', total: 3 }), `Ordonnance${NB}: 1 sur 3 complété`],
+    [fr.tn('document.pill.aria', 2, { kind: 'Ordonnance', total: 3 }), `Ordonnance${NB}: 2 sur 3 complétés`],
+    [fr.tn('portal.pill.label', 1), `Portail patient${NB}: 1 élément partagé`],
+    [fr.tn('portal.pill.label', 3), `Portail patient${NB}: 3 éléments partagés`],
+    [fr.tn('noteStart.drafts.label', 1), 'Brouillon'],
+    [fr.tn('noteStart.drafts.label', 2), '2 brouillons'],
+    [fr.tn('quickSend.summary.text', 1), '1 document · 1 destination'],
+    [fr.tn('quickSend.summary.text', 2), '1 document · 2 destinations'],
+    [fr.tn('transmission.sent.toast', 1), '1 document transmis'],
+    [fr.tn('transmission.sent.toast', 4), '4 documents transmis'],
+    [fr.tn('transmission.ready.label', 1), '1 document prêt à transmettre'],
+    [fr.tn('transmission.ready.label', 2), '2 documents prêts à transmettre'],
+    [fr.tn('transmission.prescriptions.label', 2), '2 prescriptions'],
+    [fr.tn('dx.rename.hint', 1), 'Renomme aussi 1 autre mention de ce diagnostic.'],
+    [fr.tn('dx.rename.hint', 2), 'Renomme aussi 2 autres mentions de ce diagnostic.'],
+    [fr.tn('review.count.label', 1), '1 modification'],
+    [fr.tn('review.count.label', 5), '5 modifications'],
+    [fr.tn('review.pending.chips.text', 2), '2 ajouts'],
+    [fr.tn('review.pending.lines.text', 1), '1 ligne de texte'],
+    [fr.tn('field.removeSelection.hint', 1, { names: 'Tylenol' }), 'La sélection contient un élément (Tylenol), qui sera retiré de la note.'],
+    [fr.tn('field.removeSelection.hint', 3, { names: 'a, b, c' }), 'La sélection contient 3 éléments (a, b, c), qui seront retirés de la note.'],
+    [fr.cim10CountLabel(1, 'code'), '1 code précis'],
+    [fr.cim10CountLabel(12, 'block'), '12 blocs']
+  ];
+  for (const [actual, expected] of cases) assert.equal(actual, expected);
+});
+
+test('français : le lecteur d’écran annonce les lignes de la conclusion comme avant', () => {
+  const doc = (n) => ({ type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'a' }] },
+    { type: 'sectionSplit' },
+    ...Array.from({ length: n }, () => ({ type: 'paragraph', content: [{ type: 'text', text: 'b' }] }))
+  ] });
+  assert.equal(fr.splitAriaValueText(doc(0)), 'Conclusion vide');
+  assert.match(fr.splitAriaValueText(doc(1)), /^1 ligne sur \d+ dans la conclusion$/);
+  assert.match(fr.splitAriaValueText(doc(2)), /^2 lignes sur \d+ dans la conclusion$/);
+});
+
+test('dates : la locale de la langue choisie, jamais « fr-CA » écrit en dur', () => {
+  const iso = '2026-03-04T15:35:00';
+  const d = new Date(iso);
+  const time = d.toTimeString().slice(0, 5);
+  assert.equal(fr.formatChipStamp(iso), `${d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })} à ${time}`);
+  assert.equal(fr.fmtSommaireDate(d), '04/03/2026');
+  const en = loadPrototype(['note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang: 'en' });
+  assert.equal(en.I18N.locale, 'en-CA');
+  assert.equal(en.formatChipStamp(iso), `${d.toLocaleDateString('en-CA', { day: 'numeric', month: 'short', year: 'numeric' })} à ${time}`, 'sans fichier anglais, la phrase « date à heure » retombe sur le français');
+});
+
+test('dates : aucune locale écrite en dur dans le code', () => {
+  const offenders = [];
+  for (const file of sourceFilesOf()) {
+    stripComments(read(file)).split('\n').forEach((line, i) => {
+      if (/['"](?:fr|en)(?:-[A-Z]{2})?['"]/.test(line) && /(?:toLocale\w*String|Intl\.\w+)\s*\(/.test(line)) offenders.push(`${file}:${i + 1}`);
+    });
+  }
+  assert.deepEqual(offenders, [], 'utiliser window.I18N.locale');
+});
+
+// --- lot A1 : la logique ne lit jamais du texte affiché ---
+
+import { sourceFiles } from '../tools/i18n-extract.mjs';
+const sourceFilesOf = () => sourceFiles(projectDir).filter((f) => f !== 'note-ui/i18n.js');
+
+// Comparaison avec un libellé : `x === 'Texte à afficher'`. Une valeur qui ressemble
+// à un libellé (espace, majuscule, accent) doit être un CODE, comparé tel quel, ou
+// lue par t() des deux côtés. Les valeurs ci-dessous sont des codes écrits en
+// français par héritage : jamais traduits (ni L(), ni piste B), seuls leurs
+// libellés passent par t().
+const CODES_FRANCAIS = new Set([
+  'comprimé', 'aérosol-doseur', 'gélule', // forme d'une ordonnance (rx-text.jsx)
+  'cessée',                               // statut d'un médicament (libellé : MED_STATUS_LABEL)
+  'intolérance',                          // type d'une allergie
+  'Sans',                                 // contraste d'une imagerie ('Sans' | 'Avec')
+  'KeyH'                                  // touche (KeyboardEvent.code)
+]);
+
+test('logique : aucune comparaison avec un libellé qui changerait de langue', () => {
+  const RE = /(?:[!=]==?\s*|\.(?:includes|indexOf|startsWith)\(\s*)(['"])((?:(?!\1).)*)\1|(['"])((?:(?!\3).)*)\3\s*[!=]==?/g;
+  const offenders = [];
+  for (const file of sourceFilesOf()) {
+    stripComments(read(file)).split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(RE)) {
+        const lit = m[2] !== undefined ? m[2] : m[4];
+        if (/(?:\.|\b)key\s*$|typeof [\w.]+\s*$|nodeType|tagName/.test(line.slice(0, m.index))) continue;
+        if (!lit.trim() || CODES_FRANCAIS.has(lit)) continue;
+        if (/[À-ÿ]|\s/.test(lit) || /^[A-ZÀ-Ý][a-zà-ÿ]/.test(lit)) offenders.push(`${file}:${i + 1} : '${lit}'`);
+      }
+    });
+  }
+  assert.deepEqual(offenders, [], 'un libellé affiché ne se compare pas : en faire un code, ou lire les deux côtés par t()');
+});
+
+// t(), tn(), L() et tk() sont des variables globales : une variable locale du
+// même nom (`const t = setTimeout(…)`, `.map(t => …)`) masque la fonction dans
+// toute sa portée, et l'appel plante en production. Lecture par blocs de premier
+// niveau : un bloc qui déclare ET appelle le même nom est signalé ; les blocs
+// ci-dessous ont été relus à la main (la variable vit dans un autre rappel).
+const PORTEE_VERIFIEE = [
+  'note-ui/ClinicalToolPicker.jsx:function ClinicalToolPicker',
+  'note-ui/editor-popover.jsx:function RxMenu',
+  'note-ui/editor-schema.jsx:function buildTransmissionDocs',
+  'note-ui/NoteEditor.jsx:function NoteEditor',
+  'note-ui/presentation-mode.jsx:function PresentationMode'
+];
+
+function declares(code, name) {
+  if (new RegExp(`\\b(?:const|let|var)\\s+${name}\\s*[=;,]`).test(code)) return true;
+  for (const m of code.matchAll(/(?:function\s*\w*\s*)?\(([^()]*)\)\s*(?:=>|\{)/g)) {
+    if (m[1].split(',').some((p) => p.trim().split('=')[0].trim() === name)) return true;
+  }
+  return new RegExp(`(?<![\\w$.])${name}\\s*=>`).test(code);
+}
+
+test('portée : aucun t(), tn(), L() ou tk() n’est appelé dans un bloc qui déclare une variable du même nom', () => {
+  const found = [];
+  for (const file of sourceFilesOf()) {
+    const lines = stripComments(read(file)).split('\n');
+    const starts = [];
+    lines.forEach((l, i) => { if (/^(?:async\s+)?(?:function|const|let|var|class)\b|^(?:window|Object|React)\./.test(l)) starts.push(i); });
+    starts.push(lines.length);
+    for (let k = 0; k < starts.length - 1; k++) {
+      const chunk = lines.slice(starts[k], starts[k + 1]).join('\n');
+      const calls = scanSource(chunk, file).calls;
+      for (const name of ['t', 'tn', 'L', 'tk']) {
+        if (calls.some((c) => c.fn === name) && declares(chunk, name)) {
+          const head = lines[starts[k]].trim();
+          if (!PORTEE_VERIFIEE.some((p) => `${file}:${head}`.startsWith(p))) found.push(`${file}:${starts[k] + 1} (${name}) ${head.slice(0, 60)}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(found, [], 'renommer la variable locale, ou appeler window.t(…) ; si la variable vit dans un autre rappel, l’ajouter à PORTEE_VERIFIEE');
+});

@@ -1065,7 +1065,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 </button>
               </div>
               <p style={cmS.confirmBody}>
-                {n > 1 ? 'La sélection contient ' + n + ' éléments' : 'La sélection contient un élément'} ({names}), qui {n > 1 ? 'seront retirés' : 'sera retiré'} de la note.
+                {tn('field.removeSelection.hint', n, { names: names })}
                 {anySent ? ' Ce qui a été transmis n’est pas annulé et reste dans les activités de la note.' : ''}
               </p>
               <div style={cmS.confirmActions}>

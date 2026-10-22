@@ -125,6 +125,13 @@ function chipIssues(a) {
   return out;
 }
 
+// Info-bulle du badge d'ajustement : « Dose augmentée » ou, si l'ancienne dose
+// est connue, « Dose augmentée : 20 mg → 40 mg ».
+function adjustTitle(rx) {
+  const label = rx.adjust === 'up' ? t('rx.adjust.up.title') : t('rx.adjust.down.title');
+  return rx.adjustFrom ? t('common.labelValue.text', { label: label, value: rx.adjustFrom + ' → ' + rx.dose }) : label;
+}
+
 // Statuts d'une puce, dans l'ordre d'affichage : { kind, text | icon, title }.
 //   ceased     « Cesser » — cessation d'un médicament (rx.ceased)
 //   renewal    icône ⟳ — renouvellement d'un médicament au dossier (rx.renewal)
@@ -140,7 +147,7 @@ function chipStatusBadges(a) {
   if (a.type === 'prescription') {
     if (rx.ceased) out.push({ kind: 'ceased', text: 'Cesser', title: 'Cessation du médicament' });
     else if (rx.adjust) out.push({ kind: 'adjust', icon: rx.adjust === 'up' ? 'arrow_upward' : 'arrow_downward',
-      title: (rx.adjust === 'up' ? 'Dose augmentée' : 'Dose diminuée') + (rx.adjustFrom ? ' : ' + rx.adjustFrom + ' → ' + rx.dose : '') });
+      title: adjustTitle(rx) });
     else if (rx.renewal) out.push({ kind: 'renewal', icon: 'autorenew', title: 'Renouvellement' });
   }
   const incomplete = chipIssues(a).filter(function (i) { return i.kind === 'incomplete'; })[0];
@@ -269,7 +276,10 @@ function separateAdjacentChips(nodes) {
 function formatChipStamp(iso) {
   const d = iso ? new Date(iso) : null;
   if (!d || isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }) + ' à ' + d.toTimeString().slice(0, 5);
+  return t('date.atTime', {
+    date: d.toLocaleDateString(window.I18N.locale, { day: 'numeric', month: 'short', year: 'numeric' }),
+    time: d.toTimeString().slice(0, 5)
+  });
 }
 
 // Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
@@ -284,7 +294,7 @@ function decoratePendingChip(node, data) {
   node.setAttribute('title', (data.proposedBy ? 'Proposé par ' + data.proposedBy : 'Ajout proposé') + ' — double-cliquer pour vérifier avant d’accepter');
   // Proposé par l'Assistant IA (piste de vision) : même puce en attente,
   // marquée comme venant de l'IA (étincelle, couleur des ajouts IA).
-  if (data.proposedBy === 'Assistant IA') {
+  if (data.proposedBy === t('ai.assistant.name')) {
     node.classList.add('chip--ai');
     const spark = document.createElement('span');
     spark.className = 'material-symbols-outlined chip-ai-icon';
@@ -305,7 +315,7 @@ function decoratePendingChip(node, data) {
     b.type = 'button';
     b.className = 'chip-pending-btn chip-pending-btn--' + a[0];
     b.setAttribute('data-pending', a[0]);
-    b.setAttribute('aria-label', a[2] + ' : ' + name);
+    b.setAttribute('aria-label', t('common.labelValue.text', { label: a[2], value: name }));
     b.setAttribute('title', a[2]);
     const ic = document.createElement('span');
     ic.className = 'material-symbols-outlined';
@@ -331,9 +341,7 @@ function rxChipSegments(d, missing) {
     out.push(isMissing ? { cls: cls, field: field, text: text, missing: true } : { cls: cls, field: field, text: text });
   };
   if (d.form || d.qtyDose || d.frequency) {
-    const n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
-    const ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
-    seg('chip-rx-form', 'form', n + ' ' + ab);
+    seg('chip-rx-form', 'form', window.RX_TEXT.qtyLabel(d));
   }
   if (d.route) seg('chip-rx-route', 'route', d.route);
   else if (miss.route) seg('chip-rx-route', 'route', miss.route, true);
@@ -341,7 +349,7 @@ function rxChipSegments(d, missing) {
   else if (miss.frequency) seg('chip-rx-freq', 'frequency', miss.frequency, true);
   if (d.quantity && /^\d+$/.test(String(d.quantity))) seg('chip-rx-qty', null, '#' + d.quantity);
   if (d.duration && d.duration !== '—') {
-    seg('chip-rx-dur', 'duration', d.duration + (d.durationUnit === 'jours' || !d.durationUnit ? 'j' : ' ' + d.durationUnit));
+    seg('chip-rx-dur', 'duration', window.RX_TEXT.durationShort(d));
   }
   const rf = (d.refills === undefined || d.refills === null || String(d.refills) === '') ? '0' : String(d.refills);
   seg('chip-rx-dur', 'refills', 'R' + rf);
@@ -2375,7 +2383,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
       // Messages des états bloquants de ses items : tant qu'il y en a, le
       // document ne peut pas être complété (DocumentActionPanel, QuickSendModal).
       blocking: items.reduce(function(acc, it) {
-        (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(it.label + ' : ' + i.message); });
+        (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(t('common.labelValue.text', { label: it.label, value: i.message })); });
         return acc;
       }, []),
       recipients: st.recipients || [],
@@ -2663,7 +2671,7 @@ function buildPendingChipNode(proposal, source) {
 // opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
 // en suggestion, à accepter ou refuser (D-03, tout le gabarit).
 function buildTemplateBlocks(tpl, opts) {
-  const source = 'Gabarit « ' + (tpl.name || tpl.key) + ' »';
+  const source = t('template.source.label', { name: tpl.name || tpl.key });
   const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
   let blocks = [];
   (tpl.sections || []).forEach(function (s) {

@@ -459,7 +459,7 @@ function LabTestsField({ tests, onChange }) {
   );
 }
 function LabFields({ d, up }) { return (<>
-  {d.profile && <div className="lab-profile-note">Depuis le profil « {d.profile} »</div>}
+  {d.profile && <div className="lab-profile-note">{t('lab.profileNote.text', { profile: d.profile })}</div>}
   <LabTestsField tests={d.tests} onChange={(v) => up('tests', v)} />
   <div className="row">
     <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
@@ -809,7 +809,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
       <DxList model={model} activeIndex={activeIndex} actionFocus={0} onEvent={dispatch} />
       {otherMentionsCount > 0 &&
         <div className="dx-edit__hint">
-          Renomme aussi {otherMentionsCount} autre{otherMentionsCount > 1 ? 's' : ''} mention{otherMentionsCount > 1 ? 's' : ''} de ce diagnostic.
+          {tn('dx.rename.hint', otherMentionsCount)}
         </div>
       }
       <DxFoot model={model} activeIndex={activeIndex} />
@@ -867,7 +867,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
       <div className="rx-menu__main">
       <div className="rx-menu__scroll">
         {total === 0 &&
-          <div className="rx-empty">Aucun {d.emptyNoun} trouvé{query ? <> pour « {query} »</> : null}.</div>
+          <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
         {sections.map(([ttl, list]) => { if (list.length === 0) return null; return (
           <div key={ttl} className="rx-sec-block">

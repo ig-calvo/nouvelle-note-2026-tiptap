@@ -14,8 +14,8 @@ function formatLogTimestamp(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  const date = d.toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' });
-  const time = d.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString(window.I18N.locale, { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = d.toLocaleTimeString(window.I18N.locale, { hour: '2-digit', minute: '2-digit' });
   return date + ' ' + time;
 }
 

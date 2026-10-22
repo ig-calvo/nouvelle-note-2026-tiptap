@@ -87,7 +87,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
   }
 
   const recipientCount = doc.recipients.length;
-  const summary = '1 document · ' + recipientCount + ' destination' + (recipientCount > 1 ? 's' : '');
+  const summary = tn('quickSend.summary.text', recipientCount);
 
   return (
     <div style={qs.overlay} onMouseDown={onCancel}>
