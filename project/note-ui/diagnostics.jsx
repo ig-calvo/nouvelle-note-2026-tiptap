@@ -581,13 +581,13 @@ function commitSommaireDx(base, threads, opts) {
 function sommaireDxRowView(r) {
   return Object.assign({}, r, {
     left: r.name,
-    mid: r.status === 'resolu' ? 'résolu' : '',
+    mid: r.status === 'resolu' ? t('diagnostics.resolu.text') : '',
     // resolvedOn l'emporte quand les deux sont présents : un problème
     // Cessé (D2) garde son `since` d'origine (mergeSommaireDx ne le touche
     // pas), mais c'est la date de résolution, la plus récente, qui doit
     // s'afficher — sinon la ligne semble ignorer le Cesser qui vient de
     // l'y amener.
-    right: r.resolvedOn || (r.since ? ('depuis ' + r.since) : ''),
+    right: r.resolvedOn || (r.since ? t('diagnostics.depuis.text', { date: r.since }) : ''),
     title: r.name + (r.code ? (' (' + r.code + ')') : ''),
   });
 }

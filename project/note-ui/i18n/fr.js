@@ -234,6 +234,8 @@
   'dx.menu.nePasAjouter.text': 'Ne pas ajouter au sommaire',
   'dx.menu.ceaseDansNote.text': 'Diagnostic cessé dans cette note',
   'dx.menu.classeResolu.text': 'Classé aux antécédents, résolu',
+  'diagnostics.resolu.text': 'résolu',
+  'diagnostics.depuis.text': 'depuis {date}',
   'diagnostics.defaultName.text': 'Diagnostic',
   'lab.profileNote.text':'Depuis le profil « {profile} »',
   'picker.none.text': 'Aucun {noun} trouvé.',
