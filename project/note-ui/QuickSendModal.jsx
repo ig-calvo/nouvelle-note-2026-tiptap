@@ -91,7 +91,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
 
   return (
     <div style={qs.overlay} onMouseDown={onCancel}>
-      <div style={qs.dialog} onMouseDown={function (e) { e.stopPropagation(); }} role="dialog" aria-modal="true">
+      <div style={qs.dialog} onMouseDown={function (e) { e.stopPropagation(); }} role="dialog" aria-modal="true" data-pm="quick-send">
         <div style={qs.head}>
           <div style={qs.title}>{t('quickSend.envoiRapide.text')}</div>
           <button style={qs.closeBtn} onClick={onCancel} aria-label={t('quickSend.fermer.aria')}>
@@ -138,14 +138,14 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
 
             <div style={qs.sectionLabel}>
               {t('quickSend.recipients.label', { n: recipientCount })}
-              <button style={qs.iconAdd} title={t('quickSend.ajouterDestinataire.tooltip')}
+              <button style={qs.iconAdd} data-pm="add-recipient" title={t('quickSend.ajouterDestinataire.tooltip')}
                 onClick={function () { setPickerOpen(!pickerOpen); }}>
                 <span className="material-icons" style={{ fontSize: 17 }}>add</span>
               </button>
             </div>
 
             {noRecipient &&
-              <div style={qs.warnBanner}>
+              <div style={qs.warnBanner} data-pm="need-recipient">
                 <span className="material-icons-outlined" style={{ fontSize: 18, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
                 <span style={qs.warnText}>{t('quickSend.addRecipientWarning.text', { noun: meta.nounPhrase })}</span>
               </div>
@@ -185,7 +185,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
                   .filter(function (s) { return !doc.recipients.some(function (r) { return r.name === s.name; }); })
                   .map(function (s) {
                     return (
-                      <button key={s.name} style={qs.pickerRow}
+                      <button key={s.name} style={qs.pickerRow} data-pm="suggestion" data-favorite={s.favorite ? 'true' : undefined}
                         onClick={function () { addRecipient(s); setPickerOpen(false); }}>
                         {s.favorite
                           ? <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#e0637a, #e9a5b2)' }}>favorite</span>
@@ -256,6 +256,7 @@ function QuickSendModal({ doc, doctorName, institution, showSuggestions, onPatch
             style={Object.assign({}, qs.primaryBtn, sendDisabled ? qs.btnDisabled : {})}
             disabled={sendDisabled}
             title={sendTitle}
+            data-pm="send"
             onClick={completeAndSend}>
             <span className="material-icons-outlined" style={{ fontSize: 19 }}>send</span>
             {t('quickSend.completerEnvoyer.button')}
