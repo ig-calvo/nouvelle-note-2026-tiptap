@@ -47,6 +47,15 @@ const CONSIGNES = {
     'Conserver les {valeurs} entre accolades à l\'identique.',
     'Appliquer le glossaire quand un de ses termes figure dans le texte.',
   ],
+  'fr-en-interface': [
+    'Traduire chaque texte d\'interface de Note Clinique (boutons, titres, messages, aides) en anglais canadien (en-CA).',
+    'Style anglais : sentence case (majuscule au premier mot seulement), boutons à l\'infinitif sans article (« Cancel appointment »).',
+    'Guillemets français « » deviennent “ ” ; pas d\'espace avant les deux-points, les points-virgules ou les points d\'interrogation.',
+    'Conserver les {valeurs} entre accolades à l\'identique (même nom, même place logique).',
+    'Les valeurs, unités et sigles (PO, DIE, mg, PrescripTIon®) ne sont pas traduits.',
+    'Le champ « contexte » indique l\'emplacement du texte (bouton, titre, aide…) : il sert au ton, il n\'apparaît pas dans la traduction.',
+    'Appliquer le glossaire quand un de ses termes figure dans le texte.',
+  ],
   'fr-en-donnees': [
     'Traduire chaque texte de démonstration (médicament, posologie, analyse, imagerie, référence, patient, gabarit) en anglais canadien (en-CA).',
     'Les noms de marque (Lipitor, Crestor, Norvasc…) restent identiques.',
