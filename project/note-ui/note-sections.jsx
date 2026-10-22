@@ -23,7 +23,7 @@ const SECTION_SPLIT = 'sectionSplit';
 
 // Étiquette du bloc de conclusion. Sert à la fois de libellé permanent dans
 // l'éditeur (au-dessus de la ligne) et de titre de l'aperçu dans la liste.
-const CONCLUSION_LABEL = 'Conclusion';
+const CONCLUSION_LABEL = t('sections.conclusion.heading');
 
 // Titre de la première zone. Il s'affiche HORS du composant d'écriture (au-dessus
 // de l'éditeur, voir editor-field.jsx) : il n'est plus un nœud du document.

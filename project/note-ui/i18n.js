@@ -115,11 +115,29 @@
       return fill(out, values);
     }
 
+    // L'autre langue d'un texte de démonstration, pour que la recherche trouve un
+    // produit par son nom français ou anglais : en anglais, le français d'origine
+    // (table inversée) ; en français, l'anglais s'il est chargé. Sans traduction
+    // connue, le texte lui-même.
+    var reverse = null, reverseOf = null;
+    function other(text) {
+      if (typeof text !== 'string') return text;
+      var table = (getData() || {}).en;
+      if (!table) return text;
+      if (lang === DEFAULT_LANG) return has.call(table, text) ? table[text] : text;
+      if (reverseOf !== table) {
+        reverse = {};
+        for (var k in table) if (has.call(table, k) && !has.call(reverse, table[k])) reverse[table[k]] = k;
+        reverseOf = table;
+      }
+      return has.call(reverse, text) ? reverse[text] : text;
+    }
+
     // Marque une clé construite à part (tables de codes → libellés) pour que
     // l'extraction la voie : { cesse: tk('statut.cesse') }, puis t(table[code]).
     function tk(key) { return key; }
 
-    return { lang: lang, locale: LOCALES[lang], t: t, tn: tn, L: L, tk: tk, missing: missing };
+    return { lang: lang, locale: LOCALES[lang], t: t, tn: tn, L: L, tk: tk, other: other, missing: missing };
   }
 
   function safeStorage() {

@@ -26,10 +26,10 @@ const I18N_SOURCES = ['note-ui/i18n.js', 'note-ui/i18n/fr.js'];
 const SHARED_SOURCES = ['note-ui/rx-text.jsx'];
 const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
 
-// `lang` : 'fr' (défaut) ou 'en' ; `english: false` n'y charge pas les fichiers anglais. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
+// `lang` : 'fr' (défaut) ou 'en' ; `english: false` n'y charge pas les fichiers anglais ; `data` : table « français → anglais » de démonstration. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
 // comme variables libres, ainsi qu'ils les reçoivent de `window` dans le
 // navigateur — un fichier chargé par `new Function` n'y a pas accès autrement.
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr', english = true } = {}) {
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr', english = true, data = null } = {}) {
   const win = {};
   if (lang !== 'fr') win.location = { search: `?lang=${lang}` };
   let globals = [];
@@ -50,6 +50,9 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
   if (win.I18N.lang === 'en' && english) {
     for (const rel of I18N_SOURCES_EN) if (fs.existsSync(path.join(projectDir, rel))) evaluate(rel);
   }
+  // `data` : une table « français → anglais » posée avant le chargement des fichiers, car
+  // L() lit sa traduction à l'évaluation des données (pour tester la recherche dans les deux langues).
+  if (data) win.I18N_DATA = { en: Object.assign({}, win.I18N_DATA && win.I18N_DATA.en, data) };
   globals = [win.I18N.t, win.I18N.tn, win.I18N.L, win.I18N.tk];
   for (const rel of SHARED_SOURCES) evaluate(rel);
   for (const rel of files) evaluate(rel);

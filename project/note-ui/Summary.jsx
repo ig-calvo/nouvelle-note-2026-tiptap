@@ -10,11 +10,11 @@ var INIT_DATA = {
   programs: [],
   tasks: [],
   vitals: [
-    { left:'Poids',        mid:'62 kg',           right:'08/12/2025' },
-    { left:'Pression',     mid:'118/74 mmHg',     right:'08/12/2025' },
-    { left:'Fréq. cardiaque', mid:'72 bpm',        right:'08/12/2025' },
-    { left:'Taille',       mid:'165 cm',           right:'08/12/2025' },
-    { left:'IMC',          mid:'22,8',             right:'08/12/2025' },
+    { left:L('Poids'),        mid:'62 kg',           right:'08/12/2025' },
+    { left:L('Pression'),     mid:'118/74 mmHg',     right:'08/12/2025' },
+    { left:L('Fréq. cardiaque'), mid:'72 bpm',        right:'08/12/2025' },
+    { left:L('Taille'),       mid:'165 cm',           right:'08/12/2025' },
+    { left:L('IMC'),          mid:'22,8',             right:'08/12/2025' },
   ],
   // Lignes {id, name, code, since} / {id, name, code, status, resolvedOn} —
   // voir diagnostics.jsx (sommaireDxSeed, mergeSommaireDx). La mise en forme
@@ -24,31 +24,31 @@ var INIT_DATA = {
   problems: DX_SEED.problems,
   history: DX_SEED.history,
   allergies: [
-    { name:'Aucune allergie connue', type:'none', muted:true },
+    { name:L('Aucune allergie connue'), type:'none', muted:true },
   ],
   family: [
-    { left:'Nulligeste',             mid:'' },
-    { left:'Cycles réguliers',       mid:'' },
-    { left:'Contraception…',         mid:'depuis 5 ans' },
-    { left:'Antécédents…',           mid:'Aucun pertinent' },
-    { left:'Antécédents chirurgi…',  mid:'Aucun' },
+    { left:L('Nulligeste'),             mid:'' },
+    { left:L('Cycles réguliers'),       mid:'' },
+    { left:L('Contraception…'),         mid:L('depuis 5 ans') },
+    { left:L('Antécédents…'),           mid:L('Aucun pertinent') },
+    { left:L('Antécédents chirurgi…'),  mid:L('Aucun') },
   ],
   meds: [
-    { name:'Contraceptif…',      detail:'1 co DIE — actif',  status:'active',  pinned:true },
-    { name:'Tylenol 100 mg',     detail:'1 co PRN — actif',  status:'active' },
-    { name:'Tylenol 500 mg',     detail:'2 co DIE — échue',  status:'echue',   date:'02/2026' },
-    { name:'Nitrofurantoïne…',   detail:'cessée (ITU)',       status:'cessée',  date:'12/2025' },
+    { name:L('Contraceptif…'),      detail:L('1 co DIE — actif'),  status:'active',  pinned:true },
+    { name:L('Tylenol 100 mg'),     detail:L('1 co PRN — actif'),  status:'active' },
+    { name:L('Tylenol 500 mg'),     detail:L('2 co DIE — échue'),  status:'echue',   date:'02/2026' },
+    { name:L('Nitrofurantoïne…'),   detail:L('cessée (ITU)'),       status:'cessée',  date:'12/2025' },
   ],
   immun: [
-    { left:'HPV (Gardasil…',             mid:'série complète',      right:'2010' },
-    { left:'dCaT (Tétanos-diphtérie)',   mid:'',                    right:'2022' },
-    { left:'Influenza',                   mid:'à jour',              right:'2025' },
-    { left:'COVID-19',                    mid:'primaire + rappels',   right:'2023' },
+    { left:L('HPV (Gardasil…'),             mid:L('série complète'),      right:'2010' },
+    { left:L('dCaT (Tétanos-diphtérie)'),   mid:'',                    right:'2022' },
+    { left:L('Influenza'),                   mid:L('à jour'),              right:'2025' },
+    { left:L('COVID-19'),                    mid:L('primaire + rappels'),   right:'2023' },
   ],
   habits: [
-    { left:'Tabac',   name:'Tabac',   mid:'Non-fumeuse',         detail:'Non-fumeuse' },
-    { left:'Alcool',  name:'Alcool',  mid:'Occasionnel (social)', detail:'Occasionnel (social)' },
-    { left:'Drogues', name:'Drogues', mid:'Aucune',               detail:'Aucune' },
+    { left:L('Tabac'),   name:L('Tabac'),   mid:L('Non-fumeuse'),         detail:L('Non-fumeuse') },
+    { left:L('Alcool'),  name:L('Alcool'),  mid:L('Occasionnel (social)'), detail:L('Occasionnel (social)') },
+    { left:L('Drogues'), name:L('Drogues'), mid:L('Aucune'),               detail:L('Aucune') },
   ],
 };
 
@@ -188,11 +188,11 @@ function Summary({ addToNote }) {
       }
       if (section === 'vitals' && item.poids) {
         var next = [];
-        if (item.poids)       next.push({ left:'Poids',            mid:item.poids+' kg',            right:'aujourd\'hui' });
-        if (item.taille)      next.push({ left:'Taille',           mid:item.taille+' cm',           right:'aujourd\'hui' });
-        if (item.paS&&item.paD) next.push({ left:'Pression',      mid:item.paS+'/'+item.paD+' mmHg', right:'aujourd\'hui' });
-        if (item.fc)          next.push({ left:'Fréq. cardiaque',  mid:item.fc+' bpm',              right:'aujourd\'hui' });
-        if (item.imc&&item.imc!=='—') next.push({ left:'IMC',     mid:item.imc,                     right:'aujourd\'hui' });
+        if (item.poids)       next.push({ left:L('Poids'),            mid:item.poids+' kg',            right:'aujourd\'hui' });
+        if (item.taille)      next.push({ left:L('Taille'),           mid:item.taille+' cm',           right:'aujourd\'hui' });
+        if (item.paS&&item.paD) next.push({ left:L('Pression'),      mid:item.paS+'/'+item.paD+' mmHg', right:'aujourd\'hui' });
+        if (item.fc)          next.push({ left:L('Fréq. cardiaque'),  mid:item.fc+' bpm',              right:'aujourd\'hui' });
+        if (item.imc&&item.imc!=='—') next.push({ left:L('IMC'),     mid:item.imc,                     right:'aujourd\'hui' });
         return Object.assign({}, prev, { vitals: next.length ? next : arr });
       }
       if (section === 'habits') {

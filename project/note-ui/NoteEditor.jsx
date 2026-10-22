@@ -1291,30 +1291,30 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     ],
     route: window.NOTE_DATA.FIELD_OPTIONS.route,
     duration_refills: [
-      '3 jours R0', '5 jours R0', '7 jours R0', '10 jours R0', '14 jours R0',
-      '21 jours R0', '28 jours R0',
-      '30 jours R0', '30 jours R1', '30 jours R2', '30 jours R3',
-      '30 jours R5', '30 jours R11',
-      '60 jours R0', '60 jours R5',
-      '90 jours R0', '90 jours R3', '90 jours R11',
-      '6 mois R1', '1 an R0',
-      'Long terme R0', 'Long terme R3', 'Long terme R11'
+      L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),
+      L('21 jours R0'), L('28 jours R0'),
+      L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),
+      L('30 jours R5'), L('30 jours R11'),
+      L('60 jours R0'), L('60 jours R5'),
+      L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),
+      L('6 mois R1'), L('1 an R0'),
+      L('Long terme R0'), L('Long terme R3'), L('Long terme R11')
     ],
     duration: [
-      '3 jours', '5 jours', '7 jours', '10 jours', '14 jours', '21 jours', '28 jours',
-      '30 jours', '60 jours', '90 jours', '6 mois', '1 an', 'Long terme'
+      L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),
+      L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')
     ],
     refills: window.NOTE_DATA.FIELD_OPTIONS.refills.map(function(r) { return 'R' + r; }),
     priority: window.NOTE_DATA.FIELD_OPTIONS.priority,
     exam: [
-      'Radiographie Thorax', 'Radiographie Genou', 'Radiographie Hanche',
-      'Radiographie Cheville', 'Radiographie Poignet', 'Radiographie Colonne',
-      'Échographie Abdomen', 'Échographie Pelvis', 'Échographie Thyroïde',
-      'Échographie Sein', 'Échographie Carotides', 'Échographie Membres inférieurs',
-      'TDM Cerveau', 'TDM Thorax', 'TDM Abdomen-Pelvis', 'TDM Sinus',
-      'IRM Cerveau', 'IRM Rachis cervical', 'IRM Rachis lombaire',
-      'IRM Genou', 'IRM Épaule', 'IRM Cheville',
-      'Mammographie Bilatérale'
+      L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),
+      L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),
+      L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),
+      L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),
+      L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),
+      L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),
+      L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),
+      L('Mammographie Bilatérale')
     ],
     specialty: window.NOTE_DATA.FIELD_OPTIONS.specialty
   };
@@ -1797,7 +1797,7 @@ window.NoteEditor = NoteEditor;
 // ---------------------------------------------------------
 // TagInput — « Étiquettes » chips field
 // ---------------------------------------------------------
-const TAG_SUGGESTIONS = ['Visite en clinique', 'Appel téléphonique', 'Assurance privée', 'CNESST', 'Cardiologie', 'Suivi', 'Sans rendez-vous', 'Urgent', 'Télémédecine'];
+const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous'), L('Urgent'), L('Télémédecine')];
 
 function TagInput({ tags, onChange }) {
   const [input, setInput] = React.useState('');

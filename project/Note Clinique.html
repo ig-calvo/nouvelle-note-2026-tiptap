@@ -531,7 +531,7 @@ function App() {
       author: t.doctorName,
       clinic: t.clinicName,
       role: 'Médecin de famille',
-      mode: data.visitType === 'phone' ? 'APPEL' : 'PRÉSENTIEL',
+      mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),
       title: data.raison || window.t('app.noteClinique.tooltip'),
       icons: [],
       diagnostics: data.diagnostics || [],

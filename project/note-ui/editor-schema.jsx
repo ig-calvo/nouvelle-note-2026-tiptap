@@ -2050,7 +2050,7 @@ function filterSlashItems(query) {
   // dans editor-field.jsx à chaque transaction).
   if (!window.__HAS_DIAGNOSTICS) items = items.filter(function (it) { return !it.diagRefPicker; });
   if (!t) return items.filter(function (it) { return !it.hideWhenEmpty; });
-  return items.filter(function (it) { return it.title.toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
+  return items.filter(function (it) { return it.title.toLowerCase().includes(t) || window.I18N.other(it.title).toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
 }
 
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →

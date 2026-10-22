@@ -99,7 +99,7 @@ function SearchBox({ value, onChange, placeholder, suggestions, onSelect, noneBt
 }
 
 // ── Allergies ─────────────────────────────────────────────────────────────────
-var ALLERGY_SUGG = ['Pénicilline','Amoxicilline','Aspirine','Ibuprofène','Codéine','Latex','Arachides','Noix','Fruits de mer','Sulfamides'];
+var ALLERGY_SUGG = [L('Pénicilline'),L('Amoxicilline'),L('Aspirine'),L('Ibuprofène'),L('Codéine'),L('Latex'),L('Arachides'),L('Noix'),L('Fruits de mer'),L('Sulfamides')];
 
 function AllergiesAddModal({ onClose, onAdd }) {
   var [query, setQuery] = React.useState('');
@@ -174,15 +174,15 @@ function AllergiesListModal({ items, onClose, onDelete }) {
 
 // ── Signes vitaux ─────────────────────────────────────────────────────────────
 function VitalsAddModal({ onClose, onAdd }) {
-  var [unit, setUnit] = React.useState('Métrique');
+  var [unit, setUnit] = React.useState(L('Métrique'));
   var [obsDate, setObsDate] = React.useState('2026/06/08');
   var [obsTime, setObsTime] = React.useState('');
   var [temp, setTemp] = React.useState('');
   var [tempSite, setTempSite] = React.useState('Oral');
   var [pressure, setPressure] = React.useState('');
-  var [pressureSite, setPressureSite] = React.useState('Assis / bras droit');
+  var [pressureSite, setPressureSite] = React.useState(L('Assis / bras droit'));
   var [hr, setHr] = React.useState('');
-  var [hrType, setHrType] = React.useState('Régulier');
+  var [hrType, setHrType] = React.useState(L('Régulier'));
   var [rr, setRr] = React.useState('');
   var [spo2, setSpo2] = React.useState('');
   var [o2flow, setO2flow] = React.useState('');
@@ -220,7 +220,7 @@ function VitalsAddModal({ onClose, onAdd }) {
     <ModalShell title={t('summaryModal.ajouterObservationSignesVitaux.tooltip')} onClose={onClose} width={640}>
       {/* System + date */}
       <VRow label={t('summaryModal.systemeMesure.label')}>
-        <VSelect value={unit} onChange={setUnit} options={['Métrique','Impérial']} />
+        <VSelect value={unit} onChange={setUnit} options={[L('Métrique'),L('Impérial')]} />
       </VRow>
       <VRow label={t('summaryModal.dateObservation.label')}>
         <div style={{ ...smS.searchBox, width:160, gap:6 }}>
@@ -239,11 +239,11 @@ function VitalsAddModal({ onClose, onAdd }) {
         </VRow>
         <VRow label={t('summaryModal.pression.label')}>
           <VInput value={pressure} onChange={setPressure} /><VUnit>{t('summaryModal.mmhg.text')}</VUnit>
-          <VSelect value={pressureSite} onChange={setPressureSite} options={['Assis / bras droit','Assis / bras gauche','Couché / bras droit','Debout']} />
+          <VSelect value={pressureSite} onChange={setPressureSite} options={[L('Assis / bras droit'),L('Assis / bras gauche'),L('Couché / bras droit'),L('Debout')]} />
         </VRow>
         <VRow label={t('summaryModal.freqCardiaque.label')}>
           <VInput value={hr} onChange={setHr} /><VUnit>bpm</VUnit>
-          <VSelect value={hrType} onChange={setHrType} options={['Régulier','Irrégulier']} />
+          <VSelect value={hrType} onChange={setHrType} options={[L('Régulier'),L('Irrégulier')]} />
         </VRow>
         <VRow label={t('summaryModal.freqRespiratoire.label')}>
           <VInput value={rr} onChange={setRr} /><VUnit>cpm</VUnit>
@@ -348,7 +348,7 @@ function MedsModal({ items, onClose }) {
                 return <button key={m} style={{ ...smS.modeBtn, ...(mode===m?smS.modeBtnOn:{}) }} onClick={function(){ setMode(m); }}>{m==='prescrire'?t('summaryModal.prescrire.text'):t('summaryModal.inscrireMedication.text')}</button>;
               })}
             </div>
-            <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherMedicament.placeholder')} suggestions={['Metformine','Ramipril','Atorvastatine','Lévothyroxine','Pantoprazole']} onSelect={setQuery} />
+            <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherMedicament.placeholder')} suggestions={[L('Metformine'),L('Ramipril'),L('Atorvastatine'),L('Lévothyroxine'),L('Pantoprazole')]} onSelect={setQuery} />
           </div>
         </>
       )}
@@ -404,13 +404,13 @@ function MedsPrefsModal({ onClose }) {
 }
 
 // ── Habitudes de vie ──────────────────────────────────────────────────────────
-var HABITS_CATS = ['Alcool','Tabac','Drogue','Alimentation','Activité physique','Sommeil','Emploi','Autre'];
-var HABITS_FREQS = ['Aucun','Régulier','Occasionnel','Abus','Cessé'];
+var HABITS_CATS = [L('Alcool'),L('Tabac'),L('Drogue'),L('Alimentation'),L('Activité physique'),L('Sommeil'),L('Emploi'),L('Autre')];
+var HABITS_FREQS = [L('Aucun'),L('Régulier'),L('Occasionnel'),L('Abus'),L('Cessé')];
 
 function HabitsModal({ items, onClose, onAdd }) {
   var [view, setView] = React.useState('list');
   var [cat, setCat] = React.useState('');
-  var [freq, setFreq] = React.useState('Régulier');
+  var [freq, setFreq] = React.useState(L('Régulier'));
   var [desc, setDesc] = React.useState('');
   var [debut, setDebut] = React.useState('');
   var [fin, setFin] = React.useState('');
@@ -525,7 +525,7 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
 }
 
 // ── Antécédents familiaux ─────────────────────────────────────────────────────
-var FAM_RELATIONS = ['Père','Mère','Frère','Sœur','Grand-père paternel','Grand-mère paternelle','Grand-père maternel','Grand-mère maternelle'];
+var FAM_RELATIONS = [L('Père'),L('Mère'),L('Frère'),L('Sœur'),L('Grand-père paternel'),L('Grand-mère paternelle'),L('Grand-père maternel'),L('Grand-mère maternelle')];
 
 function FamilyModal({ items, onClose, onAdd }) {
   var [showAdd, setShowAdd] = React.useState(false);
@@ -573,7 +573,7 @@ function FamilyModal({ items, onClose, onAdd }) {
 }
 
 // ── Immunisations ─────────────────────────────────────────────────────────────
-var VACCINE_SUGG = ['HPV (Gardasil)','dCaT (Tétanos-diphtérie)','Influenza','COVID-19','RRO','Varicelle','Hépatite B','Méningocoque'];
+var VACCINE_SUGG = [L('HPV (Gardasil)'),L('dCaT (Tétanos-diphtérie)'),L('Influenza'),L('COVID-19'),L('RRO'),L('Varicelle'),L('Hépatite B'),L('Méningocoque')];
 
 function ImmunModal({ items, onClose, onAdd }) {
   var [query, setQuery] = React.useState('');
@@ -596,7 +596,7 @@ function ImmunModal({ items, onClose, onAdd }) {
       <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:8 }}>
         <MField label={t('summaryModal.rechercherVaccin.label')}>
           <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherVaccin.placeholder')} suggestions={VACCINE_SUGG} onSelect={setQuery}
-            noneBtn={function(){ onAdd({ left:'Aucun vaccin connu', right:'' }); }} />
+            noneBtn={function(){ onAdd({ left:L('Aucun vaccin connu'), right:'' }); }} />
         </MField>
         <div style={smS.row2}>
           <MField label={t('summaryModal.dateVaccination.label')}><MDate value={date} onChange={setDate} /></MField>
@@ -680,7 +680,7 @@ function TasksModal({ items, onClose, onAdd }) {
 }
 
 // ── Programmes ───────────────────────────────────────────────────────────────
-var PROGRAMS_LIST = ['Diabète','Hypertension','Grossesse','Insuffisance cardiaque','MPOC','Santé mentale','Anticoagulothérapie','Maladies rénales chroniques'];
+var PROGRAMS_LIST = [L('Diabète'),L('Hypertension'),L('Grossesse'),L('Insuffisance cardiaque'),L('MPOC'),L('Santé mentale'),L('Anticoagulothérapie'),L('Maladies rénales chroniques')];
 
 function ProgramsModal({ items, onClose, onAdd }) {
   var [date, setDate] = React.useState('2026/06/08');
@@ -734,26 +734,26 @@ window.ProgramsModal = ProgramsModal;
 // ── Résultats ─────────────────────────────────────────────────────────────────
 var RESULT_SUGG = [
   // Hématologie
-  'FSC — hémoglobine','FSC — hématocrite','FSC — leucocytes','FSC — plaquettes',
-  'VGM','INR / RNI','TCA','Ferritine','Fer sérique','Saturation de la transferrine',
-  'Vitamine B12','Folates (acide folique)',
+  L('FSC — hémoglobine'),L('FSC — hématocrite'),L('FSC — leucocytes'),L('FSC — plaquettes'),
+  L('VGM'),L('INR / RNI'),L('TCA'),L('Ferritine'),L('Fer sérique'),L('Saturation de la transferrine'),
+  L('Vitamine B12'),L('Folates (acide folique)'),
   // Biochimie / ions
-  'Sodium','Potassium','Chlore','Bicarbonates','Glucose à jeun','Créatinine',
-  'DFGe (eGFR)','Urée','Calcium','Phosphore','Magnésium','Albumine','Protéines totales',
+  L('Sodium'),L('Potassium'),L('Chlore'),L('Bicarbonates'),L('Glucose à jeun'),L('Créatinine'),
+  L('DFGe (eGFR)'),L('Urée'),L('Calcium'),L('Phosphore'),L('Magnésium'),L('Albumine'),L('Protéines totales'),
   // Profil lipidique
-  'Cholestérol total','LDL','HDL','Triglycérides','Rapport cholestérol/HDL','Non-HDL',
+  L('Cholestérol total'),L('LDL'),L('HDL'),L('Triglycérides'),L('Rapport cholestérol/HDL'),L('Non-HDL'),
   // Glycémie / diabète
-  'HbA1c (hémoglobine glyquée)','Glycémie à jeun','Glycémie aléatoire',
+  L('HbA1c (hémoglobine glyquée)'),L('Glycémie à jeun'),L('Glycémie aléatoire'),
   // Fonction hépatique
-  'ALT','AST','GGT','Phosphatase alcaline','Bilirubine totale','Bilirubine conjuguée',
+  L('ALT'),L('AST'),L('GGT'),L('Phosphatase alcaline'),L('Bilirubine totale'),L('Bilirubine conjuguée'),
   // Thyroïde
-  'TSH','T4 libre','T3 libre',
+  L('TSH'),L('T4 libre'),L('T3 libre'),
   // Rénal / urinaire
-  'Analyse d\'urine (SMU)','Microalbuminurie','Rapport albumine/créatinine urinaire','Culture d\'urine',
+  L('Analyse d\'urine (SMU)'),L('Microalbuminurie'),L('Rapport albumine/créatinine urinaire'),L('Culture d\'urine'),
   // Vitamines / endocrinien
-  'Vitamine D (25-OH)','PTH','Cortisol','Testostérone',
+  L('Vitamine D (25-OH)'),L('PTH'),L('Cortisol'),L('Testostérone'),
   // Marqueurs / dépistage
-  'APS (PSA)','CRP','CRP haute sensibilité','hCG','HBsAg','Sérologie VIH','Sérologie hépatite B','Sérologie hépatite C',
+  L('APS (PSA)'),L('CRP'),L('CRP haute sensibilité'),L('hCG'),L('HBsAg'),L('Sérologie VIH'),L('Sérologie hépatite B'),L('Sérologie hépatite C'),
 ];
 
 // Normalité d'un résultat : le code est ce qu'on garde et compare (couleur du
