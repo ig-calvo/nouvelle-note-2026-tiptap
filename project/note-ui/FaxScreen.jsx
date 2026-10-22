@@ -9,9 +9,9 @@
 // Quelques contacts génériques additionnels pour que la recherche du
 // répertoire ait un peu de matière au-delà des suggestions du document.
 const FAX_EXTRA_DIRECTORY = [
-  { name: 'Hôpital Fleurimont — CHUS', phone: '819 346-1110', fax: '819 346-1199' },
-  { name: 'GMF Sherbrooke-Est', phone: '819 555-0142', fax: '819 555-0143' },
-  { name: 'Clinique médicale King Ouest', phone: '819 555-0166', fax: '819 555-0167' },
+  { name: L('Hôpital Fleurimont — CHUS'), phone: '819 346-1110', fax: '819 346-1199' },
+  { name: L('GMF Sherbrooke-Est'), phone: '819 555-0142', fax: '819 555-0143' },
+  { name: L('Clinique médicale King Ouest'), phone: '819 555-0166', fax: '819 555-0167' },
 ];
 
 function FaxScreen({ doc, doctorName, institution, directory, prefill, onCancel, onSent }) {
@@ -40,26 +40,26 @@ function FaxScreen({ doc, doctorName, institution, directory, prefill, onCancel,
   return (
     <div style={fx.shell}>
       <div style={fx.head}>
-        <div style={fx.headTitle}>Faxer un document</div>
-        <button style={fx.closeBtn} onClick={onCancel} aria-label="Fermer">
+        <div style={fx.headTitle}>{t('fax.faxerDocument.text')}</div>
+        <button style={fx.closeBtn} onClick={onCancel} aria-label={t('fax.fermer.aria')}>
           <span className="material-icons" style={{ fontSize: 24, color: 'rgba(0,0,0,0.55)' }}>close</span>
         </button>
       </div>
 
-      <div style={fx.expediteur}>Expéditeur : {institution || 'Établissement actuel'}</div>
+      <div style={fx.expediteur}>{t('fax.sender.text', { name: institution || t('fax.etablissementActuel.text') })}</div>
 
       <div style={fx.bodyRow}>
         <div style={fx.left}>
           <div style={fx.tabs}>
-            <div style={Object.assign({}, fx.tab, fx.tabActive)}>Répertoire</div>
-            <div style={fx.tab} title="Non disponible dans ce prototype">Cercle de soins</div>
+            <div style={Object.assign({}, fx.tab, fx.tabActive)}>{t('fax.repertoire.text')}</div>
+            <div style={fx.tab} title={t('fax.nonDisponiblePrototype.tooltip')}>{t('fax.cercleSoins.text')}</div>
           </div>
 
           <div style={fx.searchBox}>
             <span className="material-icons-outlined" style={{ fontSize: 18, color: 'rgba(0,0,0,0.4)' }}>search</span>
             <input
               value={query} onChange={function (e) { setQuery(e.target.value); }}
-              placeholder="Ressource" style={fx.searchInput} />
+              placeholder={t('fax.ressource.placeholder')} style={fx.searchInput} />
           </div>
 
           <div style={fx.list}>
@@ -70,28 +70,28 @@ function FaxScreen({ doc, doctorName, institution, directory, prefill, onCancel,
                     <div style={fx.contactName}>{c.name}</div>
                     <div style={fx.contactMeta}>{[c.phone, c.fax].filter(Boolean).join(' · ')}</div>
                   </div>
-                  <button style={fx.pickBtn} onClick={function () { pick(c); }} title="Choisir">
+                  <button style={fx.pickBtn} onClick={function () { pick(c); }} title={t('fax.choisir.tooltip')}>
                     <span className="material-icons" style={{ fontSize: 18 }}>add</span>
                   </button>
                 </div>
               );
             })}
-            {filtered.length === 0 && <div style={fx.noResult}>Aucun résultat.</div>}
+            {filtered.length === 0 && <div style={fx.noResult}>{t('fax.aucunResultat.text')}</div>}
           </div>
 
           <div style={fx.sendRow}>
             <div style={fx.sendField}>
-              <div style={fx.sendLabel}>Envoyer à</div>
-              <input value={sendTo} onChange={function (e) { setSendTo(e.target.value); }} style={fx.sendInput} placeholder="Destinataire" />
+              <div style={fx.sendLabel}>{t('fax.envoyer.text')}</div>
+              <input value={sendTo} onChange={function (e) { setSendTo(e.target.value); }} style={fx.sendInput} placeholder={t('fax.destinataire.placeholder')} />
             </div>
             <div style={fx.sendField}>
-              <div style={fx.sendLabel}>Numéro de fax</div>
+              <div style={fx.sendLabel}>{t('fax.numeroFax.text')}</div>
               <input value={faxNumber} onChange={function (e) { setFaxNumber(e.target.value); }} style={fx.sendInput} placeholder="000 000-0000" />
             </div>
           </div>
 
           <button style={Object.assign({}, fx.faxBtn, !canSend ? fx.btnDisabled : {})} disabled={!canSend} onClick={send}>
-            Faxer
+            {t('fax.faxer.button')}
           </button>
         </div>
 

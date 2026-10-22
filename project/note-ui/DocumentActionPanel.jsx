@@ -33,7 +33,7 @@ function DapSection({ label, count, open, onToggle, onAdd, children }) {
           {label}{typeof count === 'number' ? ' (' + count + ')' : ''}
         </button>
         {onAdd &&
-          <button style={dap.sectionAdd} title="Ajouter" onClick={onAdd}>
+          <button style={dap.sectionAdd} title={t('documentAction.ajouter.tooltip')} onClick={onAdd}>
             <span className="material-icons" style={{ fontSize: 18 }}>add</span>
           </button>}
       </div>
@@ -87,10 +87,10 @@ function DapContentRow({ it, meta, readOnly }) {
       </div>
       {hover && !readOnly &&
         <div style={dap.rowActions}>
-          <span style={dap.rowActionBtn} title="Modifier">
+          <span style={dap.rowActionBtn} title={t('documentAction.modifier.tooltip')}>
             <span className="material-icons-outlined" style={{ fontSize: 17 }}>edit</span>
           </span>
-          <span style={dap.rowActionBtn} title="Retirer">
+          <span style={dap.rowActionBtn} title={t('documentAction.retirer.tooltip')}>
             <span className="material-icons-outlined" style={{ fontSize: 17 }}>delete</span>
           </span>
         </div>}
@@ -103,12 +103,12 @@ function DapContentRow({ it, meta, readOnly }) {
 function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
   const [hover, setHover] = React.useState(false);
   const channel = r.channel || 'fax';
-  function channelBtn(key, cls, icon, title) {
+  function channelBtn(key, cls, icon, title, sentTitle) {
     const on = channel === key;
     return (
       <button style={Object.assign({}, dap.channelBtn, on ? dap.channelBtnOn : {},
           readOnly ? { cursor: 'default' } : {})}
-        title={readOnly ? (on ? title.replace('Transmettre', 'Transmis') : '') : title}
+        title={readOnly ? (on ? sentTitle : '') : title}
         aria-pressed={on} disabled={readOnly}
         onClick={function () { if (!readOnly) onChannel(key); }}>
         <span className={cls} style={{ fontSize: 18 }}>{icon}</span>
@@ -138,11 +138,11 @@ function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
         </div>
       </div>
       <div style={dap.channelGroup}>
-        {(r.fax && (!readOnly || channel === 'fax')) ? channelBtn('fax', 'material-symbols-outlined', 'fax', 'Transmettre par fax') : null}
-        {(!readOnly || channel === 'email') ? channelBtn('email', 'material-icons-outlined', 'mail', 'Transmettre par courriel') : null}
+        {(r.fax && (!readOnly || channel === 'fax')) ? channelBtn('fax', 'material-symbols-outlined', 'fax', t('documentAction.sendByFax.tooltip'), t('documentAction.sentByFax.tooltip')) : null}
+        {(!readOnly || channel === 'email') ? channelBtn('email', 'material-icons-outlined', 'mail', t('documentAction.sendByEmail.tooltip'), t('documentAction.sentByEmail.tooltip')) : null}
       </div>
       {hover && !readOnly &&
-        <button style={dap.removeBadge} onClick={onRemove} title="Retirer ce destinataire">
+        <button style={dap.removeBadge} onClick={onRemove} title={t('documentAction.retirerDestinataire.tooltip')}>
           <span className="material-icons" style={{ fontSize: 15 }}>close</span>
         </button>}
     </div>
@@ -190,12 +190,12 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   const completeDisabled = doc.complete || noRecipient || blocked;
   const transmitDisabled = !doc.complete || noRecipient || doc.transmitted;
   const completeTitle = doc.complete
-    ? 'Document déjà complété'
+    ? t('documentAction.alreadyCompleted.tooltip')
     : blocked ? (doc.blocking || []).join('\n')
-    : (noRecipient ? 'Aucun destinataire sélectionné' : undefined);
+    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
   const transmitTitle = doc.transmitted
-    ? 'Document déjà transmis'
-    : [!doc.complete ? doc.title + ' non complétée' : '', noRecipient ? 'Aucun destinataire sélectionné' : '']
+    ? t('documentAction.alreadyTransmitted.tooltip')
+    : [!doc.complete ? t('documentAction.notCompleted.tooltip', { title: doc.title }) : '', noRecipient ? t('documentAction.noRecipient.tooltip') : '']
         .filter(Boolean).join('\n') || undefined;
 
   return (
@@ -204,16 +204,16 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         <span className="material-icons-outlined" style={{ fontSize: 21, color: meta.accent, flexShrink: 0 }}>{meta.icon}</span>
         <span style={dap.docTitle}>{docTitle}</span>
         <span style={Object.assign({}, dap.statusBadge, doc.complete ? dap.statusBadgeOn : {})}>
-          {doc.complete ? 'Complétée' : 'Non complétée'}
+          {doc.complete ? t('documentAction.completee.text') : t('documentAction.nonCompletee.text')}
         </span>
         <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeOn : {})}>
-          {doc.transmitted ? 'Transmise' : 'Non transmise'}
+          {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.nonTransmise.text')}
         </span>
         <div style={{ flex: 1 }} />
         {!readOnly &&
         <React.Fragment>
         <button
-          title={doc.complete ? 'Imprimer' : 'Compléter le document avant impression'}
+          title={doc.complete ? t('documentAction.imprimer.tooltip') : t('documentAction.completerDocumentAvantImpression.tooltip')}
           style={Object.assign({}, dap.iconBtn, !doc.complete ? dap.btnDisabled : {})}
           disabled={!doc.complete}
           onClick={onQuickPrint}>
@@ -225,17 +225,17 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
             style={Object.assign({}, dap.splitBtn, completeDisabled ? dap.btnDisabled : {})}
             disabled={completeDisabled}
             onClick={function () { setMenuOpen(!menuOpen); }}>
-            Compléter {meta.nounPhrase}
+            {t('documentAction.complete.button', { noun: meta.nounPhrase })}
             <span className="material-icons" style={{ fontSize: 20 }}>arrow_drop_down</span>
           </button>
           {menuOpen && !completeDisabled &&
             <React.Fragment>
               <div style={dap.ddScrim} onMouseDown={function () { setMenuOpen(false); }} />
               <div style={dap.splitMenu}>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onComplete(); }}>Compléter</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndPrint(); }}>Compléter et imprimer</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(true); }}>Compléter et faxer</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(false); }}>Compléter et faxer à</button>
+                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onComplete(); }}>{t('documentAction.completer.button')}</button>
+                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndPrint(); }}>{t('documentAction.completerImprimer.button')}</button>
+                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(true); }}>{t('documentAction.completerFaxer.button')}</button>
+                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(false); }}>{t('documentAction.completerFaxer2.button')}</button>
               </div>
             </React.Fragment>
           }
@@ -245,7 +245,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
           style={Object.assign({}, dap.transmitBtn, transmitDisabled ? dap.btnDisabled : {})}
           disabled={transmitDisabled}
           onClick={onQuickSend}>
-          Transmettre {meta.nounPhrase}
+          {t('documentAction.transmit.button', { noun: meta.nounPhrase })}
         </button>
         </React.Fragment>}
       </div>
@@ -258,7 +258,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         {hasContent &&
         <div style={dap.col}>
           <DapSection
-            label={doc.kind === 'prescription' ? 'Prescriptions' : 'Détails'}
+            label={doc.kind === 'prescription' ? t('documentAction.prescriptions.label') : t('documentAction.details.label')}
             count={doc.items.length}
             open={openContent}
             onToggle={function () { setOpenContent(!openContent); }}>
@@ -270,20 +270,20 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
           </DapSection>
 
           <DapSection
-            label="Pièces jointes"
+            label={t('documentAction.piecesJointes.label')}
             count={attachments.length}
             open={openAttach}
             onToggle={function () { setOpenAttach(!openAttach); }}
             onAdd={(!readOnly && attachRemaining.length) ? function () { setAttachPickerOpen(!attachPickerOpen); } : null}>
             {attachments.length === 0
-              ? <div style={dap.attachEmpty}>Aucune pièce jointe.</div>
+              ? <div style={dap.attachEmpty}>{t('documentAction.aucunePieceJointe.text')}</div>
               : <div style={dap.attachRow}>
                   {attachments.map(function (name) {
                     return (
                       <span key={name} style={dap.attachChip}>
                         {name}
                         {!readOnly &&
-                          <button style={dap.attachChipX} title="Retirer"
+                          <button style={dap.attachChipX} title={t('documentAction.retirer.tooltip')}
                             onClick={function () { setAttachments(attachments.filter(function (a) { return a !== name; })); }}>
                             <span className="material-icons" style={{ fontSize: 15 }}>close</span>
                           </button>}
@@ -312,27 +312,27 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 
         {/* Colonne 2 — destinataires (plan V7 §F) */}
         <div style={dap.col}>
-          <div style={dap.colLabel}>DESTINATAIRE ({doc.recipients.length})
+          <div style={dap.colLabel}>{t('documentAction.recipients.label', { n: doc.recipients.length })}
             {!readOnly &&
-              <button style={dap.addRecipientBtn} title="Ajouter un destinataire"
+              <button style={dap.addRecipientBtn} title={t('documentAction.ajouterDestinataire.tooltip')}
                 onClick={function () { setRecipientPickerOpen(!recipientPickerOpen); }}>
                 <span className="material-icons" style={{ fontSize: 18 }}>add</span>
               </button>}
           </div>
 
           {doc.recipients.length === 0 && readOnly &&
-            <div style={dap.emptyReadonly}>Aucun destinataire n'a été choisi pour ce document.</div>
+            <div style={dap.emptyReadonly}>{t('documentAction.aucunDestinataireEteChoisi.text')}</div>
           }
 
           {doc.recipients.length === 0 && !readOnly &&
             <div style={dap.emptyBox}>
               <span className="material-icons-outlined" style={{ fontSize: 22, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
-              <div style={dap.emptyTitle}>Aucun destinataire</div>
+              <div style={dap.emptyTitle}>{t('documentAction.aucunDestinataire.text')}</div>
               <div style={dap.emptyText}>
-                Ajouter une pharmacie ou un professionnel de la santé pour transmettre {meta.nounPhrase}
+                {t('documentAction.addRecipientHint.text', { noun: meta.nounPhrase })}
               </div>
               <button style={dap.emptyLink} onClick={function () { setRecipientPickerOpen(true); }}>
-                Ajouter depuis le bottin
+                {t('documentAction.ajouterDepuisBottin.button')}
               </button>
             </div>
           }
@@ -355,13 +355,13 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
                 {showSuggestions
                   ? <React.Fragment>
                       <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
-                      SUGGESTION {meta.suggestions.length}
-                      <button style={dap.suggestHideBtn} title="Masquer les suggestions"
+                      {t('documentAction.suggestions.label', { n: meta.suggestions.length })}
+                      <button style={dap.suggestHideBtn} title={t('documentAction.masquerSuggestions.tooltip')}
                         onClick={function () { setSuggestHidden(true); }}>
                         <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
                       </button>
                     </React.Fragment>
-                  : <span style={{ color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>Ajouter un destinataire</span>}
+                  : <span style={{ color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>{t('documentAction.ajouterDestinataire.text')}</span>}
               </div>
               {meta.suggestions.filter(function (s) { return !doc.recipients.some(function (r) { return r.name === s.name; }); }).map(function (s) {
                 return (
@@ -380,8 +380,8 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         </div>
 
         <div style={dap.col}>
-          <div style={dap.colLabel}>APERÇU
-            <button style={dap.zoomBtn} onClick={function () { setPreviewZoom(!previewZoom); }} title="Agrandir">
+          <div style={dap.colLabel}>{t('documentAction.preview.label')}
+            <button style={dap.zoomBtn} onClick={function () { setPreviewZoom(!previewZoom); }} title={t('documentAction.agrandir.tooltip')}>
               <span className="material-icons-outlined" style={{ fontSize: 17 }}>{previewZoom ? 'close_fullscreen' : 'open_in_full'}</span>
             </button>
           </div>

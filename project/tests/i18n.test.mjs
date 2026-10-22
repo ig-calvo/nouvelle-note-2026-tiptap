@@ -330,6 +330,7 @@ const PORTEE_VERIFIEE = [
   // Lot A2 : vérifiés par analyse de portée (Babel) au moment de la conversion — la variable
   // locale vit dans un rappel qui n'englobe pas l'appel ; là où elle l'englobait, l'appel est window.t(…).
   'note-ui/ActionLog.jsx:function ActionLogTags',
+  'note-ui/DocumentViewerModal.jsx:function DocumentViewerModal',
   'note-ui/NoteEditor.jsx:function DsTimeList',
   'note-ui/NoteEditor.jsx:function TagInput',
   'note-ui/SummaryModals.jsx:function ProblemsModal',
