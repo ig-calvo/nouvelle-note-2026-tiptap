@@ -7,6 +7,9 @@
 .note-field { position: relative; border: 0; background: transparent; }
 
 /* Field shell: + button · editor · TT button */
+/* Titre de la première zone, hors du composant d'écriture : même étiquette que les Titre 2
+   de l'éditeur, aligné sur le texte (bouton « + » de 30 px + gap de 8 px + 4 px de remplissage de l'éditeur). */
+.note-field-title { margin: 0 0 5px 42px; font: 500 14px/20px var(--font-body); letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); }
 .note-field-shell { display: flex; align-items: flex-start; gap: 8px; }
 .note-field-shell .note-field { flex: 1; min-width: 0; }
 .nf-add, .nf-tt { flex-shrink: 0; border: 0; background: transparent; cursor: pointer; color: color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent); padding: 0; display: inline-flex; align-items: center; justify-content: center; transition: color 120ms, background 120ms; border-radius: 8px; }

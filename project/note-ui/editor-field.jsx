@@ -965,6 +965,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   return (
     <>
+      <h2 className="note-field-title">{window.DETAILS_LABEL}</h2>
       <div className="note-field-shell">
         <button
           ref={addBtnRef}

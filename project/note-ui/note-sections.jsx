@@ -25,6 +25,10 @@ const SECTION_SPLIT = 'sectionSplit';
 // l'éditeur (au-dessus de la ligne) et de titre de l'aperçu dans la liste.
 const CONCLUSION_LABEL = 'Conclusion';
 
+// Titre de la première zone. Il s'affiche HORS du composant d'écriture (au-dessus
+// de l'éditeur, voir editor-field.jsx) : il n'est plus un nœud du document.
+const DETAILS_LABEL = 'Détails de la consultation';
+
 function splitNode() { return { type: SECTION_SPLIT }; }
 
 function topBlocks(docJson) {
@@ -107,7 +111,8 @@ function withSplitAtSlot(docJson, slot) {
 //  3. rien → la ligne est posée à la fin, conclusion vide, avec un paragraphe
 //     pour pouvoir y écrire.
 function ensureSplit(docJson) {
-  const base = docJson && docJson.content ? docJson : { type: 'doc', content: [] };
+  const raw = docJson && docJson.content ? docJson : { type: 'doc', content: [] };
+  const base = dropDetailsTitle(raw);
   const content = topBlocks(base);
   let seen = false;
   const deduped = content.filter(function (n) {
@@ -127,6 +132,18 @@ function ensureSplit(docJson) {
     return Object.assign({}, base, { content: next });
   }
   return Object.assign({}, base, { content: deduped.concat([splitNode(), { type: 'paragraph' }]) });
+}
+
+// Retire le Titre 2 « Détails de la consultation » en tête du document : les notes
+// d'avant (brouillons, notes complétées) et les gabarits le portaient dans le
+// document, il est maintenant affiché hors de l'éditeur. Ne touche à rien d'autre.
+function isDetailsTitle(node) {
+  return !!node && node.type === 'heading' && headingText(node).toLowerCase() === DETAILS_LABEL.toLowerCase();
+}
+function dropDetailsTitle(docJson) {
+  const content = topBlocks(docJson);
+  if (!content.length || !isDetailsTitle(content[0])) return docJson;
+  return Object.assign({}, docJson, { content: content.slice(1) });
 }
 
 function headingText(node) {
@@ -214,6 +231,9 @@ Object.assign(window, {
   conclusionLineCount,
   withSplitAtSlot,
   ensureSplit,
+  dropDetailsTitle,
+  isDetailsTitle,
+  DETAILS_LABEL,
   boundaryY,
   boundarySlotFromY,
   nearestBoundary,
