@@ -223,7 +223,7 @@
   'clinicalToolPicker.prescriptionExercicesDemandeConsul.label': 'Exercise prescription and consultation request',
   'clinicalToolPicker.recherche.text': 'Search',
   'clinicalToolPicker.referencementLuci.label': 'Luci referral',
-  'clinicalToolPicker.reperageProcessusMenantDiagnostic.label': 'Screening and diagnostic process - Alzheimer\'s and NCD',
+  'clinicalToolPicker.reperageProcessusMenantDiagnostic.label': 'Screening and diagnostic process: Alzheimer\'s and NCD',
   'clinicalToolPicker.retirerFavoris.tooltip': 'Remove from favorites',
   'clinicalToolPicker.retour.tooltip': 'Back',
   'clinicalToolPicker.saisieRapideSommaireGabarit.label': 'Quick summary entry - Text template',
