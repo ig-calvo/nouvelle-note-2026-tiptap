@@ -68,7 +68,7 @@ test('unitCode : singulier, pluriel et casse', () => {
 });
 
 test('en anglais sans fichier anglais : mêmes textes (repli sur le français), mêmes accords', () => {
-  const en = loadPrototype([], { lang: 'en' });
+  const en = loadPrototype([], { lang: 'en', english: false });
   assert.equal(en.RX_TEXT.qtyLabel({ form: 'comprimé' }), '1 comp.');
   assert.equal(en.RX_TEXT.durationShort({ duration: '2', durationUnit: 'semaines' }), '2 semaines');
 });

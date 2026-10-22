@@ -3,10 +3,82 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 72,
+    "interface": 708,
     "donnees": 0
   },
   "interface": {
+    "actionLog.cancelledOn.label": {
+      "fr": "Annulé le {when}",
+      "empreinte": "0e35d5006c77",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:55"
+      ]
+    },
+    "actionLog.retireNote.label": {
+      "fr": "Retiré de la note",
+      "empreinte": "aa593f1ca76a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:56"
+      ]
+    },
+    "actionLog.title.title": {
+      "fr": "Activités de la note ({n})",
+      "empreinte": "4497e855b391",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:77"
+      ]
+    },
+    "actionLog.transmittedOn.label": {
+      "fr": "Transmis le {when}",
+      "empreinte": "e7f54d7c5a88",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:54"
+      ]
+    },
+    "actionLog.verbAdded.text": {
+      "fr": "Ajouté",
+      "empreinte": "41200139aee1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:83"
+      ]
+    },
+    "actionLog.verbBy.text": {
+      "fr": "{verb} par {author}",
+      "empreinte": "e9f4507c73f4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:85"
+      ]
+    },
+    "actionLog.verbByOn.text": {
+      "fr": "{verb} par {author} le {when}",
+      "empreinte": "c8202aa69e1f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:85"
+      ]
+    },
+    "actionLog.verbOn.text": {
+      "fr": "{verb} le {when}",
+      "empreinte": "73554305654e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/ActionLog.jsx:86"
+      ]
+    },
+    "ai.ajouterNote.button": {
+      "fr": "Ajouter à la note",
+      "empreinte": "62c41dd55f76",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AIBox.jsx:240"
+      ]
+    },
     "ai.assistant.name": {
       "fr": "Assistant IA",
       "empreinte": "94f6f208e9ce",
@@ -15,6 +87,102 @@
         "note-ui/NoteEditor.jsx:971",
         "note-ui/editor-schema.jsx:297",
         "note-ui/review-mode.jsx:28"
+      ]
+    },
+    "ai.assistantIa.text": {
+      "fr": "Assistant IA",
+      "empreinte": "94f6f208e9ce",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:96"
+      ]
+    },
+    "ai.commentEvaluezNoteGeneree.text": {
+      "fr": "Comment évaluez-vous la note générée ?",
+      "empreinte": "cbb95b9e6c81",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:221"
+      ]
+    },
+    "ai.enregistrementCours.text": {
+      "fr": "Enregistrement en cours",
+      "empreinte": "475764e9f974",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:103"
+      ]
+    },
+    "ai.enregistrementPause.text": {
+      "fr": "Enregistrement en pause",
+      "empreinte": "0a0d532a38fd",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:103"
+      ]
+    },
+    "ai.genererNoteFr.text": {
+      "fr": "Générer une note (FR)",
+      "empreinte": "79f2fde0bb26",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:195"
+      ]
+    },
+    "ai.lancerEnregistrementFr.text": {
+      "fr": "Lancer l'enregistrement (FR)",
+      "empreinte": "dc2f0b6fd8c5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:185"
+      ]
+    },
+    "ai.pause.button": {
+      "fr": "Pause",
+      "empreinte": "781961bc81c2",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AIBox.jsx:113"
+      ]
+    },
+    "ai.recuperationDetails.text": {
+      "fr": "Récupération des détails...",
+      "empreinte": "e60496491ca5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:208"
+      ]
+    },
+    "ai.remplacerNote.button": {
+      "fr": "Remplacer la note",
+      "empreinte": "5647ef0eb028",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AIBox.jsx:236"
+      ]
+    },
+    "ai.reprendreFr.button": {
+      "fr": "Reprendre (FR)",
+      "empreinte": "4970f5fe2ba0",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AIBox.jsx:119"
+      ]
+    },
+    "ai.terminerGenererFr.button": {
+      "fr": "Terminer et générer (FR)",
+      "empreinte": "0ace70ab480a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AIBox.jsx:125"
+      ]
+    },
+    "ai.transcription.text": {
+      "fr": "Transcription(s)",
+      "empreinte": "63b1ddf8d6ff",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AIBox.jsx:172"
       ]
     },
     "app.error.hint": {
@@ -31,6 +199,38 @@
       "contexte": "titre",
       "fichiers": [
         "Note Clinique.html:383"
+      ]
+    },
+    "app.finaliser.button": {
+      "fr": "Finaliser",
+      "empreinte": "ad181d5f077f",
+      "contexte": "bouton",
+      "fichiers": [
+        "Note Clinique.html:622"
+      ]
+    },
+    "app.noteClinique.tooltip": {
+      "fr": "Note clinique",
+      "empreinte": "d2d1b9bf123d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "Note Clinique.html:535"
+      ]
+    },
+    "app.portailPatientActif.toast": {
+      "fr": "Portail patient actif",
+      "empreinte": "88aba41df5a9",
+      "contexte": "notification",
+      "fichiers": [
+        "Note Clinique.html:491"
+      ]
+    },
+    "app.sauvegarder.button": {
+      "fr": "Sauvegarder",
+      "empreinte": "9ada14395d66",
+      "contexte": "bouton",
+      "fichiers": [
+        "Note Clinique.html:620"
       ]
     },
     "app.tiptap.hint": {
@@ -103,7 +303,7 @@
       "empreinte": "621a5bd11560",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/review-mode.jsx:476"
+        "note-ui/review-mode.jsx:477"
       ]
     },
     "common.labelValue.text": {
@@ -315,7 +515,347 @@
       "empreinte": "341e5bfbb2ce",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-popover.jsx:812"
+        "note-ui/editor-popover.jsx:810"
+      ]
+    },
+    "field.afficherBarreMiseForme.tooltip": {
+      "fr": "Afficher la barre de mise en forme",
+      "empreinte": "a069e0271e98",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:980"
+      ]
+    },
+    "field.ajouterFichiers.text": {
+      "fr": "Ajouter des fichiers",
+      "empreinte": "a632819ba623",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1429"
+      ]
+    },
+    "field.annulationSeraEnvoyeeDestinataire.text": {
+      "fr": "Une annulation sera envoyée au destinataire. Les activités de la note garderont la transmission, puis l’annulation.",
+      "empreinte": "368b2532eab9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1176"
+      ]
+    },
+    "field.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1072"
+      ]
+    },
+    "field.annuler.tooltip": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1063",
+        "note-ui/editor-field.jsx:1096"
+      ]
+    },
+    "field.annulerOrdonnance.text": {
+      "fr": "Annuler l’ordonnance…",
+      "empreinte": "3a23c8737884",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1150"
+      ]
+    },
+    "field.annulerRequete.text": {
+      "fr": "Annuler la requête…",
+      "empreinte": "aed68cc665a1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1150"
+      ]
+    },
+    "field.aucunDiagnosticNote.text": {
+      "fr": "Aucun diagnostic dans cette note.",
+      "empreinte": "372be90638af",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1561"
+      ]
+    },
+    "field.cancelRequest.aria": {
+      "fr": "Annuler la requête",
+      "empreinte": "219433a36c0b",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1169"
+      ]
+    },
+    "field.cancelRequest.title": {
+      "fr": "Annuler la requête ?",
+      "empreinte": "99412ed1347a",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1171"
+      ]
+    },
+    "field.cancelRx.aria": {
+      "fr": "Annuler l’ordonnance",
+      "empreinte": "0b04f0aac993",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1169"
+      ]
+    },
+    "field.cancelRx.title": {
+      "fr": "Annuler l’ordonnance ?",
+      "empreinte": "1a2f936cb62c",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1171"
+      ]
+    },
+    "field.ceased.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:167"
+      ]
+    },
+    "field.cellulaire.label": {
+      "fr": "Votre cellulaire",
+      "empreinte": "ff4d245c7dff",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1393"
+      ]
+    },
+    "field.cesse.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1570"
+      ]
+    },
+    "field.convertirTexte.button": {
+      "fr": "Convertir en texte",
+      "empreinte": "58ad05a5cad6",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1138"
+      ]
+    },
+    "field.deleteItem.title": {
+      "fr": "Supprimer cet élément ?",
+      "empreinte": "79598e2c0e49",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1095"
+      ]
+    },
+    "field.deleteRx.title": {
+      "fr": "Supprimer cette prescription ?",
+      "empreinte": "6c6e029bda2a",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1095"
+      ]
+    },
+    "field.diagScope.hint": {
+      "fr": "S’applique au diagnostic n° {number} partout dans la note.",
+      "empreinte": "4380c6573f05",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1649"
+      ]
+    },
+    "field.documenterComme.aria": {
+      "fr": "Documenter comme",
+      "empreinte": "b08d7d9e777e",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1630"
+      ]
+    },
+    "field.documenterComme.text": {
+      "fr": "Documenter comme",
+      "empreinte": "b08d7d9e777e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1632"
+      ]
+    },
+    "field.envoyerAnnulation.button": {
+      "fr": "Envoyer l’annulation",
+      "empreinte": "d6a4f42372c4",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1180"
+      ]
+    },
+    "field.eteTransmisPasAnnule.text": {
+      "fr": "Ce qui a été transmis n’est pas annulé et reste dans les activités de la note.",
+      "empreinte": "f855d2253136",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1069"
+      ]
+    },
+    "field.fermer.tooltip": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1172",
+        "note-ui/editor-field.jsx:1430",
+        "note-ui/editor-field.jsx:1492",
+        "note-ui/editor-field.jsx:1555"
+      ]
+    },
+    "field.gabaritsNote.text": {
+      "fr": "Gabarits de note",
+      "empreinte": "4041f2c746f0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1491"
+      ]
+    },
+    "field.garderTexte.button": {
+      "fr": "Garder en texte",
+      "empreinte": "1e099d9acdba",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1107"
+      ]
+    },
+    "field.insererFonction.tooltip": {
+      "fr": "Insérer une fonction",
+      "empreinte": "b15c9b8e2964",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:972"
+      ]
+    },
+    "field.labelCeased.text": {
+      "fr": "{label} — Cessé",
+      "empreinte": "9d212424fcda",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:171"
+      ]
+    },
+    "field.labelSig.text": {
+      "fr": "{label} — {sig}",
+      "empreinte": "b1a36f56da56",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:171"
+      ]
+    },
+    "field.modifier.text": {
+      "fr": "Modifier",
+      "empreinte": "f260e757cec7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1018"
+      ]
+    },
+    "field.ordinateur.label": {
+      "fr": "Votre ordinateur",
+      "empreinte": "3f81300ddf48",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1392"
+      ]
+    },
+    "field.patient.label": {
+      "fr": "Le patient",
+      "empreinte": "301e246b6841",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1394"
+      ]
+    },
+    "field.photoMine.text": {
+      "fr": "Photo — cellulaire",
+      "empreinte": "09abd782bb4b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:600"
+      ]
+    },
+    "field.photoPatient.text": {
+      "fr": "Photo — patient",
+      "empreinte": "97ee84f51518",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:600"
+      ]
+    },
+    "field.plusOptions.tooltip": {
+      "fr": "Plus d'options",
+      "empreinte": "a9452148ca3d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1036"
+      ]
+    },
+    "field.prescrire.text": {
+      "fr": "Prescrire",
+      "empreinte": "2dab03c86888",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1032"
+      ]
+    },
+    "field.removeItem.hint": {
+      "fr": "Retirer complètement cet élément de la note, ou la conserver sous forme de texte simple ?",
+      "empreinte": "6b3ea2faf74c",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1103"
+      ]
+    },
+    "field.removeItemSent.hint": {
+      "fr": "Retirer cet élément de la note n’annule pas la requête transmise. Elle reste dans les activités de la note. Pour l’annuler, utilisez le menu ⋮.",
+      "empreinte": "40df9554ca04",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1102"
+      ]
+    },
+    "field.removeItemSent.title": {
+      "fr": "Retirer cet élément de la note ?",
+      "empreinte": "c95861bddf1f",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1095"
+      ]
+    },
+    "field.removeRx.hint": {
+      "fr": "Retirer complètement cette prescription de la note, ou la conserver sous forme de texte simple ?",
+      "empreinte": "09dc0ca5cf44",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1103"
+      ]
+    },
+    "field.removeRxSent.hint": {
+      "fr": "Retirer cette prescription de la note n’annule pas l’ordonnance transmise. Elle reste dans les activités de la note. Pour l’annuler, utilisez le menu ⋮.",
+      "empreinte": "2bbcc397b951",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1102"
+      ]
+    },
+    "field.removeRxSent.title": {
+      "fr": "Retirer cette prescription de la note ?",
+      "empreinte": "55c0d5d6d729",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1095"
       ]
     },
     "field.removeSelection.hint": {
@@ -329,12 +869,617 @@
         "note-ui/editor-field.jsx:1068"
       ]
     },
+    "field.renvoiDiagnostic.text": {
+      "fr": "Renvoi à un diagnostic",
+      "empreinte": "f203f6473801",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1554"
+      ]
+    },
+    "field.retirerNote.aria": {
+      "fr": "Retirer de la note",
+      "empreinte": "288ed87c3e82",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1093"
+      ]
+    },
+    "field.retirerNote.text": {
+      "fr": "Retirer de la note",
+      "empreinte": "288ed87c3e82",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1110",
+        "note-ui/editor-field.jsx:1143"
+      ]
+    },
+    "field.retour.button": {
+      "fr": "Retour",
+      "empreinte": "e5befb1f9671",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1178"
+      ]
+    },
+    "field.retour.tooltip": {
+      "fr": "Retour",
+      "empreinte": "e5befb1f9671",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1426",
+        "note-ui/editor-field.jsx:1488",
+        "note-ui/editor-field.jsx:1551"
+      ]
+    },
+    "field.supprimer.aria": {
+      "fr": "Supprimer",
+      "empreinte": "1acfc1c7d761",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1093"
+      ]
+    },
+    "field.supprimer.text": {
+      "fr": "Supprimer",
+      "empreinte": "1acfc1c7d761",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1110",
+        "note-ui/editor-field.jsx:1143"
+      ]
+    },
+    "field.supprimerSelection.aria": {
+      "fr": "Supprimer la sélection",
+      "empreinte": "d1347096709f",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1060"
+      ]
+    },
+    "field.supprimerSelection.button": {
+      "fr": "Supprimer la sélection",
+      "empreinte": "d1347096709f",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1074"
+      ]
+    },
+    "field.supprimerSelection.text": {
+      "fr": "Supprimer la sélection ?",
+      "empreinte": "90f5c458e710",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1062"
+      ]
+    },
+    "field.transmettre.text": {
+      "fr": "Transmettre",
+      "empreinte": "b87db5167167",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1032"
+      ]
+    },
+    "field.voir.text": {
+      "fr": "Voir",
+      "empreinte": "8a754f1f426c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:1018"
+      ]
+    },
+    "field.waitingPhotoMine.toast": {
+      "fr": "En attente d’une photo depuis votre cellulaire…",
+      "empreinte": "a150645a2fd1",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/editor-field.jsx:597"
+      ]
+    },
+    "field.waitingPhotoPatient.toast": {
+      "fr": "En attente d’une photo depuis le téléphone du patient…",
+      "empreinte": "601db266d76a",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/editor-field.jsx:597"
+      ]
+    },
     "lab.profileNote.text": {
       "fr": "Depuis le profil « {profile} »",
       "empreinte": "1b8620ce8489",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:462"
+        "note-ui/editor-popover.jsx:460"
+      ]
+    },
+    "noteEditor.ajouter.placeholder": {
+      "fr": "Ajouter…",
+      "empreinte": "bbb276c7a418",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1847"
+      ]
+    },
+    "noteEditor.ajouterEtiquette.placeholder": {
+      "fr": "Ajouter une étiquette…",
+      "empreinte": "1097cb8e1d00",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1847"
+      ]
+    },
+    "noteEditor.ajouterEtiquettes.aria": {
+      "fr": "Ajouter des étiquettes",
+      "empreinte": "5b6efbfeb4be",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:943"
+      ]
+    },
+    "noteEditor.ajouterEtiquettes.tooltip": {
+      "fr": "Ajouter des étiquettes",
+      "empreinte": "5b6efbfeb4be",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:942"
+      ]
+    },
+    "noteEditor.annulationEnvoyee.toast": {
+      "fr": "Annulation envoyée",
+      "empreinte": "a4746d901e98",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:738"
+      ]
+    },
+    "noteEditor.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1092",
+        "note-ui/NoteEditor.jsx:1118"
+      ]
+    },
+    "noteEditor.appuyerAfficherCommandes.placeholder": {
+      "fr": "Appuyer sur « / » pour afficher les commandes",
+      "empreinte": "d94edcaf8119",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1001"
+      ]
+    },
+    "noteEditor.assurancePrivee.label": {
+      "fr": "Assurance privée",
+      "empreinte": "918e94b73c5c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1028"
+      ]
+    },
+    "noteEditor.aucunElementDossier.text": {
+      "fr": "• (aucun élément au dossier)",
+      "empreinte": "1efba1d1ad4e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:561"
+      ]
+    },
+    "noteEditor.aujourdHui.button": {
+      "fr": "Aujourd’hui",
+      "empreinte": "ba0603b43d81",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1683"
+      ]
+    },
+    "noteEditor.brouillonSauvegarde.toast": {
+      "fr": "Brouillon sauvegardé",
+      "empreinte": "94be170991d3",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:647"
+      ]
+    },
+    "noteEditor.cardiologie.label": {
+      "fr": "Cardiologie",
+      "empreinte": "f1703cc56ce5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1029"
+      ]
+    },
+    "noteEditor.champsConfidentiel.text": {
+      "fr": "Champs confidentiel",
+      "empreinte": "5b03afb49e23",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1055"
+      ]
+    },
+    "noteEditor.choisirHeure.label": {
+      "fr": "Choisir l’heure",
+      "empreinte": "36cf897a5208",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1589"
+      ]
+    },
+    "noteEditor.contenuChampsNoteConfidentielle.text": {
+      "fr": "Le contenu du champs de note confidentielle sera uniquement visible par son auteur. Les informations ajoutées ne devraient pas entraver une décision clinique ou un diagnostique par un.e autre praticien.ne concernant ce patient.",
+      "empreinte": "11e31bfb5215",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1089"
+      ]
+    },
+    "noteEditor.contenuRedigeSeraDefinitivement.text": {
+      "fr": "Le contenu rédigé sera définitivement perdu.",
+      "empreinte": "14d426cecdd7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1115"
+      ]
+    },
+    "noteEditor.cours.text": {
+      "fr": "En cours",
+      "empreinte": "bc9b533a4353",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:896"
+      ]
+    },
+    "noteEditor.date.label": {
+      "fr": "Date",
+      "empreinte": "eb9a4bc1c0c1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:936"
+      ]
+    },
+    "noteEditor.documenterChampConfidentiel.placeholder": {
+      "fr": "Documenter le champ confidentiel",
+      "empreinte": "0bd36a500c86",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1065"
+      ]
+    },
+    "noteEditor.echecTransmissionSimule.toast": {
+      "fr": "Échec de transmission (simulé)",
+      "empreinte": "b06e61b328de",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:699"
+      ]
+    },
+    "noteEditor.ecrire.button": {
+      "fr": "Écrire",
+      "empreinte": "4a2abc77808a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1096"
+      ]
+    },
+    "noteEditor.etiquettes.text": {
+      "fr": "Étiquettes",
+      "empreinte": "e26c690ca57a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1831"
+      ]
+    },
+    "noteEditor.examenPhysiqueVersionCourte.label": {
+      "fr": "Examen physique - Version courte",
+      "empreinte": "2d854507c050",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1031"
+      ]
+    },
+    "noteEditor.fieldDose.label": {
+      "fr": "Dose",
+      "empreinte": "da7f99e8cbbf",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1322"
+      ]
+    },
+    "noteEditor.fieldDuration.label": {
+      "fr": "Durée",
+      "empreinte": "6feac25effc5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1323"
+      ]
+    },
+    "noteEditor.fieldDurationRefills.label": {
+      "fr": "Durée / Renouvellements",
+      "empreinte": "14e03029b192",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1322"
+      ]
+    },
+    "noteEditor.fieldExam.label": {
+      "fr": "Examen",
+      "empreinte": "f0a010017d3b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1324"
+      ]
+    },
+    "noteEditor.fieldForm.label": {
+      "fr": "Forme",
+      "empreinte": "5f9d25690e5c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1322"
+      ]
+    },
+    "noteEditor.fieldFrequency.label": {
+      "fr": "Fréquence",
+      "empreinte": "bafbfba73ab9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1322"
+      ]
+    },
+    "noteEditor.fieldPriority.label": {
+      "fr": "Priorité",
+      "empreinte": "eede91d2f77e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1324"
+      ]
+    },
+    "noteEditor.fieldRefills.label": {
+      "fr": "Renouvellement",
+      "empreinte": "5b961f3ab582",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1323"
+      ]
+    },
+    "noteEditor.fieldRoute.label": {
+      "fr": "Voie",
+      "empreinte": "2085078a7f15",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1322"
+      ]
+    },
+    "noteEditor.fieldSpecialty.label": {
+      "fr": "Spécialité",
+      "empreinte": "cbaf96abb0f9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1324"
+      ]
+    },
+    "noteEditor.heure.label": {
+      "fr": "Heure",
+      "empreinte": "5073129fadb8",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:937"
+      ]
+    },
+    "noteEditor.heures.aria": {
+      "fr": "Heures",
+      "empreinte": "b4448c06daab",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1718"
+      ]
+    },
+    "noteEditor.ituRoadmap.text": {
+      "fr": "Feuille de route - Symptômes urinaires",
+      "empreinte": "1bbbd6771382",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:283"
+      ]
+    },
+    "noteEditor.masquerEtiquettes.aria": {
+      "fr": "Masquer les étiquettes",
+      "empreinte": "aa3638ab7fd0",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:943"
+      ]
+    },
+    "noteEditor.masquerEtiquettes.tooltip": {
+      "fr": "Masquer les étiquettes",
+      "empreinte": "aa3638ab7fd0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:942"
+      ]
+    },
+    "noteEditor.moisPrecedent.aria": {
+      "fr": "Mois précédent",
+      "empreinte": "535707c762c5",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1637"
+      ]
+    },
+    "noteEditor.moisSuivant.aria": {
+      "fr": "Mois suivant",
+      "empreinte": "7b08eaecd203",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1641"
+      ]
+    },
+    "noteEditor.noSuggestion.empty": {
+      "fr": "Aucune suggestion",
+      "empreinte": "7bec56e7dee9",
+      "contexte": "état vide",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1385"
+      ]
+    },
+    "noteEditor.noteClinique.text": {
+      "fr": "Note Clinique",
+      "empreinte": "faa86995709c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:895"
+      ]
+    },
+    "noteEditor.noteClinique.tooltip": {
+      "fr": "Note clinique",
+      "empreinte": "d2d1b9bf123d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1152"
+      ]
+    },
+    "noteEditor.noteConfidentielle.text": {
+      "fr": "Note confidentielle",
+      "empreinte": "82d714bd9df8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1082"
+      ]
+    },
+    "noteEditor.outilsCliniques.tooltip": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1018"
+      ]
+    },
+    "noteEditor.ouvrirCalendrier.label": {
+      "fr": "Ouvrir le calendrier",
+      "empreinte": "68d7da0b9a5a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1582"
+      ]
+    },
+    "noteEditor.raisonConsultation.label": {
+      "fr": "Raison de consultation",
+      "empreinte": "0526229047e4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:931"
+      ]
+    },
+    "noteEditor.rechercher.placeholder": {
+      "fr": "Rechercher…",
+      "empreinte": "1d12cdfbd87a",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1379"
+      ]
+    },
+    "noteEditor.redactionAssistee.text": {
+      "fr": "Rédaction assistée",
+      "empreinte": "163625c39eea",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:912"
+      ]
+    },
+    "noteEditor.removeTag.aria": {
+      "fr": "Retirer l’étiquette {tag}",
+      "empreinte": "fe1edfe26212",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1838"
+      ]
+    },
+    "noteEditor.savedAt.text": {
+      "fr": "Sauvegardé à {time}",
+      "empreinte": "cd9c83173831",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:640"
+      ]
+    },
+    "noteEditor.supprimer.button": {
+      "fr": "Supprimer",
+      "empreinte": "1acfc1c7d761",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1123"
+      ]
+    },
+    "noteEditor.supprimerChampConfidentiel.text": {
+      "fr": "Supprimer le champ confidentiel?",
+      "empreinte": "f20d3a776dcf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1109"
+      ]
+    },
+    "noteEditor.supprimerChampConfidentiel.tooltip": {
+      "fr": "Supprimer le champ confidentiel",
+      "empreinte": "f6a7cc5392c1",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1057"
+      ]
+    },
+    "noteEditor.txSimulatedFailure.text": {
+      "fr": "envoi non reçu par le destinataire (simulé)",
+      "empreinte": "035b9fb963d3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:697"
+      ]
+    },
+    "noteEditor.typeVisite.label": {
+      "fr": "Type de visite",
+      "empreinte": "35ece345adca",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:938"
+      ]
+    },
+    "noteEditor.voulezVraimentEcrireNote.text": {
+      "fr": "Voulez-vraiment écrire une note confidentielle?",
+      "empreinte": "e75d4c71cc40",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteEditor.jsx:1088"
+      ]
+    },
+    "noteStart.assistedWriting.label": {
+      "fr": "Rédaction assistée",
+      "empreinte": "163625c39eea",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:22"
+      ]
+    },
+    "noteStart.clinicalNote.label": {
+      "fr": "Note clinique",
+      "empreinte": "d2d1b9bf123d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:20"
+      ]
+    },
+    "noteStart.continuerNote.text": {
+      "fr": "Continuer la note",
+      "empreinte": "9947b2a6cab1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:63"
+      ]
+    },
+    "noteStart.depuisDerniereNote.tooltip": {
+      "fr": "Depuis la dernière note",
+      "empreinte": "50339914c938",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:21"
       ]
     },
     "noteStart.drafts.label": {
@@ -348,12 +1493,369 @@
         "note-ui/NoteStartCards.jsx:62"
       ]
     },
+    "noteStart.medicalNote.label": {
+      "fr": "Note médicale",
+      "empreinte": "b2a5e5d67a2b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:21"
+      ]
+    },
+    "noteStart.noteIntelligente.tooltip": {
+      "fr": "Note intelligente",
+      "empreinte": "70f867bdaa33",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:22"
+      ]
+    },
+    "noteStart.noteSansTitre.text": {
+      "fr": "Note sans titre",
+      "empreinte": "5d749b37d93d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:75"
+      ]
+    },
+    "noteStart.nouvelleNote.tooltip": {
+      "fr": "Nouvelle note",
+      "empreinte": "47327c4bf1bd",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NoteStartCards.jsx:20"
+      ]
+    },
+    "notesList.au.label": {
+      "fr": "Au",
+      "empreinte": "7a1732d5ccbc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NotesList.jsx:330"
+      ]
+    },
+    "notesList.aucuneConclusionNote.text": {
+      "fr": "Aucune conclusion à cette note",
+      "empreinte": "b74c4d916fe7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:272"
+      ]
+    },
+    "notesList.aucuneNoteNeCorrespond.text": {
+      "fr": "Aucune note ne correspond aux filtres actifs.",
+      "empreinte": "32a88955e829",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:344"
+      ]
+    },
+    "notesList.careEpisode.text": {
+      "fr": "Épisode de soin · visite {n}/{total}",
+      "empreinte": "9fa1323f84a3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:383"
+      ]
+    },
+    "notesList.cesse.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:179"
+      ]
+    },
+    "notesList.checkout.button": {
+      "fr": "Checkout",
+      "empreinte": "3ac8e9e58c5a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NotesList.jsx:398"
+      ]
+    },
+    "notesList.conclusion.text": {
+      "fr": "Conclusion",
+      "empreinte": "e39262defe80",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:432",
+        "note-ui/NotesList.jsx:453"
+      ]
+    },
+    "notesList.conclusion2.text": {
+      "fr": "Conclusion",
+      "empreinte": "e39262defe80",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:140"
+      ]
+    },
+    "notesList.contientChampConfidentiel.tooltip": {
+      "fr": "Contient un champ confidentiel",
+      "empreinte": "efb3eade3e27",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NotesList.jsx:390"
+      ]
+    },
+    "notesList.detailsNote.text": {
+      "fr": "Détails de la note",
+      "empreinte": "f2638648570c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:417"
+      ]
+    },
+    "notesList.du.label": {
+      "fr": "Du",
+      "empreinte": "848149853921",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NotesList.jsx:329"
+      ]
+    },
+    "notesList.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NotesList.jsx:399"
+      ]
+    },
+    "notesList.listeNotesCliniques.text": {
+      "fr": "Liste de notes cliniques",
+      "empreinte": "6a0e14a8aea5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:324"
+      ]
+    },
+    "notesList.ouvrir.aria": {
+      "fr": "Ouvrir",
+      "empreinte": "42c077477560",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/NotesList.jsx:399"
+      ]
+    },
+    "notesList.reference.text": {
+      "fr": "Référence — {source}",
+      "empreinte": "7dbca6dd8fae",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:157"
+      ]
+    },
+    "notesList.referencerNote.button": {
+      "fr": "Référencer dans la note",
+      "empreinte": "f561c8ffc8ef",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/NotesList.jsx:486"
+      ]
+    },
+    "notesList.replaces.text": {
+      "fr": "remplace : {name}",
+      "empreinte": "6cf1cf95f9e8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/NotesList.jsx:180"
+      ]
+    },
+    "notesList.triees.label": {
+      "fr": "triées par",
+      "empreinte": "94cee64eb3c6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NotesList.jsx:328"
+      ]
+    },
+    "notesList.voir.label": {
+      "fr": "Voir",
+      "empreinte": "8a754f1f426c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/NotesList.jsx:327"
+      ]
+    },
+    "notesList.voirDocumentsTransmisNote.tooltip": {
+      "fr": "Voir les documents transmis pour cette note",
+      "empreinte": "2ebb992658c4",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/NotesList.jsx:397"
+      ]
+    },
+    "patientBanner.agenda.aria": {
+      "fr": "agenda",
+      "empreinte": "dafd501364a8",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:158",
+        "note-ui/PatientBanner.jsx:60"
+      ]
+    },
+    "patientBanner.bornFemale.text": {
+      "fr": "Femme née le",
+      "empreinte": "5ff6be055082",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:12"
+      ]
+    },
+    "patientBanner.bornMale.text": {
+      "fr": "Homme né le",
+      "empreinte": "3f88e32511a7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:12"
+      ]
+    },
+    "patientBanner.cellulaire.text": {
+      "fr": "Cellulaire",
+      "empreinte": "6941c85e3f6f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:124"
+      ]
+    },
+    "patientBanner.consentementValide.aria": {
+      "fr": "consentement valide",
+      "empreinte": "effcc928b036",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:72"
+      ]
+    },
+    "patientBanner.consentementValide.text": {
+      "fr": "Consentement valide",
+      "empreinte": "26c806adad4b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:176"
+      ]
+    },
+    "patientBanner.documents.aria": {
+      "fr": "documents",
+      "empreinte": "ec96667ac8c5",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:164",
+        "note-ui/PatientBanner.jsx:82"
+      ]
+    },
+    "patientBanner.etendre.aria": {
+      "fr": "étendre",
+      "empreinte": "4affabe7e837",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:85"
+      ]
+    },
+    "patientBanner.exp0328.text": {
+      "fr": "EXP. 03/28",
+      "empreinte": "564e805e1b3c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:108",
+        "note-ui/PatientBanner.jsx:50"
+      ]
+    },
+    "patientBanner.genevieveTremblayTestExample.text": {
+      "fr": "genevieve.tremblay.test@example.com",
+      "empreinte": "16e31ce322d7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:129"
+      ]
+    },
+    "patientBanner.imprimer.aria": {
+      "fr": "imprimer",
+      "empreinte": "f50668cd01a6",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:161",
+        "note-ui/PatientBanner.jsx:79"
+      ]
+    },
+    "patientBanner.inscriptionGroupe.text": {
+      "fr": "Inscription de groupe",
+      "empreinte": "7c18cf5f1a7c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:140"
+      ]
+    },
+    "patientBanner.medecin.aria": {
+      "fr": "médecin",
+      "empreinte": "a6702e111947",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:66"
+      ]
+    },
+    "patientBanner.notes.aria": {
+      "fr": "notes",
+      "empreinte": "3add7b961210",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:63"
+      ]
+    },
+    "patientBanner.pharmacie.aria": {
+      "fr": "pharmacie",
+      "empreinte": "ef21f1b60d4a",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:69"
+      ]
+    },
+    "patientBanner.pjcJeanCoutuCentre.text": {
+      "fr": "PJC Jean-coutu Centre-ville",
+      "empreinte": "120280dd30c9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:146"
+      ]
+    },
+    "patientBanner.portailPatientActif.aria": {
+      "fr": "portail patient actif",
+      "empreinte": "5d7ea9910b3f",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:76"
+      ]
+    },
+    "patientBanner.portailPatientActif.text": {
+      "fr": "Portail patient actif",
+      "empreinte": "88aba41df5a9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:181"
+      ]
+    },
+    "patientBanner.portailPatientActif.tooltip": {
+      "fr": "Portail patient actif",
+      "empreinte": "88aba41df5a9",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:76"
+      ]
+    },
+    "patientBanner.reduire.aria": {
+      "fr": "réduire",
+      "empreinte": "ba986755f96f",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/PatientBanner.jsx:167"
+      ]
+    },
     "picker.none.text": {
       "fr": "Aucun {noun} trouvé.",
       "empreinte": "acac7665d270",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:870"
+        "note-ui/editor-popover.jsx:868"
       ]
     },
     "picker.noneFor.text": {
@@ -361,7 +1863,1090 @@
       "empreinte": "efe57c10db02",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:870"
+        "note-ui/editor-popover.jsx:868"
+      ]
+    },
+    "popover.aaaaMmJj.placeholder": {
+      "fr": "aaaa-mm-jj",
+      "empreinte": "a75207939bc9",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:314"
+      ]
+    },
+    "popover.accepter.button": {
+      "fr": "Accepter",
+      "empreinte": "f8b9b80ecde9",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:213"
+      ]
+    },
+    "popover.addChecked.button": {
+      "fr": "Ajouter ({n})",
+      "empreinte": "2e0f0469e2f7",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:987"
+      ]
+    },
+    "popover.addSelection.text": {
+      "fr": "ajouter la sélection",
+      "empreinte": "62dd5c722263",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:983"
+      ]
+    },
+    "popover.aerosolDoseur.label": {
+      "fr": "aérosol-doseur",
+      "empreinte": "13e322397951",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:392"
+      ]
+    },
+    "popover.ajoutPropose.text": {
+      "fr": "Ajout proposé",
+      "empreinte": "75e2e68ad81e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:212"
+      ]
+    },
+    "popover.ajoutProposeVerifierPuis.text": {
+      "fr": "Ajout proposé : vérifier, puis accepter",
+      "empreinte": "637b98923eec",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:354"
+      ]
+    },
+    "popover.ajouterAnalyse.aria": {
+      "fr": "Ajouter une analyse",
+      "empreinte": "45672710752d",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:452"
+      ]
+    },
+    "popover.ajouterAnalyse.label": {
+      "fr": "Ajouter une analyse…",
+      "empreinte": "173445ce6346",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:453"
+      ]
+    },
+    "popover.ajouterFavoris.tooltip": {
+      "fr": "Ajouter aux favoris",
+      "empreinte": "721554924ba7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:950"
+      ]
+    },
+    "popover.analyses.label": {
+      "fr": "Analyses",
+      "empreinte": "f864c045e3e0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:439"
+      ]
+    },
+    "popover.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:339"
+      ]
+    },
+    "popover.annuler.tooltip": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:587"
+      ]
+    },
+    "popover.appliquer.button": {
+      "fr": "Appliquer",
+      "empreinte": "a4d6613920a3",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:281"
+      ]
+    },
+    "popover.aucuneAnalyse.text": {
+      "fr": "Aucune analyse",
+      "empreinte": "4021c30dbb14",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:450"
+      ]
+    },
+    "popover.backToResults.text": {
+      "fr": "retour aux résultats",
+      "empreinte": "36238be9474d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:983"
+      ]
+    },
+    "popover.bilateral.label": {
+      "fr": "Bilatéral",
+      "empreinte": "fdd8b96c057e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:478"
+      ]
+    },
+    "popover.cancel.text": {
+      "fr": "annuler",
+      "empreinte": "aba4aeb26e7e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:984"
+      ]
+    },
+    "popover.cancelledReadonly.text": {
+      "fr": "Annulée le {when} : lecture seule.",
+      "empreinte": "846bc836bbb1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:204"
+      ]
+    },
+    "popover.cesser.tooltip": {
+      "fr": "Cesser",
+      "empreinte": "582abd2668c0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:927"
+      ]
+    },
+    "popover.chartMedications.text": {
+      "fr": "Médications au dossier",
+      "empreinte": "3b2be54ede6b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:848"
+      ]
+    },
+    "popover.check.aria": {
+      "fr": "Cocher {name}",
+      "empreinte": "9c6a8b4693fa",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:887"
+      ]
+    },
+    "popover.check.text": {
+      "fr": "cocher",
+      "empreinte": "9d301be9e974",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:982"
+      ]
+    },
+    "popover.choisir.label": {
+      "fr": "— Choisir —",
+      "empreinte": "413c3acc8a5e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:497"
+      ]
+    },
+    "popover.codeException.label": {
+      "fr": "Code d’exception",
+      "empreinte": "d9fc31a5c919",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:327"
+      ]
+    },
+    "popover.commentaireLaboratoire.label": {
+      "fr": "Commentaire au laboratoire",
+      "empreinte": "cc897ac49805",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:467"
+      ]
+    },
+    "popover.commentairePharmacien.placeholder": {
+      "fr": "Commentaire au pharmacien",
+      "empreinte": "0260b231e8b5",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:332"
+      ]
+    },
+    "popover.commentaireServiceImagerie.label": {
+      "fr": "Commentaire au service d’imagerie",
+      "empreinte": "b7e8da5f714b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:480"
+      ]
+    },
+    "popover.commentaireSpecialiste.label": {
+      "fr": "Commentaire au spécialiste",
+      "empreinte": "fa528aaa6168",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:507"
+      ]
+    },
+    "popover.comprime.label": {
+      "fr": "comprimé",
+      "empreinte": "35ed753befc2",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:392"
+      ]
+    },
+    "popover.confirmer.button": {
+      "fr": "Confirmer",
+      "empreinte": "80a664c8b3db",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:375"
+      ]
+    },
+    "popover.constantsNone.text": {
+      "fr": "Créatinine sérique : N/A · eGFR : N/A · Poids : N/A",
+      "empreinte": "6852a74d366b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:243"
+      ]
+    },
+    "popover.constantsWeighed.text": {
+      "fr": "Créatinine sérique : N/A · eGFR : N/A · Poids : {kg} kg (pesée du {date})",
+      "empreinte": "00aa6d6e7329",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:243"
+      ]
+    },
+    "popover.contenu.label": {
+      "fr": "Contenu",
+      "empreinte": "f3cb82af6c82",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:492"
+      ]
+    },
+    "popover.crdsGuichet.label": {
+      "fr": "CRDS / guichet",
+      "empreinte": "fb21e5b89fad",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:506"
+      ]
+    },
+    "popover.decreaseDose.tooltip": {
+      "fr": "Diminuer la dose : {from} → {to} {unit}",
+      "empreinte": "ba28e738dd00",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:917"
+      ]
+    },
+    "popover.dejaDossier.tooltip": {
+      "fr": "Déjà au dossier",
+      "empreinte": "468cdc052dd9",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:958"
+      ]
+    },
+    "popover.depuis.label": {
+      "fr": "Depuis",
+      "empreinte": "a93a213c5517",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:486"
+      ]
+    },
+    "popover.documenterAjouterProfilSans.aria": {
+      "fr": "Documenter : ajouter au profil sans prescrire",
+      "empreinte": "89611e5fc50a",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:943"
+      ]
+    },
+    "popover.documenterAjouterProfilSans.tooltip": {
+      "fr": "Documenter : ajouter au profil sans prescrire",
+      "empreinte": "89611e5fc50a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:943"
+      ]
+    },
+    "popover.dose.label": {
+      "fr": "Dose",
+      "empreinte": "da7f99e8cbbf",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:298",
+        "note-ui/editor-popover.jsx:385"
+      ]
+    },
+    "popover.dossierPharmacologique.tooltip": {
+      "fr": "Au dossier pharmacologique",
+      "empreinte": "22b7c1e3943a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:137"
+      ]
+    },
+    "popover.droite.label": {
+      "fr": "Droite",
+      "empreinte": "c73d793d9358",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:478"
+      ]
+    },
+    "popover.duree.label": {
+      "fr": "Durée",
+      "empreinte": "6feac25effc5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:310",
+        "note-ui/editor-popover.jsx:406"
+      ]
+    },
+    "popover.dureeRenouvellement.text": {
+      "fr": "Durée et renouvellement",
+      "empreinte": "b2aebf422d5d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:308"
+      ]
+    },
+    "popover.echap.text": {
+      "fr": "Échap",
+      "empreinte": "23e62ae95f26",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:525"
+      ]
+    },
+    "popover.echographie.label": {
+      "fr": "Échographie",
+      "empreinte": "f3a9b81b47e4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:471"
+      ]
+    },
+    "popover.enregistrer.button": {
+      "fr": "Enregistrer",
+      "empreinte": "f7c8bcd8b213",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:341"
+      ]
+    },
+    "popover.esc.text": {
+      "fr": "Esc",
+      "empreinte": "1f7a4f9e2f70",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:984"
+      ]
+    },
+    "popover.explorer.tooltip": {
+      "fr": "Explorer",
+      "empreinte": "8b3ee45765e5",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:649"
+      ]
+    },
+    "popover.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:263"
+      ]
+    },
+    "popover.fermer.button": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:223"
+      ]
+    },
+    "popover.filters.text": {
+      "fr": "filtres",
+      "empreinte": "2c801d4abf50",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:981"
+      ]
+    },
+    "popover.filtresMedications.aria": {
+      "fr": "Filtres des médications",
+      "empreinte": "10c8f4d52e5b",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:970"
+      ]
+    },
+    "popover.finTraitement.label": {
+      "fr": "Fin du traitement",
+      "empreinte": "7bd0eed7e694",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:314"
+      ]
+    },
+    "popover.forme.label": {
+      "fr": "Forme",
+      "empreinte": "5f9d25690e5c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:390"
+      ]
+    },
+    "popover.formeTeneur.label": {
+      "fr": "Forme et teneur",
+      "empreinte": "15ed13cdc53f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:289"
+      ]
+    },
+    "popover.freeTextHint.hint": {
+      "fr": "pour écrire en texte libre.",
+      "empreinte": "57326f562518",
+      "contexte": "aide",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:525"
+      ]
+    },
+    "popover.frequence.label": {
+      "fr": "Fréquence",
+      "empreinte": "bafbfba73ab9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:302",
+        "note-ui/editor-popover.jsx:400"
+      ]
+    },
+    "popover.gauche.label": {
+      "fr": "Gauche",
+      "empreinte": "d8be759feff0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:478"
+      ]
+    },
+    "popover.gelule.label": {
+      "fr": "gélule",
+      "empreinte": "294f07cf9842",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:392"
+      ]
+    },
+    "popover.increaseDose.tooltip": {
+      "fr": "Augmenter la dose : {from} → {to} {unit}",
+      "empreinte": "26d07df8e464",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:917"
+      ]
+    },
+    "popover.indication.label": {
+      "fr": "Indication",
+      "empreinte": "7a2436fa32b6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:415",
+        "note-ui/editor-popover.jsx:505"
+      ]
+    },
+    "popover.indication.placeholder": {
+      "fr": "Indication",
+      "empreinte": "7a2436fa32b6",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:326"
+      ]
+    },
+    "popover.inhale.label": {
+      "fr": "Inhalé",
+      "empreinte": "42e39352dbd5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:398"
+      ]
+    },
+    "popover.intention.label": {
+      "fr": "Intention",
+      "empreinte": "a9246ec7dab6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:326"
+      ]
+    },
+    "popover.intentionNoteCodeException.text": {
+      "fr": "Intention, note, code d’exception, NPS",
+      "empreinte": "7181c5915be1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:320"
+      ]
+    },
+    "popover.intervalleRenouvellement.label": {
+      "fr": "Intervalle de renouvellement",
+      "empreinte": "db9577289305",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:333"
+      ]
+    },
+    "popover.jeun.label": {
+      "fr": "À jeun",
+      "empreinte": "ec0252e94c1a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:464"
+      ]
+    },
+    "popover.lateralite.label": {
+      "fr": "Latéralité",
+      "empreinte": "512bae4ee275",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:478"
+      ]
+    },
+    "popover.leger.label": {
+      "fr": "Léger",
+      "empreinte": "8ad52b02f0e4",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:485"
+      ]
+    },
+    "popover.maxDose.tooltip": {
+      "fr": "Dose maximale atteinte",
+      "empreinte": "e9b60082cbef",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:918"
+      ]
+    },
+    "popover.minDose.tooltip": {
+      "fr": "Dose minimale atteinte",
+      "empreinte": "6195d29bdf50",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:918"
+      ]
+    },
+    "popover.modalite.label": {
+      "fr": "Modalité",
+      "empreinte": "c96d292fc044",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:471"
+      ]
+    },
+    "popover.modere.label": {
+      "fr": "Modéré",
+      "empreinte": "29d395927f01",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:485"
+      ]
+    },
+    "popover.modifierDetailsStructures.text": {
+      "fr": "Modifier les détails structurés",
+      "empreinte": "84ac0d5c615f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:354"
+      ]
+    },
+    "popover.molecule.label": {
+      "fr": "Molécule",
+      "empreinte": "2fbc15fe17f1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:383"
+      ]
+    },
+    "popover.navigate.text": {
+      "fr": "naviguer",
+      "empreinte": "6a5e4e939fee",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:980"
+      ]
+    },
+    "popover.nePasSubstituer.tooltip": {
+      "fr": "Ne pas substituer",
+      "empreinte": "3c2215da22d4",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:127"
+      ]
+    },
+    "popover.noAlert.text": {
+      "fr": "Aucune alerte",
+      "empreinte": "5792b61b625f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:244"
+      ]
+    },
+    "popover.noCommand.empty": {
+      "fr": "Aucune commande.",
+      "empreinte": "daf79c57302d",
+      "contexte": "état vide",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:526"
+      ]
+    },
+    "popover.noDoseStep.tooltip": {
+      "fr": "Pas de palier de dose connu",
+      "empreinte": "b83a82871925",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:918"
+      ]
+    },
+    "popover.noResult.empty": {
+      "fr": "Aucun résultat pour « {query} ».",
+      "empreinte": "8cccd7bde0e7",
+      "contexte": "état vide",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:525"
+      ]
+    },
+    "popover.non.label": {
+      "fr": "Non",
+      "empreinte": "a72199390141",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:464"
+      ]
+    },
+    "popover.notePharmacien.label": {
+      "fr": "Note (au pharmacien)",
+      "empreinte": "7667a5edb24f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:332"
+      ]
+    },
+    "popover.notes.label": {
+      "fr": "Notes",
+      "empreinte": "70440046a3dc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:417",
+        "note-ui/editor-popover.jsx:488"
+      ]
+    },
+    "popover.oui.label": {
+      "fr": "Oui",
+      "empreinte": "eaa02f3f3362",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:464"
+      ]
+    },
+    "popover.pedsCapped.text": {
+      "fr": "(plafonné à la dose adulte)",
+      "empreinte": "0ba817867ce6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:277"
+      ]
+    },
+    "popover.pedsMax.text": {
+      "fr": "Dose max : {max} mg/dose — à valider cliniquement.",
+      "empreinte": "dcce45a1440b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:279"
+      ]
+    },
+    "popover.pedsResult.text": {
+      "fr": "{mgPerKg} mg/kg/dose × {kg} kg = {raw} mg → suggéré {suggested} mg{freq}{capped}",
+      "empreinte": "98b5ca7f6f96",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:277"
+      ]
+    },
+    "popover.posologieMedicament.text": {
+      "fr": "Posologie et médicament",
+      "empreinte": "8179cefd1183",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:293"
+      ]
+    },
+    "popover.preciser.text": {
+      "fr": "À préciser",
+      "empreinte": "f65d0dc796d8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:97"
+      ]
+    },
+    "popover.precisions.text": {
+      "fr": "Précisions",
+      "empreinte": "fe07b8b2f332",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:318"
+      ]
+    },
+    "popover.prescription.text": {
+      "fr": "Prescription",
+      "empreinte": "c0b3a992d890",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:257"
+      ]
+    },
+    "popover.prescriptionOf.aria": {
+      "fr": "Prescription : {name}",
+      "empreinte": "b2fdeab25050",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:254"
+      ]
+    },
+    "popover.prescrireNouvelleOrdonnanceMedicam.aria": {
+      "fr": "Prescrire une nouvelle ordonnance pour ce médicament",
+      "empreinte": "9d5cc4084d1e",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:933"
+      ]
+    },
+    "popover.prescrireNouvelleOrdonnanceMedicam.tooltip": {
+      "fr": "Prescrire une nouvelle ordonnance pour ce médicament",
+      "empreinte": "9d5cc4084d1e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:933"
+      ]
+    },
+    "popover.priorite.label": {
+      "fr": "Priorité",
+      "empreinte": "eede91d2f77e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:463",
+        "note-ui/editor-popover.jsx:472",
+        "note-ui/editor-popover.jsx:502"
+      ]
+    },
+    "popover.probleme.label": {
+      "fr": "Problème",
+      "empreinte": "cdd42041b4be",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:483"
+      ]
+    },
+    "popover.produit.label": {
+      "fr": "Produit",
+      "empreinte": "ff673dc28e89",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:288"
+      ]
+    },
+    "popover.proposedBy.text": {
+      "fr": "Proposé par {who}",
+      "empreinte": "14ea652f7717",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:212"
+      ]
+    },
+    "popover.q46hPrn.label": {
+      "fr": "q4-6h PRN",
+      "empreinte": "8960265bbc90",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:402"
+      ]
+    },
+    "popover.qidPrn.label": {
+      "fr": "QID PRN",
+      "empreinte": "370f6e782d00",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:402"
+      ]
+    },
+    "popover.quantite.label": {
+      "fr": "Quantité",
+      "empreinte": "09a38fda7876",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:311",
+        "note-ui/editor-popover.jsx:414"
+      ]
+    },
+    "popover.questionClinique.label": {
+      "fr": "Question clinique",
+      "empreinte": "54cd667637c3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:500"
+      ]
+    },
+    "popover.radiographie.label": {
+      "fr": "Radiographie",
+      "empreinte": "b5b48f750683",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:471"
+      ]
+    },
+    "popover.rechercherCodePlusPrecis.placeholder": {
+      "fr": "Rechercher un code plus précis…",
+      "empreinte": "60351a97f258",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:802"
+      ]
+    },
+    "popover.reconvertirTexte.button": {
+      "fr": "Reconvertir en texte",
+      "empreinte": "b285917c8d71",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:369"
+      ]
+    },
+    "popover.refuser.button": {
+      "fr": "Refuser",
+      "empreinte": "628971549fa9",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:210"
+      ]
+    },
+    "popover.region.label": {
+      "fr": "Région",
+      "empreinte": "357f27de869f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:475"
+      ]
+    },
+    "popover.removeTest.aria": {
+      "fr": "Retirer {test}",
+      "empreinte": "3e2d03bd01ac",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:444"
+      ]
+    },
+    "popover.renommerChoisirCodeCim.placeholder": {
+      "fr": "Renommer ou choisir un code CIM-10 ou SNOMED CT…",
+      "empreinte": "e7e8ba3e1266",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:802"
+      ]
+    },
+    "popover.renouv.label": {
+      "fr": "Renouv.",
+      "empreinte": "ce50b515864c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:411"
+      ]
+    },
+    "popover.renouvel.label": {
+      "fr": "Renouvel.",
+      "empreinte": "c6857d88d5ec",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:313"
+      ]
+    },
+    "popover.renouvelerMemePosologie.tooltip": {
+      "fr": "Renouveler — même posologie",
+      "empreinte": "d1c718f76061",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:907"
+      ]
+    },
+    "popover.renseignementsCliniques.label": {
+      "fr": "Renseignements cliniques",
+      "empreinte": "f9bcc25aac1f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:466",
+        "note-ui/editor-popover.jsx:479"
+      ]
+    },
+    "popover.results.text": {
+      "fr": "résultats",
+      "empreinte": "3bb1fc6a4d17",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:981"
+      ]
+    },
+    "popover.retirerFavoris.tooltip": {
+      "fr": "Retirer des favoris",
+      "empreinte": "dcaac849fc33",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:950"
+      ]
+    },
+    "popover.saisieManuelle.tooltip": {
+      "fr": "Saisie manuelle",
+      "empreinte": "da81002ea066",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:138"
+      ]
+    },
+    "popover.severe.label": {
+      "fr": "Sévère",
+      "empreinte": "d614c19c9710",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:485"
+      ]
+    },
+    "popover.severite.label": {
+      "fr": "Sévérité",
+      "empreinte": "62fd4ae52c09",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:485"
+      ]
+    },
+    "popover.site.label": {
+      "fr": "Site",
+      "empreinte": "5b6825d3c67a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:301"
+      ]
+    },
+    "popover.site.placeholder": {
+      "fr": "Site",
+      "empreinte": "5b6825d3c67a",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:301"
+      ]
+    },
+    "popover.specialite.label": {
+      "fr": "Spécialité",
+      "empreinte": "cbaf96abb0f9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:495"
+      ]
+    },
+    "popover.substitutionPermise.tooltip": {
+      "fr": "Substitution permise",
+      "empreinte": "1af706d3ba5c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:136"
+      ]
+    },
+    "popover.titre.label": {
+      "fr": "Titre",
+      "empreinte": "eb97899aedcd",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:491"
+      ]
+    },
+    "popover.transmisLectureSeule.text": {
+      "fr": "Transmis : lecture seule",
+      "empreinte": "7a3072ada634",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:354"
+      ]
+    },
+    "popover.transmittedReadonly.text": {
+      "fr": "Transmise le {when} : lecture seule.",
+      "empreinte": "157c264a5901",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:204"
+      ]
+    },
+    "popover.uncheck.aria": {
+      "fr": "Décocher {name}",
+      "empreinte": "d9be85cc48dc",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:887"
+      ]
+    },
+    "popover.unitOf.aria": {
+      "fr": "{label} : unité",
+      "empreinte": "442183f1d003",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:115"
+      ]
+    },
+    "popover.unite.label": {
+      "fr": "Unité",
+      "empreinte": "388fd9c409b3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:386",
+        "note-ui/editor-popover.jsx:407"
+      ]
+    },
+    "popover.unites.label": {
+      "fr": "Unités",
+      "empreinte": "5c0c5217c7e1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:299"
+      ]
+    },
+    "popover.voie.label": {
+      "fr": "Voie",
+      "empreinte": "2085078a7f15",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:300",
+        "note-ui/editor-popover.jsx:396"
+      ]
+    },
+    "popover.vues.label": {
+      "fr": "Vues",
+      "empreinte": "ff576f2ba73e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:476"
       ]
     },
     "portal.pill.label": {
@@ -399,7 +2984,7 @@
       "empreinte": "9938631fcadd",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SummaryModals.jsx:772"
+        "note-ui/SummaryModals.jsx:762"
       ]
     },
     "result.normality.borderline": {
@@ -407,7 +2992,7 @@
       "empreinte": "23e002b2751a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SummaryModals.jsx:772"
+        "note-ui/SummaryModals.jsx:762"
       ]
     },
     "result.normality.normal": {
@@ -415,7 +3000,48 @@
       "empreinte": "45e118d0563e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SummaryModals.jsx:772"
+        "note-ui/SummaryModals.jsx:762"
+      ]
+    },
+    "review.accepter.button": {
+      "fr": "Accepter",
+      "empreinte": "f8b9b80ecde9",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:407"
+      ]
+    },
+    "review.activerModeRevision.tooltip": {
+      "fr": "Activer le mode révision",
+      "empreinte": "e3670b40a20b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/review-mode.jsx:420"
+      ]
+    },
+    "review.ajoutsAttente.aria": {
+      "fr": "Ajouts en attente",
+      "empreinte": "50c955cb24a5",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/review-mode.jsx:483",
+        "note-ui/review-mode.jsx:510"
+      ]
+    },
+    "review.ajoutsAttente.text": {
+      "fr": "Ajouts en attente",
+      "empreinte": "50c955cb24a5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:511"
+      ]
+    },
+    "review.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:459"
       ]
     },
     "review.count.label": {
@@ -426,7 +3052,71 @@
       "empreinte": "ea96c425faea",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/review-mode.jsx:429"
+        "note-ui/review-mode.jsx:430"
+      ]
+    },
+    "review.deleted.text": {
+      "fr": "Supprimé",
+      "empreinte": "c73cacd5cad9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:127"
+      ]
+    },
+    "review.desactiverModeRevision.tooltip": {
+      "fr": "Désactiver le mode révision",
+      "empreinte": "36c79480bc9e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/review-mode.jsx:420"
+      ]
+    },
+    "review.finaliserSansEux.button": {
+      "fr": "Finaliser sans eux",
+      "empreinte": "3425236c762b",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:516"
+      ]
+    },
+    "review.inserted.text": {
+      "fr": "Inséré",
+      "empreinte": "a94559f6f3b0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:117"
+      ]
+    },
+    "review.markBy.tooltip": {
+      "fr": "{verb} par {who}",
+      "empreinte": "1a75c307c1ab",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/review-mode.jsx:98"
+      ]
+    },
+    "review.markByAt.tooltip": {
+      "fr": "{verb} par {who} — {date}",
+      "empreinte": "1b0e52a25d06",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/review-mode.jsx:98"
+      ]
+    },
+    "review.modeRevision.button": {
+      "fr": "Mode révision",
+      "empreinte": "e9272a4c4427",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:425"
+      ]
+    },
+    "review.modificationsAttente.text": {
+      "fr": "Modifications en attente",
+      "empreinte": "08589b0031ac",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:454"
       ]
     },
     "review.pending.chips.text": {
@@ -437,7 +3127,7 @@
       "empreinte": "0e609e7f9477",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/review-mode.jsx:474"
+        "note-ui/review-mode.jsx:475"
       ]
     },
     "review.pending.lines.text": {
@@ -448,7 +3138,7 @@
       "empreinte": "24c45d33e5d3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/review-mode.jsx:475"
+        "note-ui/review-mode.jsx:476"
       ]
     },
     "review.pending.text": {
@@ -459,7 +3149,299 @@
       "empreinte": "e37de6333b9c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/review-mode.jsx:455"
+        "note-ui/review-mode.jsx:456"
+      ]
+    },
+    "review.pendingDialog.text": {
+      "fr": "Il reste {summary} proposés ({sources}), ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.",
+      "empreinte": "eb66e8ca0a83",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:513"
+      ]
+    },
+    "review.pendingText.text": {
+      "fr": " : {summary} en attente",
+      "empreinte": "1ee6613eb0a4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:486"
+      ]
+    },
+    "review.refuser.button": {
+      "fr": "Refuser",
+      "empreinte": "628971549fa9",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:404"
+      ]
+    },
+    "review.reviser.button": {
+      "fr": "Réviser",
+      "empreinte": "872a731967c0",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:460",
+        "note-ui/review-mode.jsx:490",
+        "note-ui/review-mode.jsx:517"
+      ]
+    },
+    "review.rienCreeAvantEtre.tooltip": {
+      "fr": "Rien n’est créé avant d’être accepté.",
+      "empreinte": "d53a8a600bb0",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/review-mode.jsx:485"
+      ]
+    },
+    "review.template.text": {
+      "fr": "gabarit",
+      "empreinte": "5286a1ec3379",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/review-mode.jsx:513"
+      ]
+    },
+    "review.toutAccepter.button": {
+      "fr": "Tout accepter",
+      "empreinte": "67ffd3991fc0",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:438",
+        "note-ui/review-mode.jsx:495"
+      ]
+    },
+    "review.toutAccepterCompleter.button": {
+      "fr": "Tout accepter et compléter",
+      "empreinte": "21f5c1e5733a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:461"
+      ]
+    },
+    "review.toutAccepterFinaliser.button": {
+      "fr": "Tout accepter et finaliser",
+      "empreinte": "861e8b1305a4",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:518"
+      ]
+    },
+    "review.toutRefuser.button": {
+      "fr": "Tout refuser",
+      "empreinte": "1a2c14a858c1",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/review-mode.jsx:441",
+        "note-ui/review-mode.jsx:492"
+      ]
+    },
+    "richText.annuler.aria": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:138"
+      ]
+    },
+    "richText.annuler.tooltip": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:138"
+      ]
+    },
+    "richText.aucuneCouleur.aria": {
+      "fr": "Aucune couleur",
+      "empreinte": "0fb72e172b58",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:202"
+      ]
+    },
+    "richText.aucuneCouleur.tooltip": {
+      "fr": "Aucune couleur",
+      "empreinte": "0fb72e172b58",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:202"
+      ]
+    },
+    "richText.augmenterRetrait.tooltip": {
+      "fr": "Augmenter le retrait",
+      "empreinte": "e82464ff2a22",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:303"
+      ]
+    },
+    "richText.barre.tooltip": {
+      "fr": "Barré",
+      "empreinte": "c0a82d30d858",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:279"
+      ]
+    },
+    "richText.citation.tooltip": {
+      "fr": "Citation",
+      "empreinte": "6eb491555213",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:283"
+      ]
+    },
+    "richText.confirmer.aria": {
+      "fr": "Confirmer",
+      "empreinte": "80a664c8b3db",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:134"
+      ]
+    },
+    "richText.confirmer.tooltip": {
+      "fr": "Confirmer",
+      "empreinte": "80a664c8b3db",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:134"
+      ]
+    },
+    "richText.couleurTexte.tooltip": {
+      "fr": "Couleur du texte",
+      "empreinte": "37e78173dd68",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:288"
+      ]
+    },
+    "richText.diminuerRetrait.tooltip": {
+      "fr": "Diminuer le retrait",
+      "empreinte": "f7458753e9ac",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:302"
+      ]
+    },
+    "richText.effacerMiseForme.tooltip": {
+      "fr": "Effacer la mise en forme",
+      "empreinte": "695eccc167b3",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:307"
+      ]
+    },
+    "richText.gras.tooltip": {
+      "fr": "Gras",
+      "empreinte": "bd63d1e9a8dd",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:276"
+      ]
+    },
+    "richText.italique.tooltip": {
+      "fr": "Italique",
+      "empreinte": "023eb97e0f4f",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:277"
+      ]
+    },
+    "richText.lien.placeholder": {
+      "fr": "Lien*",
+      "empreinte": "ba621879dc47",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:128"
+      ]
+    },
+    "richText.lien.tooltip": {
+      "fr": "Lien",
+      "empreinte": "e2639e1dc1de",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:172"
+      ]
+    },
+    "richText.listeNumerotee.tooltip": {
+      "fr": "Liste numérotée",
+      "empreinte": "c051e38b9fa6",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:297"
+      ]
+    },
+    "richText.listePuces.tooltip": {
+      "fr": "Liste à puces",
+      "empreinte": "3bf596e08464",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:296"
+      ]
+    },
+    "richText.paragraphe.label": {
+      "fr": "Paragraphe",
+      "empreinte": "9ad27969bc70",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:16"
+      ]
+    },
+    "richText.plusOptions.aria": {
+      "fr": "Plus d'options",
+      "empreinte": "a9452148ca3d",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:317"
+      ]
+    },
+    "richText.plusOptions.tooltip": {
+      "fr": "Plus d'options",
+      "empreinte": "a9452148ca3d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:317"
+      ]
+    },
+    "richText.souligne.tooltip": {
+      "fr": "Souligné",
+      "empreinte": "591b85633c3e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:278"
+      ]
+    },
+    "richText.surlignage.tooltip": {
+      "fr": "Surlignage",
+      "empreinte": "259954d24fc3",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:290"
+      ]
+    },
+    "richText.titre1.label": {
+      "fr": "Titre 1",
+      "empreinte": "4af953bea1fe",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:17"
+      ]
+    },
+    "richText.titre2.label": {
+      "fr": "Titre 2",
+      "empreinte": "c722073d0e9e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:18"
+      ]
+    },
+    "richText.titre3.label": {
+      "fr": "Titre 3",
+      "empreinte": "003415be8df9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/rich-text-controls.jsx:19"
       ]
     },
     "rx.adjust.down.title": {
@@ -559,6 +3541,622 @@
         "note-ui/rx-text.jsx:18"
       ]
     },
+    "schema.acceptAdd.aria": {
+      "fr": "Accepter l’ajout",
+      "empreinte": "507a3f316fa0",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:313"
+      ]
+    },
+    "schema.annulee.text": {
+      "fr": "Annulée",
+      "empreinte": "2776573b2344",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:228",
+        "note-ui/editor-schema.jsx:80"
+      ]
+    },
+    "schema.antecedents.label": {
+      "fr": "Antécédents",
+      "empreinte": "cc0c5772ef22",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2204"
+      ]
+    },
+    "schema.cancelledOn.tooltip": {
+      "fr": "Annulation envoyée le {when}",
+      "empreinte": "4409ff65f866",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:81"
+      ]
+    },
+    "schema.cessationMedicament.tooltip": {
+      "fr": "Cessation du médicament",
+      "empreinte": "7bfb3f0f4a71",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:148"
+      ]
+    },
+    "schema.cesse.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:952",
+        "note-ui/editor-schema.jsx:986"
+      ]
+    },
+    "schema.cesser.text": {
+      "fr": "Cesser",
+      "empreinte": "582abd2668c0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:148"
+      ]
+    },
+    "schema.choisirCodePlusPrecis.tooltip": {
+      "fr": "Choisir un code plus précis",
+      "empreinte": "b0d1800f6023",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:955",
+        "note-ui/editor-schema.jsx:998"
+      ]
+    },
+    "schema.clinicalTool.text": {
+      "fr": "Outil clinique",
+      "empreinte": "b1be8383fb3b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2435"
+      ]
+    },
+    "schema.comment.aria": {
+      "fr": "Commentaire : {comment}",
+      "empreinte": "657394c5a015",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:207",
+        "note-ui/editor-schema.jsx:208"
+      ]
+    },
+    "schema.consignes.label": {
+      "fr": "Consignes",
+      "empreinte": "3fe5942894c3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2202"
+      ]
+    },
+    "schema.debutConclusionFlechesHaut.aria": {
+      "fr": "Début de la conclusion — flèches haut et bas pour déplacer",
+      "empreinte": "2518859f18e9",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1409"
+      ]
+    },
+    "schema.descendreLigneBloc.aria": {
+      "fr": "Descendre la ligne d’un bloc",
+      "empreinte": "689cb340087e",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1440"
+      ]
+    },
+    "schema.descendreLigneBloc.tooltip": {
+      "fr": "Descendre la ligne d’un bloc",
+      "empreinte": "689cb340087e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1439"
+      ]
+    },
+    "schema.destOnFile.tooltip": {
+      "fr": "Déjà au dossier : la note le documente, rien à envoyer",
+      "empreinte": "636fbefbe149",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:53"
+      ]
+    },
+    "schema.destSent.tooltip": {
+      "fr": "Déjà envoyé",
+      "empreinte": "6043cc646d3a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:54"
+      ]
+    },
+    "schema.destSuggestion.tooltip": {
+      "fr": "Suggestion : pas encore au checkout",
+      "empreinte": "4d76b926fc73",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:55"
+      ]
+    },
+    "schema.destToSend.tooltip": {
+      "fr": "À envoyer : en attente au checkout",
+      "empreinte": "98cddb71a44a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:52"
+      ]
+    },
+    "schema.destinationEdit.tooltip": {
+      "fr": "{destination} · Modifier les détails complets",
+      "empreinte": "ba247785ce41",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:63"
+      ]
+    },
+    "schema.diagnostic.text": {
+      "fr": "Diagnostic",
+      "empreinte": "852a1651293f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1030"
+      ]
+    },
+    "schema.documenteeProfilSansPrescription.tooltip": {
+      "fr": "Documentée au profil, sans prescription",
+      "empreinte": "fd254e43efae",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:368"
+      ]
+    },
+    "schema.dose.label": {
+      "fr": "Dose",
+      "empreinte": "da7f99e8cbbf",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.dose.word": {
+      "fr": "dose",
+      "empreinte": "fddd2dca7e8e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.fasting.text": {
+      "fr": "à jeun",
+      "empreinte": "b28bdda2d053",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2346",
+        "note-ui/editor-schema.jsx:238"
+      ]
+    },
+    "schema.fichier.label": {
+      "fr": "Fichier",
+      "empreinte": "f0fa5745ccc9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2205"
+      ]
+    },
+    "schema.frequency.label": {
+      "fr": "Fréquence",
+      "empreinte": "bafbfba73ab9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.frequency.word": {
+      "fr": "fréquence",
+      "empreinte": "c14d990a6db4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.imagingRequest.label": {
+      "fr": "Requête d’imagerie",
+      "empreinte": "ff429b00a1ec",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2419"
+      ]
+    },
+    "schema.incomplet.text": {
+      "fr": "Incomplet",
+      "empreinte": "91a208bc5e84",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:154"
+      ]
+    },
+    "schema.inscriptionMedication.label": {
+      "fr": "Inscription de médication",
+      "empreinte": "74027d8f894b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2200"
+      ]
+    },
+    "schema.interactionHautRisque.text": {
+      "fr": "Interaction de haut risque",
+      "empreinte": "b185087d6437",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:122"
+      ]
+    },
+    "schema.jeun.text": {
+      "fr": "À jeun",
+      "empreinte": "ec0252e94c1a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:490"
+      ]
+    },
+    "schema.labRequest.text": {
+      "fr": "Demande de laboratoire",
+      "empreinte": "d9df2e9d0a87",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2345"
+      ]
+    },
+    "schema.labRequestFull.label": {
+      "fr": "Requête de laboratoire",
+      "empreinte": "bb9a2508d8d3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2419"
+      ]
+    },
+    "schema.mentionMedicationProfil.tooltip": {
+      "fr": "Mention d’une médication au profil",
+      "empreinte": "2f496188dc20",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:368"
+      ]
+    },
+    "schema.modifierDetails.tooltip": {
+      "fr": "Modifier les détails",
+      "empreinte": "66667728a678",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:427"
+      ]
+    },
+    "schema.modifierDetailsComplets.tooltip": {
+      "fr": "Modifier les détails complets",
+      "empreinte": "2372648d443c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:422"
+      ]
+    },
+    "schema.monterLigneBloc.aria": {
+      "fr": "Monter la ligne d’un bloc",
+      "empreinte": "1793a2a54e44",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1432"
+      ]
+    },
+    "schema.monterLigneBloc.tooltip": {
+      "fr": "Monter la ligne d’un bloc",
+      "empreinte": "1793a2a54e44",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1431"
+      ]
+    },
+    "schema.nameCeased.text": {
+      "fr": "{name} — cessé",
+      "empreinte": "2f35a9ae1a30",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2303"
+      ]
+    },
+    "schema.nameCeasedShort.text": {
+      "fr": "{name} (cessé)",
+      "empreinte": "57dced54276d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2162"
+      ]
+    },
+    "schema.nameReplaces.text": {
+      "fr": "{name} (remplace {replaced})",
+      "empreinte": "105373bf3b0c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2303"
+      ]
+    },
+    "schema.outilClinique.tooltip": {
+      "fr": "Outil clinique",
+      "empreinte": "b1be8383fb3b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2281"
+      ]
+    },
+    "schema.outilsCliniques.label": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2198"
+      ]
+    },
+    "schema.patientInstructions.text": {
+      "fr": "Consignes au patient",
+      "empreinte": "c05b9dfd4653",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2354"
+      ]
+    },
+    "schema.preciser.text": {
+      "fr": "Préciser",
+      "empreinte": "4ad8dc1afd95",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:955",
+        "note-ui/editor-schema.jsx:999"
+      ]
+    },
+    "schema.prescriptions.label": {
+      "fr": "Prescriptions",
+      "empreinte": "d7d1c0636806",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2199"
+      ]
+    },
+    "schema.problemes.label": {
+      "fr": "Problèmes",
+      "empreinte": "17507ac25ae7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2203"
+      ]
+    },
+    "schema.proposed.tooltip": {
+      "fr": "Ajout proposé : en attente d’acceptation",
+      "empreinte": "55897eabd591",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:155"
+      ]
+    },
+    "schema.proposedBy.tooltip": {
+      "fr": "Proposé par {who} : en attente d’acceptation",
+      "empreinte": "f1afb9d178a6",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:155"
+      ]
+    },
+    "schema.proposedByReview.tooltip": {
+      "fr": "Proposé par {who} — double-cliquer pour vérifier avant d’accepter",
+      "empreinte": "62349b4d7682",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:294"
+      ]
+    },
+    "schema.proposedReview.tooltip": {
+      "fr": "Ajout proposé — double-cliquer pour vérifier avant d’accepter",
+      "empreinte": "5d124194581b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:294"
+      ]
+    },
+    "schema.questionCliniquePreciser.text": {
+      "fr": "Question clinique à préciser",
+      "empreinte": "56dd6dbb09d3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:124"
+      ]
+    },
+    "schema.reference.text": {
+      "fr": "Référence — {source}",
+      "empreinte": "7dbca6dd8fae",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:769"
+      ]
+    },
+    "schema.referenceMain.text": {
+      "fr": "Référence : {name}",
+      "empreinte": "18075879822c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:243"
+      ]
+    },
+    "schema.rejectAdd.aria": {
+      "fr": "Refuser l’ajout",
+      "empreinte": "50b722a896fc",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:313"
+      ]
+    },
+    "schema.renouvellement.tooltip": {
+      "fr": "Renouvellement",
+      "empreinte": "5b961f3ab582",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:151"
+      ]
+    },
+    "schema.replaces.text": {
+      "fr": "remplace : {name}",
+      "empreinte": "6cf1cf95f9e8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:1035",
+        "note-ui/editor-schema.jsx:953"
+      ]
+    },
+    "schema.requetes.label": {
+      "fr": "Requêtes",
+      "empreinte": "f2e0f9f08e7f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2201"
+      ]
+    },
+    "schema.route.label": {
+      "fr": "Voie",
+      "empreinte": "2085078a7f15",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.route.word": {
+      "fr": "voie",
+      "empreinte": "f8107896aeba",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:117"
+      ]
+    },
+    "schema.routine.text": {
+      "fr": "Routine",
+      "empreinte": "482273d7cc99",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:478"
+      ]
+    },
+    "schema.rxIncomplete.text": {
+      "fr": "Prescription incomplète — à préciser : {fields}",
+      "empreinte": "49fa75fc63b7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:121"
+      ]
+    },
+    "schema.statusCeased.text": {
+      "fr": "Cessée",
+      "empreinte": "913f98448051",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:229"
+      ]
+    },
+    "schema.statusDown.text": {
+      "fr": "Diminuée",
+      "empreinte": "4af0860cf28e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:230"
+      ]
+    },
+    "schema.statusRenewed.text": {
+      "fr": "Renouvelée",
+      "empreinte": "60092448f353",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:231"
+      ]
+    },
+    "schema.statusUp.text": {
+      "fr": "Augmentée",
+      "empreinte": "e88ced3e217a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:230"
+      ]
+    },
+    "schema.suspens.text": {
+      "fr": "En suspens",
+      "empreinte": "a9eed2943296",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:155"
+      ]
+    },
+    "schema.transmis.aria": {
+      "fr": "Transmis",
+      "empreinte": "27b32e317423",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:89"
+      ]
+    },
+    "schema.transmitFailed.text": {
+      "fr": "Échec de transmission : {error}",
+      "empreinte": "b6a7ddbb9f72",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:108"
+      ]
+    },
+    "schema.transmittedOn.tooltip": {
+      "fr": "Transmis le {when}",
+      "empreinte": "e7f54d7c5a88",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:90"
+      ]
+    },
+    "schema.verbCeased.text": {
+      "fr": "Cessé",
+      "empreinte": "71bad9275d88",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2304"
+      ]
+    },
+    "schema.verbDocumented.text": {
+      "fr": "Documenté",
+      "empreinte": "6da4c44e9047",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2304"
+      ]
+    },
+    "schema.verbDocumentedF.text": {
+      "fr": "Documentée",
+      "empreinte": "059c685155b2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2266"
+      ]
+    },
+    "schema.verbModified.text": {
+      "fr": "Modifié",
+      "empreinte": "6ea4efa03614",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2304"
+      ]
+    },
+    "sections.details.heading": {
+      "fr": "Détails de la consultation",
+      "empreinte": "000491153ba9",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/editor-data.jsx:898",
+        "note-ui/note-sections.jsx:30"
+      ]
+    },
     "sections.split.empty.aria": {
       "fr": "Conclusion vide",
       "empreinte": "32c3a6292527",
@@ -578,12 +4176,1558 @@
         "note-ui/note-sections.jsx:218"
       ]
     },
+    "sideNav.administration.label": {
+      "fr": "Administration",
+      "empreinte": "b8be3d126431",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:16"
+      ]
+    },
+    "sideNav.aide.aria": {
+      "fr": "aide",
+      "empreinte": "d4fbaef3efe6",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/SideNav.jsx:91"
+      ]
+    },
+    "sideNav.besoinAide.text": {
+      "fr": "Besoin d'aide ?",
+      "empreinte": "9990c4c0385a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SideNav.jsx:56"
+      ]
+    },
+    "sideNav.besoinAide.tooltip": {
+      "fr": "Besoin d'aide ?",
+      "empreinte": "9990c4c0385a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SideNav.jsx:54"
+      ]
+    },
+    "sideNav.communication.label": {
+      "fr": "Communication",
+      "empreinte": "ade0d50c9254",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:6"
+      ]
+    },
+    "sideNav.journalNotes.label": {
+      "fr": "Journal de Notes",
+      "empreinte": "fef40de6623b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:9"
+      ]
+    },
+    "sideNav.listeAttente.label": {
+      "fr": "Liste d'attente",
+      "empreinte": "a5fba54888c5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:11"
+      ]
+    },
+    "sideNav.listePatients.label": {
+      "fr": "Liste de patients",
+      "empreinte": "8921a24d9fcc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:12"
+      ]
+    },
+    "sideNav.modePresentation.aria": {
+      "fr": "Mode présentation",
+      "empreinte": "9361f51c9986",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/SideNav.jsx:91"
+      ]
+    },
+    "sideNav.modePresentation.tooltip": {
+      "fr": "Mode présentation",
+      "empreinte": "9361f51c9986",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SideNav.jsx:93"
+      ]
+    },
+    "sideNav.nouvelles.label": {
+      "fr": "Nouvelles",
+      "empreinte": "f441d8e4a271",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:5"
+      ]
+    },
+    "sideNav.quitterModePresentation.tooltip": {
+      "fr": "Quitter le mode présentation",
+      "empreinte": "059030842779",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SideNav.jsx:93"
+      ]
+    },
+    "sideNav.rapports.label": {
+      "fr": "Rapports",
+      "empreinte": "db7d9fbb3b29",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:19"
+      ]
+    },
+    "sideNav.recemmentConsultes.text": {
+      "fr": "Récemment consultés",
+      "empreinte": "d58606047ce8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SideNav.jsx:81"
+      ]
+    },
+    "sideNav.rendez.label": {
+      "fr": "Rendez-vous",
+      "empreinte": "59342b57f92a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:10"
+      ]
+    },
+    "sideNav.repertoire.label": {
+      "fr": "Répertoire",
+      "empreinte": "c71dc3cfd075",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:15"
+      ]
+    },
+    "sideNav.resultats.label": {
+      "fr": "Résultats",
+      "empreinte": "0f766b4fd4b6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:7"
+      ]
+    },
+    "sideNav.rxVigilance.label": {
+      "fr": "Rx Vigilance",
+      "empreinte": "ff7b62a24051",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:17"
+      ]
+    },
+    "sideNav.salleBleue.text": {
+      "fr": "Salle Bleue",
+      "empreinte": "a36e8af2ba78",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SideNav.jsx:71"
+      ]
+    },
+    "sideNav.sallesAttente.text": {
+      "fr": "Salles d'attente",
+      "empreinte": "47e592444265",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SideNav.jsx:64"
+      ]
+    },
+    "sideNav.sallesAttente.tooltip": {
+      "fr": "Salles d'attente",
+      "empreinte": "47e592444265",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SideNav.jsx:62"
+      ]
+    },
+    "sideNav.taches.label": {
+      "fr": "Tâches",
+      "empreinte": "1b018f86f2ca",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:8"
+      ]
+    },
+    "sideNav.transmissions.label": {
+      "fr": "Transmissions",
+      "empreinte": "1bc4c817627e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SideNav.jsx:18"
+      ]
+    },
+    "smartNote.activerNoteIntelligente.button": {
+      "fr": "Activer la note intelligente",
+      "empreinte": "2ba8365c06ec",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/SmartNoteModal.jsx:21"
+      ]
+    },
+    "smartNote.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/SmartNoteModal.jsx:20"
+      ]
+    },
+    "smartNote.fermer.aria": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/SmartNoteModal.jsx:14"
+      ]
+    },
+    "smartNote.fonctionnaliteNoteIntelligenteDefi.text": {
+      "fr": "La fonctionnalité de « note intelligente » est définitivement rattachée à la note en cours, modifier ce statut supprimera tout le contenu actuel rédigé.",
+      "empreinte": "3286fa5b3993",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SmartNoteModal.jsx:18"
+      ]
+    },
+    "smartNote.noteIntelligente.text": {
+      "fr": "Note intelligente",
+      "empreinte": "70f867bdaa33",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SmartNoteModal.jsx:13"
+      ]
+    },
+    "summary.ajouter.tooltip": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:361"
+      ]
+    },
+    "summary.allergies.label": {
+      "fr": "Allergies",
+      "empreinte": "276d0e2a9236",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:66"
+      ]
+    },
+    "summary.antecedents.label": {
+      "fr": "Antécédents",
+      "empreinte": "cc0c5772ef22",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:72"
+      ]
+    },
+    "summary.antecedents.tooltip": {
+      "fr": "Antécédents",
+      "empreinte": "cc0c5772ef22",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:255"
+      ]
+    },
+    "summary.antecedentsFamiliaux.label": {
+      "fr": "Antécédents familiaux",
+      "empreinte": "c4af75e06fff",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:73"
+      ]
+    },
+    "summary.attente.text": {
+      "fr": "En attente",
+      "empreinte": "5231158f14d4",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:374",
+        "note-ui/Summary.jsx:415"
+      ]
+    },
+    "summary.comingSoon.toast": {
+      "fr": "{label} — à venir",
+      "empreinte": "ffa3a383a26e",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/Summary.jsx:313"
+      ]
+    },
+    "summary.convertirAntecedent.label": {
+      "fr": "Convertir en antécédent",
+      "empreinte": "b1acb8bbc843",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:254"
+      ]
+    },
+    "summary.convertirProbleme.label": {
+      "fr": "Convertir en problème",
+      "empreinte": "a164b0669639",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:255"
+      ]
+    },
+    "summary.glisserMedicamentVersNote.tooltip": {
+      "fr": "Glisser ce médicament vers la note",
+      "empreinte": "d74598b3792c",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:389"
+      ]
+    },
+    "summary.glisserVersNote.tooltip": {
+      "fr": "Glisser vers la note",
+      "empreinte": "09347d776ff7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:348"
+      ]
+    },
+    "summary.glissezReorganiser.text": {
+      "fr": "Glissez pour réorganiser",
+      "empreinte": "aa3c8815144a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:281"
+      ]
+    },
+    "summary.habitudesVieContexteSocial.label": {
+      "fr": "Habitudes de vie et contexte social",
+      "empreinte": "6a992c583f30",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:64"
+      ]
+    },
+    "summary.immunisationVaccins.label": {
+      "fr": "Immunisation et vaccins",
+      "empreinte": "62d178dad789",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:70"
+      ]
+    },
+    "summary.imprimerSommaire.tooltip": {
+      "fr": "Imprimer le sommaire",
+      "empreinte": "32a9c348c31b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:270"
+      ]
+    },
+    "summary.medications.label": {
+      "fr": "Médications",
+      "empreinte": "4d7b33243ffc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:67"
+      ]
+    },
+    "summary.more.text": {
+      "fr": "+{n} de plus",
+      "empreinte": "49eb290474ee",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:369"
+      ]
+    },
+    "summary.outilsCliniques.label": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:62"
+      ]
+    },
+    "summary.ouvrirMedications.tooltip": {
+      "fr": "Ouvrir les médications",
+      "empreinte": "a14a7c5b84e1",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:356"
+      ]
+    },
+    "summary.problemes.label": {
+      "fr": "Problèmes",
+      "empreinte": "17507ac25ae7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:71"
+      ]
+    },
+    "summary.problemes.tooltip": {
+      "fr": "Problèmes",
+      "empreinte": "17507ac25ae7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:254"
+      ]
+    },
+    "summary.programmes.label": {
+      "fr": "Programmes",
+      "empreinte": "e3cbcd61c029",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:65"
+      ]
+    },
+    "summary.reorganiser.tooltip": {
+      "fr": "Réorganiser",
+      "empreinte": "7a028a00c371",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:273"
+      ]
+    },
+    "summary.requetes.label": {
+      "fr": "Requêtes",
+      "empreinte": "f2e0f9f08e7f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:69"
+      ]
+    },
+    "summary.resultats.label": {
+      "fr": "Résultats",
+      "empreinte": "0f766b4fd4b6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:68"
+      ]
+    },
+    "summary.sauvegarder.button": {
+      "fr": "Sauvegarder",
+      "empreinte": "9ada14395d66",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/Summary.jsx:282"
+      ]
+    },
+    "summary.signesVitaux.label": {
+      "fr": "Signes vitaux",
+      "empreinte": "352f9a509cab",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:63"
+      ]
+    },
+    "summary.sommaire.text": {
+      "fr": "Sommaire",
+      "empreinte": "ad2b5814308f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:268"
+      ]
+    },
+    "summary.taches.label": {
+      "fr": "Tâches",
+      "empreinte": "1b018f86f2ca",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/Summary.jsx:61"
+      ]
+    },
+    "summaryModal.aaaaMmJj.placeholder": {
+      "fr": "AAAA/MM/JJ",
+      "empreinte": "74b28735486f",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:644"
+      ]
+    },
+    "summaryModal.affichageDoseVisee.label": {
+      "fr": "Affichage en dose visée",
+      "empreinte": "c67bbc3c1972",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:375"
+      ]
+    },
+    "summaryModal.ajoutCategorie.text": {
+      "fr": "Ajout par catégorie",
+      "empreinte": "74331798b3f1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:460"
+      ]
+    },
+    "summaryModal.ajouter.label": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:515"
+      ]
+    },
+    "summaryModal.ajouter.text": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:521",
+        "note-ui/SummaryModals.jsx:559"
+      ]
+    },
+    "summaryModal.ajouter2.text": {
+      "fr": "Ajouter",
+      "empreinte": "87c57ed173ea",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:567"
+      ]
+    },
+    "summaryModal.ajouterAllergie.text": {
+      "fr": "Ajouter cette allergie",
+      "empreinte": "d7bd54695638",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:134"
+      ]
+    },
+    "summaryModal.ajouterAllergieIntolerance.tooltip": {
+      "fr": "Ajouter une allergie ou intolérance",
+      "empreinte": "8f1b16b571d9",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:110"
+      ]
+    },
+    "summaryModal.ajouterHabitudeVie.tooltip": {
+      "fr": "Ajouter une habitude de vie",
+      "empreinte": "34683489c050",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:419"
+      ]
+    },
+    "summaryModal.ajouterMentionAucun.tooltip": {
+      "fr": "Ajouter la mention Aucun",
+      "empreinte": "d017b6e00896",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:85"
+      ]
+    },
+    "summaryModal.ajouterObservation.text": {
+      "fr": "AJOUTER CETTE OBSERVATION",
+      "empreinte": "4a30a1c1f9cc",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:289"
+      ]
+    },
+    "summaryModal.ajouterObservationSignesVitaux.tooltip": {
+      "fr": "Ajouter une observation de signes vitaux",
+      "empreinte": "705c62b6f668",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:220"
+      ]
+    },
+    "summaryModal.ajouterResultat.text": {
+      "fr": "AJOUTER LE RÉSULTAT",
+      "empreinte": "ea7aeb3d80d1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:822"
+      ]
+    },
+    "summaryModal.ajouterTache.text": {
+      "fr": "AJOUTER LA TÂCHE",
+      "empreinte": "a5eb94ef476a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:676"
+      ]
+    },
+    "summaryModal.ajouterTache.tooltip": {
+      "fr": "Ajouter une tâche",
+      "empreinte": "fdea3fbacf86",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:626"
+      ]
+    },
+    "summaryModal.ajouterVaccin.text": {
+      "fr": "Ajouter ce vaccin",
+      "empreinte": "a2a6e46700a0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:608"
+      ]
+    },
+    "summaryModal.allergies.title": {
+      "fr": "Allergies",
+      "empreinte": "276d0e2a9236",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:168"
+      ]
+    },
+    "summaryModal.allergiesIntolerances.tooltip": {
+      "fr": "Allergies et intolérances",
+      "empreinte": "aa19e6578ed7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:167"
+      ]
+    },
+    "summaryModal.annuler.text": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:133",
+        "note-ui/SummaryModals.jsx:288",
+        "note-ui/SummaryModals.jsx:399",
+        "note-ui/SummaryModals.jsx:558",
+        "note-ui/SummaryModals.jsx:675",
+        "note-ui/SummaryModals.jsx:725",
+        "note-ui/SummaryModals.jsx:821",
+        "note-ui/SummaryModals.jsx:849"
+      ]
+    },
+    "summaryModal.antecedentsFamiliaux.tooltip": {
+      "fr": "Antécédents familiaux",
+      "empreinte": "c4af75e06fff",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:535"
+      ]
+    },
+    "summaryModal.archive.label": {
+      "fr": "Archive",
+      "empreinte": "2621c6fd51a5",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:308"
+      ]
+    },
+    "summaryModal.assigner.label": {
+      "fr": "Assigner à :",
+      "empreinte": "90e7de746502",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:661"
+      ]
+    },
+    "summaryModal.aucunAntecedentFamilial.text": {
+      "fr": "Aucun antécédent familial",
+      "empreinte": "9dcfe3aa8950",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:536"
+      ]
+    },
+    "summaryModal.aucunElement.text": {
+      "fr": "Aucun élément",
+      "empreinte": "03196fc9a089",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:148",
+        "note-ui/SummaryModals.jsx:489"
+      ]
+    },
+    "summaryModal.aucunElementCetOnglet.text": {
+      "fr": "Aucun élément dans cet onglet",
+      "empreinte": "4eb6d8ffd38d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:355"
+      ]
+    },
+    "summaryModal.aucuneMedication.text": {
+      "fr": "Aucune médication",
+      "empreinte": "1bcf19ea3253",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:331"
+      ]
+    },
+    "summaryModal.aucuneSaisieHabitudeVie.text": {
+      "fr": "Aucune saisie d'habitude de vie ou de contexte social",
+      "empreinte": "0af461a2531f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:444"
+      ]
+    },
+    "summaryModal.categorie.label": {
+      "fr": "Catégorie *",
+      "empreinte": "3648f503dd29",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:420"
+      ]
+    },
+    "summaryModal.centreSanteIntegrale.label": {
+      "fr": "CENTRE DE SANTÉ INTÉGRALE",
+      "empreinte": "0b449dcaedd3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:660"
+      ]
+    },
+    "summaryModal.choisirProgramme.label": {
+      "fr": "Choisir un programme…",
+      "empreinte": "a37da24f243d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:719"
+      ]
+    },
+    "summaryModal.cliniqueCentreVille.label": {
+      "fr": "CLINIQUE DU CENTRE-VILLE",
+      "empreinte": "cdaf668565df",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:660"
+      ]
+    },
+    "summaryModal.conditionMedicale.label": {
+      "fr": "Condition médicale *",
+      "empreinte": "738e219c686c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:556"
+      ]
+    },
+    "summaryModal.cours.label": {
+      "fr": "En cours",
+      "empreinte": "bc9b533a4353",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:663"
+      ]
+    },
+    "summaryModal.creatinine.label": {
+      "fr": "Créatinine :",
+      "empreinte": "fea03656eabb",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:327"
+      ]
+    },
+    "summaryModal.creerInscriptionQuelProgramme.text": {
+      "fr": "Créer l'inscription dans quel programme ?",
+      "empreinte": "af0cafb0fe1a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:717"
+      ]
+    },
+    "summaryModal.date.label": {
+      "fr": "Date",
+      "empreinte": "eb9a4bc1c0c1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:516"
+      ]
+    },
+    "summaryModal.dateDebut.label": {
+      "fr": "Date de début",
+      "empreinte": "706438abfdc2",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:129"
+      ]
+    },
+    "summaryModal.dateObservation.label": {
+      "fr": "Date d'observation :",
+      "empreinte": "6e29f7c85bb6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:225"
+      ]
+    },
+    "summaryModal.datePrelevement.placeholder": {
+      "fr": "Date de prélèvement",
+      "empreinte": "56a6ff505db4",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:816"
+      ]
+    },
+    "summaryModal.dateVaccination.label": {
+      "fr": "Date de vaccination",
+      "empreinte": "fabec61eb198",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:602"
+      ]
+    },
+    "summaryModal.debutOptionnel.label": {
+      "fr": "Début (optionnel)",
+      "empreinte": "fcf88c99c107",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:433"
+      ]
+    },
+    "summaryModal.description.placeholder": {
+      "fr": "Description",
+      "empreinte": "55f8ebc805e6",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:655"
+      ]
+    },
+    "summaryModal.descriptionOptionnel.label": {
+      "fr": "Description (optionnel)",
+      "empreinte": "d1a3965583f3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:431"
+      ]
+    },
+    "summaryModal.deselectionnerTout.button": {
+      "fr": "Désélectionner tout",
+      "empreinte": "3ef53850f6a3",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:838"
+      ]
+    },
+    "summaryModal.dureeJours.label": {
+      "fr": "Durée (jours)",
+      "empreinte": "fa5bd0ae8616",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:380"
+      ]
+    },
+    "summaryModal.egfr.label": {
+      "fr": "DFGe :",
+      "empreinte": "830bb3643632",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:328"
+      ]
+    },
+    "summaryModal.envoiOrdonnancesDsq.label": {
+      "fr": "Envoi des ordonnances au DSQ",
+      "empreinte": "6e9f0d59ef84",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:376"
+      ]
+    },
+    "summaryModal.etat.label": {
+      "fr": "État :",
+      "empreinte": "72bd93ae5e40",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:663"
+      ]
+    },
+    "summaryModal.exDiabeteType2.placeholder": {
+      "fr": "Ex : Diabète de type 2",
+      "empreinte": "2a61635fd335",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:556"
+      ]
+    },
+    "summaryModal.faible.label": {
+      "fr": "Faible",
+      "empreinte": "3df7a6b1e1df",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:664"
+      ]
+    },
+    "summaryModal.fermer.text": {
+      "fr": "Fermer",
+      "empreinte": "5ab4ec640d65",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:170",
+        "note-ui/SummaryModals.jsx:356",
+        "note-ui/SummaryModals.jsx:458",
+        "note-ui/SummaryModals.jsx:520",
+        "note-ui/SummaryModals.jsx:565",
+        "note-ui/SummaryModals.jsx:607"
+      ]
+    },
+    "summaryModal.fileTaches.label": {
+      "fr": "File de tâches :",
+      "empreinte": "9b3d03787985",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:662"
+      ]
+    },
+    "summaryModal.finOptionnel.label": {
+      "fr": "Fin (optionnel)",
+      "empreinte": "a1ffd941c482",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:434"
+      ]
+    },
+    "summaryModal.format.label": {
+      "fr": "Format",
+      "empreinte": "041a5dec481d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:383"
+      ]
+    },
+    "summaryModal.freqCardiaque.label": {
+      "fr": "Fréq. cardiaque :",
+      "empreinte": "23c47c1d90ee",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:244"
+      ]
+    },
+    "summaryModal.freqRespiratoire.label": {
+      "fr": "Fréq. respiratoire :",
+      "empreinte": "f502f345a13f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:248"
+      ]
+    },
+    "summaryModal.frequence.label": {
+      "fr": "Fréquence",
+      "empreinte": "bafbfba73ab9",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:426"
+      ]
+    },
+    "summaryModal.glycemie.label": {
+      "fr": "Glycémie :",
+      "empreinte": "d9a7e6848e84",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:268"
+      ]
+    },
+    "summaryModal.habitudesVieContexteSocial.tooltip": {
+      "fr": "Habitudes de vie et contexte social",
+      "empreinte": "6a992c583f30",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:443"
+      ]
+    },
+    "summaryModal.hhMm.placeholder": {
+      "fr": "hh:mm",
+      "empreinte": "79a1914d9ced",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:230"
+      ]
+    },
+    "summaryModal.imc.label": {
+      "fr": "IMC :",
+      "empreinte": "97253ab0be05",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:276"
+      ]
+    },
+    "summaryModal.immunisationVaccins.tooltip": {
+      "fr": "Immunisation et vaccins",
+      "empreinte": "62d178dad789",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:583"
+      ]
+    },
+    "summaryModal.imprimer.text": {
+      "fr": "Imprimer",
+      "empreinte": "5382c09d3fd3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:851"
+      ]
+    },
+    "summaryModal.imprimerSommaire.tooltip": {
+      "fr": "Imprimer le sommaire",
+      "empreinte": "32a9c348c31b",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:836"
+      ]
+    },
+    "summaryModal.indicateursCalcules.text": {
+      "fr": "Indicateurs calculés",
+      "empreinte": "5a2236670422",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:274"
+      ]
+    },
+    "summaryModal.indicateursMesures.text": {
+      "fr": "Indicateurs mesurés",
+      "empreinte": "94372c5c2ed0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:234"
+      ]
+    },
+    "summaryModal.informationsAdditionnelles.label": {
+      "fr": "Informations additionnelles",
+      "empreinte": "7d12e045178e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:131"
+      ]
+    },
+    "summaryModal.inscriptionSuivi.tooltip": {
+      "fr": "Inscription à un suivi",
+      "empreinte": "79a76f3b43e1",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:690"
+      ]
+    },
+    "summaryModal.inscrireMedication.text": {
+      "fr": "Inscrire une médication",
+      "empreinte": "36b13507544c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:348"
+      ]
+    },
+    "summaryModal.inscrirePatient.text": {
+      "fr": "INSCRIRE LE PATIENT",
+      "empreinte": "3077ad243e37",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:726"
+      ]
+    },
+    "summaryModal.insererNouveauResultat.tooltip": {
+      "fr": "Insérer un nouveau résultat",
+      "empreinte": "164c141d0909",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:776"
+      ]
+    },
+    "summaryModal.institution.label": {
+      "fr": "Institution :",
+      "empreinte": "0961eb408c1e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:660"
+      ]
+    },
+    "summaryModal.intolerances.title": {
+      "fr": "Intolérances",
+      "empreinte": "2ef9683d4ca6",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:169"
+      ]
+    },
+    "summaryModal.medications.tooltip": {
+      "fr": "Médications",
+      "empreinte": "4d7b33243ffc",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:317"
+      ]
+    },
+    "summaryModal.mensurationsPatient.label": {
+      "fr": "Mensurations du patient",
+      "empreinte": "e1f83d755d6e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:395"
+      ]
+    },
+    "summaryModal.min.text": {
+      "fr": "L/min",
+      "empreinte": "a9e11aee948d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:254"
+      ]
+    },
+    "summaryModal.mmhg.text": {
+      "fr": "mmHg",
+      "empreinte": "a504491ccafb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:241"
+      ]
+    },
+    "summaryModal.mmol.text": {
+      "fr": "mmol/L",
+      "empreinte": "9adb5576127c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:269"
+      ]
+    },
+    "summaryModal.modeTriActif.text": {
+      "fr": "Mode tri actif",
+      "empreinte": "9ef942d83560",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:487"
+      ]
+    },
+    "summaryModal.modificationPoidsCalculateurDose.label": {
+      "fr": "Modification du poids dans le calculateur de dose",
+      "empreinte": "a2cfec679a18",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:377"
+      ]
+    },
+    "summaryModal.noKnownAllergy.text": {
+      "fr": "Aucune allergie connue",
+      "empreinte": "2b0a2ad10e95",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:113"
+      ]
+    },
+    "summaryModal.nomTest.placeholder": {
+      "fr": "Nom du test…",
+      "empreinte": "29a3fbf72253",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:800"
+      ]
+    },
+    "summaryModal.normal.label": {
+      "fr": "Normal",
+      "empreinte": "45e118d0563e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:664"
+      ]
+    },
+    "summaryModal.normalite.label": {
+      "fr": "Normalité",
+      "empreinte": "e792061d9b99",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:812"
+      ]
+    },
+    "summaryModal.nouveau.label": {
+      "fr": "Nouveau",
+      "empreinte": "b9676c8f358e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:663"
+      ]
+    },
+    "summaryModal.numeroLotOptionnel.label": {
+      "fr": "Numéro de lot (optionnel)",
+      "empreinte": "93cb2203a534",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:603"
+      ]
+    },
+    "summaryModal.ordonnance.label": {
+      "fr": "Ordonnance",
+      "empreinte": "212f9846068b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:308"
+      ]
+    },
+    "summaryModal.perimetreCranien.label": {
+      "fr": "Périmètre crânien :",
+      "empreinte": "fd698922fea2",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:265"
+      ]
+    },
+    "summaryModal.pharmacie.label": {
+      "fr": "Pharmacie",
+      "empreinte": "172dce562372",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:394"
+      ]
+    },
+    "summaryModal.poids.label": {
+      "fr": "Poids :",
+      "empreinte": "6f0466755741",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:259"
+      ]
+    },
+    "summaryModal.preferencesImpression.text": {
+      "fr": "Préférences d'impression",
+      "empreinte": "bd0899ba3d70",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:382"
+      ]
+    },
+    "summaryModal.preferencesMedications.tooltip": {
+      "fr": "Préférences — Médications",
+      "empreinte": "f148d0a442cc",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:373"
+      ]
+    },
+    "summaryModal.preferencesPrescription.text": {
+      "fr": "Préférences de prescription",
+      "empreinte": "c947ccc53bd8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:374"
+      ]
+    },
+    "summaryModal.prenomNomIdentifiant.placeholder": {
+      "fr": "Prénom, nom, identifiant…",
+      "empreinte": "21ccd4dd33df",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:661"
+      ]
+    },
+    "summaryModal.prescrire.text": {
+      "fr": "Prescrire",
+      "empreinte": "2dab03c86888",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:348"
+      ]
+    },
+    "summaryModal.pression.label": {
+      "fr": "Pression :",
+      "empreinte": "bc87ed177e8c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:240"
+      ]
+    },
+    "summaryModal.priorite.label": {
+      "fr": "Priorité :",
+      "empreinte": "601b9b8e8625",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:664"
+      ]
+    },
+    "summaryModal.profil.label": {
+      "fr": "Profil",
+      "empreinte": "669fe25a324e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:308"
+      ]
+    },
+    "summaryModal.quelleDateInscription.text": {
+      "fr": "Quelle est la date d'inscription ?",
+      "empreinte": "81ae4d0bd906",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:711"
+      ]
+    },
+    "summaryModal.raisonCessation.label": {
+      "fr": "Raison de cessation",
+      "empreinte": "dcaf324999f3",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:396"
+      ]
+    },
+    "summaryModal.rechercher.placeholder": {
+      "fr": "Rechercher…",
+      "empreinte": "1d12cdfbd87a",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:515",
+        "note-ui/SummaryModals.jsx:83"
+      ]
+    },
+    "summaryModal.rechercherMedicament.placeholder": {
+      "fr": "Rechercher un médicament…",
+      "empreinte": "e9a2d4ee2005",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:351"
+      ]
+    },
+    "summaryModal.rechercherTerme.label": {
+      "fr": "Rechercher un terme…",
+      "empreinte": "d14003948d4b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:111"
+      ]
+    },
+    "summaryModal.rechercherTerme.placeholder": {
+      "fr": "Rechercher un terme…",
+      "empreinte": "d14003948d4b",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:112"
+      ]
+    },
+    "summaryModal.rechercherVaccin.label": {
+      "fr": "Rechercher un vaccin",
+      "empreinte": "53a2452d4405",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:597"
+      ]
+    },
+    "summaryModal.rechercherVaccin.placeholder": {
+      "fr": "Rechercher un vaccin…",
+      "empreinte": "47a17680960e",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:598"
+      ]
+    },
+    "summaryModal.renouvelables.label": {
+      "fr": "Renouvelables",
+      "empreinte": "bdabb505e9af",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:308"
+      ]
+    },
+    "summaryModal.renouvellementsDefaut.label": {
+      "fr": "Renouvellements par défaut",
+      "empreinte": "a2405873a759",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:379"
+      ]
+    },
+    "summaryModal.resultat.placeholder": {
+      "fr": "Résultat",
+      "empreinte": "7186e8ffac78",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:810"
+      ]
+    },
+    "summaryModal.retour.text": {
+      "fr": "Retour",
+      "empreinte": "e5befb1f9671",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:437"
+      ]
+    },
+    "summaryModal.sansMesure.placeholder": {
+      "fr": "Sans mesure",
+      "empreinte": "1daa71ed5c26",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:208"
+      ]
+    },
+    "summaryModal.sauvegarder.text": {
+      "fr": "Sauvegarder",
+      "empreinte": "9ada14395d66",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:400",
+        "note-ui/SummaryModals.jsx:438"
+      ]
+    },
+    "summaryModal.selectionner.label": {
+      "fr": "Sélectionner…",
+      "empreinte": "d9686dde618d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:422",
+        "note-ui/SummaryModals.jsx:552"
+      ]
+    },
+    "summaryModal.selectionnerTacheRapide.button": {
+      "fr": "Sélectionner une tâche rapide…",
+      "empreinte": "963b08845aad",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:628"
+      ]
+    },
+    "summaryModal.signatureElectronique.label": {
+      "fr": "Signature électronique",
+      "empreinte": "513a95117e9d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:397"
+      ]
+    },
+    "summaryModal.since.text": {
+      "fr": "Depuis {date}",
+      "empreinte": "4685f8e4d8ea",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:155"
+      ]
+    },
+    "summaryModal.sortList.button": {
+      "fr": "Trier la liste des {title}",
+      "empreinte": "633aef574fd7",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:485"
+      ]
+    },
+    "summaryModal.sourceVigilanceSantePas.text": {
+      "fr": "Source : Vigilance Santé — pas de saisie texte libre",
+      "empreinte": "dc2e9731050a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:114"
+      ]
+    },
+    "summaryModal.spoDebitO.label": {
+      "fr": "SpO₂ / Débit O₂ :",
+      "empreinte": "cad587e3a436",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:251"
+      ]
+    },
+    "summaryModal.surfaceCorporelle.label": {
+      "fr": "Surface corporelle :",
+      "empreinte": "046b6f2e011a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:280"
+      ]
+    },
+    "summaryModal.systemeMesure.label": {
+      "fr": "Système de mesure :",
+      "empreinte": "863563152641",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:222"
+      ]
+    },
+    "summaryModal.taille.label": {
+      "fr": "Taille :",
+      "empreinte": "e21fe58021d1",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:256"
+      ]
+    },
+    "summaryModal.temperature.label": {
+      "fr": "Température :",
+      "empreinte": "1f4fd560296e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:236"
+      ]
+    },
+    "summaryModal.termine.label": {
+      "fr": "Terminé",
+      "empreinte": "3bc5972000ab",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:663"
+      ]
+    },
+    "summaryModal.titre.placeholder": {
+      "fr": "Titre",
+      "empreinte": "eb97899aedcd",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:637"
+      ]
+    },
+    "summaryModal.titreFileTaches.placeholder": {
+      "fr": "Titre de la file de tâches…",
+      "empreinte": "2593ef553f47",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:662"
+      ]
+    },
+    "summaryModal.tourTaille.label": {
+      "fr": "Tour de taille :",
+      "empreinte": "0190e295676e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:262"
+      ]
+    },
+    "summaryModal.type.label": {
+      "fr": "Type",
+      "empreinte": "3deb74565196",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:117"
+      ]
+    },
+    "summaryModal.typeRelation.label": {
+      "fr": "Type de relation *",
+      "empreinte": "2c823e268a19",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:550"
+      ]
+    },
+    "summaryModal.urgent.label": {
+      "fr": "Urgent",
+      "empreinte": "ecb26f46e394",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:664"
+      ]
+    },
+    "summaryModal.weight.label": {
+      "fr": "Poids :",
+      "empreinte": "6f0466755741",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:329"
+      ]
+    },
     "template.source.label": {
       "fr": "Gabarit « {name} »",
       "empreinte": "2545b76f4262",
       "contexte": "libellé",
       "fichiers": [
         "note-ui/editor-schema.jsx:2674"
+      ]
+    },
+    "topBar.deconnexion.aria": {
+      "fr": "déconnexion",
+      "empreinte": "5f12ae14c3c2",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/TopBar.jsx:38"
+      ]
+    },
+    "topBar.menu.aria": {
+      "fr": "menu",
+      "empreinte": "252a25667dc7",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/TopBar.jsx:11"
+      ]
+    },
+    "topBar.rechercherPatient.placeholder": {
+      "fr": "Rechercher un patient...",
+      "empreinte": "fb14241a7921",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/TopBar.jsx:18"
       ]
     },
     "transmission.pending.hint": {

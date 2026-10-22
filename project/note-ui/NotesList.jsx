@@ -137,7 +137,7 @@ function DocView({ doc, blocks, dxModel }) {
     if (node.type === 'sectionSplit') {
       return (
         <div key={'ss-' + bi} style={nlStyles.roSplit}>
-          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || 'Conclusion'}</div>
+          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || t('notesList.conclusion2.text')}</div>
           <div style={nlStyles.roSplitRule} />
         </div>
       );
@@ -154,7 +154,7 @@ function DocView({ doc, blocks, dxModel }) {
         <div key={'rb-' + bi} style={nlStyles.roRef}>
           <div style={nlStyles.roRefHeader}>
             <span className="material-icons-outlined" style={nlStyles.roRefIcon}>format_quote</span>
-            <span style={nlStyles.roRefSource}>Référence — {node.attrs.source}</span>
+            <span style={nlStyles.roRefSource}>{t('notesList.reference.text', { source: node.attrs.source })}</span>
           </div>
           <div style={nlStyles.roRefBody}>{(node.attrs.text || '').split('\n').map(function(l, li) { return <React.Fragment key={li}>{li > 0 && <br />}{l}</React.Fragment>; })}</div>
         </div>
@@ -176,8 +176,8 @@ function DocView({ doc, blocks, dxModel }) {
             {entry && <span style={nlStyles.roDiagNum}>{entry.number}</span>}
             <span style={Object.assign({}, nlStyles.roDiagName, isCesse ? nlStyles.roDiagNameCesse : null)}>{a.name}</span>
             {a.code && <span style={nlStyles.roDiagCode}>{a.code}</span>}
-            {isCesse && <span style={nlStyles.roDiagStatus}>Cessé</span>}
-            {a.replaces && <span style={nlStyles.roDiagSub}>remplace : {a.replaces.name}</span>}
+            {isCesse && <span style={nlStyles.roDiagStatus}>{t('notesList.cesse.text')}</span>}
+            {a.replaces && <span style={nlStyles.roDiagSub}>{t('notesList.replaces.text', { name: a.replaces.name })}</span>}
           </div>
           <div style={nlStyles.roDiagBody}>
             {bodyParas.map(function(p, pi) {
@@ -269,7 +269,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     return (
       <div style={nlStyles.conclEmpty}>
         <span className="material-icons-outlined" style={nlStyles.conclEmptyIcon}>remove</span>
-        Aucune conclusion à cette note
+        {t('notesList.aucuneConclusionNote.text')}
       </div>
     );
   }
@@ -321,13 +321,13 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
 
   return (
     <div style={nlStyles.card}>
-      <div style={nlStyles.title}>Liste de notes cliniques</div>
+      <div style={nlStyles.title}>{t('notesList.listeNotesCliniques.text')}</div>
 
       <div style={nlStyles.filterRow}>
-        <Filter label="Voir" value="Toutes les notes" width={190} />
-        <Filter label="triées par" value="Date d'entrée en vigueur" width={250} />
-        <Filter label="Du" value="15/10/2023" width={150} cal />
-        <Filter label="Au" value="15/10/2023" width={150} cal />
+        <Filter label={t('notesList.voir.label')} value="Toutes les notes" width={190} />
+        <Filter label={t('notesList.triees.label')} value="Date d'entrée en vigueur" width={250} />
+        <Filter label={t('notesList.du.label')} value="15/10/2023" width={150} cal />
+        <Filter label={t('notesList.au.label')} value="15/10/2023" width={150} cal />
       </div>
 
       <div style={nlStyles.chipRow}>
@@ -341,7 +341,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '24px 0', textAlign: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14 }}>Aucune note ne correspond aux filtres actifs.</div>
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14 }}>{t('notesList.aucuneNoteNeCorrespond.text')}</div>
       )}
       {filtered.map((n, i) => {
         const origIdx = NOTE_ITEMS.indexOf(n);
@@ -380,25 +380,23 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                 {epTotal > 1 &&
                   <span style={nlStyles.episodeChip}>
                     <span className="material-icons-outlined" style={nlStyles.episodeIcon}>link</span>
-                    Épisode de soin · visite {epVisitNum}/{epTotal}
+                    {t('notesList.careEpisode.text', { n: epVisitNum, total: epTotal })}
                   </span>}
                 {/* Champ confidentiel — visible seulement par l'auteur, même
                     ici où toutes les notes du dossier sont listées (voir
                     l'exception d'accès, filtre par consentement actif). */}
                 {n.confidential && n.author === doctorName &&
                   <span className="confidential-lock--badge"
-                    title="Contient un champ confidentiel">
+                    title={t('notesList.contientChampConfidentiel.tooltip')}>
                     <span className="material-icons-outlined">lock</span>
                   </span>}
                 <div style={{ flex: 1 }} />
                 <div style={nlStyles.actionIcons}>
                   {noteDocs(n).length > 0 &&
                     <button style={nlStyles.checkoutBtn}
-                      title="Voir les documents transmis pour cette note"
-                      onClick={() => setCheckoutNote(n)}>
-                      Checkout
-                    </button>}
-                  <button style={nlStyles.caretBtn} onClick={() => toggle(i)} aria-label={isOpen ? "Fermer" : "Ouvrir"}>
+                      title={t('notesList.voirDocumentsTransmisNote.tooltip')}
+                      onClick={() => setCheckoutNote(n)}>{t('notesList.checkout.button')}</button>}
+                  <button style={nlStyles.caretBtn} onClick={() => toggle(i)} aria-label={isOpen ? t('notesList.fermer.aria') : t('notesList.ouvrir.aria')}>
                     {isOpen
                       ? <span className="material-icons" style={nlStyles.caretIcon}>unfold_less</span>
                       : <span className="material-icons" style={nlStyles.caretIcon}>unfold_more</span>
@@ -416,7 +414,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                 </div>
               ) : isOpen && n.details ? (
                 <div style={nlStyles.detailsSection}>
-                  <div style={nlStyles.detailsLabel}>Détails de la note</div>
+                  <div style={nlStyles.detailsLabel}>{t('notesList.detailsNote.text')}</div>
                   <div style={nlStyles.detailsText}>
                     {n.details.split("\n").map((line, j) => (
                       <p key={j} style={{ margin: "0 0 4px 0" }}>{line}</p>
@@ -431,7 +429,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                   dans le document, on ne la montre pas deux fois. */}
               {!isOpen && (
                 <div style={nlStyles.conclPreview}>
-                  <div style={nlStyles.conclLabel}>Conclusion</div>
+                  <div style={nlStyles.conclLabel}>{t('notesList.conclusion.text')}</div>
                   <ConclusionPreview note={n} />
                 </div>
               )}
@@ -452,7 +450,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
               {isOpen && !n.doc && n.conclusion ? (
                 <>
                   <div style={nlStyles.conclLabelWrap}>
-                    <div style={nlStyles.conclLabelOpen}>Conclusion</div>
+                    <div style={nlStyles.conclLabelOpen}>{t('notesList.conclusion.text')}</div>
                   </div>
                   <div style={nlStyles.conclText}>
                     {n.conclusion.split("\n").map((line, j) => (
@@ -485,7 +483,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
           onMouseDown={(e) => e.preventDefault()}
           onClick={addReference}>
           <span className="material-icons-outlined" style={{ fontSize: 16 }}>format_quote</span>
-          Référencer dans la note
+          {t('notesList.referencerNote.button')}
         </button>}
 
       {/* Checkout d'une note déjà complétée : même vue que pendant la

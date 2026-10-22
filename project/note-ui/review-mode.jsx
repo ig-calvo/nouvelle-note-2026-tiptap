@@ -94,7 +94,8 @@ function reviewMarkParseHTML(tag) {
 
 function reviewMarkRenderHTML(cls, verb) {
   return function ({ mark }) {
-    const title = verb + ' par ' + (mark.attrs.authorName || '?') + (mark.attrs.ts ? ' — ' + fmtReviewDate(mark.attrs.ts) : '');
+    const who = mark.attrs.authorName || '?';
+    const title = mark.attrs.ts ? t('review.markByAt.tooltip', { verb: verb, who: who, date: fmtReviewDate(mark.attrs.ts) }) : t('review.markBy.tooltip', { verb: verb, who: who });
     return ['span', {
       class: cls,
       style: '--rvw-c:' + (mark.attrs.color || 'var(--mat-sys-primary)'),
@@ -113,7 +114,7 @@ function makeInsertionMark() {
     inclusive: true,
     addAttributes: reviewMarkAttrs,
     parseHTML() { return reviewMarkParseHTML('span.rvw-ins'); },
-    renderHTML: reviewMarkRenderHTML('rvw-ins', 'Inséré')
+    renderHTML: reviewMarkRenderHTML('rvw-ins', t('review.inserted.text'))
   });
 }
 
@@ -123,7 +124,7 @@ function makeDeletionMark() {
     inclusive: false,
     addAttributes: reviewMarkAttrs,
     parseHTML() { return reviewMarkParseHTML('span.rvw-del'); },
-    renderHTML: reviewMarkRenderHTML('rvw-del', 'Supprimé')
+    renderHTML: reviewMarkRenderHTML('rvw-del', t('review.deleted.text'))
   });
 }
 
@@ -400,10 +401,10 @@ function ReviewChangePopover({ change, anchorRect, onClose, onAccept, onReject }
       <div style={rvwS.popText}>{change.text.length > 90 ? change.text.slice(0, 90) + '…' : change.text}</div>
       <div style={rvwS.popActions}>
         <button type="button" style={rvwS.popBtnReject} onClick={function () { onReject(change); onClose(); }}>
-          <span className="material-icons-outlined" style={{ fontSize: 17 }}>close</span> Refuser
+          <span className="material-icons-outlined" style={{ fontSize: 17 }}>close</span> {t('review.refuser.button')}
         </button>
         <button type="button" style={rvwS.popBtnAccept} onClick={function () { onAccept(change); onClose(); }}>
-          <span className="material-icons-outlined" style={{ fontSize: 17 }}>check</span> Accepter
+          <span className="material-icons-outlined" style={{ fontSize: 17 }}>check</span> {t('review.accepter.button')}
         </button>
       </div>
     </div>
@@ -416,12 +417,12 @@ function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAl
     <div style={rvwS.headerRow}>
       <button
         type="button"
-        title={active ? 'Désactiver le mode révision' : 'Activer le mode révision'}
+        title={active ? t('review.desactiverModeRevision.tooltip') : t('review.activerModeRevision.tooltip')}
         aria-pressed={active}
         onClick={onToggle}
         style={Object.assign({}, rvwS.toggleBtn, active ? rvwS.toggleBtnOn : {})}>
         <span className="material-icons-outlined" style={{ fontSize: 18 }}>rate_review</span>
-        Mode révision
+        {t('review.modeRevision.button')}
       </button>
       {active && count > 0 &&
         <div style={{ position: 'relative' }}>
@@ -434,10 +435,10 @@ function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAl
               <div style={rvwS.menuBg} onClick={function () { setMenuOpen(false); }} />
               <div style={rvwS.countMenu}>
                 <button type="button" style={rvwS.countMenuItem} onClick={function () { onAcceptAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#1f8a5b, #a5e9cb)' }}>done_all</span> Tout accepter
+                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#1f8a5b, #a5e9cb)' }}>done_all</span> {t('review.toutAccepter.button')}
                 </button>
                 <button type="button" style={rvwS.countMenuItem} onClick={function () { onRejectAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#b3261e, #e9a9a5)' }}>remove_done</span> Tout refuser
+                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#b3261e, #e9a9a5)' }}>remove_done</span> {t('review.toutRefuser.button')}
                 </button>
               </div>
             </React.Fragment>}
@@ -450,14 +451,14 @@ function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCance
   return (
     <div style={rvwS.dialogScrim}>
       <div style={rvwS.dialogBox} role="dialog">
-        <div style={rvwS.dialogTitle}>Modifications en attente</div>
+        <div style={rvwS.dialogTitle}>{t('review.modificationsAttente.text')}</div>
         <p style={rvwS.dialogText}>
           {tn('review.pending.text', count)}
         </p>
         <div style={rvwS.dialogActions}>
-          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCancel}>Annuler</button>
-          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>Réviser</button>
-          <button type="button" style={rvwS.dialogBtnPrimary} onClick={onAcceptAllAndComplete}>Tout accepter et compléter</button>
+          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCancel}>{t('review.annuler.button')}</button>
+          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>{t('review.reviser.button')}</button>
+          <button type="button" style={rvwS.dialogBtnPrimary} onClick={onAcceptAllAndComplete}>{t('review.toutAccepterCompleter.button')}</button>
         </div>
       </div>
     </div>
@@ -479,19 +480,19 @@ function pendingSummaryText(summary) {
 function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {
   const who = summary.sources.length === 1 ? summary.sources[0] : 'Gabarit';
   return (
-    <div style={rvwS.pendingBar} role="region" aria-label="Ajouts en attente">
+    <div style={rvwS.pendingBar} role="region" aria-label={t('review.ajoutsAttente.aria')}>
       <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>playlist_add_check</span>
-      <span style={rvwS.pendingText} title="Rien n’est créé avant d’être accepté.">
-        <b>{who}</b> : {pendingSummaryText(summary)} en attente
+      <span style={rvwS.pendingText} title={t('review.rienCreeAvantEtre.tooltip')}>
+        <b>{who}</b>{t('review.pendingText.text', { summary: pendingSummaryText(summary) })}
       </span>
       {/* Les trois actions passent à la ligne ensemble, jamais une seule. */}
       <span style={rvwS.pendingActions}>
-        <button type="button" style={rvwS.pendingBtnGhost} onClick={onReview}>Réviser</button>
+        <button type="button" style={rvwS.pendingBtnGhost} onClick={onReview}>{t('review.reviser.button')}</button>
         <button type="button" style={rvwS.pendingBtnOutline} onClick={onRejectAll}>
-          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> Tout refuser
+          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> {t('review.toutRefuser.button')}
         </button>
         <button type="button" style={rvwS.pendingBtnPrimary} onClick={onAcceptAll}>
-          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> Tout accepter
+          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> {t('review.toutAccepter.button')}
         </button>
       </span>
     </div>
@@ -506,15 +507,15 @@ function PendingCompleteDialog({ summary, onAcceptAllAndComplete, onReview, onCo
   }, [onCancel]);
   return (
     <div style={rvwS.dialogScrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onCancel(); }}>
-      <div style={rvwS.dialogBox} role="dialog" aria-label="Ajouts en attente">
-        <div style={rvwS.dialogTitle}>Ajouts en attente</div>
+      <div style={rvwS.dialogBox} role="dialog" aria-label={t('review.ajoutsAttente.aria')}>
+        <div style={rvwS.dialogTitle}>{t('review.ajoutsAttente.text')}</div>
         <p style={rvwS.dialogText}>
-          Il reste {pendingSummaryText(summary)} proposés ({summary.sources.length ? summary.sources.join(', ') : 'gabarit'}), ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.
+          {t('review.pendingDialog.text', { summary: pendingSummaryText(summary), sources: summary.sources.length ? summary.sources.join(', ') : t('review.template.text') })}
         </p>
         <div style={rvwS.dialogActions}>
-          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCompleteWithout}>Finaliser sans eux</button>
-          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>Réviser</button>
-          <button type="button" style={rvwS.dialogBtnPrimary} autoFocus onClick={onAcceptAllAndComplete}>Tout accepter et finaliser</button>
+          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCompleteWithout}>{t('review.finaliserSansEux.button')}</button>
+          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>{t('review.reviser.button')}</button>
+          <button type="button" style={rvwS.dialogBtnPrimary} autoFocus onClick={onAcceptAllAndComplete}>{t('review.toutAccepterFinaliser.button')}</button>
         </div>
       </div>
     </div>

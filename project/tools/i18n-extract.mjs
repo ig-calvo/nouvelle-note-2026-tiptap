@@ -87,7 +87,8 @@ function readLiteral(src, i) {
   return null;
 }
 
-const CALL = /(?<![\w$.])(t|tn|tk|L)\(\s*/g;
+// `window.t(` compte comme `t(` : c'est la forme à employer là où une variable locale masque t.
+const CALL = /(?<![\w$.])(?:window\.)?(t|tn|tk|L)\(\s*/g;
 
 // Les appels d'un fichier : [{ fn, kind, key|text, line, ... }] et les problèmes.
 export function scanSource(src, file) {
@@ -112,7 +113,7 @@ export function scanSource(src, file) {
       continue;
     }
     const lineText = src.split('\n')[line - 1].trim();
-    calls.push({ fn, text: lit.text, line, where, lineText });
+    calls.push({ fn, text: lit.text, line, where, lineText, viaWindow: m[0].startsWith('window.') });
   }
   return { calls, problems };
 }

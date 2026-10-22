@@ -26,10 +26,10 @@ const I18N_SOURCES = ['note-ui/i18n.js', 'note-ui/i18n/fr.js'];
 const SHARED_SOURCES = ['note-ui/rx-text.jsx'];
 const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
 
-// `lang` : 'fr' (défaut) ou 'en'. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
+// `lang` : 'fr' (défaut) ou 'en' ; `english: false` n'y charge pas les fichiers anglais. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
 // comme variables libres, ainsi qu'ils les reçoivent de `window` dans le
 // navigateur — un fichier chargé par `new Function` n'y a pas accès autrement.
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr' } = {}) {
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr', english = true } = {}) {
   const win = {};
   if (lang !== 'fr') win.location = { search: `?lang=${lang}` };
   let globals = [];
@@ -45,7 +45,9 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
     new Function('window', 'document', 'React', 't', 'tn', 'L', 'tk', src)(win, undefined, undefined, ...globals);
   };
   for (const rel of I18N_SOURCES) evaluate(rel);
-  if (win.I18N.lang === 'en') {
+  // `english: false` : une langue anglaise sans aucun fichier anglais (le repli sur le français),
+  // quoi que la piste B ait livré — pour les tests qui vérifient ce repli.
+  if (win.I18N.lang === 'en' && english) {
     for (const rel of I18N_SOURCES_EN) if (fs.existsSync(path.join(projectDir, rel))) evaluate(rel);
   }
   globals = [win.I18N.t, win.I18N.tn, win.I18N.L, win.I18N.tk];

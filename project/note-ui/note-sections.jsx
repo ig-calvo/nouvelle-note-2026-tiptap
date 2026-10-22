@@ -27,7 +27,7 @@ const CONCLUSION_LABEL = 'Conclusion';
 
 // Titre de la première zone. Il s'affiche HORS du composant d'écriture (au-dessus
 // de l'éditeur, voir editor-field.jsx) : il n'est plus un nœud du document.
-const DETAILS_LABEL = 'Détails de la consultation';
+const DETAILS_LABEL = t('sections.details.heading');
 
 function splitNode() { return { type: SECTION_SPLIT }; }
 

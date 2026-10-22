@@ -267,7 +267,7 @@ test('dates : la locale de la langue choisie, jamais « fr-CA » écrit en dur',
   const time = d.toTimeString().slice(0, 5);
   assert.equal(fr.formatChipStamp(iso), `${d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })} à ${time}`);
   assert.equal(fr.fmtSommaireDate(d), '04/03/2026');
-  const en = loadPrototype(['note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang: 'en' });
+  const en = loadPrototype(['note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang: 'en', english: false });
   assert.equal(en.I18N.locale, 'en-CA');
   assert.equal(en.formatChipStamp(iso), `${d.toLocaleDateString('en-CA', { day: 'numeric', month: 'short', year: 'numeric' })} à ${time}`, 'sans fichier anglais, la phrase « date à heure » retombe sur le français');
 });
@@ -320,12 +320,30 @@ test('logique : aucune comparaison avec un libellé qui changerait de langue', (
 // même nom (`const t = setTimeout(…)`, `.map(t => …)`) masque la fonction dans
 // toute sa portée, et l'appel plante en production. Lecture par blocs de premier
 // niveau : un bloc qui déclare ET appelle le même nom est signalé ; les blocs
-// ci-dessous ont été relus à la main (la variable vit dans un autre rappel).
+// ci-dessous ont été relus à la main (la variable vit dans un autre rappel). Là où
+// une variable masque vraiment t, l'appel s'écrit window.t(…) : il n'est pas signalé.
 const PORTEE_VERIFIEE = [
   'note-ui/ClinicalToolPicker.jsx:function ClinicalToolPicker',
   'note-ui/editor-popover.jsx:function RxMenu',
   'note-ui/editor-schema.jsx:function buildTransmissionDocs',
   'note-ui/NoteEditor.jsx:function NoteEditor',
+  // Lot A2 : vérifiés par analyse de portée (Babel) au moment de la conversion — la variable
+  // locale vit dans un rappel qui n'englobe pas l'appel ; là où elle l'englobait, l'appel est window.t(…).
+  'note-ui/ActionLog.jsx:function ActionLogTags',
+  'note-ui/NoteEditor.jsx:function DsTimeList',
+  'note-ui/NoteEditor.jsx:function TagInput',
+  'note-ui/SummaryModals.jsx:function ProblemsModal',
+  'note-ui/editor-field.jsx:function NoteBody',
+  'note-ui/editor-field.jsx:function AddFileSourceMenu',
+  'note-ui/editor-field.jsx:function NoteTemplateMenu',
+  'note-ui/editor-field.jsx:function DiagnosticRefMenu',
+  'note-ui/editor-field.jsx:function DiagDocMenu',
+  'note-ui/editor-popover.jsx:function LabTestsField',
+  'note-ui/editor-popover.jsx:function DxRow',
+  'note-ui/editor-popover.jsx:function DxEditPopover',
+  'note-ui/editor-schema.jsx:function makeDiagnosticRegionNode',
+  'note-ui/editor-schema.jsx:function makeSectionSplitNode',
+  'note-ui/editor-schema.jsx:function buildActionLog',
   'note-ui/presentation-mode.jsx:function PresentationMode'
 ];
 
@@ -348,7 +366,7 @@ test('portée : aucun t(), tn(), L() ou tk() n’est appelé dans un bloc qui d�
       const chunk = lines.slice(starts[k], starts[k + 1]).join('\n');
       const calls = scanSource(chunk, file).calls;
       for (const name of ['t', 'tn', 'L', 'tk']) {
-        if (calls.some((c) => c.fn === name) && declares(chunk, name)) {
+        if (calls.some((c) => c.fn === name && !c.viaWindow) && declares(chunk, name)) {
           const head = lines[starts[k]].trim();
           if (!PORTEE_VERIFIEE.some((p) => `${file}:${head}`.startsWith(p))) found.push(`${file}:${starts[k] + 1} (${name}) ${head.slice(0, 60)}`);
         }

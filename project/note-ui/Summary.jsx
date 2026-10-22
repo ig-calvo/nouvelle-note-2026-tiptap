@@ -58,19 +58,19 @@ var INIT_DATA = {
 // `link` : boîte réduite à son titre, comme dans le DME — elle ouvre un autre
 // module, n'a ni lignes ni « + » et ne se glisse pas vers la note.
 var SECTION_CFG = [
-  { id:'tasks',    icon:'check_box',      label:'Tâches',                    add:true  },
-  { id:'clinicalTools', icon:'handyman',  label:'Outils cliniques',          link:true },
-  { id:'vitals',   icon:'monitor_heart',  label:'Signes vitaux',             add:true,  list:true },
-  { id:'habits',   icon:'nutrition',      label:'Habitudes de vie et contexte social', add:true, list:true },
-  { id:'programs', icon:'assignment_turned_in', label:'Programmes',          add:true,  list:true },
-  { id:'allergies',icon:'eco',            label:'Allergies',                 add:true,  list:true },
-  { id:'meds',     icon:'medication',     label:'Médications',               add:false, list:true, dots:true },
-  { id:'results',  icon:'science',        label:'Résultats',                 add:true,  list:true },
-  { id:'requests', icon:'request_page',   label:'Requêtes',                  link:true },
-  { id:'immun',    icon:'vaccines',       label:'Immunisation et vaccins',   add:true,  list:true },
-  { id:'problems', icon:'healing',        label:'Problèmes',                 add:true,  list:true },
-  { id:'history',  icon:'assignment',     label:'Antécédents',               add:true,  list:true },
-  { id:'family',   icon:'folder_open',    label:'Antécédents familiaux',     add:true,  list:true },
+  { id:'tasks',    icon:'check_box',      label:t('summary.taches.label'),                    add:true  },
+  { id:'clinicalTools', icon:'handyman',  label:t('summary.outilsCliniques.label'),          link:true },
+  { id:'vitals',   icon:'monitor_heart',  label:t('summary.signesVitaux.label'),             add:true,  list:true },
+  { id:'habits',   icon:'nutrition',      label:t('summary.habitudesVieContexteSocial.label'), add:true, list:true },
+  { id:'programs', icon:'assignment_turned_in', label:t('summary.programmes.label'),          add:true,  list:true },
+  { id:'allergies',icon:'eco',            label:t('summary.allergies.label'),                 add:true,  list:true },
+  { id:'meds',     icon:'medication',     label:t('summary.medications.label'),               add:false, list:true, dots:true },
+  { id:'results',  icon:'science',        label:t('summary.resultats.label'),                 add:true,  list:true },
+  { id:'requests', icon:'request_page',   label:t('summary.requetes.label'),                  link:true },
+  { id:'immun',    icon:'vaccines',       label:t('summary.immunisationVaccins.label'),   add:true,  list:true },
+  { id:'problems', icon:'healing',        label:t('summary.problemes.label'),                 add:true,  list:true },
+  { id:'history',  icon:'assignment',     label:t('summary.antecedents.label'),               add:true,  list:true },
+  { id:'family',   icon:'folder_open',    label:t('summary.antecedentsFamiliaux.label'),     add:true,  list:true },
 ];
 
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
@@ -251,8 +251,8 @@ function Summary({ addToNote }) {
     if (s==='vitals'    && type==='list') return <VitalsAddModal     onClose={close} onAdd={add} />;
     if (s==='meds')                       return <MedsModal          items={items}  onClose={close} />;
     if (s==='habits')                     return <HabitsModal        items={items}  onClose={close} onAdd={add} />;
-    if (s==='problems')                   return <ProblemsModal      title="Problèmes"    items={items} onClose={close} onAdd={add} convertLabel="Convertir en antécédent" />;
-    if (s==='history')                    return <ProblemsModal      title="Antécédents"  items={items} onClose={close} onAdd={add} convertLabel="Convertir en problème" />;
+    if (s==='problems')                   return <ProblemsModal      title={t('summary.problemes.tooltip')}    items={items} onClose={close} onAdd={add} convertLabel={t('summary.convertirAntecedent.label')} />;
+    if (s==='history')                    return <ProblemsModal      title={t('summary.antecedents.tooltip')}  items={items} onClose={close} onAdd={add} convertLabel={t('summary.convertirProbleme.label')} />;
     if (s==='family')                     return <FamilyModal        items={items}  onClose={close} onAdd={add} />;
     if (s==='immun')                      return <ImmunModal         items={items}  onClose={close} onAdd={add} />;
     if (s==='results')                     return <ResultsModal       items={items}  onClose={close} onAdd={add} />;
@@ -265,12 +265,12 @@ function Summary({ addToNote }) {
     <aside style={suS.panel}>
       {/* Header */}
       <div style={suS.header}>
-        <span style={suS.headerTitle}>Sommaire</span>
+        <span style={suS.headerTitle}>{t('summary.sommaire.text')}</span>
         <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-          <button style={suS.hBtn} onClick={function(){ setShowPrint(true); }} title="Imprimer le sommaire">
+          <button style={suS.hBtn} onClick={function(){ setShowPrint(true); }} title={t('summary.imprimerSommaire.tooltip')}>
             <span className="material-icons-outlined" style={{ fontSize:20 }}>print</span>
           </button>
-          <button style={{ ...suS.hBtn, color: reorder ? '#f59e0b' : 'rgba(255,255,255,0.85)' }} onClick={function(){ setReorder(!reorder); }} title="Réorganiser">
+          <button style={{ ...suS.hBtn, color: reorder ? '#f59e0b' : 'rgba(255,255,255,0.85)' }} onClick={function(){ setReorder(!reorder); }} title={t('summary.reorganiser.tooltip')}>
             <span className="material-icons-outlined" style={{ fontSize:22 }}>dashboard</span>
           </button>
         </div>
@@ -278,8 +278,8 @@ function Summary({ addToNote }) {
 
       {reorder && (
         <div style={suS.reorderBar}>
-          <span style={{ fontSize:12, color:'var(--mat-sys-on-surface)' }}>Glissez pour réorganiser</span>
-          <button style={suS.saveBtn} onClick={function(){ setReorder(false); }}>Sauvegarder</button>
+          <span style={{ fontSize:12, color:'var(--mat-sys-on-surface)' }}>{t('summary.glissezReorganiser.text')}</span>
+          <button style={suS.saveBtn} onClick={function(){ setReorder(false); }}>{t('summary.sauvegarder.button')}</button>
         </div>
       )}
 
@@ -310,7 +310,7 @@ function Summary({ addToNote }) {
                 setModal({ section:cfg.id, type:'add' });
               }}
               onTitle={function(){
-                if (cfg.link) { if (window.toast) window.toast(cfg.label + ' — à venir', { icon: 'info' }); return; }
+                if (cfg.link) { if (window.toast) window.toast(t('summary.comingSoon.toast', { label: cfg.label }), { icon: 'info' }); return; }
                 if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });
               }}
             />
@@ -345,7 +345,7 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
           draggable={!reorder && !cfg.link}
           onDragStart={!reorder && !cfg.link ? onNoteDragStart : undefined}
           onDragEnd={!reorder && !cfg.link ? onNoteDragEnd : undefined}
-          title={!reorder && !cfg.link ? 'Glisser vers la note' : undefined}
+          title={!reorder && !cfg.link ? t('summary.glisserVersNote.tooltip') : undefined}
           style={{ display:'flex', alignItems:'center', gap:7, flex:1, minWidth:0, cursor: reorder ? 'inherit' : (cfg.link ? 'default' : 'grab') }}>
           <span className="material-icons-outlined" style={suS.sIcon}>{cfg.icon}</span>
           <button style={suS.labelBtn} onClick={onTitle}>
@@ -353,12 +353,12 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
           </button>
         </span>
         {cfg.dots && (
-          <button style={suS.addBtn} onClick={onTitle} title="Ouvrir les médications">
+          <button style={suS.addBtn} onClick={onTitle} title={t('summary.ouvrirMedications.tooltip')}>
             <span className="material-icons" style={{ fontSize:20 }}>more_vert</span>
           </button>
         )}
         {canAdd && (
-          <button style={suS.addBtn} onClick={onAdd} title="Ajouter">
+          <button style={suS.addBtn} onClick={onAdd} title={t('summary.ajouter.tooltip')}>
             <span className="material-icons" style={{ fontSize:20 }}>add</span>
           </button>
         )}
@@ -366,12 +366,12 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
       {(items.length > 0 || pending.length > 0) && (
         <div style={suS.rows}>
           {items.slice(0, 6).map(function(r, i){ return <SummaryRow key={i} r={r} sId={cfg.id} />; })}
-          {items.length > 6 && <div style={suS.more}>+{items.length-6} de plus</div>}
+          {items.length > 6 && <div style={suS.more}>{t('summary.more.text', { n: items.length - 6 })}</div>}
           {pending.map(function(p, i){ return (
             <div key={'p'+i} style={suS.row}>
               <span className="material-icons-outlined" style={{ fontSize:13, color:'light-dark(#c07a00, #e9d0a5)', flexShrink:0, width:14 }}>schedule</span>
               <span style={{ ...suS.rLeft, color:'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', fontStyle:'italic', maxWidth:130 }}>{p.label}</span>
-              <span style={suS.pendingTag}>En attente</span>
+              <span style={suS.pendingTag}>{t('summary.attente.text')}</span>
             </div>
           ); })}
         </div>
@@ -386,7 +386,7 @@ function SummaryRow({ r, sId }) {
     return (
       <div style={{ ...suS.row, cursor:'grab' }}
         draggable={true}
-        title="Glisser ce médicament vers la note"
+        title={t('summary.glisserMedicamentVersNote.tooltip')}
         onDragStart={function(e){
           e.stopPropagation();
           window.__omniSummaryDrag = { sectionId:'meds', label:'', items:[r], single:true };
@@ -412,7 +412,7 @@ function SummaryRow({ r, sId }) {
       {/* Ligne touchée par la note en cours, pas encore complétée — voir
           mergeSommaireDx (diagnostics.jsx) et note:diagnostics-change
           (NoteEditor.jsx). pendingNote explique CE QUI a changé au survol. */}
-      {r.pending && <span style={suS.pendingTag} title={r.pendingNote || undefined}>En attente</span>}
+      {r.pending && <span style={suS.pendingTag} title={r.pendingNote || undefined}>{t('summary.attente.text')}</span>}
     </div>
   );
 }

@@ -93,14 +93,14 @@ function AIBox({ onAddToNote }) {
       {/* Legend */}
       <div style={{ ...aiS.legend, ...(labelFloated ? aiS.legendFloating : aiS.legendResting) }}>
         <span className="material-icons" style={{ ...aiS.legendIcon, ...(labelFloated ? {} : aiS.legendIconResting) }}>auto_awesome</span>
-        <span style={{ ...aiS.legendLabel, ...(labelFloated ? {} : aiS.legendLabelResting) }}>Assistant IA</span>
+        <span style={{ ...aiS.legendLabel, ...(labelFloated ? {} : aiS.legendLabelResting) }}>{t('ai.assistantIa.text')}</span>
       </div>
 
       {/* Recording bar */}
       {(isRecording || isPaused) &&
       <div style={aiS.recBar}>
           <span style={{ ...aiS.recDot, ...(isPaused ? aiS.recDotPaused : {}) }} />
-          <span style={aiS.recStatusLabel}>{isPaused ? 'Enregistrement en pause' : 'Enregistrement en cours'}</span>
+          <span style={aiS.recStatusLabel}>{isPaused ? t('ai.enregistrementPause.text') : t('ai.enregistrementCours.text')}</span>
           <span style={aiS.recTimer}>{fmtTimer(recSec)}</span>
           {showPreview && <>
             <span style={aiS.recSep}>|</span>
@@ -110,19 +110,19 @@ function AIBox({ onAddToNote }) {
           {isRecording &&
         <button style={aiS.outlineBtn} onClick={pauseRecording}>
               <span className="material-icons" style={aiS.btnIcSm}>pause</span>
-              Pause
+              {t('ai.pause.button')}
             </button>
         }
           {isPaused &&
         <button style={aiS.outlineBtn} onClick={resumeRecording}>
               <span className="material-icons-outlined" style={aiS.btnIcSm}>mic</span>
-              Reprendre (FR)
+              {t('ai.reprendreFr.button')}
               <span className="material-icons" style={{ ...aiS.btnIcSm, fontSize: 18 }}>arrow_drop_down</span>
             </button>
         }
           <button style={aiS.primaryBtn} onClick={finishRecording}>
             <span className="material-icons" style={aiS.btnIcSm}>bolt</span>
-            Terminer et générer (FR)
+            {t('ai.terminerGenererFr.button')}
             <span className="material-icons" style={{ fontSize: 18 }}>arrow_drop_down</span>
           </button>
         </div>
@@ -169,7 +169,7 @@ function AIBox({ onAddToNote }) {
           <span className="material-icons" style={aiS.spinIc}>refresh</span> :
           <span style={aiS.transcriptBadge}>①</span>
           }
-              <span>Transcription(s)</span>
+              <span>{t('ai.transcription.text')}</span>
               {!isLoading && <span className="material-icons" style={aiS.chipCaret}>arrow_drop_down</span>}
             </button>
         }
@@ -182,7 +182,7 @@ function AIBox({ onAddToNote }) {
           onClick={!recBtnDim ? startRecording : undefined}>
           
             <span className="material-icons-outlined" style={{ ...aiS.actionBtnIc, color: 'var(--mat-sys-primary)' }}>mic</span>
-            <span style={{ color: 'var(--mat-sys-primary)', fontWeight: 500 }}>Lancer l'enregistrement (FR)</span>
+            <span style={{ color: 'var(--mat-sys-primary)', fontWeight: 500 }}>{t('ai.lancerEnregistrementFr.text')}</span>
             <span className="material-icons" style={{ ...aiS.actionBtnIc, color: 'var(--mat-sys-primary)' }}>arrow_drop_down</span>
           </button>
 
@@ -192,7 +192,7 @@ function AIBox({ onAddToNote }) {
           onClick={genBtnPrimary && !isGenerating ? generateNote : undefined}>
           
             <span className="material-icons" style={{ ...aiS.actionBtnIc, color: genBtnPrimary ? '#fff' : 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>auto_awesome</span>
-            <span style={{ color: genBtnPrimary ? '#fff' : 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' }}>Générer une note (FR)</span>
+            <span style={{ color: genBtnPrimary ? '#fff' : 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' }}>{t('ai.genererNoteFr.text')}</span>
             <span className="material-icons" style={{ ...aiS.actionBtnIc, color: genBtnPrimary ? '#fff' : 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>arrow_drop_down</span>
           </button>
 
@@ -205,7 +205,7 @@ function AIBox({ onAddToNote }) {
       {isGenerating &&
       <div style={aiS.generatingRow}>
           <span style={aiS.dots}>・・・</span>
-          <span style={aiS.generatingLabel}>Récupération des détails...</span>
+          <span style={aiS.generatingLabel}>{t('ai.recuperationDetails.text')}</span>
         </div>
       }
 
@@ -218,7 +218,7 @@ function AIBox({ onAddToNote }) {
           <p style={aiS.generatedText}>{SAMPLE_NOTE}</p>
 
           <div style={aiS.feedbackRow}>
-            <span style={aiS.feedbackLabel}>Comment évaluez-vous la note générée ?</span>
+            <span style={aiS.feedbackLabel}>{t('ai.commentEvaluezNoteGeneree.text')}</span>
             <button style={{ ...aiS.iconBtnSm, ...(feedbackGiven === 'up' ? { background: 'rgba(46,56,166,0.1)' } : {}) }} onClick={() => setFeedbackGiven('up')}>
               <span className="material-icons-outlined" style={{ fontSize: 20, color: feedbackGiven === 'up' ? 'var(--mat-sys-primary)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>thumb_up</span>
             </button>
@@ -233,11 +233,11 @@ function AIBox({ onAddToNote }) {
           <div style={aiS.noteActions}>
             <button style={aiS.outlineActionBtn} onClick={resetToIdle}>
               <span className="material-icons" style={{ fontSize: 16 }}>replay</span>
-              Remplacer la note
+              {t('ai.remplacerNote.button')}
             </button>
             <button style={aiS.primaryActionBtn} onClick={() => {if (onAddToNote) onAddToNote(SAMPLE_NOTE);resetToIdle();}}>
               <span className="material-icons" style={{ fontSize: 16 }}>add</span>
-              Ajouter à la note
+              {t('ai.ajouterNote.button')}
             </button>
           </div>
         </div>

@@ -280,7 +280,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
       var blocks = window.buildTemplateBlocks(tpl, { proposeText: templateTextProposedRef.current });
-      if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
+      if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', t('noteEditor.ituRoadmap.text')));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
         // Note vierge : ensureSplit transforme le Titre 2 « Conclusion » du
@@ -558,7 +558,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var blocks = [];
     if (label) blocks.push({ type: 'paragraph', content: [{ type: 'text', text: label }] });
     if (items.length === 0) {
-      blocks.push({ type: 'paragraph', content: [{ type: 'text', text: '• (aucun élément au dossier)' }] });
+      blocks.push({ type: 'paragraph', content: [{ type: 'text', text: t('noteEditor.aucunElementDossier.text') }] });
     } else {
       items.forEach(function(item) {
         var txt = summaryItemText(sectionId, item);
@@ -637,14 +637,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // d'édition — « Sauvegarder » ne doit pas la fermer ni en effacer le contenu.
   function saveDraft() {
     var id = 'draft-' + Date.now();
-    var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
+    var savedLabel = t('noteEditor.savedAt.text', { time: new Date().toTimeString().slice(0, 5) });
     var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags,
         confidential: confidentialContent || null, actionEvents: actionEvents }].concat(prev);
     });
-    if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
+    if (window.toast) window.toast(t('noteEditor.brouillonSauvegarde.toast'), { icon: 'check_circle' });
   }
 
   function continueDraft(id) {
@@ -694,9 +694,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       // du document portent l'échec (icône sur la puce, ligne au checkout) et
       // le document reste « Non transmise ».
       if (simulateTxFailure) {
-        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: 'envoi non reçu par le destinataire (simulé)' });
+        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: t('noteEditor.txSimulatedFailure.text') });
         patch = Object.assign({}, patch, { transmitted: false });
-        if (window.toast) window.toast('Échec de transmission (simulé)', { icon: 'sync_problem' });
+        if (window.toast) window.toast(t('noteEditor.echecTransmissionSimule.toast'), { icon: 'sync_problem' });
       } else if (sentDoc && !sentDoc.transmitted) {
         recordChipEvents(sentDoc.items.map(function(it) { return it.id; }).filter(function(cid) {
           var a = editorRef.current && window.chipAttrs(editorRef.current, cid);
@@ -735,7 +735,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var cid = e.detail && e.detail.cid;
       if (!cid) return;
       recordChipEvents([cid], 'annule');
-      if (window.toast) window.toast('Annulation envoyée', { icon: 'block' });
+      if (window.toast) window.toast(t('noteEditor.annulationEnvoyee.toast'), { icon: 'block' });
     }
     window.addEventListener('note:chip-cancel', onCancel);
     return function() { window.removeEventListener('note:chip-cancel', onCancel); };
@@ -892,8 +892,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <div>
           <div style={neStyles.overline}>{(institution || 'Clinique du Centre-ville').toUpperCase()}</div>
           <div style={neStyles.titleRow}>
-            <span style={neStyles.title}>Note Clinique</span>
-            {smartActive && <span style={neStyles.statusBadge}>En cours</span>}
+            <span style={neStyles.title}>{t('noteEditor.noteClinique.text')}</span>
+            {smartActive && <span style={neStyles.statusBadge}>{t('noteEditor.cours.text')}</span>}
           </div>
         </div>
         <div style={{ flex: 1 }} />
@@ -909,7 +909,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             <div style={neStyles.assistRow}>
               <span style={neStyles.assistChip}>
                 <span className="material-icons" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
-                Rédaction assistée
+                {t('noteEditor.redactionAssistee.text')}
               </span>
             </div>
           )
@@ -928,19 +928,19 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
 
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
-        <FloatField label="Raison de consultation" flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
+        <FloatField label={t('noteEditor.raisonConsultation.label')} flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
         {/* Date, heure et type restent groupés : quand la carte est trop étroite
             (≈ 760 px dans l'app), le groupe passe sous la raison de consultation
             au lieu d'écraser le sélecteur de type. */}
         <div style={neStyles.fieldsGroup}>
-          <DsDateField label="Date" width={190} value={noteDate} onChange={setNoteDate} />
-          <DsTimeField label="Heure" width={140} value={noteTime} onChange={setNoteTime} />
-          <FloatField label="Type de visite" width={230} grow select value={visitType} onValueChange={setVisitType} options={VISIT_TYPES} />
+          <DsDateField label={t('noteEditor.date.label')} width={190} value={noteDate} onChange={setNoteDate} />
+          <DsTimeField label={t('noteEditor.heure.label')} width={140} value={noteTime} onChange={setNoteTime} />
+          <FloatField label={t('noteEditor.typeVisite.label')} width={230} grow select value={visitType} onValueChange={setVisitType} options={VISIT_TYPES} />
         </div>
         <button
           type="button"
-          title={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
-          aria-label={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
+          title={showTags ? t('noteEditor.masquerEtiquettes.tooltip') : t('noteEditor.ajouterEtiquettes.tooltip')}
+          aria-label={showTags ? t('noteEditor.masquerEtiquettes.aria') : t('noteEditor.ajouterEtiquettes.aria')}
           aria-pressed={showTags}
           onClick={function() { setShowTags(function(v) { return !v; }); }}
           style={Object.assign({}, neStyles.tagToggle, showTags ? neStyles.tagToggleOn : {})}>
@@ -998,7 +998,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
               onReview={reviewFirstPending} />}
 
           <NoteBody
-            placeholder="Appuyer sur « / » pour afficher les commandes"
+            placeholder={t('noteEditor.appuyerAfficherCommandes.placeholder')}
             initialDoc={initialDocRef.current}
             onReady={handleEditorReady}
             onDocChange={handleDocChange}
@@ -1015,7 +1015,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                 {showClinicalTools
                   ? <button
                       className="ct-toolsbtn"
-                      title="Outils cliniques"
+                      title={t('noteEditor.outilsCliniques.tooltip')}
                       style={pickerOpen ? { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' } : undefined}
                       onClick={function(e) {
                         var r = e.currentTarget.getBoundingClientRect();
@@ -1025,10 +1025,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                     </button>
                   : null}
                 {[
-                  { label: 'Assurance privée' },
-                  { label: 'Cardiologie' },
+                  { label: t('noteEditor.assurancePrivee.label') },
+                  { label: t('noteEditor.cardiologie.label') },
                   { label: 'CNESST' },
-                  { label: 'Examen physique - Version courte', toolId: 'exam-court' }
+                  { label: t('noteEditor.examenPhysiqueVersionCourte.label'), toolId: 'exam-court' }
                 ].map(function(chip) {
                   return (
                     <button key={chip.label} className="ct-chip"
@@ -1052,9 +1052,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             <div className="confidential-field">
               <div className="confidential-field__head">
                 <span className="material-icons-outlined">lock</span>
-                <span className="confidential-field__label">Champs confidentiel</span>
+                <span className="confidential-field__label">{t('noteEditor.champsConfidentiel.text')}</span>
                 <button type="button" className="confidential-field__delete-btn"
-                  title="Supprimer le champ confidentiel"
+                  title={t('noteEditor.supprimerChampConfidentiel.tooltip')}
                   onClick={function () { setConfidentialDeleteOpen(true); }}>
                   <span className="material-icons-outlined">delete</span>
                 </button>
@@ -1062,7 +1062,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
               <textarea
                 className="confidential-field__input"
                 autoFocus
-                placeholder="Documenter le champ confidentiel"
+                placeholder={t('noteEditor.documenterChampConfidentiel.placeholder')}
                 value={confidentialContent}
                 onChange={function (e) { setConfidentialContent(e.target.value); }} />
             </div>
@@ -1079,21 +1079,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
             <div className="confidential-modal__title">
               <span className="material-icons-outlined">lock</span>
-              <span className="confidential-modal__title-text">Note confidentielle</span>
+              <span className="confidential-modal__title-text">{t('noteEditor.noteConfidentielle.text')}</span>
               <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialWarningOpen(false); }}>
                 <span className="material-icons-outlined">close</span>
               </button>
             </div>
             <div className="confidential-modal__body">
-              <p className="confidential-modal__headline">Voulez-vraiment écrire une note confidentielle?</p>
-              <p>Le contenu du champs de note confidentielle sera uniquement visible par son auteur. Les informations ajoutées ne devraient pas entraver une décision clinique ou un diagnostique par un.e autre praticien.ne concernant ce patient.</p>
+              <p className="confidential-modal__headline">{t('noteEditor.voulezVraimentEcrireNote.text')}</p>
+              <p>{t('noteEditor.contenuChampsNoteConfidentielle.text')}</p>
             </div>
             <div className="confidential-modal__actions">
-              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialWarningOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialWarningOpen(false); }}>{t('noteEditor.annuler.button')}</button>
               <button type="button" className="confidential-modal__btn-primary" onClick={function () {
                 setConfidentialAdded(true);
                 setConfidentialWarningOpen(false);
-              }}>Écrire</button>
+              }}>{t('noteEditor.ecrire.button')}</button>
             </div>
           </div>
         </div>
@@ -1106,21 +1106,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
             <div className="confidential-modal__title">
               <span className="material-icons-outlined">lock</span>
-              <span className="confidential-modal__title-text">Supprimer le champ confidentiel?</span>
+              <span className="confidential-modal__title-text">{t('noteEditor.supprimerChampConfidentiel.text')}</span>
               <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialDeleteOpen(false); }}>
                 <span className="material-icons-outlined">close</span>
               </button>
             </div>
             <div className="confidential-modal__body">
-              <p>Le contenu rédigé sera définitivement perdu.</p>
+              <p>{t('noteEditor.contenuRedigeSeraDefinitivement.text')}</p>
             </div>
             <div className="confidential-modal__actions">
-              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialDeleteOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialDeleteOpen(false); }}>{t('noteEditor.annuler.button')}</button>
               <button type="button" className="confidential-modal__btn-danger" onClick={function () {
                 setConfidentialContent('');
                 setConfidentialAdded(false);
                 setConfidentialDeleteOpen(false);
-              }}>Supprimer</button>
+              }}>{t('noteEditor.supprimer.button')}</button>
             </div>
           </div>
         </div>
@@ -1149,7 +1149,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           institution={institution}
           initialSelectedId={transmissionOnlyId}
           showSuggestions={checkoutSuggestions}
-          noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
+          noteInfo={{ title: (raison && raison.trim()) || t('noteEditor.noteClinique.tooltip'), date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
           onPatchArchivedNote={onPatchArchivedTx}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
@@ -1319,9 +1319,9 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     specialty: window.NOTE_DATA.FIELD_OPTIONS.specialty
   };
   var FIELD_LABELS = {
-    dose: 'Dose', frequency: 'Fréquence', form: 'Forme', route: 'Voie', duration_refills: 'Durée / Renouvellements',
-    duration: 'Durée', refills: 'Renouvellement',
-    priority: 'Priorité', exam: 'Examen', specialty: 'Spécialité'
+    dose: t('noteEditor.fieldDose.label'), frequency: t('noteEditor.fieldFrequency.label'), form: t('noteEditor.fieldForm.label'), route: t('noteEditor.fieldRoute.label'), duration_refills: t('noteEditor.fieldDurationRefills.label'),
+    duration: t('noteEditor.fieldDuration.label'), refills: t('noteEditor.fieldRefills.label'),
+    priority: t('noteEditor.fieldPriority.label'), exam: t('noteEditor.fieldExam.label'), specialty: t('noteEditor.fieldSpecialty.label')
   };
 
   var _q = React.useState(initialVal); var query = _q[0]; var setQuery = _q[1];
@@ -1376,13 +1376,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
           else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(function(i) { return Math.max(0, i - 1); }); }
           else if (e.key === 'Enter') { e.preventDefault(); if (suggestions[activeIdx]) handleSelect(suggestions[activeIdx]); else if (query.trim()) handleSelect(query.trim()); }
         },
-        placeholder: 'Rechercher…',
+        placeholder: t('noteEditor.rechercher.placeholder'),
         style: { flex: 1, border: 'none', outline: 'none', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface)', background: 'transparent' }
       })
     ),
     React.createElement('div', { style: { maxHeight: 224, overflowY: 'auto', padding: '4px 0' } },
       suggestions.length === 0
-        ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, 'Aucune suggestion')
+        ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, t('noteEditor.noSuggestion.empty'))
         : suggestions.map(function(s, i) {
             var isActive = i === activeIdx;
             return React.createElement('div', {
@@ -1579,14 +1579,14 @@ function PickerField({ label, width, value, format, parse, onCommit, icon, toggl
 
 function DsDateField({ label, width, value, onChange }) {
   return (
-    <PickerField label={label} width={width} value={value} format={fmtDateFr} parse={parseDateInput} onCommit={onChange} icon="calendar_today" toggleLabel="Ouvrir le calendrier">
+    <PickerField label={label} width={width} value={value} format={fmtDateFr} parse={parseDateInput} onCommit={onChange} icon="calendar_today" toggleLabel={t('noteEditor.ouvrirCalendrier.label')}>
       {function(api) { return <DsCalendar value={value} onSelect={api.choose} />; }}
     </PickerField>);
 }
 
 function DsTimeField({ label, width, value, onChange }) {
   return (
-    <PickerField label={label} width={width} value={value} format={function(v) { return v || ''; }} parse={parseTimeInput} onCommit={onChange} icon="schedule" toggleLabel="Choisir l’heure">
+    <PickerField label={label} width={width} value={value} format={function(v) { return v || ''; }} parse={parseTimeInput} onCommit={onChange} icon="schedule" toggleLabel={t('noteEditor.choisirHeure.label')}>
       {function(api) { return <DsTimeList value={value} onSelect={api.choose} />; }}
     </PickerField>);
 }
@@ -1634,11 +1634,11 @@ function DsCalendar({ value, onSelect }) {
   return (
     <div style={{ width: 296 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--ds-spacing-xs)' }}>
-        <button type="button" className="ds-icon-btn" aria-label="Mois précédent" onClick={function() { shiftMonth(-1, false); }}>
+        <button type="button" className="ds-icon-btn" aria-label={t('noteEditor.moisPrecedent.aria')} onClick={function() { shiftMonth(-1, false); }}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_left</span>
         </button>
         <div aria-live="polite" style={{ font: 'var(--mat-sys-title-medium-bold, 600 16px/20px var(--font-mat-sys-brand-family))', color: 'var(--mat-sys-on-surface)', textTransform: 'capitalize' }}>{monthFmt.format(first)}</div>
-        <button type="button" className="ds-icon-btn" aria-label="Mois suivant" onClick={function() { shiftMonth(1, false); }}>
+        <button type="button" className="ds-icon-btn" aria-label={t('noteEditor.moisSuivant.aria')} onClick={function() { shiftMonth(1, false); }}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_right</span>
         </button>
       </div>
@@ -1680,7 +1680,7 @@ function DsCalendar({ value, onSelect }) {
         })}
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--ds-spacing-xs)' }}>
-        <button type="button" className="ds-btn" style={{ height: 40, padding: '0 var(--ds-spacing-s)', background: 'transparent', color: 'var(--mat-sys-primary)' }} onClick={function() { onSelect(todayIso); }}>Aujourd’hui</button>
+        <button type="button" className="ds-btn" style={{ height: 40, padding: '0 var(--ds-spacing-s)', background: 'transparent', color: 'var(--mat-sys-primary)' }} onClick={function() { onSelect(todayIso); }}>{t('noteEditor.aujourdHui.button')}</button>
       </div>
     </div>);
 }
@@ -1715,7 +1715,7 @@ function DsTimeList({ value, onSelect }) {
   }
 
   return (
-    <div ref={listRef} role="listbox" aria-label="Heures" onKeyDown={onKey} style={{ width: 146, maxHeight: 264, overflowY: 'auto', position: 'relative' }}>
+    <div ref={listRef} role="listbox" aria-label={t('noteEditor.heures.aria')} onKeyDown={onKey} style={{ width: 146, maxHeight: 264, overflowY: 'auto', position: 'relative' }}>
       {TIME_OPTIONS.map(function(t, i) {
         const isSel = t === value;
         return (
@@ -1828,14 +1828,14 @@ function TagInput({ tags, onChange }) {
       <div
         style={{ ...tagStyles.wrap, ...(focused ? tagStyles.wrapFocused : {}) }}
         onMouseDown={function(e) { if (e.target === e.currentTarget || e.target.dataset.tagshell) { inputRef.current && inputRef.current.focus(); } }}>
-        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: 'var(--mat-sys-primary)' } : {}) }}>Étiquettes</span>
+        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: 'var(--mat-sys-primary)' } : {}) }}>{t('noteEditor.etiquettes.text')}</span>
         <div style={tagStyles.inner} data-tagshell="1">
           <span className="material-icons-outlined" style={tagStyles.icon}>sell</span>
           {tags.map(function(t, i) {
             return (
               <span key={t + i} style={tagStyles.chip}>
                 {t}
-                <button type="button" className="ds-tb-btn" style={tagStyles.chipX} title={"Retirer l’étiquette " + t} aria-label={"Retirer l’étiquette " + t} onClick={function() { removeTag(i); }}>
+                <button type="button" className="ds-tb-btn" style={tagStyles.chipX} title={window.t('noteEditor.removeTag.aria', { tag: t })} aria-label={window.t('noteEditor.removeTag.aria', { tag: t })} onClick={function() { removeTag(i); }}>
                   <span className="material-icons" style={{ fontSize: 16 }}>close</span>
                 </button>
               </span>);
@@ -1844,7 +1844,7 @@ function TagInput({ tags, onChange }) {
             ref={inputRef}
             style={tagStyles.input}
             value={input}
-            placeholder={tags.length ? 'Ajouter…' : 'Ajouter une étiquette…'}
+            placeholder={tags.length ? t('noteEditor.ajouter.placeholder') : t('noteEditor.ajouterEtiquette.placeholder')}
             onChange={function(e) { setInput(e.target.value); }}
             onKeyDown={onKeyDown}
             onFocus={function() { setFocused(true); }}

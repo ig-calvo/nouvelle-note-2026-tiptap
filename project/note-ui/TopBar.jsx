@@ -8,14 +8,14 @@ function TopBar({
   return (
     <div style={tbStyles.bar}>
       <div style={tbStyles.left}>
-        <button style={tbStyles.iconBtn} aria-label="menu" onClick={onMenuClick}>
+        <button style={tbStyles.iconBtn} aria-label={t('topBar.menu.aria')} onClick={onMenuClick}>
           <span className="material-icons" style={{ color: "#fff", fontSize: 24 }}>menu</span>
         </button>
         <div style={{ ...tbStyles.logo, width: "174px" }}>omnimed</div>
       </div>
 
       <div style={tbStyles.searchWrap}>
-        <input style={tbStyles.search} placeholder="Rechercher un patient..." />
+        <input style={tbStyles.search} placeholder={t('topBar.rechercherPatient.placeholder')} />
         <span className="material-icons" style={tbStyles.searchIcon}>search</span>
       </div>
 
@@ -35,7 +35,7 @@ function TopBar({
         <button style={tbStyles.rxBadge}>
           Prescrip<span style={{ fontWeight: 700 }}>T</span>ion
         </button>
-        <button style={tbStyles.iconBtn} aria-label="déconnexion">
+        <button style={tbStyles.iconBtn} aria-label={t('topBar.deconnexion.aria')}>
           <span className="material-icons" style={{ color: "#fff", fontSize: 22 }}>logout</span>
         </button>
       </div>

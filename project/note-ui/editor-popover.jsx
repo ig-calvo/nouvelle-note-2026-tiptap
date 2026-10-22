@@ -94,7 +94,7 @@ function RxSel({ label, required, value, onChange, options, placeholder, flex, w
         onChange={(e) => onChange && onChange(e.target.value)}>
         {/* Sans option vide, une valeur vide afficherait la 1re option (« DIE »)
             alors que rien n'est saisi — et contredirait « à préciser : fréquence ». */}
-        {(placeholder || value == null || value === '') ? <option value="">{placeholder || (required ? 'À préciser' : '—')}</option> : null}
+        {(placeholder || value == null || value === '') ? <option value="">{placeholder || (required ? t('popover.preciser.text') : '—')}</option> : null}
         {opts.map((o) => <option key={o} value={o}>{o}</option>)}
       </select>
       <span className="material-icons-outlined" style={rxS.chev}>expand_more</span>
@@ -112,7 +112,7 @@ function RxCompound({ label, value, onChange, unit, onUnit, units, placeholder, 
       <input style={Object.assign({}, rxS.input, { width: '40%', minWidth: 0 })} value={value == null ? '' : value} placeholder={placeholder || ''}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onChange && onChange(e.target.value)} />
-      <select aria-label={label + ' : unité'} style={Object.assign({}, rxS.select, { width: '60%', paddingLeft: 4 })} value={unit == null ? '' : unit}
+      <select aria-label={t('popover.unitOf.aria', { label: label })} style={Object.assign({}, rxS.select, { width: '60%', paddingLeft: 4 })} value={unit == null ? '' : unit}
         onFocus={() => setFoc(true)} onBlur={() => setFoc(false)}
         onChange={(e) => onUnit && onUnit(e.target.value)}>
         <option value="">—</option>
@@ -124,7 +124,7 @@ function RxCompound({ label, value, onChange, unit, onUnit, units, placeholder, 
 }
 function RxSwitch({ on, onToggle }) {
   return (
-    <button type="button" onClick={onToggle} title="Ne pas substituer"
+    <button type="button" onClick={onToggle} title={t('popover.nePasSubstituer.tooltip')}
       style={{ width: 44, height: 24, borderRadius: 12, border: 0, background: on ? 'var(--mat-sys-primary)' : 'var(--mat-sys-outline-variant)', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 120ms' }}>
       <span style={{ position: 'absolute', top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: '50%', background: 'var(--mat-sys-surface-container-lowest)', transition: 'left 120ms', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
     </button>
@@ -133,9 +133,9 @@ function RxSwitch({ on, onToggle }) {
 // Sélecteur de source/substitution (3 icônes) — d'après Figma
 function RxSourceToggle({ value, onChange }) {
   const opts = [
-    { k: 'sub', icon: 'check', title: 'Substitution permise' },
-    { k: 'profile', icon: 'inventory_2', title: 'Au dossier pharmacologique' },
-    { k: 'manual', icon: 'edit', title: 'Saisie manuelle' },
+    { k: 'sub', icon: 'check', title: t('popover.substitutionPermise.tooltip') },
+    { k: 'profile', icon: 'inventory_2', title: t('popover.dossierPharmacologique.tooltip') },
+    { k: 'manual', icon: 'edit', title: t('popover.saisieManuelle.tooltip') },
   ];
   return (
     <div style={{ display: 'inline-flex', flexShrink: 0, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--mat-sys-outline-variant)' }}>
@@ -201,16 +201,16 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
   // Chip transmis (D-05) : mêmes champs, désactivés par le <fieldset> ; le
   // pied ne propose que Fermer. Annuler passe par le menu ⋮ du chip.
   const sentNote = readOnly
-    ? (chip.entity.cancelledAt ? 'Annulée le ' + window.formatChipStamp(chip.entity.cancelledAt) : 'Transmise le ' + window.formatChipStamp(chip.entity.transmittedAt)) + ' : lecture seule.'
+    ? (chip.entity.cancelledAt ? t('popover.cancelledReadonly.text', { when: window.formatChipStamp(chip.entity.cancelledAt) }) : t('popover.transmittedReadonly.text', { when: window.formatChipStamp(chip.entity.transmittedAt) }))
     : '';
   // Ajout en attente (gabarit) : on vérifie, on ajuste, puis on accepte ou
   // on refuse — accepter enregistre les modifications en même temps.
   const pendingFoot = (footStyle, btnGhost, btnPrimary) => (
     <div style={footStyle}>
-      <button style={btnGhost} onClick={() => onReject && onReject(chip.id)}>Refuser</button>
+      <button style={btnGhost} onClick={() => onReject && onReject(chip.id)}>{t('popover.refuser.button')}</button>
       <span style={{ flex: 1 }} />
-      <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', marginRight: 10 }}>{chip.entity.proposedBy ? 'Proposé par ' + chip.entity.proposedBy : 'Ajout proposé'}</span>
-      <button style={btnPrimary} onClick={() => onSave(chip.id, draft, true)}>Accepter</button>
+      <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', marginRight: 10 }}>{chip.entity.proposedBy ? t('popover.proposedBy.text', { who: chip.entity.proposedBy }) : t('popover.ajoutPropose.text')}</span>
+      <button style={btnPrimary} onClick={() => onSave(chip.id, draft, true)}>{t('popover.accepter.button')}</button>
     </div>
   );
   const readOnlyFoot = (footStyle, btnStyle) => (
@@ -220,7 +220,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         {sentNote}
       </span>
       <span style={{ flex: 1 }} />
-      <button style={btnStyle} onClick={onClose}>Fermer</button>
+      <button style={btnStyle} onClick={onClose}>{t('popover.fermer.button')}</button>
     </div>
   );
 
@@ -240,8 +240,8 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
     }
     // Pastille d'alertes de l'en-tête (Figma) : remplace le bandeau « Aucune
     // alerte » ; les constantes du patient sont dans son infobulle.
-    const constants = 'Créatinine sérique : N/A · eGFR : N/A · Poids : ' + (pedsW ? pedsW.kg + ' kg (pesée du ' + pedsW.weighedOn + ')' : 'N/A');
-    const alertText = rxIssues.length ? rxIssues.map(function (i) { return i.message; }).join(' · ') : 'Aucune alerte';
+    const constants = pedsW ? t('popover.constantsWeighed.text', { kg: pedsW.kg, date: pedsW.weighedOn }) : t('popover.constantsNone.text');
+    const alertText = rxIssues.length ? rxIssues.map(function (i) { return i.message; }).join(' · ') : t('popover.noAlert.text');
     const alertTone = rxIssues.some(function (i) { return i.level === 'error'; }) ? 'var(--mat-sys-error)' : rxIssues.length ? 'light-dark(#a15c00, #e9cca5)' : 'light-dark(#39604d, #b9d5c7)';
     // « Précisions » (Figma) : replié, sauf s'il contient déjà quelque chose ou
     // que la puce est en lecture seule.
@@ -251,16 +251,16 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
     const precIsOpen = precOpen == null ? (precHasValue || !!readOnly) : precOpen;
     return (<>
       {scrim}
-      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog" aria-label={'Prescription : ' + (d.molecule || '')} aria-modal={placed === 'center' ? 'true' : undefined}>
+      <div className="popover" ref={ref} style={Object.assign({}, rxS.panel, { width: W, zIndex: 2100 })} role="dialog" aria-label={t('popover.prescriptionOf.aria', { name: d.molecule || '' })} aria-modal={placed === 'center' ? 'true' : undefined}>
         <div style={rxS.head}>
           <span style={rxS.rxWrap}><span style={rxS.rxIcon}>℞</span></span>
-          <span style={rxS.molName}>{d.molecule || 'Prescription'}</span>
+          <span style={rxS.molName}>{d.molecule || t('popover.prescription.text')}</span>
           <span style={rxS.alertPill} role="img" aria-label={alertText + '. ' + constants} title={alertText + '\n' + constants}>
             <span className="material-icons-outlined" style={{ fontSize: 20, color: alertTone }}>{rxIssues.length ? 'report' : 'verified_user'}</span>
             {rxIssues.length > 0 && <span className="material-icons-outlined" style={{ fontSize: 20, color: alertTone }}>warning</span>}
           </span>
           <span style={{ flex: 1 }} />
-          <button style={rxS.closeBtn} onClick={onClose} aria-label="Fermer"><span className="material-icons-outlined">close</span></button>
+          <button style={rxS.closeBtn} onClick={onClose} aria-label={t('popover.fermer.aria')}><span className="material-icons-outlined">close</span></button>
         </div>
         {rxIssues.length > 0 &&
           <div style={Object.assign({}, rxS.alertBand, rxS.alertBandError, { marginBottom: 4 })} role="status">
@@ -274,73 +274,71 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
             <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#8a5cb8, #c7b1dd)', flexShrink: 0 }}>child_care</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0, flex: 1 }}>
               <span style={{ font: "500 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' }}>
-                {peds.mgPerKg} mg/kg/dose × {pedsW.kg} kg = {Math.round(pedsCalc.raw)} mg → suggéré {pedsCalc.suggested} mg
-                {peds.freq ? ' ' + peds.freq : ''}
-                {pedsCalc.wasCapped ? ' (plafonné à la dose adulte)' : ''}
+                {t('popover.pedsResult.text', { mgPerKg: peds.mgPerKg, kg: pedsW.kg, raw: Math.round(pedsCalc.raw), suggested: pedsCalc.suggested, freq: peds.freq ? ' ' + peds.freq : '', capped: pedsCalc.wasCapped ? ' ' + t('popover.pedsCapped.text') : '' })}
               </span>
-              <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>Dose max : {peds.maxMgPerDose} mg/dose — à valider cliniquement.</span>
+              <span style={{ font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' }}>{t('popover.pedsMax.text', { max: peds.maxMgPerDose })}</span>
             </div>
-            <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>Appliquer</button>
+            <button type="button" style={rxS.pedsApply} onClick={() => up('dose', String(pedsCalc.suggested))}>{t('popover.appliquer.button')}</button>
           </div>}
         {/* Le <div> défile (un <fieldset> ne rogne pas son contenu : les champs
             débordaient par-dessus le pied quand la hauteur est plafonnée) ; le
             <fieldset> ne sert qu'à désactiver les champs d'une puce transmise. */}
         <div style={rxS.body}><fieldset disabled={!!readOnly} style={rxS.fieldset}>
           <div style={rxS.row}>
-            <RxFF label="Produit" value={d.molecule} onChange={(v) => up('molecule', v)} flex={1} />
-            <RxFF label="Forme et teneur" value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1} />
+            <RxFF label={t('popover.produit.label')} value={d.molecule} onChange={(v) => up('molecule', v)} flex={1} />
+            <RxFF label={t('popover.formeTeneur.label')} value={d.formeTeneur != null ? d.formeTeneur : (d.form || '')} onChange={(v) => up('formeTeneur', v)} flex={1} />
             <span style={rxS.ramq}>RAMQ <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#cc3340, #e9a5ab)' }}>do_not_disturb_on</span></span>
           </div>
           <div style={rxS.sec}>
-            <span>Posologie et médicament</span>
+            <span>{t('popover.posologieMedicament.text')}</span>
             <span style={{ flex: 1 }} />
             <RxSourceToggle value={d.source || 'sub'} onChange={(v) => up('source', v)} />
           </div>
           <div style={rxS.row}>
-            <RxFF label="Dose" required value={d.dose} onChange={(v) => up('dose', v)} suffix={d.unit || 'mg'} flex={1.15} />
-            <RxFF label="Unités" value={d.qtyDose} onChange={(v) => up('qtyDose', v)} placeholder="1" flex={0.7} />
-            <RxSel label="Voie" required value={d.route} onChange={(v) => up('route', v)} options={window.NOTE_DATA.FIELD_OPTIONS.route} flex={0.95} />
-            <RxSel label="Site" value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder="Site" flex={1} />
-            <RxSel label="Fréquence" required value={d.frequency} onChange={(v) => up('frequency', v)} options={window.NOTE_DATA.FIELD_OPTIONS.frequency} flex={1.2} />
+            <RxFF label={t('popover.dose.label')} required value={d.dose} onChange={(v) => up('dose', v)} suffix={d.unit || 'mg'} flex={1.15} />
+            <RxFF label={t('popover.unites.label')} value={d.qtyDose} onChange={(v) => up('qtyDose', v)} placeholder="1" flex={0.7} />
+            <RxSel label={t('popover.voie.label')} required value={d.route} onChange={(v) => up('route', v)} options={window.NOTE_DATA.FIELD_OPTIONS.route} flex={0.95} />
+            <RxSel label={t('popover.site.label')} value={d.site} onChange={(v) => up('site', v)} options={['—', 'Deltoïde G', 'Deltoïde D', 'Abdomen', 'Cuisse G', 'Cuisse D', 'Fessier']} placeholder={t('popover.site.placeholder')} flex={1} />
+            <RxSel label={t('popover.frequence.label')} required value={d.frequency} onChange={(v) => up('frequency', v)} options={window.NOTE_DATA.FIELD_OPTIONS.frequency} flex={1.2} />
             <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, font: "400 16px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <input type="checkbox" checked={!!d.prn} onChange={(e) => up('prn', e.target.checked)} style={{ width: 18, height: 18, accentColor: 'var(--mat-sys-primary)' }} />
               PRN
             </label>
           </div>
-          <div style={rxS.sec}>Durée et renouvellement</div>
+          <div style={rxS.sec}>{t('popover.dureeRenouvellement.text')}</div>
           <div style={rxS.row}>
-            <RxCompound label="Durée" value={d.duration} onChange={(v) => up('duration', v)} unit={d.durationUnit} onUnit={(v) => up('durationUnit', v)} units={window.NOTE_DATA.FIELD_OPTIONS.durationUnit} flex={1.2} />
-            <RxCompound label="Quantité" value={d.quantity} onChange={(v) => up('quantity', v)} unit={d.quantityUnit} onUnit={(v) => up('quantityUnit', v)} units={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} flex={1.3} />
+            <RxCompound label={t('popover.duree.label')} value={d.duration} onChange={(v) => up('duration', v)} unit={d.durationUnit} onUnit={(v) => up('durationUnit', v)} units={window.NOTE_DATA.FIELD_OPTIONS.durationUnit} flex={1.2} />
+            <RxCompound label={t('popover.quantite.label')} value={d.quantity} onChange={(v) => up('quantity', v)} unit={d.quantityUnit} onUnit={(v) => up('quantityUnit', v)} units={['comprimé(s)', 'capsule(s)', 'mL', 'application(s)', 'inhalation(s)']} flex={1.3} />
             {/* Vide = R0 partout dans le prototype (puce, chipIssues, Q-12) : le formulaire affiche 0. */}
-            <RxSel label="Renouvel." required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={window.NOTE_DATA.FIELD_OPTIONS.refills} flex={0.8} />
-            <RxFF label="Fin du traitement" value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder="aaaa-mm-jj" flex={1.2} />
+            <RxSel label={t('popover.renouvel.label')} required value={(d.refills == null || d.refills === '') ? '0' : d.refills} onChange={(v) => up('refills', v)} options={window.NOTE_DATA.FIELD_OPTIONS.refills} flex={0.8} />
+            <RxFF label={t('popover.finTraitement.label')} value={d.finTraitement} onChange={(v) => up('finTraitement', v)} placeholder={t('popover.aaaaMmJj.placeholder')} flex={1.2} />
           </div>
           <button type="button" style={rxS.precBtn} aria-expanded={precIsOpen} aria-controls="rx-precisions"
             onClick={() => setPrecOpen(!precIsOpen)}>
-            <span>Précisions</span>
+            <span>{t('popover.precisions.text')}</span>
             <span style={{ flex: 1 }} />
-            <span style={{ font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Intention, note, code d’exception, NPS</span>
+            <span style={{ font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{t('popover.intentionNoteCodeException.text')}</span>
             <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>{precIsOpen ? 'expand_less' : 'expand_more'}</span>
           </button>
           {precIsOpen &&
             <div id="rx-precisions" style={{ marginTop: 20 }}>
               <div style={rxS.row}>
-                <RxFF label="Intention" value={d.indication} onChange={(v) => up('indication', v)} placeholder="Indication" flex={1} />
-                <RxFF label="Code d’exception" value={d.exceptionCode} onChange={(v) => up('exceptionCode', v)} flex={1} />
+                <RxFF label={t('popover.intention.label')} value={d.indication} onChange={(v) => up('indication', v)} placeholder={t('popover.indication.placeholder')} flex={1} />
+                <RxFF label={t('popover.codeException.label')} value={d.exceptionCode} onChange={(v) => up('exceptionCode', v)} flex={1} />
                 <RxFF label="NPS" value={d.nps} onChange={(v) => up('nps', v)} flex={0.7} />
               </div>
               <div style={rxS.row}>
                 {/* Le « commentaire au pharmacien » (RA-07) est la note de ce volet (Q-28). */}
-                <RxFF label="Note (au pharmacien)" value={d.comment} onChange={(v) => up('comment', v)} placeholder="Commentaire au pharmacien" flex={2} />
-                <RxSel label="Intervalle de renouvellement" value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="—" flex={1.3} />
+                <RxFF label={t('popover.notePharmacien.label')} value={d.comment} onChange={(v) => up('comment', v)} placeholder={t('popover.commentairePharmacien.placeholder')} flex={2} />
+                <RxSel label={t('popover.intervalleRenouvellement.label')} value={d.moisRenouv} onChange={(v) => up('moisRenouv', v)} options={['Jours', 'Semaines', 'Mois']} placeholder="—" flex={1.3} />
               </div>
             </div>}
         </fieldset></div>
         {readOnly ? readOnlyFoot(rxS.foot, rxS.btnCancel) : pending ? pendingFoot(rxS.foot, rxS.btnCancel, rxS.btnSave) :
         <div style={rxS.foot}>
-          <button style={rxS.btnCancel} onClick={onClose}>Annuler</button>
+          <button style={rxS.btnCancel} onClick={onClose}>{t('popover.annuler.button')}</button>
           <span style={{ flex: 1 }} />
-          <button style={rxS.btnSave} onClick={() => onSave(chip.id, draft)}>Enregistrer</button>
+          <button style={rxS.btnSave} onClick={() => onSave(chip.id, draft)}>{t('popover.enregistrer.button')}</button>
         </div>}
       </div>
     </>);
@@ -353,7 +351,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
           <div className="ttl">{meta.label}</div>
-          <div className="sub">{readOnly ? 'Transmis : lecture seule' : pending ? 'Ajout proposé : vérifier, puis accepter' : 'Modifier les détails structurés'}</div>
+          <div className="sub">{readOnly ? t('popover.transmisLectureSeule.text') : pending ? t('popover.ajoutProposeVerifierPuis.text') : t('popover.modifierDetailsStructures.text')}</div>
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
@@ -368,13 +366,13 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
       pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
       <div className="popover-footer">
         <button className="btn btn-t btn-sm" onClick={() => onRevert(chip.id)}>
-          <span className="material-symbols-outlined">undo</span>Reconvertir en texte
+          <span className="material-symbols-outlined">undo</span>{t('popover.reconvertirTexte.button')}
         </button>
         <span className="grow" />
         <button className="btn btn-o btn-sm" onClick={() => onDelete(chip.id)}>
           <span className="material-symbols-outlined">delete</span>
         </button>
-        <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>Confirmer</button>
+        <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>{t('popover.confirmer.button')}</button>
       </div>}
     </div>
   </>);
@@ -382,41 +380,41 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
 
 function RxFields({ d, up }) {
   return (<>
-    <div className="field"><label>Molécule</label><input value={d.molecule} onChange={e => up('molecule', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.molecule.label')}</label><input value={d.molecule} onChange={e => up('molecule', e.target.value)} /></div>
     <div className="row3">
-      <div className="field"><label>Dose</label><input value={d.dose} onChange={e => up('dose', e.target.value)} /></div>
-      <div className="field"><label>Unité</label>
+      <div className="field"><label>{t('popover.dose.label')}</label><input value={d.dose} onChange={e => up('dose', e.target.value)} /></div>
+      <div className="field"><label>{t('popover.unite.label')}</label>
         <select value={d.unit} onChange={e => up('unit', e.target.value)}>
           <option>mg</option><option>g</option><option>mcg</option><option>mcg/inh</option><option>mL</option>
         </select></div>
-      <div className="field"><label>Forme</label>
+      <div className="field"><label>{t('popover.forme.label')}</label>
         <select value={d.form} onChange={e => up('form', e.target.value)}>
-          <option>comprimé</option><option>gélule</option><option>sirop</option><option>aérosol-doseur</option>
+          <option value="comprimé">{t('popover.comprime.label')}</option><option value="gélule">{t('popover.gelule.label')}</option><option>sirop</option><option value="aérosol-doseur">{t('popover.aerosolDoseur.label')}</option>
         </select></div>
     </div>
     <div className="row">
-      <div className="field"><label>Voie</label>
+      <div className="field"><label>{t('popover.voie.label')}</label>
         <select value={d.route} onChange={e => up('route', e.target.value)}>
-          <option>PO</option><option>IM</option><option>IV</option><option>SC</option><option>Inhalé</option>
+          <option>PO</option><option>IM</option><option>IV</option><option>SC</option><option value="Inhalé">{t('popover.inhale.label')}</option>
         </select></div>
-      <div className="field"><label>Fréquence</label>
+      <div className="field"><label>{t('popover.frequence.label')}</label>
         <select value={d.frequency} onChange={e => up('frequency', e.target.value)}>
-          <option>DIE</option><option>BID</option><option>TID</option><option>QID</option><option>HS</option><option>q4-6h PRN</option><option>QID PRN</option>
+          <option>DIE</option><option>BID</option><option>TID</option><option>QID</option><option>HS</option><option value="q4-6h PRN">{t('popover.q46hPrn.label')}</option><option value="QID PRN">{t('popover.qidPrn.label')}</option>
         </select></div>
     </div>
     <div className="row3">
-      <div className="field"><label>Durée</label><input value={d.duration} onChange={e => up('duration', e.target.value)} /></div>
-      <div className="field"><label>Unité</label>
+      <div className="field"><label>{t('popover.duree.label')}</label><input value={d.duration} onChange={e => up('duration', e.target.value)} /></div>
+      <div className="field"><label>{t('popover.unite.label')}</label>
         <select value={d.durationUnit} onChange={e => up('durationUnit', e.target.value)}>
           <option value="jours">jours</option><option value="semaines">semaines</option><option value="mois">mois</option><option value="">—</option>
         </select></div>
-      <div className="field"><label>Renouv.</label><input value={d.refills} onChange={e => up('refills', e.target.value)} /></div>
+      <div className="field"><label>{t('popover.renouv.label')}</label><input value={d.refills} onChange={e => up('refills', e.target.value)} /></div>
     </div>
     <div className="row">
-      <div className="field"><label>Quantité</label><input value={d.quantity} onChange={e => up('quantity', e.target.value)} /></div>
-      <div className="field"><label>Indication</label><input value={d.indication} onChange={e => up('indication', e.target.value)} /></div>
+      <div className="field"><label>{t('popover.quantite.label')}</label><input value={d.quantity} onChange={e => up('quantity', e.target.value)} /></div>
+      <div className="field"><label>{t('popover.indication.label')}</label><input value={d.indication} onChange={e => up('indication', e.target.value)} /></div>
     </div>
-    <div className="field"><label>Notes</label><textarea rows={2} value={d.notes} onChange={e => up('notes', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.notes.label')}</label><textarea rows={2} value={d.notes} onChange={e => up('notes', e.target.value)} /></div>
   </>);
 }
 // Priorité d'une requête — mêmes valeurs que l'éditeur inline (FIELD_OPTIONS).
@@ -438,21 +436,21 @@ function LabTestsField({ tests, onChange }) {
   window.NOTE_DATA.ORDER_DEFS.lab.items().forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (catalog.indexOf(t) < 0 && list.indexOf(t) < 0) catalog.push(t); }); });
   return (
     <div className="field">
-      <label id="lab-tests-label">Analyses</label>
+      <label id="lab-tests-label">{t('popover.analyses.label')}</label>
       <div className="lab-tests" role="group" aria-labelledby="lab-tests-label">
         {list.map((t) => (
           <span key={t} className="lab-test">
             {t}
-            <button type="button" className="lab-test__remove" aria-label={'Retirer ' + t} title={'Retirer ' + t}
+            <button type="button" className="lab-test__remove" aria-label={window.t('popover.removeTest.aria', { test: t })} title={window.t('popover.removeTest.aria', { test: t })}
               onClick={() => onChange(list.filter((x) => x !== t))}>
               <span className="material-symbols-outlined" aria-hidden="true">close</span>
             </button>
           </span>
         ))}
-        {list.length === 0 && <span className="lab-tests__empty">Aucune analyse</span>}
+        {list.length === 0 && <span className="lab-tests__empty">{t('popover.aucuneAnalyse.text')}</span>}
       </div>
-      <select aria-label="Ajouter une analyse" value="" onChange={(e) => { if (e.target.value) onChange(list.concat([e.target.value])); }}>
-        <option value="">Ajouter une analyse…</option>
+      <select aria-label={t('popover.ajouterAnalyse.aria')} value="" onChange={(e) => { if (e.target.value) onChange(list.concat([e.target.value])); }}>
+        <option value="">{t('popover.ajouterAnalyse.label')}</option>
         {catalog.map((t) => <option key={t} value={t}>{t}</option>)}
       </select>
     </div>
@@ -462,51 +460,51 @@ function LabFields({ d, up }) { return (<>
   {d.profile && <div className="lab-profile-note">{t('lab.profileNote.text', { profile: d.profile })}</div>}
   <LabTestsField tests={d.tests} onChange={(v) => up('tests', v)} />
   <div className="row">
-    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
-    <div className="field"><label>À jeun</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">Non</option><option value="oui">Oui</option></select></div>
+    <div className="field"><label>{t('popover.priorite.label')}</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
+    <div className="field"><label>{t('popover.jeun.label')}</label><select value={d.fasting?'oui':'non'} onChange={e=>up('fasting', e.target.value==='oui')}><option value="non">{t('popover.non.label')}</option><option value="oui">{t('popover.oui.label')}</option></select></div>
   </div>
-  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
-  <div className="field"><label>Commentaire au laboratoire</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.renseignementsCliniques.label')}</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.commentaireLaboratoire.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function ImgFields({ d, up }) { return (<>
   <div className="row">
-    <div className="field"><label>Modalité</label><select value={d.modality} onChange={e=>up('modality', e.target.value)}><option>Radiographie</option><option>Échographie</option><option>TDM</option><option>IRM</option></select></div>
-    <div className="field"><label>Priorité</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
+    <div className="field"><label>{t('popover.modalite.label')}</label><select value={d.modality} onChange={e=>up('modality', e.target.value)}><option value="Radiographie">{t('popover.radiographie.label')}</option><option value="Échographie">{t('popover.echographie.label')}</option><option>TDM</option><option>IRM</option></select></div>
+    <div className="field"><label>{t('popover.priorite.label')}</label><PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
   <div className="row">
-    <div className="field"><label>Région</label><input value={d.region} onChange={e=>up('region', e.target.value)} /></div>
-    <div className="field"><label>Vues</label><input value={d.views} onChange={e=>up('views', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.region.label')}</label><input value={d.region} onChange={e=>up('region', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.vues.label')}</label><input value={d.views} onChange={e=>up('views', e.target.value)} /></div>
   </div>
-  <div className="field"><label>Latéralité</label><select value={d.laterality || ''} onChange={e=>up('laterality', e.target.value)}><option value="">—</option><option>Gauche</option><option>Droite</option><option>Bilatéral</option></select></div>
-  <div className="field"><label>Renseignements cliniques</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
-  <div className="field"><label>Commentaire au service d’imagerie</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.lateralite.label')}</label><select value={d.laterality || ''} onChange={e=>up('laterality', e.target.value)}><option value="">—</option><option value="Gauche">{t('popover.gauche.label')}</option><option value="Droite">{t('popover.droite.label')}</option><option value="Bilatéral">{t('popover.bilateral.label')}</option></select></div>
+  <div className="field"><label>{t('popover.renseignementsCliniques.label')}</label><input value={d.context || ''} onChange={e=>up('context', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.commentaireServiceImagerie.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 function PbFields({ d, up }) { return (<>
-  <div className="field"><label>Problème</label><input value={d.name} onChange={e=>up('name', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.probleme.label')}</label><input value={d.name} onChange={e=>up('name', e.target.value)} /></div>
   <div className="row">
-    <div className="field"><label>Sévérité</label><select value={d.severity} onChange={e=>up('severity', e.target.value)}><option>Léger</option><option>Modéré</option><option>Sévère</option></select></div>
-    <div className="field"><label>Depuis</label><input value={d.since} onChange={e=>up('since', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.severite.label')}</label><select value={d.severity} onChange={e=>up('severity', e.target.value)}><option value="Léger">{t('popover.leger.label')}</option><option value="Modéré">{t('popover.modere.label')}</option><option value="Sévère">{t('popover.severe.label')}</option></select></div>
+    <div className="field"><label>{t('popover.depuis.label')}</label><input value={d.since} onChange={e=>up('since', e.target.value)} /></div>
   </div>
-  <div className="field"><label>Notes</label><textarea rows={2} value={d.notes} onChange={e=>up('notes', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.notes.label')}</label><textarea rows={2} value={d.notes} onChange={e=>up('notes', e.target.value)} /></div>
 </>); }
 function InsFields({ d, up }) { return (<>
-  <div className="field"><label>Titre</label><input value={d.title} onChange={e=>up('title', e.target.value)} /></div>
-  <div className="field"><label>Contenu</label><textarea rows={4} value={d.body} onChange={e=>up('body', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.titre.label')}</label><input value={d.title} onChange={e=>up('title', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.contenu.label')}</label><textarea rows={4} value={d.body} onChange={e=>up('body', e.target.value)} /></div>
 </>); }
 function RefFields({ d, up }) { return (<>
-  <div className="field"><label>Spécialité</label>
+  <div className="field"><label>{t('popover.specialite.label')}</label>
     <select value={d.specialty||''} onChange={e=>up('specialty', e.target.value)}>
-      <option value="">— Choisir —</option>
+      <option value="">{t('popover.choisir.label')}</option>
       {window.NOTE_DATA.FIELD_OPTIONS.specialty.map((o) => <option key={o}>{o}</option>)}
     </select></div>
-  <div className="field"><label>Question clinique</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.questionClinique.label')}</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
   <div className="row">
-    <div className="field"><label>Priorité</label>
+    <div className="field"><label>{t('popover.priorite.label')}</label>
       <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
   </div>
-  <div className="field"><label>Indication</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
-  <div className="field"><label>CRDS / guichet</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>
-  <div className="field"><label>Commentaire au spécialiste</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.indication.label')}</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.crdsGuichet.label')}</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.commentaireSpecialiste.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 
 // Slash menu
@@ -524,8 +522,8 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
       {items.length === 0 &&
         <div style={{padding:16, fontSize:12, color:'var(--fg-3)', textAlign:'center'}}>
           {query
-            ? <>Aucun résultat pour «&nbsp;{query}&nbsp;». <kbd style={{fontFamily:'var(--font-mono)', background:'var(--bg-subtle)', border:'1px solid var(--border-subtle)', borderRadius:4, padding:'1px 5px'}}>Échap</kbd> pour écrire en texte libre.</>
-            : 'Aucune commande.'}
+            ? <>{t('popover.noResult.empty', { query: query })} <kbd style={{fontFamily:'var(--font-mono)', background:'var(--bg-subtle)', border:'1px solid var(--border-subtle)', borderRadius:4, padding:'1px 5px'}}>{t('popover.echap.text')}</kbd> {t('popover.freeTextHint.hint')}</>
+            : t('popover.noCommand.empty')}
         </div>}
       {Object.entries(grouped).map(([section, list]) => (
         <div key={section}>
@@ -586,7 +584,7 @@ function DxHead({ model, onEvent }) {
               : b.kind === 'refine' ? window.DX_COPY.banner.refine(b.region)
               : window.DX_COPY.banner.edit(b.region)}
           </span>
-          <button type="button" className="dx-banner__cancel" title="Annuler"
+          <button type="button" className="dx-banner__cancel" title={t('popover.annuler.tooltip')}
             onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'back' }); }}>
             <span className="material-icons-outlined">close</span>
           </button>
@@ -648,7 +646,7 @@ function DxRow({ item, term, active, actionFocus, onEvent }) {
         </div>
       }
       {canDrill &&
-        <button type="button" className="dx-item__chev" title="Explorer"
+        <button type="button" className="dx-item__chev" title={t('popover.explorer.tooltip')}
           onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); onEvent({ type: 'drill', nodeId: it.nav }); }}>
           <span className="material-icons-outlined">chevron_right</span>
         </button>
@@ -801,7 +799,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
         <input
           autoFocus
           value={term}
-          placeholder={mode === 'refine' ? 'Rechercher un code plus précis…' : 'Renommer ou choisir un code CIM-10 ou SNOMED CT…'}
+          placeholder={mode === 'refine' ? t('popover.rechercherCodePlusPrecis.placeholder') : t('popover.renommerChoisirCodeCim.placeholder')}
           onChange={(e) => onChangeTerm(e.target.value)}
           onKeyDown={onKeyDown} />
       </div>
@@ -847,7 +845,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const favSet = d.favs;
   const profil = results.profil || [];
   const sections = [];
-  if (profil.length) sections.push(['Médications au dossier', profil]);
+  if (profil.length) sections.push([t('popover.chartMedications.text'), profil]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
@@ -886,7 +884,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   onClick={() => (multi && checkedKeys.length ? onToggleCheck(it) : onSelect(it, window.NOTE_DATA.defaultMedAction(it)))}>
                   {multi &&
                     <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
-                      aria-label={(checkedKeys.indexOf(uid(it)) >= 0 ? 'Décocher ' : 'Cocher ') + it.name}
+                      aria-label={checkedKeys.indexOf(uid(it)) >= 0 ? t('popover.uncheck.aria', { name: it.name }) : t('popover.check.aria', { name: it.name })}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={(e) => { e.stopPropagation(); onToggleCheck(it); }}>
                       <span className="material-symbols-outlined" aria-hidden="true">{checkedKeys.indexOf(uid(it)) >= 0 ? 'check_box' : 'check_box_outline_blank'}</span>
@@ -906,7 +904,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                     {it.med
                       ? <span className="rx-med-actions">
                           {medActs.indexOf('renouveler') >= 0 &&
-                            <button type="button" className="rx-med-btn" title="Renouveler — même posologie"
+                            <button type="button" className="rx-med-btn" title={t('popover.renouvelerMemePosologie.tooltip')}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'renouveler'); }}>
                               <span className="material-icons-outlined">refresh</span>
@@ -916,8 +914,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                             const dir = act === 'augmenter' ? 'up' : 'down';
                             const step = window.NOTE_DATA.medDoseStep(it, dir);
                             const unit = (it.details && it.details.unit) || '';
-                            const title = step ? (act === 'augmenter' ? 'Augmenter la dose : ' : 'Diminuer la dose : ') + step.from + ' → ' + step.to + ' ' + unit
-                              : (it.doseSteps ? (dir === 'up' ? 'Dose maximale atteinte' : 'Dose minimale atteinte') : 'Pas de palier de dose connu');
+                            const title = step ? (act === 'augmenter' ? t('popover.increaseDose.tooltip', { from: step.from, to: step.to, unit: unit }) : t('popover.decreaseDose.tooltip', { from: step.from, to: step.to, unit: unit }))
+                              : (it.doseSteps ? (dir === 'up' ? t('popover.maxDose.tooltip') : t('popover.minDose.tooltip')) : t('popover.noDoseStep.tooltip'));
                             return (
                               <button key={act} type="button" className="rx-med-btn" title={title.trim()} aria-label={title.trim()} disabled={!step}
                                 onMouseDown={(e) => e.preventDefault()}
@@ -926,13 +924,13 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               </button>);
                           })}
                           {medActs.indexOf('cesser') >= 0 &&
-                            <button type="button" className="rx-med-btn rx-med-btn--stop" title="Cesser"
+                            <button type="button" className="rx-med-btn rx-med-btn--stop" title={t('popover.cesser.tooltip')}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, 'cesser'); }}>
                               <span className="material-icons-outlined">block</span>
                             </button>}
                           {medActs.indexOf('prescrire') >= 0 &&
-                            <button type="button" className="rx-med-btn" title="Prescrire une nouvelle ordonnance pour ce médicament" aria-label="Prescrire une nouvelle ordonnance pour ce médicament"
+                            <button type="button" className="rx-med-btn" title={t('popover.prescrireNouvelleOrdonnanceMedicam.tooltip')} aria-label={t('popover.prescrireNouvelleOrdonnanceMedicam.aria')}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={(e) => { e.stopPropagation(); onSelect(it, undefined); }}>
                               <span className="material-icons-outlined">add</span>
@@ -942,14 +940,14 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       : <>
                           {kind === 'rx' && !it.active &&
                             <span className="rx-med-actions rx-med-actions--heart">
-                              <button type="button" className="rx-med-btn" title="Documenter : ajouter au profil sans prescrire" aria-label="Documenter : ajouter au profil sans prescrire"
+                              <button type="button" className="rx-med-btn" title={t('popover.documenterAjouterProfilSans.tooltip')} aria-label={t('popover.documenterAjouterProfilSans.aria')}
                                 onMouseDown={(e) => e.preventDefault()}
                                 onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
                                 <span className="material-symbols-outlined" aria-hidden="true">edit_document</span>
                               </button>
                             </span>}
                           <button type="button" className={'rx-heart' + (fav ? ' is-fav' : '')}
-                            title={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                            title={fav ? t('popover.retirerFavoris.tooltip') : t('popover.ajouterFavoris.tooltip')}
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={(e) => { e.stopPropagation(); onToggleFav(it.key); }}>
                             <span className="material-icons">{fav ? 'favorite' : 'favorite_border'}</span>
@@ -957,7 +955,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                         </>
                     }
                     {it.active &&
-                      <span className="rx-active" title="Déjà au dossier">
+                      <span className="rx-active" title={t('popover.dejaDossier.tooltip')}>
                         <span className="material-icons">check</span>
                       </span>
                     }
@@ -969,7 +967,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
       </div>
       </div>
       {railOn &&
-        <nav className="rx-rail" aria-label="Filtres des médications">
+        <nav className="rx-rail" aria-label={t('popover.filtresMedications.aria')}>
           {window.NOTE_DATA.RX_FILTERS.map((f) => (
             <button key={f.key} type="button" className={'rx-rail__item' + (filter === f.key ? ' is-on' : '')} aria-pressed={filter === f.key}
               onMouseDown={(e) => e.preventDefault()} onClick={() => onFilter && onFilter(f.key)}>
@@ -979,14 +977,14 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
             </button>))}
         </nav>}
       <div className="rx-menu__foot">
-        <span><kbd>↑ ↓</kbd> naviguer</span>
-        {railOn && <span><kbd>⇥</kbd> {railFocus ? 'résultats' : 'filtres'}</span>}
-        {multi && <span><kbd>⇧ ↵</kbd> cocher</span>}
-        <span><kbd>↵</kbd> {railOn && railFocus ? 'retour aux résultats' : multi && checkedKeys.length ? 'ajouter la sélection' : d.verb}</span>
-        <span><kbd>Esc</kbd> annuler</span>
+        <span><kbd>↑ ↓</kbd> {t('popover.navigate.text')}</span>
+        {railOn && <span><kbd>⇥</kbd> {railFocus ? t('popover.results.text') : t('popover.filters.text')}</span>}
+        {multi && <span><kbd>⇧ ↵</kbd> {t('popover.check.text')}</span>}
+        <span><kbd>↵</kbd> {railOn && railFocus ? t('popover.backToResults.text') : multi && checkedKeys.length ? t('popover.addSelection.text') : d.verb}</span>
+        <span><kbd>{t('popover.esc.text')}</kbd> {t('popover.cancel.text')}</span>
         {multi && checkedKeys.length > 0 &&
           <button type="button" className="rx-add-checked" onMouseDown={(e) => e.preventDefault()} onClick={onAddChecked}>
-            Ajouter ({checkedKeys.length})
+            {t('popover.addChecked.button', { n: checkedKeys.length })}
           </button>}
       </div>
     </div>);

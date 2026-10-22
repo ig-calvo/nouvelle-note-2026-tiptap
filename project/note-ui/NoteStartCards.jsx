@@ -17,9 +17,9 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
   const draftList = drafts || [];
 
   const cards = [
-    { key: 'nouvelle', icon: 'note_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: 'Note clinique', title: 'Nouvelle note' },
-    hasLastNote && { key: 'derniere', icon: 'post_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: 'Note médicale', title: 'Depuis la dernière note' },
-    { key: 'intelligente', icon: 'auto_awesome', iconColor: 'light-dark(#6967d1, #aaa9e5)', overline: 'Rédaction assistée', title: 'Note intelligente' },
+    { key: 'nouvelle', icon: 'note_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: t('noteStart.clinicalNote.label'), title: t('noteStart.nouvelleNote.tooltip') },
+    hasLastNote && { key: 'derniere', icon: 'post_add', iconColor: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', overline: t('noteStart.medicalNote.label'), title: t('noteStart.depuisDerniereNote.tooltip') },
+    { key: 'intelligente', icon: 'auto_awesome', iconColor: 'light-dark(#6967d1, #aaa9e5)', overline: t('noteStart.assistedWriting.label'), title: t('noteStart.noteIntelligente.tooltip') },
   ].filter(function (c) { return c && !(hideSmart && c.key === 'intelligente'); });
 
   function pickDraft(id) {
@@ -60,7 +60,7 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
             <span className="material-icons-outlined" style={Object.assign({}, nscStyles.icon, { color: 'light-dark(#b3742e, #e8c9a6)' })}>edit_note</span>
             <span style={nscStyles.textCol}>
               <span style={nscStyles.overline}>{tn('noteStart.drafts.label', draftList.length)}</span>
-              <span style={nscStyles.title}>Continuer la note</span>
+              <span style={nscStyles.title}>{t('noteStart.continuerNote.text')}</span>
             </span>
             {draftList.length > 1 &&
               <span className="material-icons-outlined" style={nscStyles.caret}>arrow_drop_down</span>}
@@ -72,7 +72,7 @@ function NoteStartCards({ onPick, hideSmart, hasLastNote, drafts }) {
                 {draftList.map(function (d) {
                   return (
                     <div key={d.id} style={nscStyles.ddItem} onClick={function () { pickDraft(d.id); }}>
-                      <span style={nscStyles.ddTitle}>{d.raison || 'Note sans titre'}</span>
+                      <span style={nscStyles.ddTitle}>{d.raison || t('noteStart.noteSansTitre.text')}</span>
                       <span style={nscStyles.ddMeta}>{d.savedLabel}</span>
                     </div>
                   );

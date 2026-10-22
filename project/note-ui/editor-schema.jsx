@@ -49,10 +49,10 @@ function chipDestination(a) {
   return CHECKOUT_CHIP_TYPES.indexOf(a.type) >= 0 ? 'a-envoyer' : 'dossier';
 }
 const CHIP_DESTINATION_TITLE = {
-  'a-envoyer': 'À envoyer : en attente au checkout',
-  'dossier': 'Déjà au dossier : la note le documente, rien à envoyer',
-  'envoye': 'Déjà envoyé',
-  'suggestion': 'Suggestion : pas encore au checkout'
+  'a-envoyer': t('schema.destToSend.tooltip'),
+  'dossier': t('schema.destOnFile.tooltip'),
+  'envoye': t('schema.destSent.tooltip'),
+  'suggestion': t('schema.destSuggestion.tooltip')
 };
 // Pose la destination sur la puce (`data-dest`, lu par editor.css) et la dit à
 // l'infobulle de l'icône.
@@ -60,7 +60,7 @@ function decorateChipDestination(node, data) {
   const dest = chipDestination(data);
   node.setAttribute('data-dest', dest);
   const icon = node.querySelector('.chip-rx-icon');
-  if (icon) icon.setAttribute('title', CHIP_DESTINATION_TITLE[dest] + ' · Modifier les détails complets');
+  if (icon) icon.setAttribute('title', t('schema.destinationEdit.tooltip', { destination: CHIP_DESTINATION_TITLE[dest] }));
   // La puce documentaire garde son infobulle (documentée ou mentionnée, buildMedicationChipDom).
 }
 
@@ -77,8 +77,8 @@ function decorateSentChip(node, data) {
     node.classList.add('chip--cancelled');
     const tag = document.createElement('span');
     tag.className = 'chip-status chip-status--cancelled';
-    tag.textContent = 'Annulée';
-    tag.setAttribute('title', 'Annulation envoyée le ' + when);
+    tag.textContent = t('schema.annulee.text');
+    tag.setAttribute('title', t('schema.cancelledOn.tooltip', { when: when }));
     node.insertBefore(tag, node.children[1] || null);
     return;
   }
@@ -86,8 +86,8 @@ function decorateSentChip(node, data) {
   const ic = document.createElement('span');
   ic.className = 'material-symbols-outlined chip-sent-icon';
   ic.setAttribute('role', 'img');
-  ic.setAttribute('aria-label', 'Transmis');
-  ic.setAttribute('title', 'Transmis le ' + when);
+  ic.setAttribute('aria-label', t('schema.transmis.aria'));
+  ic.setAttribute('title', t('schema.transmittedOn.tooltip', { when: when }));
   ic.textContent = 'done_all';
   node.appendChild(ic);
 }
@@ -105,7 +105,7 @@ function decorateSentChip(node, data) {
 function chipIssues(a) {
   if (!a || a.cancelledAt) return [];
   const out = [];
-  if (a.transmitError) out.push({ level: 'error', kind: 'transmission', message: 'Échec de transmission : ' + a.transmitError });
+  if (a.transmitError) out.push({ level: 'error', kind: 'transmission', message: t('schema.transmitFailed.text', { error: a.transmitError }) });
   if (a.transmittedAt) return out;
   const d = a.details || {};
   const blank = function (v) { return v === undefined || v === null || String(v).trim() === ''; };
@@ -114,14 +114,14 @@ function chipIssues(a) {
     // R0 partout dans le prototype, il n'est donc pas « manquant ».
     // `missing` : les champs vides, dans l'ordre de la puce ; la puce les montre
     // comme espaces réservés à leur place (rxChipSegments).
-    const missing = [['dose', 'dose', 'Dose'], ['route', 'voie', 'Voie'], ['frequency', 'fréquence', 'Fréquence']]
+    const missing = [['dose', t('schema.dose.word'), t('schema.dose.label')], ['route', t('schema.route.word'), t('schema.route.label')], ['frequency', t('schema.frequency.word'), t('schema.frequency.label')]]
       .filter(function (f) { return blank(d[f[0]]); })
       .map(function (f) { return { field: f[0], word: f[1], label: f[2] }; });
     if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, missing: missing,
-      message: 'Prescription incomplète — à préciser : ' + missing.map(function (m) { return m.word; }).join(', ') });
-    if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || 'Interaction de haut risque' });
+      message: t('schema.rxIncomplete.text', { fields: missing.map(function (m) { return m.word; }).join(', ') }) });
+    if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || t('schema.interactionHautRisque.text') });
   }
-  if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: 'Question clinique à préciser' });
+  if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: t('schema.questionCliniquePreciser.text') });
   return out;
 }
 
@@ -145,14 +145,14 @@ function chipStatusBadges(a) {
   const out = [];
   const rx = a.rx || {};
   if (a.type === 'prescription') {
-    if (rx.ceased) out.push({ kind: 'ceased', text: 'Cesser', title: 'Cessation du médicament' });
+    if (rx.ceased) out.push({ kind: 'ceased', text: t('schema.cesser.text'), title: t('schema.cessationMedicament.tooltip') });
     else if (rx.adjust) out.push({ kind: 'adjust', icon: rx.adjust === 'up' ? 'arrow_upward' : 'arrow_downward',
       title: adjustTitle(rx) });
-    else if (rx.renewal) out.push({ kind: 'renewal', icon: 'autorenew', title: 'Renouvellement' });
+    else if (rx.renewal) out.push({ kind: 'renewal', icon: 'autorenew', title: t('schema.renouvellement.tooltip') });
   }
   const incomplete = chipIssues(a).filter(function (i) { return i.kind === 'incomplete'; })[0];
-  if (incomplete) out.push({ kind: 'incomplete', text: 'Incomplet', title: incomplete.message });
-  if (a.pending) out.push({ kind: 'pending', text: 'En suspens', title: (a.proposedBy ? 'Proposé par ' + a.proposedBy : 'Ajout proposé') + ' : en attente d’acceptation' });
+  if (incomplete) out.push({ kind: 'incomplete', text: t('schema.incomplet.text'), title: incomplete.message });
+  if (a.pending) out.push({ kind: 'pending', text: t('schema.suspens.text'), title: a.proposedBy ? t('schema.proposedBy.tooltip', { who: a.proposedBy }) : t('schema.proposed.tooltip') });
   return out;
 }
 
@@ -204,8 +204,8 @@ function decorateChipStates(node, data) {
     const c = document.createElement('span');
     c.className = 'material-symbols-outlined chip-comment-icon';
     c.setAttribute('role', 'img');
-    c.setAttribute('aria-label', 'Commentaire : ' + comment);
-    c.setAttribute('title', 'Commentaire : ' + comment);
+    c.setAttribute('aria-label', t('schema.comment.aria', { comment: comment }));
+    c.setAttribute('title', t('schema.comment.aria', { comment: comment }));
     c.textContent = 'chat';
     node.appendChild(c);
   }
@@ -225,22 +225,22 @@ function chipPrintText(a) {
   const rx = a.rx || {};
   const join = function (parts, sep) { return parts.filter(function (p) { return p && String(p).trim(); }).join(sep); };
   let status = '';
-  if (a.cancelledAt) status = 'Annulée';
-  else if (rx.ceased) status = 'Cessée';
-  else if (rx.adjust) status = rx.adjust === 'up' ? 'Augmentée' : 'Diminuée';
-  else if (rx.renewal) status = 'Renouvelée';
+  if (a.cancelledAt) status = t('schema.annulee.text');
+  else if (rx.ceased) status = t('schema.statusCeased.text');
+  else if (rx.adjust) status = rx.adjust === 'up' ? t('schema.statusUp.text') : t('schema.statusDown.text');
+  else if (rx.renewal) status = t('schema.statusRenewed.text');
   let main = '', second = '';
   if (a.type === 'prescription') {
     main = join([rx.name || d.molecule || a.label, rx.dose || (d.dose ? d.dose + ' ' + (d.unit || '') : '')], ' ');
     second = rx.ceased ? '' : (rx.sig || '');
   } else if (a.type === 'lab') {
     main = (d.tests && d.tests.length) ? d.tests.join(', ') : (rx.name || a.label);
-    second = join([d.priority, d.fasting ? 'à jeun' : ''], ', ');
+    second = join([d.priority, d.fasting ? t('schema.fasting.text') : ''], ', ');
   } else if (a.type === 'imaging') {
     main = rx.name || join([d.modality, d.region], ' ') || a.label;
     second = join([d.laterality, d.priority], ', ');
   } else if (a.type === 'referral') {
-    main = 'Référence : ' + (d.specialty || rx.name || a.label);
+    main = t('schema.referenceMain.text', { name: d.specialty || rx.name || a.label });
     second = d.priority || '';
   } else if (a.type === 'medication') {
     main = join([rx.name, rx.dose], ' ');
@@ -291,7 +291,7 @@ function formatChipStamp(iso) {
 function decoratePendingChip(node, data) {
   node.classList.add('chip--pending');
   node.setAttribute('data-pending', 'true');
-  node.setAttribute('title', (data.proposedBy ? 'Proposé par ' + data.proposedBy : 'Ajout proposé') + ' — double-cliquer pour vérifier avant d’accepter');
+  node.setAttribute('title', data.proposedBy ? t('schema.proposedByReview.tooltip', { who: data.proposedBy }) : t('schema.proposedReview.tooltip'));
   // Proposé par l'Assistant IA (piste de vision) : même puce en attente,
   // marquée comme venant de l'IA (étincelle, couleur des ajouts IA).
   if (data.proposedBy === t('ai.assistant.name')) {
@@ -310,7 +310,7 @@ function decoratePendingChip(node, data) {
   const name = (data.rx && data.rx.name) || data.label || '';
   const wrap = document.createElement('span');
   wrap.className = 'chip-pending-actions';
-  [['accept', 'check', 'Accepter l’ajout'], ['reject', 'close', 'Refuser l’ajout']].forEach(function (a) {
+  [['accept', 'check', t('schema.acceptAdd.aria')], ['reject', 'close', t('schema.rejectAdd.aria')]].forEach(function (a) {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'chip-pending-btn chip-pending-btn--' + a[0];
@@ -365,7 +365,7 @@ function buildMedicationChipDom(node, data) {
   node.classList.add('chip--med', rx.mode === 'document' ? 'chip--med-doc' : 'chip--med-mention');
   node.setAttribute('data-rx', JSON.stringify(rx));
   node.setAttribute('data-label', data.label || '');
-  node.setAttribute('title', rx.mode === 'document' ? 'Documentée au profil, sans prescription' : 'Mention d’une médication au profil');
+  node.setAttribute('title', rx.mode === 'document' ? t('schema.documenteeProfilSansPrescription.tooltip') : t('schema.mentionMedicationProfil.tooltip'));
   const el = function (tag, cls, text) { const e = document.createElement(tag); e.className = cls; if (text) e.textContent = text; return e; };
   const ic = el('span', 'material-symbols-outlined chip-med-icon', 'medication');
   ic.setAttribute('aria-hidden', 'true');
@@ -419,12 +419,12 @@ function buildChipDomBase(data, existingEl) {
     if (kind === 'rx') {
       ic.className = 'chip-rx-icon';
       ic.setAttribute('data-action', 'modal');
-      ic.setAttribute('title', 'Modifier les détails complets');
+      ic.setAttribute('title', t('schema.modifierDetailsComplets.tooltip'));
       ic.textContent = '℞';
     } else {
       ic.className = 'material-symbols-outlined chip-rx-glyph';
       ic.setAttribute('data-action', 'modal');
-      ic.setAttribute('title', 'Modifier les détails');
+      ic.setAttribute('title', t('schema.modifierDetails.tooltip'));
       ic.textContent = kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark';
     }
     node.appendChild(ic);
@@ -475,7 +475,7 @@ function buildChipDomBase(data, existingEl) {
       const pr = document.createElement('span');
       pr.className = 'chip-rx-priority';
       pr.setAttribute('data-field', 'priority');
-      pr.textContent = d.priority || 'Routine';
+      pr.textContent = d.priority || t('schema.routine.text');
       poso.appendChild(pr);
       node.appendChild(poso);
       if (kind === 'img' && d.laterality) {
@@ -487,7 +487,7 @@ function buildChipDomBase(data, existingEl) {
       if (kind === 'lab' && d.fasting) {
         const ft = document.createElement('span');
         ft.className = 'chip-rx-sig';
-        ft.textContent = 'À jeun';
+        ft.textContent = t('schema.jeun.text');
         node.appendChild(ft);
       }
     }
@@ -766,7 +766,7 @@ function makeReferenceNode() { return window.Tiptap.Node.create({
         hdr.appendChild(ic);
         const src = document.createElement('span');
         src.className = 'ql-ref-source';
-        src.textContent = 'Référence — ' + (attrs.source || '');
+        src.textContent = t('schema.reference.text', { source: attrs.source || '' });
         hdr.appendChild(src);
         dom.appendChild(hdr);
         const body = document.createElement('div');
@@ -949,10 +949,10 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
       ['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]];
     if (a.code) head.push(['span', { class: 'dxr-code' }, window.diagCodeLabel(a)]);
-    if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, 'Cessé']);
-    if (a.replaces) head.push(['span', { class: 'dxr-sub' }, 'remplace : ' + a.replaces.name]);
+    if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, t('schema.cesse.text')]);
+    if (a.replaces) head.push(['span', { class: 'dxr-sub' }, t('schema.replaces.text', { name: a.replaces.name })]);
     if (window.diagCanRefine(a)) {
-      head.push(['button', { type: 'button', class: 'dxr-refine', title: 'Choisir un code plus précis' }, 'Préciser']);
+      head.push(['button', { type: 'button', class: 'dxr-refine', title: t('schema.choisirCodePlusPrecis.tooltip') }, t('schema.preciser.text')]);
     }
     const b = window.diagDocButton(window.diagPlacement(a), !!a.sommaireId);
     head.push(['button', { type: 'button', class: 'dxr-doc dxr-doc--' + b.mod, title: b.title },
@@ -983,7 +983,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       head.appendChild(codeEl);
       const statusEl = document.createElement('span');
       statusEl.className = 'dxr-status';
-      statusEl.textContent = 'Cessé';
+      statusEl.textContent = t('schema.cesse.text');
       head.appendChild(statusEl);
       const subEl = document.createElement('span');
       subEl.className = 'dxr-sub';
@@ -995,8 +995,8 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       const refineBtn = document.createElement('button');
       refineBtn.type = 'button';
       refineBtn.className = 'dxr-refine';
-      refineBtn.title = 'Choisir un code plus précis';
-      refineBtn.textContent = 'Préciser';
+      refineBtn.title = t('schema.choisirCodePlusPrecis.tooltip');
+      refineBtn.textContent = t('schema.preciser.text');
       head.appendChild(refineBtn);
       // « Documenter comme » (D1) — remplace l'ancien bouton « Promouvoir en
       // problème ». Son icône/libellé/couleur suivent diagDocButton
@@ -1027,12 +1027,12 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         dom.classList.toggle('dxr--cesse', a.status === 'cesse');
         nameEl.setAttribute('data-diag-id', a.id || '');
         nameEl.setAttribute('data-dx-code', a.code || '');
-        nameEl.textContent = a.name || 'Diagnostic';
+        nameEl.textContent = a.name || t('schema.diagnostic.text');
         codeEl.textContent = window.diagCodeLabel(a);
         codeEl.hidden = !a.code;
         statusEl.hidden = a.status !== 'cesse';
         subEl.hidden = !a.replaces;
-        subEl.textContent = a.replaces ? ('remplace : ' + a.replaces.name) : '';
+        subEl.textContent = a.replaces ? t('schema.replaces.text', { name: a.replaces.name }) : '';
         refineBtn.hidden = spec ? !spec.dxCanRefine : !window.diagCanRefine(a);
         // Le placement/lien viennent de la décoration quand elle existe (déjà
         // calculés une fois pour tout le fil par dxNumberingPlugin) — sinon
@@ -1406,7 +1406,7 @@ function makeSectionSplitNode() {
         bar.setAttribute('role', 'separator');
         bar.setAttribute('aria-orientation', 'horizontal');
         bar.setAttribute('tabindex', '0');
-        bar.setAttribute('aria-label', 'Début de la conclusion — flèches haut et bas pour déplacer');
+        bar.setAttribute('aria-label', t('schema.debutConclusionFlechesHaut.aria'));
 
         const grip = document.createElement('span');
         grip.className = 'material-icons-outlined nsx-grip';
@@ -1428,16 +1428,16 @@ function makeSectionSplitNode() {
         up.type = 'button';
         up.className = 'nsx-nudge';
         up.tabIndex = -1;
-        up.title = 'Monter la ligne d’un bloc';
-        up.setAttribute('aria-label', 'Monter la ligne d’un bloc');
+        up.title = t('schema.monterLigneBloc.tooltip');
+        up.setAttribute('aria-label', t('schema.monterLigneBloc.aria'));
         up.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">keyboard_arrow_up</span>';
 
         const down = document.createElement('button');
         down.type = 'button';
         down.className = 'nsx-nudge';
         down.tabIndex = -1;
-        down.title = 'Descendre la ligne d’un bloc';
-        down.setAttribute('aria-label', 'Descendre la ligne d’un bloc');
+        down.title = t('schema.descendreLigneBloc.tooltip');
+        down.setAttribute('aria-label', t('schema.descendreLigneBloc.aria'));
         down.innerHTML = '<span class="material-icons-outlined" aria-hidden="true">keyboard_arrow_down</span>';
 
         // Libellé aligné à gauche, au même niveau que les autres titres de
@@ -2159,7 +2159,7 @@ function scanDoc(docJson) {
   }
   walk(docJson);
   const diagThreads = window.diagnosticThreads(docJson).threads.map(function (t) { return t.effective; });
-  const diagNames = diagThreads.map(function (e) { return e.status === 'cesse' ? e.name + ' (cessé)' : e.name; });
+  const diagNames = diagThreads.map(function (e) { return e.status === 'cesse' ? window.t('schema.nameCeasedShort.text', { name: e.name }) : e.name; });
   const counts = {};
   chips.forEach(function (c) { if (c.entity.type) counts[c.entity.type] = (counts[c.entity.type] || 0) + 1; });
   if (diagThreads.length) counts.diagnostic = diagThreads.length;
@@ -2195,14 +2195,14 @@ const ACTION_LOG_TYPES = [
 // (chipLogIcon plus bas), jamais d'une icône choisie indépendamment ici :
 // c'est ce qui garde le Journal visuellement cohérent avec la note.
 const ACTION_LOG_META = {
-  outilsCliniques: { label: 'Outils cliniques' },
-  prescriptions: { label: 'Prescriptions' },
-  inscriptionMedication: { label: 'Inscription de médication' },
-  requetes: { label: 'Requêtes' },
-  consignes: { label: 'Consignes' },
-  problemes: { label: 'Problèmes' },
-  antecedents: { label: 'Antécédents' },
-  fichier: { label: 'Fichier' }
+  outilsCliniques: { label: t('schema.outilsCliniques.label') },
+  prescriptions: { label: t('schema.prescriptions.label') },
+  inscriptionMedication: { label: t('schema.inscriptionMedication.label') },
+  requetes: { label: t('schema.requetes.label') },
+  consignes: { label: t('schema.consignes.label') },
+  problemes: { label: t('schema.problemes.label') },
+  antecedents: { label: t('schema.antecedents.label') },
+  fichier: { label: t('schema.fichier.label') }
 };
 // chip.attrs.type → clé du journal — seuls les types réellement produits par
 // un chip dans ce prototype sont mappés ('problem' n'a pas de flux de
@@ -2263,7 +2263,7 @@ function buildActionLog(docJson, events) {
       author: attrs.author, savedAt: attrs.savedAt,
       transmittedAt: s.transmittedAt || null, cancelledAt: s.cancelledAt || null,
       removed: !!removed,
-      verb: attrs.type === 'medication' ? 'Documentée' : undefined,
+      verb: attrs.type === 'medication' ? t('schema.verbDocumentedF.text') : undefined,
       // Retiré de la note : rien vers quoi défiler.
       sourceType: removed ? null : 'chip', sourceId: removed ? null : attrs.cid
     }, chipLogIcon({ attrs: attrs })));
@@ -2278,7 +2278,7 @@ function buildActionLog(docJson, events) {
       // Même icône que la barre de l'outil dans la note (ct-bar__wrench).
       entries.push({
         key: 'tool-' + node.attrs.instanceId, logType: 'outilsCliniques',
-        title: node.attrs.label || 'Outil clinique', icon: 'link',
+        title: node.attrs.label || t('schema.outilClinique.tooltip'), icon: 'link',
         author: node.attrs.author, savedAt: node.attrs.savedAt,
         sourceType: 'clinicalTool', sourceId: node.attrs.instanceId
       });
@@ -2300,8 +2300,8 @@ function buildActionLog(docJson, events) {
     if (!placement || !e.documentedAt) return;
     entries.push({
       key: 'dx-' + t.dxKey, logType: placement === 'probleme' ? 'problemes' : 'antecedents',
-      title: e.status === 'cesse' ? e.name + ' — cessé' : (e.replaces ? e.name + ' (remplace ' + e.replaces.name + ')' : e.name),
-      verb: e.status === 'cesse' ? 'Cessé' : (e.replaces ? 'Modifié' : 'Documenté'),
+      title: e.status === 'cesse' ? window.t('schema.nameCeased.text', { name: e.name }) : (e.replaces ? window.t('schema.nameReplaces.text', { name: e.name, replaced: e.replaces.name }) : e.name),
+      verb: e.status === 'cesse' ? window.t('schema.verbCeased.text') : (e.replaces ? window.t('schema.verbModified.text') : window.t('schema.verbDocumented.text')),
       icon: 'local_hospital',
       author: e.documentedBy, savedAt: e.documentedAt,
       sourceType: 'diagnosticRegion', sourceId: e.lastId
@@ -2342,8 +2342,8 @@ function buildTransmissionDocs(docStats, txState, opts) {
       sub = (ent.rx && ent.rx.sig)
         || [d.route, d.frequency, d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : ''].filter(Boolean).join(' ');
     } else if (t === 'lab') {
-      label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || 'Demande de laboratoire');
-      sub = [d.priority, d.fasting ? 'à jeun' : ''].filter(Boolean).join(' · ');
+      label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || window.t('schema.labRequest.text'));
+      sub = [d.priority, d.fasting ? window.t('schema.fasting.text') : ''].filter(Boolean).join(' · ');
     } else if (t === 'imaging') {
       label = [d.modality, d.region].filter(Boolean).join(' ') || ent.label;
       sub = [d.views, d.priority, (d.contrast && d.contrast !== 'Sans') ? 'avec contraste' : ''].filter(Boolean).join(' · ');
@@ -2351,7 +2351,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
       label = d.specialty || ent.label;
       sub = [d.priority, d.question].filter(Boolean).join(' · ');
     } else if (t === 'instructions') {
-      label = d.title || ent.label || 'Consignes au patient';
+      label = d.title || ent.label || window.t('schema.patientInstructions.text');
     }
     var rx = ent.rx || {};
     var ceased = !!rx.ceased;
@@ -2416,7 +2416,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
   var rxItems = ents.filter(function(e) { return e.entity.type === 'prescription'; }).map(mkItem);
   if (rxItems.length) docs.push(withTx('rx', 'prescription', 'Ordonnance', rxItems));
   var grouped = groupRequests ? ['lab', 'imaging'] : [];
-  [['lab', 'Requête de laboratoire'], ['imaging', 'Requête d’imagerie']].forEach(function(g) {
+  [['lab', t('schema.labRequestFull.label')], ['imaging', t('schema.imagingRequest.label')]].forEach(function(g) {
     if (grouped.indexOf(g[0]) < 0) return;
     var its = ents.filter(function(e) { return e.entity.type === g[0]; }).map(mkItem);
     if (its.length) docs.push(withTx(g[0], g[0], g[1], its));
@@ -2432,7 +2432,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
   // titre ni compteur à zéro.
   (docStats.tools || []).forEach(function(t) {
     if (!t.id) return;
-    var d = withTx(t.id, 'clinicalTool', t.label || 'Outil clinique', []);
+    var d = withTx(t.id, 'clinicalTool', t.label || window.t('schema.clinicalTool.text'), []);
     d.subtitle = toolSub(t.fields);
     docs.push(d);
   });

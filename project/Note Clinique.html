@@ -488,7 +488,7 @@ function App() {
   // dans le PatientBanner (contenu temporisé seul = problème d'accessibilité).
   React.useEffect(() => {
     if (t.portalActive) {
-      toast('Portail patient actif', { icon: 'verified_user', duration: 5000 });
+      toast(window.t('app.portailPatientActif.toast'), { icon: 'verified_user', duration: 5000 });
     }
   }, [t.portalActive]);
 
@@ -532,7 +532,7 @@ function App() {
       clinic: t.clinicName,
       role: 'Médecin de famille',
       mode: data.visitType === 'phone' ? 'APPEL' : 'PRÉSENTIEL',
-      title: data.raison || 'Note clinique',
+      title: data.raison || window.t('app.noteClinique.tooltip'),
       icons: [],
       diagnostics: data.diagnostics || [],
       details: '',
@@ -617,9 +617,9 @@ function App() {
               </div>}
               <div style={{ flex: 1 }} />
               <button className="ds-btn ds-btn--tonal"
-                onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
+                onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>{window.t('app.sauvegarder.button')}</button>
               <button className="ds-btn ds-btn--filled"
-                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Finaliser</button>
+                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>{window.t('app.finaliser.button')}</button>
             </div>
             }
           </div>

@@ -895,7 +895,7 @@ const NOTE_TEMPLATES = [
     key: 'itu', name: 'Infection urinaire',
     raison: 'Symptômes urinaires',
     sections: [
-      { title: 'Détails de la consultation', content: '' },
+      { title: t('sections.details.heading'), content: '' },
       { title: 'Conclusion', content: 'Impression : \nPlan : ' },
     ],
     tool: 'itu',
