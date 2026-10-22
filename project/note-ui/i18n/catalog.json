@@ -3,8 +3,8 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1142,
-    "donnees": 693
+    "interface": 1223,
+    "donnees": 695
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -5912,12 +5912,664 @@
         "Note Clinique.html:441"
       ]
     },
+    "presentation.aDire.heading": {
+      "fr": "À dire",
+      "empreinte": "7a4787ee20c8",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:631"
+      ]
+    },
+    "presentation.apres.label": {
+      "fr": "Après la prescription",
+      "empreinte": "e1693dbee038",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:99"
+      ]
+    },
+    "presentation.apres.say1.text": {
+      "fr": "La puce dit ce qu’elle est : une prescription, avec son état. Si un champ manque, elle le montre à sa place.",
+      "empreinte": "9130c27c7feb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:101"
+      ]
+    },
+    "presentation.apres.say2.text": {
+      "fr": "On corrige sur place ou dans le formulaire complet, comme on préfère.",
+      "empreinte": "4bca1989efa5",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:102"
+      ]
+    },
+    "presentation.apres.show1.text": {
+      "fr": "La prescription du chapitre précédent est déjà dans la note (ajoutée au besoin).",
+      "empreinte": "9300d794cd31",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:105"
+      ]
+    },
+    "presentation.apres.show2.text": {
+      "fr": "Cliquer une valeur de la puce (ex. la fréquence) : on la change sur place.",
+      "empreinte": "34a49c5acabf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:106"
+      ]
+    },
+    "presentation.apres.show3.text": {
+      "fr": "Survoler la puce, « Modifier » : le formulaire complet.",
+      "empreinte": "41d3862522c7",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:107"
+      ]
+    },
+    "presentation.apres.show4.text": {
+      "fr": "Retirer : curseur après la puce, Retour arrière (sélectionne la puce), Retour arrière encore : « Garder en texte » ou « Supprimer ».",
+      "empreinte": "5e6253ba013f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:108"
+      ]
+    },
+    "presentation.autoOff.tooltip": {
+      "fr": "Auto : précédent / suivant avancent d’une étape de la démonstration",
+      "empreinte": "56b414dca533",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:676"
+      ]
+    },
+    "presentation.autoOn.tooltip": {
+      "fr": "Auto activé : précédent / suivant avancent d’une étape",
+      "empreinte": "cfb6a9e68c2a",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:676"
+      ]
+    },
     "presentation.chapter.aria": {
       "fr": "Chapitre {n} : {label}",
       "empreinte": "b0e8e0a6e908",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:671"
+        "note-ui/presentation-mode.jsx:670"
+      ]
+    },
+    "presentation.chapterOf.text": {
+      "fr": "Chapitre {n} sur {total}",
+      "empreinte": "ce8bb416db6a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:651"
+      ]
+    },
+    "presentation.commandes.action.button": {
+      "fr": "Ouvrir le menu +",
+      "empreinte": "e54611e166fa",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:66"
+      ]
+    },
+    "presentation.commandes.label": {
+      "fr": "Commandes / et +",
+      "empreinte": "5e226f2b269a",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:60"
+      ]
+    },
+    "presentation.commandes.say1.text": {
+      "fr": "Deux portes d’entrée vers les mêmes fonctions : la touche « / » et le « + » à gauche du curseur.",
+      "empreinte": "f7a1d3a81c2e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:62"
+      ]
+    },
+    "presentation.commandes.say2.text": {
+      "fr": "Ordonnance, diagnostic, outils cliniques, requêtes : tout s’insère sans quitter le texte.",
+      "empreinte": "82917ae94325",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:63"
+      ]
+    },
+    "presentation.commandes.show1.text": {
+      "fr": "Taper « / » au début d’une ligne.",
+      "empreinte": "c8445e49ba89",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:65"
+      ]
+    },
+    "presentation.commandes.show2.text": {
+      "fr": "Montrer le « + » à gauche du curseur.",
+      "empreinte": "33e72ec51355",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:65"
+      ]
+    },
+    "presentation.commandes.show3.text": {
+      "fr": "Échap : rien ne reste dans la note.",
+      "empreinte": "4c9040c28491",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:65"
+      ]
+    },
+    "presentation.dx.action.button": {
+      "fr": "Amorcer /dx",
+      "empreinte": "f0c6f6de3aea",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:83"
+      ]
+    },
+    "presentation.dx.label": {
+      "fr": "Diagnostic /dx",
+      "empreinte": "a92106820716",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:77"
+      ]
+    },
+    "presentation.dx.say1.text": {
+      "fr": "On documente un diagnostic en le cherchant : CIM-10 et SNOMED CT.",
+      "empreinte": "e451a7d64793",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:79"
+      ]
+    },
+    "presentation.dx.say2.text": {
+      "fr": "Il devient une région de la note, reliée au problème du dossier.",
+      "empreinte": "7af5c9fe9704",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:80"
+      ]
+    },
+    "presentation.dx.show1.text": {
+      "fr": "Taper « /dx » puis quelques lettres.",
+      "empreinte": "780c824c63b8",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:82"
+      ]
+    },
+    "presentation.dx.show2.text": {
+      "fr": "Choisir un résultat : c’est une région, pas du texte.",
+      "empreinte": "1763ad4f3b5e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:82"
+      ]
+    },
+    "presentation.gestes.heading": {
+      "fr": "Gestes",
+      "empreinte": "c73ece4006a4",
+      "contexte": "titre de section",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:637"
+      ]
+    },
+    "presentation.hideGestures.label": {
+      "fr": "Masquer les gestes",
+      "empreinte": "e6b009887dbc",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:686",
+        "note-ui/presentation-mode.jsx:687"
+      ]
+    },
+    "presentation.hideRail.aria": {
+      "fr": "Masquer le rail",
+      "empreinte": "01f6635340b4",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:695"
+      ]
+    },
+    "presentation.hideRail.tooltip": {
+      "fr": "Masquer (Ctrl+Alt+H)",
+      "empreinte": "82501b2e8c1e",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:695"
+      ]
+    },
+    "presentation.hideSay.label": {
+      "fr": "Masquer « À dire »",
+      "empreinte": "27159020a24d",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:680",
+        "note-ui/presentation-mode.jsx:681"
+      ]
+    },
+    "presentation.hint.text": {
+      "fr": "Ctrl+Alt+←/→ : {unit} · Ctrl+Alt+H : masquer",
+      "empreinte": "4977ca84382b",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:643"
+      ]
+    },
+    "presentation.nextChapter.aria": {
+      "fr": "Chapitre suivant",
+      "empreinte": "a50b9f157670",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:659"
+      ]
+    },
+    "presentation.nextStep.aria": {
+      "fr": "Étape suivante",
+      "empreinte": "992dbd535d89",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:659"
+      ]
+    },
+    "presentation.note.action.button": {
+      "fr": "Ouvrir la note",
+      "empreinte": "f47a838c44c3",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:57"
+      ]
+    },
+    "presentation.note.label": {
+      "fr": "La note",
+      "empreinte": "424306e12b34",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:51"
+      ]
+    },
+    "presentation.note.say1.text": {
+      "fr": "Un patient fictif, un dossier réaliste : tout se passe dans la note, sans changer d’écran.",
+      "empreinte": "17f0d9a424a2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:53"
+      ]
+    },
+    "presentation.note.say2.text": {
+      "fr": "Le sommaire reste à droite : c’est le dossier du patient.",
+      "empreinte": "7541a1171273",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:54"
+      ]
+    },
+    "presentation.note.show1.text": {
+      "fr": "Écran d’arrivée, sans rien toucher.",
+      "empreinte": "7593df2b49e0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:56"
+      ]
+    },
+    "presentation.note.show2.text": {
+      "fr": "Ouvrir une note.",
+      "empreinte": "2fd608507db1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:56"
+      ]
+    },
+    "presentation.outils.action.button": {
+      "fr": "Ouvrir les outils cliniques",
+      "empreinte": "4707fe9f5b64",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:74"
+      ]
+    },
+    "presentation.outils.label": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:69"
+      ]
+    },
+    "presentation.outils.say1.text": {
+      "fr": "Les outils cliniques sont réorganisés : Favoris pour ce qu’on utilise tous les jours, Groupes pour explorer.",
+      "empreinte": "f5a5d4bdf14f",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:71"
+      ]
+    },
+    "presentation.outils.show1.text": {
+      "fr": "Ouvrir le sélecteur d’outils.",
+      "empreinte": "70f3db391ba9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:73"
+      ]
+    },
+    "presentation.outils.show2.text": {
+      "fr": "Distinguer Favoris et Groupes.",
+      "empreinte": "c1195196fc1a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:73"
+      ]
+    },
+    "presentation.outils.show3.text": {
+      "fr": "Ajouter un outil à la note.",
+      "empreinte": "2588da0cd386",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:73"
+      ]
+    },
+    "presentation.prescrire.action.button": {
+      "fr": "Amorcer /rx",
+      "empreinte": "108d147866da",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:96"
+      ]
+    },
+    "presentation.prescrire.label": {
+      "fr": "Prescrire",
+      "empreinte": "2dab03c86888",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:86"
+      ]
+    },
+    "presentation.prescrire.say1.text": {
+      "fr": "Trois façons de prescrire, au choix selon l’habitude : le « + », « /rx » + Entrée, ou « /rx » suivi du nom tapé comme du texte.",
+      "empreinte": "75b4b462629d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:88"
+      ]
+    },
+    "presentation.prescrire.say2.text": {
+      "fr": "La liste vient du profil du patient : actifs, échus et cessés, chacun avec son étiquette. Rien à retourner chercher dans le sommaire.",
+      "empreinte": "56222e7e60ac",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:89"
+      ]
+    },
+    "presentation.prescrire.show1.text": {
+      "fr": "Chemin A : « + » puis Prescriptions.",
+      "empreinte": "49bcad8cb1e2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:92"
+      ]
+    },
+    "presentation.prescrire.show2.text": {
+      "fr": "Chemin B : « /rx » puis Entrée, filtres à droite.",
+      "empreinte": "e3af3cff33d2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:93"
+      ]
+    },
+    "presentation.prescrire.show3.text": {
+      "fr": "Chemin C : « /rx » puis le nom du médicament.",
+      "empreinte": "1389166277ab",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:94"
+      ]
+    },
+    "presentation.prevChapter.aria": {
+      "fr": "Chapitre précédent",
+      "empreinte": "7ba61693efb3",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:654"
+      ]
+    },
+    "presentation.prevStep.aria": {
+      "fr": "Étape précédente",
+      "empreinte": "4b2bab32c84b",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:654"
+      ]
+    },
+    "presentation.region.aria": {
+      "fr": "Présentation",
+      "empreinte": "aa245f5ffeac",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:625"
+      ]
+    },
+    "presentation.restart.aria": {
+      "fr": "Recommencer la démonstration",
+      "empreinte": "406fcb6cb5bf",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:691"
+      ]
+    },
+    "presentation.restart.tooltip": {
+      "fr": "Recommencer (recharge la page)",
+      "empreinte": "b041345d4d7d",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:691"
+      ]
+    },
+    "presentation.showGestures.label": {
+      "fr": "Afficher les gestes",
+      "empreinte": "367701efe8c7",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:686",
+        "note-ui/presentation-mode.jsx:687"
+      ]
+    },
+    "presentation.showRail.aria": {
+      "fr": "Afficher le rail de présentation",
+      "empreinte": "8dd8a0596d70",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:611"
+      ]
+    },
+    "presentation.showRail.tooltip": {
+      "fr": "Afficher (Ctrl+Alt+H)",
+      "empreinte": "c5f0b5181497",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:611"
+      ]
+    },
+    "presentation.showSay.label": {
+      "fr": "Afficher « À dire »",
+      "empreinte": "6e7cca49a745",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:680",
+        "note-ui/presentation-mode.jsx:681"
+      ]
+    },
+    "presentation.state1.label": {
+      "fr": "Écran d’arrivée",
+      "empreinte": "c9115ac83851",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:358"
+      ]
+    },
+    "presentation.state10.label": {
+      "fr": "Formulaire complet ouvert",
+      "empreinte": "91729588ddcb",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:367"
+      ]
+    },
+    "presentation.state11.label": {
+      "fr": "Envoi rapide ouvert",
+      "empreinte": "a6f4b3191b3c",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:368"
+      ]
+    },
+    "presentation.state12.label": {
+      "fr": "Ordonnance transmise",
+      "empreinte": "e373f746ac55",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:369"
+      ]
+    },
+    "presentation.state2.label": {
+      "fr": "Note ouverte",
+      "empreinte": "53f033996a80",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:359"
+      ]
+    },
+    "presentation.state3.label": {
+      "fr": "Menu « + » ouvert",
+      "empreinte": "7792f98c6d77",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:360"
+      ]
+    },
+    "presentation.state4.label": {
+      "fr": "Outils cliniques ouverts",
+      "empreinte": "64a093972d7f",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:361"
+      ]
+    },
+    "presentation.state5.label": {
+      "fr": "Outil ajouté",
+      "empreinte": "c7dcbdfff8c2",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:362"
+      ]
+    },
+    "presentation.state6.label": {
+      "fr": "« /dx » amorcé",
+      "empreinte": "b531cfa55770",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:363"
+      ]
+    },
+    "presentation.state7.label": {
+      "fr": "Diagnostic ajouté",
+      "empreinte": "3b26be7dcf98",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:364"
+      ]
+    },
+    "presentation.state8.label": {
+      "fr": "« /rx » : menu ouvert",
+      "empreinte": "6bc97feb68aa",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:365"
+      ]
+    },
+    "presentation.state9.label": {
+      "fr": "Prescription ajoutée",
+      "empreinte": "87bc2d1732e0",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:366"
+      ]
+    },
+    "presentation.stepOf.text": {
+      "fr": "Étape {n} sur {total} · {label}",
+      "empreinte": "5b7b36fa344e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:650"
+      ]
+    },
+    "presentation.transmettre.label": {
+      "fr": "Transmettre",
+      "empreinte": "b87db5167167",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:113"
+      ]
+    },
+    "presentation.transmettre.say1.text": {
+      "fr": "On finit là où on a prescrit : « Prescrire » sur la puce ouvre l’envoi rapide, sans quitter la note.",
+      "empreinte": "27353ee4ad30",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:115"
+      ]
+    },
+    "presentation.transmettre.say2.text": {
+      "fr": "Une puce transmise le dit (double coche) et ne se modifie plus.",
+      "empreinte": "baf2202af0b1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:116"
+      ]
+    },
+    "presentation.transmettre.show1.text": {
+      "fr": "Survoler la puce : « Prescrire ».",
+      "empreinte": "29fe2af32c42",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:119"
+      ]
+    },
+    "presentation.transmettre.show2.text": {
+      "fr": "Envoi rapide : ajouter une pharmacie (les favorites sont en tête), puis « Compléter et envoyer ».",
+      "empreinte": "6194f8662529",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:120"
+      ]
+    },
+    "presentation.transmettre.show3.text": {
+      "fr": "La puce affiche la double coche ; le pied de note passe à 1/1.",
+      "empreinte": "75e2fe3767a6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:121"
+      ]
+    },
+    "presentation.unitChapter.text": {
+      "fr": "chapitre",
+      "empreinte": "a097bc3ee29a",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:643"
+      ]
+    },
+    "presentation.unitStep.text": {
+      "fr": "étape",
+      "empreinte": "4605a3f5f16e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:643"
       ]
     },
     "print.annuler.button": {
@@ -6037,7 +6689,7 @@
       "empreinte": "a755968cc11f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/QuickSendModal.jsx:261"
+        "note-ui/QuickSendModal.jsx:262"
       ]
     },
     "quickSend.detailsCount.label": {
@@ -12063,6 +12715,15 @@
       ]
     },
     {
+      "fr": "Examen physique - Version courte",
+      "empreinte": "2d854507c050",
+      "contexte": "donnée de démonstration",
+      "extrait": "node: function () { return window.buildClinicalToolNode('exam-court', L('Examen physique - Version courte')); },",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:153"
+      ]
+    },
+    {
       "fr": "Examen périodique",
       "empreinte": "1e45fc2c66bf",
       "contexte": "donnée de démonstration",
@@ -13005,6 +13666,15 @@
       "extrait": "<VSelect value={unit} onChange={setUnit} options={[L('Métrique'),L('Impérial')]} />",
       "fichiers": [
         "note-ui/SummaryModals.jsx:223"
+      ]
+    },
+    {
+      "fr": "Infection des voies urinaires, siège non précisé",
+      "empreinte": "3afe2b787ebd",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ __dx: true, action: 'nouveau', pick: { source: 'cim10', name: L('Infection des voies urinaires, siège non précisé'), code: 'N39.0', level: null } },",
+      "fichiers": [
+        "note-ui/presentation-mode.jsx:160"
       ]
     },
     {

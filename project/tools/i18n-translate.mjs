@@ -52,6 +52,8 @@ const CONSIGNES = {
     'Style anglais : sentence case (majuscule au premier mot seulement), boutons à l\'infinitif sans article (« Cancel appointment »).',
     'Guillemets français « » deviennent “ ” ; pas d\'espace avant les deux-points, les points-virgules ou les points d\'interrogation.',
     'Conserver les {valeurs} entre accolades à l\'identique (même nom, même place logique).',
+    'Un {noun} désigne un groupe nominal déjà traduit ailleurs : garder {noun} tel quel, il est remplacé à l\'affichage.',
+    'Conserver les balises HTML <strong>, </strong> et <br> à l\'identique, au bon endroit dans la phrase anglaise. Aucune autre balise.',
     'Les valeurs, unités et sigles (PO, DIE, mg, PrescripTIon®) ne sont pas traduits.',
     'Le champ « contexte » indique l\'emplacement du texte (bouton, titre, aide…) : il sert au ton, il n\'apparaît pas dans la traduction.',
     'Appliquer le glossaire quand un de ses termes figure dans le texte.',
