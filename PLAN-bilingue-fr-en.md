@@ -35,13 +35,21 @@ La piste A écrit le français et le catalogue ; la piste B lit le catalogue et 
 3. **Catalogue** : `note-ui/i18n/catalog.json`, produit par `tools/i18n-extract.mjs` (A0) : chaque clé ou texte avec son français, son fichier d'origine et un contexte (bouton, titre, aide…). C'est l'entrée du travail de B. Ré-exécuter l'extraction ne retraduit que ce qui a changé (empreinte du français dans `note-ui/i18n/en.lock.json`).
 4. **Diagnostics** : B produit `cim10-en-clinique.json` (même structure que `cim10-fr-clinique.json`) et `snomed-diagnostics-fr.json` (même structure + une colonne `terme préféré (fr)`, le terme anglais d'origine reste en place). A5 charge le fichier selon la langue.
 
+**Forme exacte des fichiers** (fixée par A0, lue par `tests/i18n.test.mjs`) :
+
+- `en.js` : `(window.I18N_DICT = window.I18N_DICT || {}).en = { 'clé.plate': 'Texte', 'autre.clé': { one: '{n} item', other: '{n} items' } };` — mêmes clés, mêmes `{valeurs}`, même forme (texte ou pluriel) que `fr.js`.
+- `data-en.js` : `(window.I18N_DATA = window.I18N_DATA || {}).en = { 'Texte français': 'English text' };` — la clé est le français tel qu'il apparaît dans `catalog.json` (`donnees[].fr`).
+- `catalog.json` : `interface` (clé → `fr`, `empreinte`, `contexte`, `fichiers`) et `donnees` (liste triée : `fr`, `empreinte`, `contexte`, `extrait`, `fichiers`). Généré par `node project/tools/i18n-extract.mjs`, jamais à la main.
+- `en.js` et `data-en.js` n'existent pas encore : B les crée. Le chargeur ne les demande que pour `?lang=en` ; leur absence est le repli sur le français.
+- Le test de parité passe en mode strict (erreur au lieu d'avertissement) dès que `en.js` existe.
+
 **Règle de repli** : un texte sans traduction affiche le français. Le prototype fonctionne donc à tout moment, avec ou sans la piste B, et chaque piste se fusionne seule.
 
 ### Propriété des fichiers
 
 | Piste A modifie | Piste B modifie |
 |---|---|
-| Tous les `note-ui/*.jsx`, `Note Clinique.html`, `tests/`, `tools/i18n-extract.mjs`, `note-ui/i18n.jsx`, `note-ui/i18n/fr.js`, `catalog.json` | Seulement : `note-ui/i18n/en.js`, `note-ui/i18n/data-en.js`, `note-ui/i18n/glossaire.json`, `note-ui/i18n/en.lock.json`, `note-ui/cim10-en-clinique.json`, `note-ui/snomed-diagnostics-fr.json`, `tools/i18n-translate.*` |
+| Tous les `note-ui/*.jsx`, `Note Clinique.html`, `tests/`, `tools/i18n-extract.mjs`, `note-ui/i18n.js`, `note-ui/i18n/fr.js`, `catalog.json` | Seulement : `note-ui/i18n/en.js`, `note-ui/i18n/data-en.js`, `note-ui/i18n/glossaire.json`, `note-ui/i18n/en.lock.json`, `note-ui/cim10-en-clinique.json`, `note-ui/snomed-diagnostics-fr.json`, `tools/i18n-translate.*` |
 
 B ne touche jamais un composant ; A ne touche jamais un fichier de traduction. Il n'y a donc aucun conflit de fusion entre les deux pistes.
 
@@ -92,7 +100,7 @@ Chaque lot laisse le français identique à avant (comparaison par captures et p
 
 | Lot | Contenu | Fichiers principaux | Jours-personne |
 |---|---|---|---|
-| **A0 Fondation et contrat** | `i18n.jsx` (`t`, `tn`, `L`, locale `Intl`, `?lang`, mémorisation, `<html lang>`, repli sur le français) ; chargeur dans l'HTML ; `tools/i18n-extract.mjs` et `catalog.json` ; test de parité (avertissement tant que l'anglais manque, erreur ensuite) | `Note Clinique.html`, nouveaux fichiers | 1 à 1,5 |
+| **A0 Fondation et contrat** | `i18n.js` (script classique, pas `.jsx` : chargé avant Babel, il décide d'abord quels fichiers de langue charger) (`t`, `tn`, `L`, locale `Intl`, `?lang`, mémorisation, `<html lang>`, repli sur le français) ; chargeur dans l'HTML ; `tools/i18n-extract.mjs` et `catalog.json` ; test de parité (avertissement tant que l'anglais manque, erreur ensuite) | `Note Clinique.html`, nouveaux fichiers | 1 à 1,5 |
 | **A1 Logique, dates, pluriels** | 14 comparaisons → codes ; `fr-CA` → locale ; mois de l'HTML ; 14 pluriels ; espaces insécables (« : », « ? ») ; guillemets « » → “ ” | `editor-schema`, `NoteEditor`, `ActionLog`, `diagnostics`, HTML | 1 |
 | **A2 Interface** | Extraction vers `fr.js`, remplacement par `t()` : barre du haut, menu latéral, bannière, notes, sommaire et ses modales, popovers, menu `/rx`, formulaire d'ordonnance, toasts, 185 `aria-label` | `Summary*`, `NotesList`, `editor-popover`, `editor-field`, `NoteEditor`, `TopBar`, `SideNav`, `PatientBanner` | 1,5 à 2 |
 | **A3 Données de démonstration** | `L()` sur les éléments `/`, 4 gabarits de note (virus, ITU, périodique, otite), médicaments et posologies (DIE, « comp. », « jours »…), analyses, imagerie, références, patient, scénarios ; mots-clés des deux langues pour la recherche | `editor-data.jsx` (469 chaînes) | 1 à 1,5 |

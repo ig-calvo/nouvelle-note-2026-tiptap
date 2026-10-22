@@ -1,0 +1,100 @@
+{
+  "_meta": {
+    "genere_par": "project/tools/i18n-extract.mjs",
+    "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
+    "langue_source": "fr",
+    "interface": 11,
+    "donnees": 0
+  },
+  "interface": {
+    "app.error.hint": {
+      "fr": "Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.",
+      "empreinte": "cf66d4fe2da4",
+      "contexte": "aide",
+      "fichiers": [
+        "Note Clinique.html:384"
+      ]
+    },
+    "app.error.title": {
+      "fr": "Le prototype a rencontré une erreur",
+      "empreinte": "a834b7056422",
+      "contexte": "titre",
+      "fichiers": [
+        "Note Clinique.html:382"
+      ]
+    },
+    "app.tiptap.hint": {
+      "fr": "Vérifiez votre connexion internet (esm.sh) et rechargez la page.",
+      "empreinte": "955c4aefdc02",
+      "contexte": "aide",
+      "fichiers": [
+        "Note Clinique.html:333"
+      ]
+    },
+    "app.tiptap.text": {
+      "fr": "Erreur de chargement de Tiptap.",
+      "empreinte": "3b6db230e91d",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:337"
+      ]
+    },
+    "app.tiptap.title": {
+      "fr": "Le prototype n’a pas pu charger Tiptap",
+      "empreinte": "fb68cc17996b",
+      "contexte": "titre",
+      "fichiers": [
+        "Note Clinique.html:331"
+      ]
+    },
+    "document.kind.clinicalTool": {
+      "fr": "Outils cliniques",
+      "empreinte": "9e17acf5815e",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:396"
+      ]
+    },
+    "document.kind.imaging": {
+      "fr": "Imagerie",
+      "empreinte": "876ab0ce03e2",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:397"
+      ]
+    },
+    "document.kind.instructions": {
+      "fr": "Consignes au patient",
+      "empreinte": "c05b9dfd4653",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:398"
+      ]
+    },
+    "document.kind.lab": {
+      "fr": "Laboratoire",
+      "empreinte": "0f78e26d87bf",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:397"
+      ]
+    },
+    "document.kind.prescription": {
+      "fr": "Ordonnance",
+      "empreinte": "212f9846068b",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:396"
+      ]
+    },
+    "document.kind.referral": {
+      "fr": "Référence",
+      "empreinte": "f8130bb03a28",
+      "contexte": "texte",
+      "fichiers": [
+        "Note Clinique.html:398"
+      ]
+    }
+  },
+  "donnees": []
+}

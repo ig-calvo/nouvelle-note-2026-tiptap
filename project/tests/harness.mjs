@@ -18,9 +18,20 @@ export function readProjectJSON(rel) {
   return JSON.parse(fs.readFileSync(path.join(projectDir, rel), 'utf8'));
 }
 
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx']) {
+// La couche de langue passe toujours en premier, comme dans l'HTML : i18n.js,
+// puis les dictionnaires (le français toujours, l'anglais seulement s'il est
+// demandé ET qu'il existe — son absence est le repli sur le français).
+const I18N_SOURCES = ['note-ui/i18n.js', 'note-ui/i18n/fr.js'];
+const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
+
+// `lang` : 'fr' (défaut) ou 'en'. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
+// comme variables libres, ainsi qu'ils les reçoivent de `window` dans le
+// navigateur — un fichier chargé par `new Function` n'y a pas accès autrement.
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr' } = {}) {
   const win = {};
-  for (const rel of files) {
+  if (lang !== 'fr') win.location = { search: `?lang=${lang}` };
+  let globals = [];
+  const evaluate = (rel) => {
     const src = fs.readFileSync(path.join(projectDir, rel), 'utf8');
     // `new Function` plutôt que `vm` : le code s'exécute dans le MÊME realm que
     // les tests, donc les objets qu'il produit sont comparables avec
@@ -29,8 +40,14 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
     // Chaque fichier garde sa propre portée — comme des <script> séparés dans
     // le navigateur — et ne communique que par `window`.
     // eslint-disable-next-line no-new-func
-    new Function('window', 'document', 'React', src)(win, undefined, undefined);
+    new Function('window', 'document', 'React', 't', 'tn', 'L', 'tk', src)(win, undefined, undefined, ...globals);
+  };
+  for (const rel of I18N_SOURCES) evaluate(rel);
+  if (win.I18N.lang === 'en') {
+    for (const rel of I18N_SOURCES_EN) if (fs.existsSync(path.join(projectDir, rel))) evaluate(rel);
   }
+  globals = [win.I18N.t, win.I18N.tn, win.I18N.L, win.I18N.tk];
+  for (const rel of files) evaluate(rel);
   return win;
 }
 
