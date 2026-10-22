@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1223,
+    "interface": 1225,
     "donnees": 695
   },
   "interface": {
@@ -2193,6 +2193,22 @@
         "note-ui/diagnostics.jsx:229",
         "note-ui/diagnostics.jsx:255",
         "note-ui/diagnostics.jsx:84"
+      ]
+    },
+    "diagnostics.depuis.text": {
+      "fr": "depuis {date}",
+      "empreinte": "61a6b3c85657",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:590"
+      ]
+    },
+    "diagnostics.resolu.text": {
+      "fr": "résolu",
+      "empreinte": "821bd764a834",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/diagnostics.jsx:584"
       ]
     },
     "document.kind.clinicalTool": {
