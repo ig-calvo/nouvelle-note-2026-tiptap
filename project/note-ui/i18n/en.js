@@ -269,6 +269,8 @@
   'date.atTime': '{date} at {time}',
   'date.numeric': '{day}/{month}/{year}',
   'diagnostics.defaultName.text': 'Diagnosis',
+  'diagnostics.depuis.text': 'since {date}',
+  'diagnostics.resolu.text': 'resolved',
   'document.kind.clinicalTool': 'Clinical tools',
   'document.kind.imaging': 'Imaging',
   'document.kind.instructions': 'Patient instructions',
