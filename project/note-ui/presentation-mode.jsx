@@ -40,6 +40,10 @@ function isPresentationMode() {
 }
 
 // `needsNote` : le chapitre suppose une note ouverte (ouverte à l'arrivée).
+// `seed` : ce que les chapitres précédents ont produit dans la note ('tool',
+// 'dx', 'rx'). À l'arrivée sur le chapitre, et avant chaque bouton d'amorce,
+// ce qui manque est ajouté — jamais en double : un chapitre sauté ou un saut
+// par les repères donne la même note qu'un déroulement complet.
 // `focus` : sélecteur CSS de l'élément à mettre en évidence, s'il existe.
 // `actions` : amorces de geste — pour gagner du temps, jamais obligatoires.
 const PRESENTATION_CHAPTERS = [
@@ -70,7 +74,7 @@ const PRESENTATION_CHAPTERS = [
     actions: [{ label: 'Ouvrir les outils cliniques', run: function () { window.dispatchEvent(new CustomEvent('ct-picker-open')); } }],
   },
   {
-    id: 'dx', label: 'Diagnostic /dx', needsNote: true,
+    id: 'dx', label: 'Diagnostic /dx', needsNote: true, seed: ['tool'],
     say: [
       'On documente un diagnostic en le cherchant : CIM-10 et SNOMED CT.',
       'Il devient une région de la note, reliée au problème du dossier.',
@@ -79,7 +83,7 @@ const PRESENTATION_CHAPTERS = [
     actions: [{ label: 'Amorcer /dx', run: function () { window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: 'dx' } })); } }],
   },
   {
-    id: 'prescrire', label: 'Prescrire', needsNote: true,
+    id: 'prescrire', label: 'Prescrire', needsNote: true, seed: ['tool', 'dx'],
     say: [
       'Trois façons de prescrire, au choix selon l’habitude : le « + », « /rx » + Entrée, ou « /rx » suivi du nom tapé comme du texte.',
       'La liste vient du profil du patient : actifs, échus et cessés, chacun avec son étiquette. Rien à retourner chercher dans le sommaire.',
@@ -92,13 +96,13 @@ const PRESENTATION_CHAPTERS = [
     actions: [{ label: 'Amorcer /rx', run: function () { window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: 'rx' } })); } }],
   },
   {
-    id: 'apres', label: 'Après la prescription', needsNote: true,
+    id: 'apres', label: 'Après la prescription', needsNote: true, seed: ['tool', 'dx', 'rx'],
     say: [
       'La puce dit ce qu’elle est : une prescription, avec son état. Si un champ manque, elle le montre à sa place.',
       'On corrige sur place ou dans le formulaire complet, comme on préfère.',
     ],
     show: [
-      'Une prescription doit exister (chapitre précédent).',
+      'La prescription du chapitre précédent est déjà dans la note (ajoutée au besoin).',
       'Cliquer une valeur de la puce (ex. la fréquence) : on la change sur place.',
       'Survoler la puce, « Modifier » : le formulaire complet.',
       'Retirer : curseur après la puce, Retour arrière (sélectionne la puce), Retour arrière encore : « Garder en texte » ou « Supprimer ».',
@@ -106,7 +110,7 @@ const PRESENTATION_CHAPTERS = [
     actions: [],
   },
   {
-    id: 'transmettre', label: 'Transmettre', needsNote: true, focus: '.ProseMirror .chip--rx',
+    id: 'transmettre', label: 'Transmettre', needsNote: true, seed: ['tool', 'dx', 'rx'], focus: '.ProseMirror .chip--rx',
     say: [
       'On finit là où on a prescrit : « Prescrire » sur la puce ouvre l’envoi rapide, sans quitter la note.',
       'Une puce transmise le dit (double coche) et ne se modifie plus.',
@@ -119,6 +123,122 @@ const PRESENTATION_CHAPTERS = [
     actions: [],
   },
 ];
+
+// ---------------------------------------------------------
+// État attendu de la note — ce que les chapitres précédents y ont laissé.
+// Tiptap pose l'instance sur son élément DOM (`.ProseMirror`.editor) : on
+// s'en sert plutôt que de toucher NoteEditor. Les nœuds sont construits avec
+// les mêmes fonctions que les vraies commandes (runOrderCommand /
+// runDiagnosticCommand, editor-field.jsx ; insertClinicalTool, NoteEditor.jsx).
+// ---------------------------------------------------------
+function pmEditor() {
+  var el = document.querySelector('.note-card .ProseMirror');
+  return (el && el.editor) || null;
+}
+
+function pmDocHas(editor, test) {
+  var found = false;
+  editor.state.doc.descendants(function (node) {
+    if (found) return false;
+    if (test(node)) found = true;
+    return !found;
+  });
+  return found;
+}
+
+const PM_SEEDS = {
+  // Chapitre « Outils cliniques » : l'examen physique, version courte.
+  tool: {
+    has: function (n) { return n.type.name === 'clinicalTool'; },
+    node: function () { return window.buildClinicalToolNode('exam-court', 'Examen physique - Version courte'); },
+  },
+  // Chapitre « Diagnostic /dx » : une région, choisie dans la CIM-10.
+  dx: {
+    has: function (n) { return n.type.name === 'diagnosticRegion'; },
+    node: function () {
+      var attrs = window.makeDiagRegionAttrs(
+        { __dx: true, action: 'nouveau', pick: { source: 'cim10', name: 'Infection des voies urinaires, siège non précisé', code: 'N39.0', level: null } },
+        { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+      return { type: 'diagnosticRegion', attrs: attrs, content: [{ type: 'paragraph' }] };
+    },
+  },
+  // Chapitre « Prescrire » : l'amoxicilline, favorite du menu /rx.
+  rx: {
+    has: function (n) { return n.type.name === 'chip' && n.attrs.type === 'prescription'; },
+    node: function () {
+      var def = window.NOTE_DATA.ORDER_DEFS.rx;
+      var item = def.items().filter(function (i) { return i.key === 'amox500'; })[0] || def.items()[0];
+      var label = (item.name + ' ' + (item.dose || '')).trim();
+      var sig = item.chipSig || item.sig;
+      var attrs = {
+        cid: window.newChipId(), type: def.type, label: label, icon: def.icon, text: label + ' — ' + sig,
+        rx: { name: item.name, dose: item.dose || '', sig: sig, kind: 'rx', renewal: false },
+        details: item.details || {}, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null,
+      };
+      return { type: 'paragraph', content: [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }] };
+    },
+  },
+};
+
+// Identifiant de chaque nœud posé par nous : sert à retirer SEULEMENT ceux-là
+// en revenant à un chapitre antérieur (ce que le présentateur a créé en direct
+// n'est jamais touché).
+const PM_SEED_ID = {
+  tool: function (n) { return n.attrs.instanceId; },
+  dx: function (n) { return n.attrs.id; },
+  rx: function (n) { return n.attrs.cid; },
+};
+const pmSeededIds = {};
+
+// Ajoute ce qui manque, dans l'ordre des chapitres, à la fin de la première
+// zone (avant la ligne de la conclusion). Sans focus : le curseur ne bouge pas.
+function pmEnsureSeeds(editor, seeds) {
+  (seeds || []).forEach(function (kind) {
+    var seed = PM_SEEDS[kind];
+    if (!seed || pmDocHas(editor, seed.has)) return;
+    var json = seed.node();
+    pmSeededIds[kind] = kind === 'rx' ? json.content[0].attrs.cid : (kind === 'tool' ? json.attrs.instanceId : json.attrs.id);
+    editor.chain().insertContentAt(window.endOfFirstSectionPos(editor.state.doc), json).run();
+  });
+}
+
+// Retour à un chapitre antérieur : retire ce que nous avions ajouté pour un
+// chapitre plus avancé (le diagnostic et la prescription n'ont pas encore eu
+// lieu au chapitre 4).
+function pmClearBeyond(editor, seeds) {
+  Object.keys(PM_SEEDS).forEach(function (kind) {
+    var id = pmSeededIds[kind];
+    if (!id || (seeds || []).indexOf(kind) >= 0) return;
+    delete pmSeededIds[kind];
+    var hit = null;
+    editor.state.doc.descendants(function (node, pos) {
+      if (hit) return false;
+      if (PM_SEEDS[kind].has(node) && PM_SEED_ID[kind](node) === id) { hit = { node: node, pos: pos }; return false; }
+    });
+    if (!hit) return;
+    var from = hit.pos, to = hit.pos + hit.node.nodeSize;
+    if (kind === 'rx') {
+      // La puce est dans un paragraphe à nous (puce + espace) : on retire le paragraphe.
+      var $p = editor.state.doc.resolve(hit.pos), para = $p.parent;
+      if (para.type.name === 'paragraph' && para.childCount === 2 && para.lastChild.isText && !para.lastChild.text.trim()) {
+        from = $p.before(); to = $p.after();
+      }
+    }
+    editor.chain().deleteRange({ from: from, to: to }).run();
+  });
+}
+
+// Attend que l'éditeur soit monté (Tiptap se charge en asynchrone, et la note
+// s'ouvre après le clic) ; renvoie de quoi annuler l'attente.
+function pmWhenEditor(cb) {
+  var tries = 0;
+  var timer = setInterval(function () {
+    var editor = pmEditor();
+    if (editor) { clearInterval(timer); cb(editor); }
+    else if (++tries > 130) clearInterval(timer);
+  }, 150);
+  return function () { clearInterval(timer); };
+}
 
 const PM_CSS = `
   .app.presentation > :first-child,
@@ -194,11 +314,26 @@ function PresentationMode({ noteOpen, onOpenNote }) {
   // chapitre avancé (#ch=5), ouvrir l'éditeur avant tiptap:ready le fait planter.
   React.useEffect(function () {
     try { window.history.replaceState(null, '', '#ch=' + (idx + 1)); } catch (e) {}
-    if (!ch.needsNote || noteOpen) return undefined;
-    if (window.Tiptap) { onOpenNote(); return undefined; }
-    function whenReady() { onOpenNote(); }
-    window.addEventListener('tiptap:ready', whenReady, { once: true });
-    return function () { window.removeEventListener('tiptap:ready', whenReady); };
+    // Chapitre sans note requise (le 1er) : si une note est déjà là, elle redevient vierge de ce qu'on a posé.
+    if (!ch.needsNote) {
+      var open = pmEditor();
+      if (open) pmClearBeyond(open, ch.seed);
+      return undefined;
+    }
+    var cleanups = [];
+    if (!noteOpen) {
+      if (window.Tiptap) onOpenNote();
+      else {
+        var whenReady = function () { onOpenNote(); };
+        window.addEventListener('tiptap:ready', whenReady, { once: true });
+        cleanups.push(function () { window.removeEventListener('tiptap:ready', whenReady); });
+      }
+    }
+    cleanups.push(pmWhenEditor(function (editor) {
+      pmClearBeyond(editor, ch.seed);
+      pmEnsureSeeds(editor, ch.seed);
+    }));
+    return function () { cleanups.forEach(function (f) { f(); }); };
   }, [idx]);
 
   // Raccourcis : Ctrl+Alt+flèches / H. Une flèche seule appartient à l'éditeur.
@@ -232,6 +367,13 @@ function PresentationMode({ noteOpen, onOpenNote }) {
   }, [idx, hidden, noteOpen]);
 
   const ctx = { openNote: onOpenNote };
+  // Un bouton d'amorce remet d'abord la note dans l'état attendu du chapitre
+  // (l'utilisateur a pu retirer ce que les chapitres précédents y avaient mis).
+  function runAction(a) {
+    var editor = pmEditor();
+    if (editor) pmEnsureSeeds(editor, ch.seed);
+    a.run(ctx);
+  }
 
   if (hidden) {
     return (
@@ -267,7 +409,7 @@ function PresentationMode({ noteOpen, onOpenNote }) {
                   <ul>{ch.show.map(function (s, i) { return <li key={i}>{s}</li>; })}</ul>
                 </div>
                 {ch.actions.map(function (a) {
-                  return <button key={a.label} type="button" className="pm-act" onClick={function () { a.run(ctx); }}>{a.label}</button>;
+                  return <button key={a.label} type="button" className="pm-act" onClick={function () { runAction(a); }}>{a.label}</button>;
                 })}
                 <span className="pm-hint">Ctrl+Alt+←/→ : chapitre · Ctrl+Alt+H : masquer</span>
               </React.Fragment>}
