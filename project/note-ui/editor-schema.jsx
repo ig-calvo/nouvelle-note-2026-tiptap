@@ -2098,7 +2098,8 @@ function buildSlashExtension(handlers) {
 }
 
 // ---------------------------------------------------------
-// Document par défaut — les détails de la consultation (Titre 2 + paragraphe),
+// Document par défaut — les détails de la consultation (un paragraphe ; son titre est
+// affiché hors de l'éditeur, voir editor-field.jsx),
 // puis la ligne de séparation qui ouvre la conclusion. La ligne REMPLACE
 // l'ancien Titre 2 « Conclusion » : elle porte le même libellé en permanence,
 // mais elle est déplaçable (voir SectionSplitNode).
@@ -2108,7 +2109,6 @@ function DEFAULT_DOC() {
   return {
     type: 'doc',
     content: [
-      { type: 'heading', attrs: { level: 2, locked: true }, content: [{ type: 'text', text: 'Détails de la consultation' }] },
       { type: 'paragraph' },
       { type: 'sectionSplit' },
       { type: 'paragraph' }
@@ -2457,13 +2457,14 @@ function docIsBlank(docJson) {
 // depuis le Sommaire) reste ainsi dans les détails de la consultation et ne
 // tombe jamais dans la conclusion, même après un déplacement manuel.
 function endOfFirstSectionPos(doc) {
-  let sawFirstH2 = false, result = null;
+  let result = null;
   doc.forEach(function (node, offset) {
     if (result != null) return;
     if (node.type.name === window.SECTION_SPLIT) { result = offset; return; }
-    if (node.type.name === 'heading' && node.attrs.level === 2) {
-      if (sawFirstH2) { result = offset; return; }
-      sawFirstH2 = true;
+    // Un Titre 2 clôt la première zone ; le titre « Détails de la consultation » d'un
+    // vieux document (avant sa sortie de l'éditeur) n'en est pas un.
+    if (node.type.name === 'heading' && node.attrs.level === 2 && node.textContent.trim().toLowerCase() !== window.DETAILS_LABEL.toLowerCase()) {
+      result = offset; return;
     }
   });
   return result != null ? result : doc.content.size;
@@ -2486,14 +2487,10 @@ function safeBlockInsertPos(doc, pos) {
 // Équivalent JSON (doc pas encore monté) — index dans doc.content où insérer.
 function endOfFirstSectionIndexJSON(docJson) {
   const content = docJson.content || [];
-  let sawFirstH2 = false;
   for (let i = 0; i < content.length; i++) {
     const n = content[i];
     if (n.type === window.SECTION_SPLIT) return i;
-    if (n.type === 'heading' && n.attrs && n.attrs.level === 2) {
-      if (sawFirstH2) return i;
-      sawFirstH2 = true;
-    }
+    if (n.type === 'heading' && n.attrs && n.attrs.level === 2 && !window.isDetailsTitle(n)) return i;
   }
   return content.length;
 }

@@ -28,10 +28,34 @@ test('un document sans ligne met tout dans les détails, sans planter', () => {
 
 test('le document par défaut a une ligne et une conclusion vide', () => {
   const d = w.DEFAULT_DOC();
-  assert.equal(w.splitSlot(d), 2);
+  assert.equal(w.splitSlot(d), 1); // le titre « Détails de la consultation » n'est plus dans le document
   assert.equal(w.conclusionIsEmpty(d), true);
+  assert.equal(d.content.some((n) => n.type === 'heading'), false);
   // Le Titre 2 « Conclusion » d'avant est bien remplacé par la ligne.
   assert.equal(textOf(d.content).includes('Conclusion'), false);
+});
+
+test('le titre « Détails de la consultation » est hors de l’éditeur : ensureSplit le retire des anciens documents', () => {
+  const vieux = doc(H2('Détails de la consultation'), P('Toux'), SPLIT, P('Impression'));
+  const d = w.ensureSplit(vieux);
+  assert.deepEqual(textOf(d.content), ['Toux', '---', 'Impression']);
+  assert.equal(w.splitSlot(d), 1);
+  assert.equal(vieux.content.length, 4); // le document reçu n'est pas modifié
+  // Sans séparateur (note d'avant la ligne) : le titre part aussi, la ligne est ajoutée à la fin.
+  const sans = w.ensureSplit(doc(H2('Détails de la consultation'), P('Toux')));
+  assert.equal(textOf(sans.content)[0], 'Toux');
+  assert.equal(sans.content.some((n) => n.type === 'heading'), false);
+  assert.equal(w.splitSlot(sans), 1);
+  // Un autre Titre 2 reste en place ; la casse du titre ne compte pas.
+  assert.equal(textOf(w.ensureSplit(doc(H2('DÉTAILS DE LA CONSULTATION'), P('a'))).content)[0], 'a');
+  assert.deepEqual(textOf(w.ensureSplit(doc(H2('Examen'), P('a'))).content).slice(0, 2), ['Examen', 'a']);
+});
+
+test('un Titre 2 de gabarit clôt la première zone, pas le vieux titre « Détails de la consultation »', () => {
+  const idx = (d) => w.endOfFirstSectionIndexJSON(d);
+  assert.equal(idx(doc(H2('Détails de la consultation'), P('a'), H2('Examen'), P('b'))), 2);
+  assert.equal(idx(doc(P('a'), H2('Examen'), P('b'))), 1);
+  assert.equal(idx(doc(P('a'), SPLIT, P('b'))), 1);
 });
 
 // ---------------------------------------------------------------------------
