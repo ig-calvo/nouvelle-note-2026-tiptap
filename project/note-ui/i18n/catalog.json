@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1225,
+    "interface": 1226,
     "donnees": 695
   },
   "interface": {
@@ -7904,6 +7904,14 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-schema.jsx:478"
+      ]
+    },
+    "schema.rxDocument.title": {
+      "fr": "Ordonnance",
+      "empreinte": "212f9846068b",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/editor-schema.jsx:2417"
       ]
     },
     "schema.rxIncomplete.text": {

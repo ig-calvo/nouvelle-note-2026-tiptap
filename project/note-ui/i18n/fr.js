@@ -890,6 +890,7 @@
   'schema.verbDocumentedF.text': 'Documentée',
   'schema.labRequest.text': 'Demande de laboratoire',
   'schema.patientInstructions.text': 'Consignes au patient',
+  'schema.rxDocument.title': 'Ordonnance',
   'schema.labRequestFull.label': 'Requête de laboratoire',
   'schema.imagingRequest.label': 'Requête d’imagerie',
   'schema.clinicalTool.text': 'Outil clinique',
