@@ -167,7 +167,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   // aperçu. On tombe alors à deux colonnes (destinataire + aperçu), comme
   // dans la maquette V7 (§D.3) — plutôt qu'une colonne « Détails » vide.
   const hasContent = doc.items.length > 0;
-  const docTitle = meta.titlePrefix ? meta.titlePrefix + ' : ' + doc.title : doc.title;
+  const docTitle = meta.titlePrefix ? t('common.labelValue.text', { label: meta.titlePrefix, value: doc.title }) : doc.title;
 
   const attachOptions = meta.attachments || [];
   const attachments = doc.attachments || meta.attachmentsOn || [];

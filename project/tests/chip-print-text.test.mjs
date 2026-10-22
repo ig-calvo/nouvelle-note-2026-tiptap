@@ -34,7 +34,7 @@ test('labo : analyses — priorité, à jeun', () => {
 
 test('imagerie : examen — priorité ; référence : préfixée, sinon illisible sans icône', () => {
   assert.equal(w.chipPrintText(attrs('img', 'rxpoumon')), 'Radiographie pulmonaire — Routine');
-  assert.equal(w.chipPrintText(attrs('ref', 'cardio')), 'Référence : Cardiologie — Routine');
+  assert.equal(w.chipPrintText(attrs('ref', 'cardio')), w.t('schema.referenceMain.text', { name: 'Cardiologie' }) + ' — Routine');
 });
 
 test('autres puces : leur libellé', () => {

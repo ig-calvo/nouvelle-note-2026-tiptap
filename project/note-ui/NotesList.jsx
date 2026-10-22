@@ -4,82 +4,82 @@ const NOTE_ITEMS_TEMPLATE = [
     date: "2 JUILLET 2026 13:45",
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
-    role: "Médecin de famille",
-    mode: "PRÉSENTIEL",
-    title: "Retour post-imagerie — douleur au flanc",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Retour post-imagerie — douleur au flanc"),
     icons: [],
-    diagnostics: ["Colique néphrétique"],
+    diagnostics: [L("Colique néphrétique")],
     episodeId: "ep-demo-flanc",
-    details: "Patient de retour suite à la TDM. Douleur en nette amélioration depuis l'analgésie.\nTDM : Calcul urétéral droit de 4 mm, sans dilatation significative.",
-    conclusion: "Impression : Colique néphrétique confirmée, calcul de 4 mm.\nPlan : Poursuite de l'analgésie et hydratation. Filtration des urines. Retour si fièvre, douleur non contrôlée ou absence de progression dans 2 semaines.",
-    files: [{ name: "TDM abdomino-pelvien.pdf", size: "1.4MB" }],
+    details: L("Patient de retour suite à la TDM. Douleur en nette amélioration depuis l'analgésie.\nTDM : Calcul urétéral droit de 4 mm, sans dilatation significative."),
+    conclusion: L("Impression : Colique néphrétique confirmée, calcul de 4 mm.\nPlan : Poursuite de l'analgésie et hydratation. Filtration des urines. Retour si fièvre, douleur non contrôlée ou absence de progression dans 2 semaines."),
+    files: [{ name: L("TDM abdomino-pelvien.pdf"), size: "1.4MB" }],
     // Documents transmis lors de cette visite. Les notes de démonstration
     // n'ont pas de contenu Tiptap : sans ces documents figés, leur bouton
     // « Checkout » n'aurait rien à montrer (voir noteDocs plus bas).
     txDocs: [
-      { id: 'demo-rx-2', kind: 'prescription', title: 'Ordonnance',
+      { id: 'demo-rx-2', kind: 'prescription', title: L('Ordonnance'),
         items: [
-          { id: 'i1', label: 'Naproxen 500 mg', sub: '1 co PO BID avec nourriture, 30 co, 15 jours', variant: 'renouvellement' },
-          { id: 'i2', label: 'Tamsulosine 0,4 mg', sub: '1 caps PO DIE au coucher, 30 caps, 30 jours', variant: 'nouvelle' },
+          { id: 'i1', label: L('Naproxen 500 mg'), sub: L('1 co PO BID avec nourriture, 30 co, 15 jours'), variant: 'renouvellement' },
+          { id: 'i2', label: L('Tamsulosine 0,4 mg'), sub: L('1 caps PO DIE au coucher, 30 caps, 30 jours'), variant: 'nouvelle' },
         ],
-        recipients: [{ id: 'r-demo-pjc', name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
-        complete: true, transmitted: true, attachments: ['Liste de médicaments active'], note: '' },
+        recipients: [{ id: 'r-demo-pjc', name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: [L('Liste de médicaments active')], note: '' },
     ],
   },
   {
     date: "2 JUILLET 2026 09:10",
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
-    role: "Médecin de famille",
-    mode: "PRÉSENTIEL",
-    title: "Douleur au flanc droit",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Douleur au flanc droit"),
     icons: [],
     diagnostics: [],
     episodeId: "ep-demo-flanc",
-    details: "Motif : Douleur au flanc droit depuis 2 jours, irradiant vers l'aine. Pas d'hématurie visible. Pas de fièvre.\nObjectif : Punch rénal droit positif. Abdomen souple. Bandelette urinaire : Sang traces, Leuco négatif.",
-    conclusion: "Impression : Suspicion de colique néphrétique.\nPlan : Requête d'imagerie (TDM abdomino-pelvien sans contraste) envoyée. Analgésie prescrite. Patient dirigé vers l'imagerie, retour prévu avec les résultats.",
+    details: L("Motif : Douleur au flanc droit depuis 2 jours, irradiant vers l'aine. Pas d'hématurie visible. Pas de fièvre.\nObjectif : Punch rénal droit positif. Abdomen souple. Bandelette urinaire : Sang traces, Leuco négatif."),
+    conclusion: L("Impression : Suspicion de colique néphrétique.\nPlan : Requête d'imagerie (TDM abdomino-pelvien sans contraste) envoyée. Analgésie prescrite. Patient dirigé vers l'imagerie, retour prévu avec les résultats."),
     files: [],
     txDocs: [
-      { id: 'demo-img-1', kind: 'imaging', title: 'TDM abdomino-pelvien',
-        items: [{ id: 'i1', label: 'TDM abdomino-pelvien', sub: 'Sans contraste · Urgent · Suspicion de lithiase urinaire' }],
-        recipients: [{ id: 'r-demo-chus', name: 'Radiologie CHUS — Hôpital Fleurimont', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1112', favorite: true, channel: 'fax' }],
-        complete: true, transmitted: true, attachments: ['Note clinique'], note: '' },
-      { id: 'demo-rx-1', kind: 'prescription', title: 'Ordonnance',
-        items: [{ id: 'i1', label: 'Naproxen 500 mg', sub: '1 co PO BID avec nourriture, 20 co, 10 jours', variant: 'nouvelle' }],
-        recipients: [{ id: 'r-demo-pjc', name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
-        complete: true, transmitted: true, attachments: ['Liste de médicaments active'], note: '' },
+      { id: 'demo-img-1', kind: 'imaging', title: L('TDM abdomino-pelvien'),
+        items: [{ id: 'i1', label: L('TDM abdomino-pelvien'), sub: L('Sans contraste · Urgent · Suspicion de lithiase urinaire') }],
+        recipients: [{ id: 'r-demo-chus', name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1112', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: [L('Note clinique')], note: '' },
+      { id: 'demo-rx-1', kind: 'prescription', title: L('Ordonnance'),
+        items: [{ id: 'i1', label: L('Naproxen 500 mg'), sub: L('1 co PO BID avec nourriture, 20 co, 10 jours'), variant: 'nouvelle' }],
+        recipients: [{ id: 'r-demo-pjc', name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673', favorite: true, channel: 'fax' }],
+        complete: true, transmitted: true, attachments: [L('Liste de médicaments active')], note: '' },
     ],
   },
   {
     date: "8 DÉCEMBRE 2025 09:15",
     author: "Dr Marc Lefebvre",
     clinic: "%%CLINIC%%",
-    role: "Médecine d'urgence",
-    mode: "PRÉSENTIEL",
-    title: "Infection urinaire",
+    role: L("Médecine d'urgence"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Infection urinaire"),
     icons: ["graphic_eq", "link"],
-    diagnostics: ["Cystite aiguë non compliquée"],
-    details: "Motif : Brûlures mictionnelles depuis 3 jours.\nSubjectif : Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Pas enceinte.\nObjectif : Apyrétique. Abdomen souple, sensibilité sus-pubienne légère. Loges rénales indolores. Bandelette urinaire : Leu+++, Nit+, Sang trace.",
-    conclusion: "Impression : Cystite aiguë non compliquée.\nPlan : Nitrofurantoïne 100 mg BID × 5 jours. Culture d'urine envoyée. Conseils d'hydratation. Retour si fièvre, douleur lombaire ou non-amélioration après 48h.",
+    diagnostics: [L("Cystite aiguë non compliquée")],
+    details: L("Motif : Brûlures mictionnelles depuis 3 jours.\nSubjectif : Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Pas enceinte.\nObjectif : Apyrétique. Abdomen souple, sensibilité sus-pubienne légère. Loges rénales indolores. Bandelette urinaire : Leu+++, Nit+, Sang trace."),
+    conclusion: L("Impression : Cystite aiguë non compliquée.\nPlan : Nitrofurantoïne 100 mg BID × 5 jours. Culture d'urine envoyée. Conseils d'hydratation. Retour si fièvre, douleur lombaire ou non-amélioration après 48h."),
     files: [
-      { name: "Bandelette urinaire.jpg", size: "200KB" },
-      { name: "Culture d'urine.pdf", size: "220KB" },
+      { name: L("Bandelette urinaire.jpg"), size: "200KB" },
+      { name: L("Culture d'urine.pdf"), size: "220KB" },
     ],
   },
   {
     date: "5 JUIN 2025 10:30",
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
-    role: "Médecin de famille",
-    mode: "PRÉSENTIEL",
-    title: "Examen annuel",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Examen annuel"),
     icons: ["graphic_eq", "pan_tool", "link", "hub"],
     diagnostics: [],
-    details: "Subjectif : Patiente sans plainte particulière. Se dit en bonne santé. Pas de symptôme cardiovasculaire, respiratoire ou digestif. Sommeil satisfaisant. Énergie correcte. Stress professionnel modéré lié au travail en milieu scolaire. Contraception orale bien tolérée, pas d'oubli. Objectif : TA 116/72. Pouls 70 bpm. Poids 61 kg. IMC 22,4. Examen physique général sans anomalie. Auscultation cardio-pulmonaire normale. Abdomen souple, indolore. Pas d'adénopathie. Examen gynécologique non effectué (refusé par la patiente, à reprendre). Impression : Bonne santé générale.",
-    conclusion: "Pas de problème actif identifié. Plan : Renouvellement contraceptif oral pour 1 an. Rappel dépistage col utérin à planifier. Conseils hygiéno-diététiques généraux. Retour au besoin.",
+    details: L("Subjectif : Patiente sans plainte particulière. Se dit en bonne santé. Pas de symptôme cardiovasculaire, respiratoire ou digestif. Sommeil satisfaisant. Énergie correcte. Stress professionnel modéré lié au travail en milieu scolaire. Contraception orale bien tolérée, pas d'oubli. Objectif : TA 116/72. Pouls 70 bpm. Poids 61 kg. IMC 22,4. Examen physique général sans anomalie. Auscultation cardio-pulmonaire normale. Abdomen souple, indolore. Pas d'adénopathie. Examen gynécologique non effectué (refusé par la patiente, à reprendre). Impression : Bonne santé générale."),
+    conclusion: L("Pas de problème actif identifié. Plan : Renouvellement contraceptif oral pour 1 an. Rappel dépistage col utérin à planifier. Conseils hygiéno-diététiques généraux. Retour au besoin."),
     files: [
-      { name: "Exempleimage.jpg", size: "200KB" },
-      { name: "Exempledocument.pdf", size: "220KB" },
+      { name: L("Exempleimage.jpg"), size: "200KB" },
+      { name: L("Exempledocument.pdf"), size: "220KB" },
     ],
   },
 ];
@@ -137,7 +137,7 @@ function DocView({ doc, blocks, dxModel }) {
     if (node.type === 'sectionSplit') {
       return (
         <div key={'ss-' + bi} style={nlStyles.roSplit}>
-          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || 'Conclusion'}</div>
+          <div style={nlStyles.roSplitLabel}>{window.CONCLUSION_LABEL || t('notesList.conclusion2.text')}</div>
           <div style={nlStyles.roSplitRule} />
         </div>
       );
@@ -154,7 +154,7 @@ function DocView({ doc, blocks, dxModel }) {
         <div key={'rb-' + bi} style={nlStyles.roRef}>
           <div style={nlStyles.roRefHeader}>
             <span className="material-icons-outlined" style={nlStyles.roRefIcon}>format_quote</span>
-            <span style={nlStyles.roRefSource}>Référence — {node.attrs.source}</span>
+            <span style={nlStyles.roRefSource}>{t('notesList.reference.text', { source: node.attrs.source })}</span>
           </div>
           <div style={nlStyles.roRefBody}>{(node.attrs.text || '').split('\n').map(function(l, li) { return <React.Fragment key={li}>{li > 0 && <br />}{l}</React.Fragment>; })}</div>
         </div>
@@ -176,8 +176,8 @@ function DocView({ doc, blocks, dxModel }) {
             {entry && <span style={nlStyles.roDiagNum}>{entry.number}</span>}
             <span style={Object.assign({}, nlStyles.roDiagName, isCesse ? nlStyles.roDiagNameCesse : null)}>{a.name}</span>
             {a.code && <span style={nlStyles.roDiagCode}>{a.code}</span>}
-            {isCesse && <span style={nlStyles.roDiagStatus}>Cessé</span>}
-            {a.replaces && <span style={nlStyles.roDiagSub}>remplace : {a.replaces.name}</span>}
+            {isCesse && <span style={nlStyles.roDiagStatus}>{t('notesList.cesse.text')}</span>}
+            {a.replaces && <span style={nlStyles.roDiagSub}>{t('notesList.replaces.text', { name: a.replaces.name })}</span>}
           </div>
           <div style={nlStyles.roDiagBody}>
             {bodyParas.map(function(p, pi) {
@@ -269,7 +269,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
     return (
       <div style={nlStyles.conclEmpty}>
         <span className="material-icons-outlined" style={nlStyles.conclEmptyIcon}>remove</span>
-        Aucune conclusion à cette note
+        {t('notesList.aucuneConclusionNote.text')}
       </div>
     );
   }
@@ -321,13 +321,13 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
 
   return (
     <div style={nlStyles.card}>
-      <div style={nlStyles.title}>Liste de notes cliniques</div>
+      <div style={nlStyles.title}>{t('notesList.listeNotesCliniques.text')}</div>
 
       <div style={nlStyles.filterRow}>
-        <Filter label="Voir" value="Toutes les notes" width={190} />
-        <Filter label="triées par" value="Date d'entrée en vigueur" width={250} />
-        <Filter label="Du" value="15/10/2023" width={150} cal />
-        <Filter label="Au" value="15/10/2023" width={150} cal />
+        <Filter label={t('notesList.voir.label')} value="Toutes les notes" width={190} />
+        <Filter label={t('notesList.triees.label')} value="Date d'entrée en vigueur" width={250} />
+        <Filter label={t('notesList.du.label')} value="15/10/2023" width={150} cal />
+        <Filter label={t('notesList.au.label')} value="15/10/2023" width={150} cal />
       </div>
 
       <div style={nlStyles.chipRow}>
@@ -341,7 +341,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
       </div>
 
       {filtered.length === 0 && (
-        <div style={{ padding: '24px 0', textAlign: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14 }}>Aucune note ne correspond aux filtres actifs.</div>
+        <div style={{ padding: '24px 0', textAlign: 'center', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14 }}>{t('notesList.aucuneNoteNeCorrespond.text')}</div>
       )}
       {filtered.map((n, i) => {
         const origIdx = NOTE_ITEMS.indexOf(n);
@@ -380,25 +380,23 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                 {epTotal > 1 &&
                   <span style={nlStyles.episodeChip}>
                     <span className="material-icons-outlined" style={nlStyles.episodeIcon}>link</span>
-                    Épisode de soin · visite {epVisitNum}/{epTotal}
+                    {t('notesList.careEpisode.text', { n: epVisitNum, total: epTotal })}
                   </span>}
                 {/* Champ confidentiel — visible seulement par l'auteur, même
                     ici où toutes les notes du dossier sont listées (voir
                     l'exception d'accès, filtre par consentement actif). */}
                 {n.confidential && n.author === doctorName &&
                   <span className="confidential-lock--badge"
-                    title="Contient un champ confidentiel">
+                    title={t('notesList.contientChampConfidentiel.tooltip')}>
                     <span className="material-icons-outlined">lock</span>
                   </span>}
                 <div style={{ flex: 1 }} />
                 <div style={nlStyles.actionIcons}>
                   {noteDocs(n).length > 0 &&
                     <button style={nlStyles.checkoutBtn}
-                      title="Voir les documents transmis pour cette note"
-                      onClick={() => setCheckoutNote(n)}>
-                      Checkout
-                    </button>}
-                  <button style={nlStyles.caretBtn} onClick={() => toggle(i)} aria-label={isOpen ? "Fermer" : "Ouvrir"}>
+                      title={t('notesList.voirDocumentsTransmisNote.tooltip')}
+                      onClick={() => setCheckoutNote(n)}>{t('notesList.checkout.button')}</button>}
+                  <button style={nlStyles.caretBtn} onClick={() => toggle(i)} aria-label={isOpen ? t('notesList.fermer.aria') : t('notesList.ouvrir.aria')}>
                     {isOpen
                       ? <span className="material-icons" style={nlStyles.caretIcon}>unfold_less</span>
                       : <span className="material-icons" style={nlStyles.caretIcon}>unfold_more</span>
@@ -416,7 +414,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                 </div>
               ) : isOpen && n.details ? (
                 <div style={nlStyles.detailsSection}>
-                  <div style={nlStyles.detailsLabel}>Détails de la note</div>
+                  <div style={nlStyles.detailsLabel}>{t('notesList.detailsNote.text')}</div>
                   <div style={nlStyles.detailsText}>
                     {n.details.split("\n").map((line, j) => (
                       <p key={j} style={{ margin: "0 0 4px 0" }}>{line}</p>
@@ -431,7 +429,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
                   dans le document, on ne la montre pas deux fois. */}
               {!isOpen && (
                 <div style={nlStyles.conclPreview}>
-                  <div style={nlStyles.conclLabel}>Conclusion</div>
+                  <div style={nlStyles.conclLabel}>{t('notesList.conclusion.text')}</div>
                   <ConclusionPreview note={n} />
                 </div>
               )}
@@ -452,7 +450,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
               {isOpen && !n.doc && n.conclusion ? (
                 <>
                   <div style={nlStyles.conclLabelWrap}>
-                    <div style={nlStyles.conclLabelOpen}>Conclusion</div>
+                    <div style={nlStyles.conclLabelOpen}>{t('notesList.conclusion.text')}</div>
                   </div>
                   <div style={nlStyles.conclText}>
                     {n.conclusion.split("\n").map((line, j) => (
@@ -485,7 +483,7 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
           onMouseDown={(e) => e.preventDefault()}
           onClick={addReference}>
           <span className="material-icons-outlined" style={{ fontSize: 16 }}>format_quote</span>
-          Référencer dans la note
+          {t('notesList.referencerNote.button')}
         </button>}
 
       {/* Checkout d'une note déjà complétée : même vue que pendant la

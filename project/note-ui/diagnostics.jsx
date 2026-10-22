@@ -493,16 +493,16 @@ function fmtSommaireDate(v) {
   const d = (v instanceof Date) ? v : new Date(v);
   if (isNaN(d.getTime())) return '';
   const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-  return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  return t('date.numeric', { day: pad(d.getDate()), month: pad(d.getMonth() + 1), year: d.getFullYear() });
 }
 
 function dxPendingNote(change, prev) {
   switch (change) {
-    case 'ajout': return 'Ajouté par la note en cours';
-    case 'deplace': return 'Déplacé par la note en cours';
-    case 'resolu': return 'Cessé dans la note en cours';
-    case 'remplace': return prev ? ('Remplace « ' + prev.name + ' » (note en cours)') : 'Remplacé (note en cours)';
-    case 'modifie': return 'Code modifié par la note en cours';
+    case 'ajout': return t('dx.pending.added.text');
+    case 'deplace': return t('dx.pending.moved.text');
+    case 'resolu': return t('dx.pending.ceased.text');
+    case 'remplace': return prev ? t('dx.pending.replaces.text', { name: prev.name }) : t('dx.pending.replaced.text');
+    case 'modifie': return t('dx.pending.codeChanged.text');
     default: return null;
   }
 }
