@@ -238,8 +238,11 @@ function pmStartCommand(command) {
     editor.state.doc.forEach(function (node, offset) {
       if (node.type.name === 'diagnosticRegion') after = offset + node.nodeSize;
     });
+    // Pas encore de diagnostic : à la fin de la première zone (jamais dans la
+    // conclusion, où le curseur peut avoir dérivé après un retrait).
+    if (after == null) after = window.endOfFirstSectionPos(editor.state.doc);
   }
-  if (!editor || after == null) {
+  if (!editor) {
     window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: command } }));
     return;
   }
@@ -262,7 +265,173 @@ function pmWhenEditor(cb) {
   return function () { clearInterval(timer); };
 }
 
+// ---------------------------------------------------------
+// Mode « Auto » : les boutons précédent / suivant avancent d'un ÉTAT de la
+// démonstration (douze, tirés des sept chapitres) au lieu d'un chapitre. Chaque
+// état met la note dans l'état attendu (outil, diagnostic, prescription : ce
+// que `has` liste), puis exécute son geste (ouvrir un menu, amorcer /rx…).
+// ---------------------------------------------------------
+const PM_ALL = ['tool', 'dx', 'rx'];
+
+function pmFire(name, detail) { window.dispatchEvent(new CustomEvent(name, { detail: detail })); }
+
+// Ferme ce qui est ouvert (menu, recherche, formulaire, envoi rapide) comme le
+// ferait Échap : c'est le chemin que prévoient déjà ces composants.
+function pmDismiss() {
+  var target = document.activeElement || document.body;
+  target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true }));
+}
+
+// Retire ce que la commande a laissé dans le texte : un « /dx » ou « /rx »
+// seul dans son paragraphe (recherche abandonnée), ou le « / » que le menu
+// « + » insère à la position du curseur (on en vide le paragraphe, qui reste).
+function pmCleanCommands(editor) {
+  var ranges = [];
+  editor.state.doc.forEach(function (n, offset) {
+    if (n.type.name !== 'paragraph' || n.childCount !== 1 || !n.firstChild.isText) return;
+    if (/^\/(dx|rx)\b/.test(n.textContent)) ranges.push({ from: offset, to: offset + n.nodeSize });
+    else if (n.textContent.trim() === '/') ranges.push({ from: offset + 1, to: offset + n.nodeSize - 1 });
+  });
+  ranges.reverse().forEach(function (r) { editor.chain().deleteRange(r).run(); });
+}
+
+// Curseur à la fin du premier paragraphe : le menu « + » y insère son « / ».
+// Après un retrait, le curseur retombe parfois dans la conclusion.
+function pmCursorInFirstZone(editor) {
+  var doc = editor.state.doc, first = doc.firstChild;
+  if (!first || first.type.name !== 'paragraph') return;
+  editor.chain().focus().setTextSelection(first.nodeSize - 1).run();
+}
+
+function pmRxCid(editor) {
+  var cid = null;
+  editor.state.doc.descendants(function (n) {
+    if (cid) return false;
+    if (n.type.name === 'chip' && n.attrs.type === 'prescription') cid = n.attrs.cid;
+  });
+  return cid;
+}
+
+function pmOpenRxForm() {
+  var editor = pmEditor(), cid = editor && pmRxCid(editor);
+  if (cid) pmFire('note:chip-open-request', { editor: editor, cid: cid });
+}
+
+function pmOpenQuickSend() {
+  var editor = pmEditor(), cid = editor && pmRxCid(editor);
+  if (cid) pmFire('note:open-checkout', { cid: cid, kind: 'rx' });
+}
+
+// Ajoute une pharmacie puis « Compléter et envoyer », par les boutons mêmes de
+// l'envoi rapide (QuickSendModal.jsx) : c'est le geste du présentateur, joué.
+function pmTransmit() {
+  function dialog() {
+    var d = document.querySelector('[role="dialog"][aria-modal="true"]');
+    return d && /Envoi rapide/.test(d.innerText) ? d : null;
+  }
+  function buttons(d) { return [].slice.call(d.querySelectorAll('button')); }
+  function send() {
+    var d = dialog();
+    var b = d && buttons(d).filter(function (x) { return /Compléter et envoyer/.test(x.innerText); })[0];
+    if (b && !b.disabled) b.click();
+  }
+  function run() {
+    var d = dialog();
+    if (!d) return;
+    if (!/Ajouter un destinataire pour transmettre/.test(d.innerText)) { send(); return; }
+    var add = d.querySelector('button[title="Ajouter un destinataire"]');
+    if (!add) return;
+    add.click();
+    setTimeout(function () {
+      var dd = dialog();
+      if (!dd) return;
+      var row = buttons(dd).filter(function (x) { return /Jean-Coutu/.test(x.innerText); })[0]
+        || buttons(dd).filter(function (x) { return /\d{3} \d{3}-\d{4}/.test(x.innerText); })[0];
+      if (row) row.click();
+      setTimeout(send, 200);
+    }, 200);
+  }
+  if (dialog()) run();
+  else { pmOpenQuickSend(); setTimeout(run, 300); }
+}
+
+const PM_STATES = [
+  { ch: 0, label: 'Écran d’arrivée', has: [] },
+  { ch: 0, label: 'Note ouverte', has: [], open: true },
+  { ch: 1, label: 'Menu « + » ouvert', has: [], open: true, run: function () { pmFire('ct-addmenu-open'); } },
+  { ch: 2, label: 'Outils cliniques ouverts', has: [], open: true, run: function () { pmFire('ct-picker-open'); } },
+  { ch: 2, label: 'Outil ajouté', has: ['tool'], open: true },
+  { ch: 3, label: '« /dx » amorcé', has: ['tool'], open: true, run: function () { pmStartCommand('dx'); } },
+  { ch: 3, label: 'Diagnostic ajouté', has: ['tool', 'dx'], open: true },
+  { ch: 4, label: '« /rx » : menu ouvert', has: ['tool', 'dx'], open: true, run: function () { pmStartCommand('rx'); } },
+  { ch: 4, label: 'Prescription ajoutée', has: PM_ALL, open: true },
+  { ch: 5, label: 'Formulaire complet ouvert', has: PM_ALL, open: true, run: pmOpenRxForm },
+  { ch: 6, label: 'Envoi rapide ouvert', has: PM_ALL, open: true, run: pmOpenQuickSend },
+  { ch: 6, label: 'Ordonnance transmise', has: PM_ALL, open: true, run: pmTransmit },
+];
+const PM_SENT_STATE = PM_STATES.length - 1;
+
+function pmFirstState(chapterIdx) {
+  for (var i = 0; i < PM_STATES.length; i++) if (PM_STATES[i].ch === chapterIdx) return i;
+  return 0;
+}
+
+// Une prescription déjà transmise ne se « dé-transmet » pas : en revenant avant
+// l'état final, celle que nous avions posée est retirée (et reposée vierge).
+function pmResetSent(editor, k) {
+  var id = pmSeededIds.rx;
+  if (!id || k >= PM_SENT_STATE) return;
+  var sent = false;
+  editor.state.doc.descendants(function (n) {
+    if (n.type.name === 'chip' && n.attrs.cid === id && n.attrs.transmittedAt) sent = true;
+  });
+  if (sent) pmClearBeyond(editor, ['tool', 'dx']);
+}
+
+// Joue l'état k : ferme ce qui est ouvert, met la note dans l'état attendu,
+// puis fait le geste. Renvoie de quoi annuler (un clic rapide sur suivant
+// remplace l'état en cours plutôt que de s'y empiler).
+function pmRunState(st, k, openNote, isOpen) {
+  var dead = false, timers = [], cancelWait = null, readyHandler = null;
+  function later(fn, ms) { timers.push(setTimeout(function () { if (!dead) fn(); }, ms)); }
+  function apply(editor) {
+    pmDismiss();
+    later(function () {
+      if (editor) {
+        pmCleanCommands(editor);
+        pmResetSent(editor, k);
+        pmClearBeyond(editor, st.has);
+        pmEnsureSeeds(editor, st.has);
+      }
+      later(function () {
+        if (editor) pmCursorInFirstZone(editor);
+        if (st.run) st.run();
+      }, 80);
+    }, 180);
+  }
+  if (st.open) {
+    if (!isOpen()) {
+      if (window.Tiptap) openNote();
+      else { readyHandler = openNote; window.addEventListener('tiptap:ready', readyHandler, { once: true }); }
+    }
+    cancelWait = pmWhenEditor(apply);
+  } else {
+    apply(pmEditor());
+  }
+  return function () {
+    dead = true;
+    timers.forEach(clearTimeout);
+    if (cancelWait) cancelWait();
+    if (readyHandler) window.removeEventListener('tiptap:ready', readyHandler);
+  };
+}
+
 const PM_CSS = `
+  .pm-auto { appearance: none; border: 1px solid var(--mat-sys-outline); background: transparent; color: var(--mat-sys-on-surface-variant);
+    font: var(--mat-sys-label-medium); font-weight: 600; height: 28px; padding: 0 10px; border-radius: 14px; cursor: pointer; margin-right: 2px; }
+  .pm-auto:hover { background: var(--mat-sys-surface-container-high); }
+  .pm-auto[aria-pressed="true"] { background: var(--mat-sys-primary); border-color: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+  .pm-auto:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: 2px; }
   .app.presentation > :first-child,
   .app.presentation .main-row > :first-child { pointer-events: none; }
   .pm-root { position: fixed; right: 16px; bottom: 16px; z-index: 1000; width: 296px; max-width: calc(100vw - 32px);
@@ -320,9 +489,46 @@ function PresentationMode({ noteOpen, onOpenNote }) {
   const ch = PRESENTATION_CHAPTERS[idx];
   const last = PRESENTATION_CHAPTERS.length - 1;
 
-  function go(n) { setIdx(Math.max(0, Math.min(last, n))); }
-  // Relatif et fonctionnel : deux clics rapprochés avancent de deux chapitres.
-  function step(d) { setIdx(function (n) { return Math.max(0, Math.min(last, n + d)); }); }
+  // Mode Auto : précédent / suivant avancent d'un état (PM_STATES), pas d'un
+  // chapitre. Désactivé : le comportement par chapitre, inchangé.
+  const [auto, setAuto] = React.useState(false);
+  const [stepIdx, setStepIdx] = React.useState(0);
+  const autoRef = React.useRef(false);
+  const stepIdxRef = React.useRef(0);
+  const noteOpenRef = React.useRef(noteOpen);
+  noteOpenRef.current = noteOpen;
+  const cancelRef = React.useRef(null);
+  const lastState = PM_STATES.length - 1;
+  React.useEffect(function () { return function () { if (cancelRef.current) cancelRef.current(); }; }, []);
+
+  function applyState(k) {
+    k = Math.max(0, Math.min(lastState, k));
+    var st = PM_STATES[k];
+    if (cancelRef.current) cancelRef.current();
+    stepIdxRef.current = k;
+    setStepIdx(k);
+    setIdx(st.ch);
+    try { window.history.replaceState(null, '', '#ch=' + (st.ch + 1)); } catch (e) {}
+    cancelRef.current = pmRunState(st, k, onOpenNote, function () { return noteOpenRef.current; });
+  }
+  function toggleAuto() {
+    var next = !autoRef.current;
+    autoRef.current = next;
+    setAuto(next);
+    // On démarre au premier état du chapitre courant, sans rien rejouer.
+    if (next) { var k = pmFirstState(idx); stepIdxRef.current = k; setStepIdx(k); }
+    else if (cancelRef.current) cancelRef.current();
+  }
+
+  function go(n) {
+    n = Math.max(0, Math.min(last, n));
+    if (autoRef.current) applyState(pmFirstState(n)); else setIdx(n);
+  }
+  // Relatif et fonctionnel : deux clics rapprochés avancent de deux pas.
+  function step(d) {
+    if (autoRef.current) { applyState(stepIdxRef.current + d); return; }
+    setIdx(function (n) { return Math.max(0, Math.min(last, n + d)); });
+  }
   function restart() {
     window.location.hash = '#ch=1';
     window.location.reload();
@@ -336,6 +542,8 @@ function PresentationMode({ noteOpen, onOpenNote }) {
   // chapitre avancé (#ch=5), ouvrir l'éditeur avant tiptap:ready le fait planter.
   React.useEffect(function () {
     try { window.history.replaceState(null, '', '#ch=' + (idx + 1)); } catch (e) {}
+    // En Auto, c'est l'état (applyState) qui met la note en place, pas l'arrivée sur le chapitre.
+    if (autoRef.current) return undefined;
     // Chapitre sans note requise (le 1er) : si une note est déjà là, elle redevient vierge de ce qu'on a posé.
     if (!ch.needsNote) {
       var open = pmEditor();
@@ -433,20 +641,24 @@ function PresentationMode({ noteOpen, onOpenNote }) {
                 {ch.actions.map(function (a) {
                   return <button key={a.label} type="button" className="pm-act" onClick={function () { runAction(a); }}>{a.label}</button>;
                 })}
-                <span className="pm-hint">Ctrl+Alt+←/→ : chapitre · Ctrl+Alt+H : masquer</span>
+                <span className="pm-hint">Ctrl+Alt+←/→ : {auto ? 'étape' : 'chapitre'} · Ctrl+Alt+H : masquer</span>
               </React.Fragment>}
           </div>}
         <div className="pm-card">
           <div className="pm-bar">
             <div className="pm-title">
-              <small>Chapitre {idx + 1} sur {PRESENTATION_CHAPTERS.length}</small>
+              {auto
+                ? <small>Étape {stepIdx + 1} sur {PM_STATES.length} · {PM_STATES[stepIdx].label}</small>
+                : <small>Chapitre {idx + 1} sur {PRESENTATION_CHAPTERS.length}</small>}
               <b>{ch.label}</b>
             </div>
-            <button type="button" className="pm-ib" aria-label="Chapitre précédent" disabled={idx === 0}
+            <button type="button" className="pm-ib" aria-label={auto ? 'Étape précédente' : 'Chapitre précédent'}
+              disabled={auto ? stepIdx === 0 : idx === 0}
               onClick={function () { step(-1); }}>
               <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
             </button>
-            <button type="button" className="pm-ib" aria-label="Chapitre suivant" disabled={idx === last}
+            <button type="button" className="pm-ib" aria-label={auto ? 'Étape suivante' : 'Chapitre suivant'}
+              disabled={auto ? stepIdx === lastState : idx === last}
               onClick={function () { step(1); }}>
               <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
             </button>
@@ -461,6 +673,10 @@ function PresentationMode({ noteOpen, onOpenNote }) {
                 );
               })}
             </div>
+            <button type="button" className="pm-auto" aria-pressed={auto} onClick={toggleAuto}
+              title={auto ? 'Auto activé : précédent / suivant avancent d’une étape' : 'Auto : précédent / suivant avancent d’une étape de la démonstration'}>
+              Auto
+            </button>
             <button type="button" className="pm-ib pm-ib--s" aria-expanded={sayOpen} aria-controls="pm-say"
               aria-label={sayOpen ? 'Masquer « À dire »' : 'Afficher « À dire »'}
               title={sayOpen ? 'Masquer « À dire »' : 'Afficher « À dire »'}
