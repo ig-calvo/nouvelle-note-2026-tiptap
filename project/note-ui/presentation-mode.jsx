@@ -93,7 +93,7 @@ const PRESENTATION_CHAPTERS = [
       'Chemin B : « /rx » puis Entrée, filtres à droite.',
       'Chemin C : « /rx » puis le nom du médicament.',
     ],
-    actions: [{ label: 'Amorcer /rx', run: function () { window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: 'rx' } })); } }],
+    actions: [{ label: 'Amorcer /rx', run: function () { pmStartCommand('rx'); } }],
   },
   {
     id: 'apres', label: 'Après la prescription', needsNote: true, seed: ['tool', 'dx', 'rx'],
@@ -226,6 +226,28 @@ function pmClearBeyond(editor, seeds) {
     }
     editor.chain().deleteRange({ from: from, to: to }).run();
   });
+}
+
+// Amorce « /rx » (ou « /dx ») dans un paragraphe posé juste SOUS le dernier
+// diagnostic : l'événement note:summary-add, lui, s'insère après le paragraphe
+// où se trouve le curseur — donc au-dessus du diagnostic si le présentateur a
+// déjà écrit une phrase au début de la note. Sans diagnostic : l'événement.
+function pmStartCommand(command) {
+  var editor = pmEditor(), after = null;
+  if (editor) {
+    editor.state.doc.forEach(function (node, offset) {
+      if (node.type.name === 'diagnosticRegion') after = offset + node.nodeSize;
+    });
+  }
+  if (!editor || after == null) {
+    window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: command } }));
+    return;
+  }
+  var typed = '/' + command + ' ';
+  editor.chain().focus()
+    .insertContentAt(after, { type: 'paragraph', content: [{ type: 'text', text: typed }] })
+    .setTextSelection(after + 1 + typed.length)
+    .run();
 }
 
 // Attend que l'éditeur soit monté (Tiptap se charge en asynchrone, et la note
