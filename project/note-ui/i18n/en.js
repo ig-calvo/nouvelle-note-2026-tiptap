@@ -81,7 +81,7 @@
   'document.kind.prescription': 'Order',
   'document.kind.referral': 'Referral',
   'document.pill.aria': { one: '{kind}: {n} of {total} completed', other: '{kind}: {n} of {total} completed' },
-  'dx.banner.edit.text': 'Edit “{name}”',
+  'dx.banner.edit.text': 'Modify “{name}”',
   'dx.banner.refine.text': 'Refine “{name}”',
   'dx.banner.replace.text': 'Replace no. {number} “{name}” with…',
   'dx.empty.cim.text': 'No CIM-10 code for “{term}”.',
