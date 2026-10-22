@@ -110,8 +110,11 @@ function cim10MatchNode(n, qTokens, isCode, qk) {
   }
   const byAlias = n.aliasTok ? tryLabel(n.aliasTok, 'alias') : null;
   const byLabel = tryLabel(n.tok, 'libelle');
-  if (byAlias && byLabel) return byAlias.cls <= byLabel.cls ? byAlias : byLabel;
-  return byAlias || byLabel;
+  let best = (byAlias && byLabel) ? (byAlias.cls <= byLabel.cls ? byAlias : byLabel) : (byAlias || byLabel);
+  // Le libellé de l'autre langue compte aussi (recherche bilingue, lot A5).
+  const byOther = n.altTok ? tryLabel(n.altTok, 'libelle') : null;
+  if (byOther && (!best || byOther.cls < best.cls)) best = byOther;
+  return best;
 }
 
 // ---------------------------------------------------------
@@ -119,16 +122,26 @@ function cim10MatchNode(n, qTokens, isCode, qk) {
 // de hiérarchie) -> API de navigation et de recherche. Aucun état global,
 // aucune dépendance à `window` : c'est ce qui la rend testable directement.
 // ---------------------------------------------------------
-function buildCim10Index(rows, hier) {
+// `alt` (optionnel, lot A5) : { rows, hier } dans l'autre langue. Ses libellés
+// ne servent qu'à la recherche (node.altLibelle / altTok), jamais à l'affichage.
+function buildCim10Index(rows, hier, alt) {
   const byId = new Map();
   const warnings = [];
   function mk(row) { byId.set(row.id, row); return row; }
+
+  const altRows = (alt && alt.rows) || [], altHier = (alt && alt.hier) || {};
+  const altChapter = new Map((altHier.chapters || []).map(function (c) { return [c.id, c.libelle]; }));
+  const altBlock = new Map((altHier.blocks || []).map(function (b) { return [b.range.join('-'), b.libelle]; }));
+  const altLabel = new Map();
+  [altRows.filter(function (r) { return !r.generic; }), altHier.parents || [], altHier.ajouts || []].forEach(function (list) {
+    list.forEach(function (r) { if (!altLabel.has(r.code)) altLabel.set(r.code, r.libelle); });
+  });
 
   // 1. Chapitres — libellés déjà sourcés (git 89f60b0^), fiables tels quels.
   const chapters = (hier.chapters || []).map(function (c) {
     return mk({
       kind: 'chapter', id: 'ch:' + c.id, code: null, range: c.range, roman: c.id,
-      libelle: c.libelle, alias: null, generic: false, frequent: false,
+      libelle: c.libelle, altLibelle: altChapter.get(c.id) || null, alias: null, generic: false, frequent: false,
       crumb: 'Chapitre ' + c.id, parentId: null, childIds: [], selectable: false,
     });
   });
@@ -140,7 +153,7 @@ function buildCim10Index(rows, hier) {
     if (!chapter) warnings.push({ id: id, reason: 'bloc hors chapitre' });
     return mk({
       kind: 'block', id: id, code: null, range: range, roman: null,
-      libelle: b.libelle, alias: null, generic: false, frequent: false,
+      libelle: b.libelle, altLibelle: altBlock.get(range.join('-')) || null, alias: null, generic: false, frequent: false,
       crumb: range[0] + '-' + range[1], parentId: chapter ? chapter.id : null, childIds: [], selectable: false,
     });
   });
@@ -269,6 +282,9 @@ function buildCim10Index(rows, hier) {
     let tok = tokensCim10(n.libelle).filter(function (t) { return !CIM10_STOP.has(t); });
     if (!tok.length) tok = tokensCim10(n.libelle);
     n.tok = tok;
+    n.altLibelle = altLabel.get(n.code) || null;
+    n.altTok = n.altLibelle ? tokensCim10(n.altLibelle).filter(function (t) { return !CIM10_STOP.has(t); }) : null;
+    if (n.altTok && !n.altTok.length) n.altTok = tokensCim10(n.altLibelle);
     if (n.alias) {
       let aliasTok = tokensCim10(n.alias).filter(function (t) { return !CIM10_STOP.has(t); });
       if (!aliasTok.length) aliasTok = tokensCim10(n.alias);
@@ -290,7 +306,7 @@ function buildCim10Index(rows, hier) {
     const preferAlias = !!(extra && extra.preferAlias);
     const base = {
       kind: n.kind, id: n.id, code: n.code, range: n.range, roman: n.roman,
-      libelle: n.libelle, alias: n.alias || null,
+      libelle: n.libelle, altLibelle: n.altLibelle || null, alias: n.alias || null,
       label: (preferAlias && n.alias) ? n.alias : n.libelle,
       crumb: n.crumb, hasChildren: n.hasChildren, childCount: n.childCount, descCount: n.descCount,
       selectable: n.selectable, pickable: !!(n.selectable || n.pickable),
@@ -444,14 +460,19 @@ function buildCim10Index(rows, hier) {
 // référence (rechargement, données de test remplacées).
 // ---------------------------------------------------------
 let _cim10Instance = null;
-let _cim10BuiltFrom = null;
+let _cim10BuiltFrom = [];
 
 function cim10Ensure() {
   const data = window.CIM10_DATA, hier = window.CIM10_HIERARCHY;
   if (!data || !hier) return null;
-  if (_cim10Instance && _cim10BuiltFrom === data) return _cim10Instance;
-  _cim10Instance = buildCim10Index(data, hier);
-  _cim10BuiltFrom = data;
+  // L'autre langue arrive dans le même lot de chargement, mais la reconstruction
+  // suit toutes les sources : un index bâti avant elle ne reste pas en place.
+  const sources = [data, hier, window.CIM10_DATA_ALT, window.CIM10_HIERARCHY_ALT];
+  if (_cim10Instance && sources.every(function (s, i) { return s === _cim10BuiltFrom[i]; })) return _cim10Instance;
+  const alt = window.CIM10_DATA_ALT && window.CIM10_HIERARCHY_ALT
+    ? { rows: window.CIM10_DATA_ALT, hier: window.CIM10_HIERARCHY_ALT } : null;
+  _cim10Instance = buildCim10Index(data, hier, alt);
+  _cim10BuiltFrom = sources;
   return _cim10Instance;
 }
 
