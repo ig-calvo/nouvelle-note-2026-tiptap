@@ -971,6 +971,7 @@
   'schema.route.label': 'Route',
   'schema.route.word': 'route',
   'schema.routine.text': 'Routine',
+  'schema.rxDocument.title': 'Order',
   'schema.rxIncomplete.text': 'Incomplete prescription — to specify: {fields}',
   'schema.statusCeased.text': 'Stopped',
   'schema.statusDown.text': 'Decreased',

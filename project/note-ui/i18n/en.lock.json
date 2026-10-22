@@ -2,7 +2,7 @@
   "_meta": {
     "version": 1,
     "date": "2026-10-22",
-    "source": "note-ui/i18n/fr.js (catalogue A8, 297362c)",
+    "source": "note-ui/i18n/fr.js (catalogue A8, cc8d250)",
     "usage": "Empreinte sha1 (12 car.) du texte français au moment de la traduction. Différence = retraduire la clé."
   },
   "empreintes": {
@@ -974,6 +974,7 @@
     "schema.route.label": "2085078a7f15",
     "schema.route.word": "f8107896aeba",
     "schema.routine.text": "482273d7cc99",
+    "schema.rxDocument.title": "212f9846068b",
     "schema.rxIncomplete.text": "49fa75fc63b7",
     "schema.statusCeased.text": "913f98448051",
     "schema.statusDown.text": "4af0860cf28e",
