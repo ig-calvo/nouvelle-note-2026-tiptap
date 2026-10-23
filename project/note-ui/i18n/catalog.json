@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1229,
+    "interface": 1230,
     "donnees": 726
   },
   "interface": {
@@ -3766,6 +3766,14 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-field.jsx:600"
+      ]
+    },
+    "field.photoReceived.text": {
+      "fr": "Photo reçue",
+      "empreinte": "338502b94534",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-field.jsx:593"
       ]
     },
     "field.plusOptions.tooltip": {

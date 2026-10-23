@@ -590,7 +590,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200">' +
     '<rect width="900" height="1200" fill="#eef0f6"/>' +
     '<rect x="60" y="60" width="780" height="1080" fill="#fff" stroke="var(--mat-sys-outline-variant)" stroke-width="2"/>' +
-    '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">Photo reçue</text>' +
+    '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">' + t('field.photoReceived.text') + '</text>' +
     '</svg>'
   );
   function requestMobileFile(source) {
