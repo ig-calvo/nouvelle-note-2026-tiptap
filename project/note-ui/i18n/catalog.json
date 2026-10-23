@@ -4,7 +4,7 @@
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
     "interface": 1230,
-    "donnees": 726
+    "donnees": 730
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -11589,6 +11589,15 @@
       ]
     },
     {
+      "fr": "Axillaire",
+      "empreinte": "26cd29ea203f",
+      "contexte": "donnée de démonstration",
+      "extrait": "<VSelect value={tempSite} onChange={setTempSite} options={[L('Oral'),L('Axillaire'),L('Rectal'),L('Tympanique')]} />",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:238"
+      ]
+    },
+    {
       "fr": "Bandelette urinaire.jpg",
       "empreinte": "ce761fea8f0f",
       "contexte": "donnée de démonstration",
@@ -14725,6 +14734,16 @@
       ]
     },
     {
+      "fr": "Oral",
+      "empreinte": "f1b06514f9ff",
+      "contexte": "donnée de démonstration",
+      "extrait": "var [tempSite, setTempSite] = React.useState(L('Oral'));",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:181",
+        "note-ui/SummaryModals.jsx:238"
+      ]
+    },
+    {
       "fr": "Ordonnance",
       "empreinte": "212f9846068b",
       "contexte": "donnée de démonstration",
@@ -15422,6 +15441,15 @@
       "extrait": "{ key: 'prescription', section: L('Fonctions'), icon: 'prescriptions', title: L('Prescriptions'), desc: L('Rechercher et prescrire un médicament'), kbd: 'rx',",
       "fichiers": [
         "note-ui/editor-data.jsx:909"
+      ]
+    },
+    {
+      "fr": "Rectal",
+      "empreinte": "5fe0ab981d7a",
+      "contexte": "donnée de démonstration",
+      "extrait": "<VSelect value={tempSite} onChange={setTempSite} options={[L('Oral'),L('Axillaire'),L('Rectal'),L('Tympanique')]} />",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:238"
       ]
     },
     {
@@ -16413,6 +16441,15 @@
       "extrait": "{ name:L('Tylenol 500 mg'),     detail:L('2 co DIE — échue'),  status:'echue',   date:'02/2026' },",
       "fichiers": [
         "note-ui/Summary.jsx:39"
+      ]
+    },
+    {
+      "fr": "Tympanique",
+      "empreinte": "57bd7c02f25d",
+      "contexte": "donnée de démonstration",
+      "extrait": "<VSelect value={tempSite} onChange={setTempSite} options={[L('Oral'),L('Axillaire'),L('Rectal'),L('Tympanique')]} />",
+      "fichiers": [
+        "note-ui/SummaryModals.jsx:238"
       ]
     },
     {

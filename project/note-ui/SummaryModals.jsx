@@ -178,7 +178,7 @@ function VitalsAddModal({ onClose, onAdd }) {
   var [obsDate, setObsDate] = React.useState('2026/06/08');
   var [obsTime, setObsTime] = React.useState('');
   var [temp, setTemp] = React.useState('');
-  var [tempSite, setTempSite] = React.useState('Oral');
+  var [tempSite, setTempSite] = React.useState(L('Oral'));
   var [pressure, setPressure] = React.useState('');
   var [pressureSite, setPressureSite] = React.useState(L('Assis / bras droit'));
   var [hr, setHr] = React.useState('');
@@ -235,7 +235,7 @@ function VitalsAddModal({ onClose, onAdd }) {
       <div style={vStyles.sectionBody}>
         <VRow label={t('summaryModal.temperature.label')}>
           <VInput value={temp} onChange={setTemp} /><VUnit>°C</VUnit>
-          <VSelect value={tempSite} onChange={setTempSite} options={['Oral','Axillaire','Rectal','Tympanique']} />
+          <VSelect value={tempSite} onChange={setTempSite} options={[L('Oral'),L('Axillaire'),L('Rectal'),L('Tympanique')]} />
         </VRow>
         <VRow label={t('summaryModal.pression.label')}>
           <VInput value={pressure} onChange={setPressure} /><VUnit>{t('summaryModal.mmhg.text')}</VUnit>
