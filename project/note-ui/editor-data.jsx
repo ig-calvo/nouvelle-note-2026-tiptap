@@ -725,6 +725,61 @@ const FIELD_OPTIONS = {
     'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie', 'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'],
 };
 
+// Libellé affiché d'une valeur de champ (priorité, spécialité, modalité, région, vues,
+// latéralité). La valeur reste un CODE (français, comme dans FIELD_OPTIONS et les
+// <select> de formulaire) ; seul son affichage suit la langue, par ce tableau : les
+// L() ci-dessous la rendent traduisible par la piste B. Une valeur absente s'affiche telle quelle.
+const VALUE_LABEL = {
+  'Routine': L('Routine'),
+  'Prioritaire': L('Prioritaire'),
+  'Semi-urgent': L('Semi-urgent'),
+  'Urgent': L('Urgent'),
+  'STAT': L('STAT'),
+  'Radiographie': L('Radiographie'),
+  'Échographie': L('Échographie'),
+  'TDM': L('TDM'),
+  'IRM': L('IRM'),
+  'Mammographie': L('Mammographie'),
+  'Thorax': L('Thorax'),
+  'Abdomen': L('Abdomen'),
+  'Genou': L('Genou'),
+  'Cerveau': L('Cerveau'),
+  'Seins': L('Seins'),
+  'Rachis lombaire': L('Rachis lombaire'),
+  'Pelvis': L('Pelvis'),
+  'Colonne dorsolombaire': L('Colonne dorsolombaire'),
+  'PA + latérale': L('PA + latérale'),
+  'AP + latérale': L('AP + latérale'),
+  'AP + latérale + rotule': L('AP + latérale + rotule'),
+  'Complète': L('Complète'),
+  'Bilatérale': L('Bilatérale'),
+  'Sus-pubienne + endovaginale': L('Sus-pubienne + endovaginale'),
+  'Gauche': L('Gauche'),
+  'Droite': L('Droite'),
+  'Bilatéral': L('Bilatéral'),
+  'Cardiologie': L('Cardiologie'),
+  'Orthopédie': L('Orthopédie'),
+  'Dermatologie': L('Dermatologie'),
+  'Gastroentérologie': L('Gastroentérologie'),
+  'Neurologie': L('Neurologie'),
+  'Pneumologie': L('Pneumologie'),
+  'Rhumatologie': L('Rhumatologie'),
+  'Endocrinologie': L('Endocrinologie'),
+  'Néphrologie': L('Néphrologie'),
+  'Urologie': L('Urologie'),
+  'Gynécologie': L('Gynécologie'),
+  'Ophtalmologie': L('Ophtalmologie'),
+  'ORL': L('ORL'),
+  'Chirurgie générale': L('Chirurgie générale'),
+  'Chirurgie vasculaire': L('Chirurgie vasculaire'),
+  'Hématologie': L('Hématologie'),
+  'Oncologie': L('Oncologie'),
+  'Psychiatrie': L('Psychiatrie'),
+  'Gériatrie': L('Gériatrie'),
+  'Médecine interne': L('Médecine interne')
+};
+function valueLabel(v) { return Object.prototype.hasOwnProperty.call(VALUE_LABEL, v) ? VALUE_LABEL[v] : v; }
+
 // Profils de laboratoire : un raccourci qui commande plusieurs analyses du
 // catalogue (rencontre inline entity, Antoine Cloutier). Choisir un profil ne
 // crée rien d'office : ses analyses arrivent dans une seule puce labo, et
@@ -795,17 +850,17 @@ function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs
 // Regenerate the rich-chip payload after a popover edit (lab / imaging)
 function deriveLabRx(d) {
   const name = (d.tests && d.tests.length) ? d.tests.join(', ') : t('schema.labRequest.text');
-  const sig = [d.fasting ? t('schema.fasting.text') : '', d.priority].filter(Boolean).join(' · ');
+  const sig = [d.fasting ? t('schema.fasting.text') : '', valueLabel(d.priority)].filter(Boolean).join(' · ');
   return { name: name, dose: '', sig: sig, kind: 'lab' };
 }
 function deriveImgRx(d) {
-  const name = [d.modality, d.region].filter(Boolean).join(' ') || t('data.imagingRequest.text');
-  const sig = [d.contrast && d.contrast !== 'Sans' ? t('data.withContrast.text') : '', d.views, d.priority].filter(Boolean).join(' · ');
+  const name = [valueLabel(d.modality), valueLabel(d.region)].filter(Boolean).join(' ') || t('data.imagingRequest.text');
+  const sig = [d.contrast && d.contrast !== 'Sans' ? t('data.withContrast.text') : '', valueLabel(d.views), valueLabel(d.priority)].filter(Boolean).join(' · ');
   return { name: name, dose: '', sig: sig, kind: 'img' };
 }
 function deriveRefRx(d) {
-  const name = d.specialty || t('data.referralSpecialist.text');
-  const sig = d.priority || 'Routine';
+  const name = valueLabel(d.specialty) || t('data.referralSpecialist.text');
+  const sig = valueLabel(d.priority || 'Routine');
   return { name: name, dose: '', sig: sig, kind: 'ref' };
 }
 
@@ -1006,4 +1061,4 @@ window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_T
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchRequests, FIELD_OPTIONS, AI_SAMPLE_PROPOSALS };
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS };

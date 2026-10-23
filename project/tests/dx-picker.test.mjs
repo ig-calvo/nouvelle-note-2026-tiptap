@@ -19,10 +19,10 @@ const cim = Object.assign({ ready: () => true }, w.buildCim10Index(cimData, cimH
 const DX = (attrs) => ({ type: 'diagnosticRegion', attrs, content: [{ type: 'paragraph' }] });
 const doc = (...content) => ({ type: 'doc', content });
 
-const SOM_ASTHME = { kind: 'sommaire', dxKey: 'som:pb1', sommaireId: 'pb1', name: 'Asthme léger', code: 'J45.9', level: null,
+const SOM_ASTHME = { kind: 'sommaire', dxKey: 'som:pb1', sommaireId: 'pb1', name: w.TR('Asthme léger'), code: 'J45.9', level: null,
   source: 'sommaire', documentAs: 'probleme', status: 'actif', replaces: null, documentedAt: null, documentedBy: null,
   sommaireKind: 'probleme', sommaireStatus: null, meta: 'Depuis 2018' };
-const SOM_COLIQUE = { kind: 'sommaire', dxKey: 'som:hx1', sommaireId: 'hx1', name: 'Colique néphrétique', code: 'N23', level: null,
+const SOM_COLIQUE = { kind: 'sommaire', dxKey: 'som:hx1', sommaireId: 'hx1', name: w.TR('Colique néphrétique'), code: 'N23', level: null,
   source: 'sommaire', documentAs: 'antecedent', status: 'actif', replaces: null, documentedAt: null, documentedBy: null,
   sommaireKind: 'antecedent', sommaireStatus: 'resolu', meta: 'Résolu le 02/07/2026' };
 
@@ -47,7 +47,7 @@ test('la liste du clavier est exactement celle affichée (flat = sections aplati
 test('ordre des sections à la racine (E1) : Dans cette note, Problèmes, Antécédents, Fréquents, Parcourir', () => {
   const st = w.dxInitState({ kind: 'nouveau' });
   const model = w.dxBuildModel(st, '', ctxWith(NOTE_DOC));
-  assert.deepEqual(model.sections.map((s) => s.title), ['Dans cette note', 'Problèmes au sommaire', 'Antécédents au sommaire', 'Fréquents', null]);
+  assert.deepEqual(model.sections.map((s) => s.title), [w.TR('Dans cette note'), w.TR('Problèmes au sommaire'), w.TR('Antécédents au sommaire'), w.TR('Fréquents'), null]);
   assert.equal(model.defaultIndex, 0);
   assert.equal(model.flat[0].kind, 'note');
 });
@@ -79,7 +79,7 @@ test('un fil cessé n’offre que Reprendre, avec l’étiquette Cessé', () => 
   const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), '', ctxWith(ceased));
   const it = model.flat.find((i) => i.kind === 'note');
   assert.deepEqual(it.actions, ['reprendre']);
-  assert.deepEqual(it.tags, [{ kind: 'cesse', text: 'Cessé' }]);
+  assert.deepEqual(it.tags, [{ kind: 'cesse', text: w.TR('Cessé') }]);
 });
 
 test('filtrage insensible aux accents, sur le libellé et sur le code', () => {
@@ -90,7 +90,7 @@ test('filtrage insensible aux accents, sur le libellé et sur le code', () => {
 });
 
 test('dédoublonnage : un problème déjà repris dans la note disparaît du sommaire et apparaît dans « Dans cette note »', () => {
-  const linked = doc(DX({ id: 'd1', dxKey: 'som:pb1', name: 'Asthme léger', code: 'J45.9', sommaireId: 'pb1', documentAs: 'probleme' }));
+  const linked = doc(DX({ id: 'd1', dxKey: 'som:pb1', name: w.TR('Asthme léger'), code: 'J45.9', sommaireId: 'pb1', documentAs: 'probleme' }));
   const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), '', ctxWith(linked));
   assert.equal(model.flat.some((it) => it.kind === 'sommaire' && it.key === 'som:pb1'), false);
   assert.ok(model.flat.some((it) => it.kind === 'note' && it.ref.sommaireId === 'pb1'));
@@ -141,18 +141,18 @@ test('parcourir avec un terme cherche seulement sous ce nœud (within)', () => {
 });
 
 test('intent remplacer : bandeau, pas de section note/sommaire, « Même catégorie » pour un code précis', () => {
-  const target = { kind: 'sommaire', dxKey: 'som:pb1', sommaireId: 'pb1', name: 'Asthme léger', code: 'J45.9', level: 'code' };
+  const target = { kind: 'sommaire', dxKey: 'som:pb1', sommaireId: 'pb1', name: w.TR('Asthme léger'), code: 'J45.9', level: 'code' };
   const model = w.dxBuildModel({ intent: { kind: 'remplacer', target: target }, view: { kind: 'root' }, stack: [], activeIndex: null, actionFocus: 0 }, '', ctxWith(null));
   assert.deepEqual(model.banner, { kind: 'remplacer', target: target });
   assert.equal(model.sections.some((s) => s.key === 'note' || s.key === 'somPb'), false);
-  assert.equal(model.sections[0].title, 'Même catégorie — J45');
+  assert.equal(model.sections[0].title, w.t('dx.copy.memeCategorie.text', { code: 'J45' }));
   assert.equal(model.sections[0].items.every((it) => it.code !== 'J45.9'), true);
 });
 
 test('intent remplacer sur une catégorie propose « Codes plus précis »', () => {
   const target = { kind: 'note', dxKey: 'n:d1', name: 'Otite moyenne', code: 'H66', level: 'category' };
   const model = w.dxBuildModel({ intent: { kind: 'remplacer', target: target }, view: { kind: 'root' }, stack: [], activeIndex: null, actionFocus: 0 }, '', ctxWith(null));
-  assert.equal(model.sections[0].title, 'Codes plus précis — H66');
+  assert.equal(model.sections[0].title, w.t('dx.copy.plusPrecis.text', { code: 'H66' }));
 });
 
 test('texte libre : absent quand le terme est vide, présent avec le bon `kind` selon l’intent', () => {
@@ -176,11 +176,11 @@ test('intent edit : nom inchangé propose « Codes plus précis » sans texte li
   const region = { id: 'd1', dxKey: 'n:d1', name: 'Otite moyenne', code: 'H66', level: 'category' };
   const st = w.dxInitState({ kind: 'edit', region: region });
   const untouched = w.dxBuildModel(st, 'Otite moyenne', ctxWith(null));
-  assert.deepEqual(untouched.sections.map((s) => s.title), ['Codes plus précis — H66']);
+  assert.deepEqual(untouched.sections.map((s) => s.title), [w.t('dx.copy.plusPrecis.text', { code: 'H66' })]);
   assert.equal(untouched.freeText, null);
   const touched = w.dxBuildModel(st, 'Otite moyenne (renommée)', ctxWith(null));
   assert.deepEqual(touched.freeText, { name: 'Otite moyenne (renommée)', kind: 'edit', hadCode: true });
-  assert.equal(touched.sections.some((s) => s.title === 'Codes plus précis — H66'), false);
+  assert.equal(touched.sections.some((s) => s.title === w.t('dx.copy.plusPrecis.text', { code: 'H66' })), false);
 });
 
 test('texte libre en mode edit/refine porte hadCode (indice « le code sera retiré ») selon que la région avait un code', () => {
@@ -311,7 +311,7 @@ test('un diagnostic défini par un bloc se précise : démarre DANS le bloc, pro
     assert.deepEqual(st.view, { kind: 'browse', nodeId: 'bl:J40-J47' });
     assert.deepEqual(w.dxBuildModel(st, '', ctxWith(null)).flat.map((it) => it.code), ['J40', 'J41', 'J42', 'J44', 'J45']);
     const edit = w.dxBuildModel(w.dxInitState({ kind: 'edit', region: region }), region.name, ctxWith(null));
-    assert.equal(edit.sections[0].title, 'Dans le bloc J40-J47');
+    assert.equal(edit.sections[0].title, w.t('dx.copy.dansBloc.text', { crumb: 'J40-J47' }));
     // Le même libellé avec un autre level (renommé/re-choisi) ne se précise plus comme un bloc.
     assert.equal(w.dxRegionCimId(Object.assign({}, region, { level: 'chapter' })), null);
   } finally { delete w.CIM10; }
@@ -330,7 +330,7 @@ test('un diagnostic défini par un chapitre se précise : démarre DANS le chapi
     assert.equal(model.flat[0].ref.id, 'bl:J00-J06');
     // Modifier sans toucher au nom : propose le contenu du chapitre, sans texte libre.
     const edit = w.dxBuildModel(w.dxInitState({ kind: 'edit', region: region }), region.name, ctxWith(null));
-    assert.equal(edit.sections[0].title, 'Dans le chapitre X');
+    assert.equal(edit.sections[0].title, w.t('dx.copy.dansChapitre.text', { roman: 'X' }));
     assert.equal(edit.freeText, null);
     // Un texte libre du même nom, ou un chapitre renommé (level remis à null) ne se précise pas.
     assert.equal(w.dxRegionCimId(Object.assign({}, region, { level: null })), null);
@@ -432,7 +432,7 @@ test('dxMenuPlacement s’ouvre vers le bas quand il y a la place, vers le haut 
 
 test('dxHighlightRanges retrouve un terme sans accent dans un libellé accentué', () => {
   assert.deepEqual(w.dxHighlightRanges('Otite moyenne aiguë', 'aigue'), [[14, 19]]);
-  assert.deepEqual(w.dxHighlightRanges('Asthme léger', ''), []);
+  assert.deepEqual(w.dxHighlightRanges(w.TR('Asthme léger'), ''), []);
 });
 
 // ---------------------------------------------------------------------------

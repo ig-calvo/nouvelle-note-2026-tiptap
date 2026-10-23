@@ -1345,5 +1345,8 @@
   'documentAction.alreadyCompleted.tooltip': 'Document déjà complété',
   'documentAction.alreadyTransmitted.tooltip': 'Document déjà transmis',
   'documentAction.noRecipient.tooltip': 'Aucun destinataire sélectionné',
-  'documentAction.notCompleted.tooltip': '{title} non complétée'
+  'documentAction.notCompleted.tooltip': '{title} non complétée',
+  'data.withContrastLower.text': 'avec contraste',
+  'diagnostics.sinceMeta.text': 'Depuis {since}',
+  'diagnostics.resolvedOn.text': 'Résolu le {date}'
 };

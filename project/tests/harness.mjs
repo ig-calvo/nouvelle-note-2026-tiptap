@@ -26,10 +26,10 @@ const I18N_SOURCES = ['note-ui/i18n.js', 'note-ui/i18n/fr.js'];
 const SHARED_SOURCES = ['note-ui/rx-text.jsx'];
 const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
 
-// `lang` : 'fr' (défaut) ou 'en' ; `english: false` n'y charge pas les fichiers anglais ; `data` : table « français → anglais » de démonstration. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
+// `lang` : 'fr' (défaut) ou 'en' — la variable d'environnement I18N_TEST_LANG=en fait tourner toute la suite en anglais ; `english: false` n'y charge pas les fichiers anglais ; `data` : table « français → anglais » de démonstration. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
 // comme variables libres, ainsi qu'ils les reçoivent de `window` dans le
 // navigateur — un fichier chargé par `new Function` n'y a pas accès autrement.
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = 'fr', english = true, data = null } = {}) {
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = process.env.I18N_TEST_LANG || 'fr', english = true, data = null } = {}) {
   const win = {};
   if (lang !== 'fr') win.location = { search: `?lang=${lang}` };
   let globals = [];
@@ -54,6 +54,21 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
   // L() lit sa traduction à l'évaluation des données (pour tester la recherche dans les deux langues).
   if (data) win.I18N_DATA = { en: Object.assign({}, win.I18N_DATA && win.I18N_DATA.en, data) };
   globals = [win.I18N.t, win.I18N.tn, win.I18N.L, win.I18N.tk];
+  // TR('texte français') : le texte d'un test rendu dans la langue de la suite, pour que les
+  // mêmes assertions passent en français et en anglais. Un texte d'interface (valeur de fr.js)
+  // passe par t(), un texte de démonstration par L(), tout autre texte reste tel quel.
+  // Plusieurs clés au même texte français : leurs traductions doivent s'accorder.
+  const byText = new Map();
+  for (const [key, entry] of Object.entries(win.I18N_DICT.fr)) {
+    if (typeof entry === 'string') byText.set(entry, [...(byText.get(entry) || []), key]);
+  }
+  win.TR = (text, values) => {
+    const keys = byText.get(text);
+    if (!keys) return win.I18N.L(text, values);
+    const out = [...new Set(keys.map((k) => win.I18N.t(k, values)))];
+    if (out.length > 1) throw new Error(`TR(« ${text} ») : traductions qui divergent selon la clé : ${out.join(' | ')}`);
+    return out[0];
+  };
   for (const rel of SHARED_SOURCES) evaluate(rel);
   for (const rel of files) evaluate(rel);
   return win;

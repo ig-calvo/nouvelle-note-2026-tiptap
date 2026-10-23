@@ -475,7 +475,7 @@ function dxSommaireRowToTarget(r, kind) {
     kind: 'sommaire', dxKey: 'som:' + r.id, sommaireId: r.id, name: r.name, code: r.code || null, level: null,
     source: 'sommaire', documentAs: kind, status: 'actif', replaces: null, documentedAt: null, documentedBy: null,
     sommaireKind: kind, sommaireStatus: r.status || null,
-    meta: r.since ? ('Depuis ' + r.since) : (r.resolvedOn ? ('Résolu le ' + r.resolvedOn) : null),
+    meta: r.since ? t('diagnostics.sinceMeta.text', { since: r.since }) : (r.resolvedOn ? t('diagnostics.resolvedOn.text', { date: r.resolvedOn }) : null),
   };
 }
 // Base du dossier (sans la superposition de la note en cours), lue depuis le

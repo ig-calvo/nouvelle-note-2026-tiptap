@@ -1228,5 +1228,8 @@
   'transmission.txTitlePrefixTool.text': 'Clinical tool',
   'visit.type.clinic': 'Clinic visit',
   'visit.type.phone': 'Phone call',
-  'visit.type.update': 'Update'
+  'visit.type.update': 'Update',
+  'data.withContrastLower.text': 'with contrast',
+  'diagnostics.sinceMeta.text': 'Since {since}',
+  'diagnostics.resolvedOn.text': 'Resolved on {date}'
 };

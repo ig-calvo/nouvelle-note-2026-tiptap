@@ -13,8 +13,8 @@ const names = (r) => ({ favoris: r.favoris.map((it) => it.name), autres: r.autre
 test('ajouter un favori pendant une recherche ne déplace pas les sections', () => {
   D.endOrderSearch();
   const avant = names(D.searchOrder('rx', 'amoxi'));
-  assert.deepEqual(avant.favoris, ['Amoxicilline']);
-  assert.ok(avant.autres.some((n) => n.startsWith('Amoxicilline-clavulanate')));
+  assert.deepEqual(avant.favoris, [w.TR('Amoxicilline')]);
+  assert.ok(avant.autres.some((n) => n.startsWith(w.TR('Amoxicilline-clavulanate'))));
 
   const autre = D.searchOrder('rx', 'amoxi').autres[0];
   D.toggleOrderFav('rx', autre.key); // le cœur lit les favoris à jour…
@@ -65,7 +65,7 @@ test('la recherche ignore les accents et la casse, sans doublon entre sections',
 });
 
 test('parseSlashQuery : « mg/kg » n\'ouvre pas de recherche de fonction', () => {
-  assert.equal(w.parseSlashQuery('kg').mode, 'menu'); // le « / » de « mg/kg » n'active pas le plugin (pas d'espace avant)
+  assert.equal(w.parseSlashQuery('kg').mode, w.TR('menu')); // le « / » de « mg/kg » n'active pas le plugin (pas d'espace avant)
   assert.deepEqual(w.parseSlashQuery('rx amox'), { mode: 'order', kind: 'rx', term: 'amox' });
-  assert.equal(w.parseSlashQuery('rx').mode, 'menu'); // sans espace : encore le menu générique
+  assert.equal(w.parseSlashQuery('rx').mode, w.TR('menu')); // sans espace : encore le menu générique
 });

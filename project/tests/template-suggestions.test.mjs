@@ -30,7 +30,7 @@ const textOf = (nodes) => {
 test('« Pneumonie » propose imagerie, labo et une ordonnance incomplète, toutes en attente et signées par le gabarit', () => {
   const chips = chipsIn(w.buildTemplateBlocks(tpl('pneumonie')));
   assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'prescription']);
-  assert.ok(chips.every((c) => c.attrs.pending && c.attrs.proposedBy === w.t('template.source.label', { name: 'Pneumonie (suspicion)' })));
+  assert.ok(chips.every((c) => c.attrs.pending && c.attrs.proposedBy === w.t('template.source.label', { name: w.TR('Pneumonie (suspicion)') })));
   const rx = chips[2].attrs;
   assert.equal(rx.details.frequency, '');
   assert.doesNotMatch(rx.rx.sig, /BID/, 'la posologie affichée suit la fréquence vidée');
@@ -43,7 +43,7 @@ test('pendingSummary : puces en attente et sources', () => {
   assert.equal(s.chips, 3);
   assert.equal(s.paragraphs, 0);
   assert.equal(s.count, 3);
-  assert.deepEqual(s.sources, [w.t('template.source.label', { name: 'Pneumonie (suspicion)' })]);
+  assert.deepEqual(s.sources, [w.t('template.source.label', { name: w.TR('Pneumonie (suspicion)') })]);
 });
 
 test('tout accepter : plus rien en attente, les puces restent ; tout refuser : elles disparaissent, le texte reste', () => {
@@ -55,7 +55,7 @@ test('tout accepter : plus rien en attente, les puces restent ; tout refuser : e
   assert.equal(chipsIn([rejected]).length, 0);
   // Le texte reste ; les espaces qui séparaient les puces refusées partent avec elles.
   const plan = rejected.content.find((b) => b.type === 'paragraph' && textOf([b]).startsWith('Plan'));
-  assert.equal(textOf([plan]), 'Plan : ');
+  assert.equal(textOf([plan]), w.L('Impression : \nPlan : ').split('\n')[1]);
   assert.equal(textOf([rejected]).replace(/\s+/g, ' '), textOf([d]).replace(/\s+/g, ' ').trimEnd() + ' ');
   assert.equal(w.pendingSummary(d).count, 3, 'le doc reçu n’est pas modifié');
 });

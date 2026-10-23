@@ -39,7 +39,7 @@ test('recherche /lab et /ref en anglais : le nom français trouve toujours', () 
 });
 
 test('données : sans traduction, le français est celui d’avant (repli)', () => {
-  const fr = loadPrototype(files).NOTE_DATA;
+  const fr = loadPrototype(files, { lang: 'fr' }).NOTE_DATA;
   const en = loadPrototype(files, { lang: 'en', english: false }).NOTE_DATA;
   assert.deepEqual(JSON.parse(JSON.stringify(en.MED_CATALOG)), JSON.parse(JSON.stringify(fr.MED_CATALOG)));
   assert.equal(fr.MED_CATALOG[0].label, 'Atorvastatine 20 mg');

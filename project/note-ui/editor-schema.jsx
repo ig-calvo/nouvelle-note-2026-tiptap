@@ -235,13 +235,13 @@ function chipPrintText(a) {
     second = rx.ceased ? '' : (rx.sig || '');
   } else if (a.type === 'lab') {
     main = (d.tests && d.tests.length) ? d.tests.join(', ') : (rx.name || a.label);
-    second = join([d.priority, d.fasting ? t('schema.fasting.text') : ''], ', ');
+    second = join([window.NOTE_DATA.valueLabel(d.priority), d.fasting ? t('schema.fasting.text') : ''], ', ');
   } else if (a.type === 'imaging') {
-    main = rx.name || join([d.modality, d.region], ' ') || a.label;
-    second = join([d.laterality, d.priority], ', ');
+    main = rx.name || join([window.NOTE_DATA.valueLabel(d.modality), window.NOTE_DATA.valueLabel(d.region)], ' ') || a.label;
+    second = join([window.NOTE_DATA.valueLabel(d.laterality), window.NOTE_DATA.valueLabel(d.priority)], ', ');
   } else if (a.type === 'referral') {
-    main = t('schema.referenceMain.text', { name: d.specialty || rx.name || a.label });
-    second = d.priority || '';
+    main = t('schema.referenceMain.text', { name: window.NOTE_DATA.valueLabel(d.specialty) || rx.name || a.label });
+    second = window.NOTE_DATA.valueLabel(d.priority) || '';
   } else if (a.type === 'medication') {
     main = join([rx.name, rx.dose], ' ');
     second = join([rx.sig, window.NOTE_DATA && window.NOTE_DATA.medStatusText ? window.NOTE_DATA.medStatusText(rx) : ''], ', ');
@@ -475,7 +475,7 @@ function buildChipDomBase(data, existingEl) {
       const pr = document.createElement('span');
       pr.className = 'chip-rx-priority';
       pr.setAttribute('data-field', 'priority');
-      pr.textContent = d.priority || t('schema.routine.text');
+      pr.textContent = window.NOTE_DATA.valueLabel(d.priority) || t('schema.routine.text');
       poso.appendChild(pr);
       node.appendChild(poso);
       if (kind === 'img' && d.laterality) {
@@ -2343,13 +2343,13 @@ function buildTransmissionDocs(docStats, txState, opts) {
         || [d.route, d.frequency, d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : ''].filter(Boolean).join(' ');
     } else if (t === 'lab') {
       label = (d.tests && d.tests.length) ? d.tests.join(', ') : (ent.label || window.t('schema.labRequest.text'));
-      sub = [d.priority, d.fasting ? window.t('schema.fasting.text') : ''].filter(Boolean).join(' · ');
+      sub = [window.NOTE_DATA.valueLabel(d.priority), d.fasting ? window.t('schema.fasting.text') : ''].filter(Boolean).join(' · ');
     } else if (t === 'imaging') {
-      label = [d.modality, d.region].filter(Boolean).join(' ') || ent.label;
-      sub = [d.views, d.priority, (d.contrast && d.contrast !== 'Sans') ? 'avec contraste' : ''].filter(Boolean).join(' · ');
+      label = [window.NOTE_DATA.valueLabel(d.modality), window.NOTE_DATA.valueLabel(d.region)].filter(Boolean).join(' ') || ent.label;
+      sub = [window.NOTE_DATA.valueLabel(d.views), window.NOTE_DATA.valueLabel(d.priority), (d.contrast && d.contrast !== 'Sans') ? window.t('data.withContrastLower.text') : ''].filter(Boolean).join(' · ');
     } else if (t === 'referral') {
-      label = d.specialty || ent.label;
-      sub = [d.priority, d.question].filter(Boolean).join(' · ');
+      label = window.NOTE_DATA.valueLabel(d.specialty) || ent.label;
+      sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');
     } else if (t === 'instructions') {
       label = d.title || ent.label || window.t('schema.patientInstructions.text');
     }

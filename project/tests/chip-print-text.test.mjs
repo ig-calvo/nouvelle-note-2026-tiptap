@@ -10,35 +10,35 @@ const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx',
 const attrs = (kind, key) => w.orderChipAttrs(kind, w.NOTE_DATA.ORDER_DEFS[kind].items().find((it) => it.key === key));
 
 test('prescription : nom, dose — posologie', () => {
-  assert.equal(w.chipPrintText(attrs('rx', 'amox500')), 'Amoxicilline 500mg — 1 comp. PO TID #21 7j R0');
+  assert.equal(w.chipPrintText(attrs('rx', 'amox500')), w.L('Amoxicilline') + ' 500mg — ' + w.RX_TEXT.qtyLabel({ form: 'comprimé' }) + ' PO TID #21 ' + w.RX_TEXT.durationShort({ duration: '7', durationUnit: 'jours' }) + ' R0');
 });
 
 test('le statut vient en tête : renouvelée, cessée, annulée', () => {
   const a = attrs('rx', 'amox500');
-  assert.match(w.chipPrintText(Object.assign({}, a, { rx: Object.assign({}, a.rx, { renewal: true }) })), /^Renouvelée Amoxicilline/);
-  assert.equal(w.chipPrintText(Object.assign({}, a, { rx: Object.assign({}, a.rx, { ceased: true, sig: 'Cessé' }) })), 'Cessée Amoxicilline 500mg');
-  assert.match(w.chipPrintText(Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z', cancelledAt: '2026-09-29T15:00:00Z' })), /^Annulée Amoxicilline/);
+  assert.match(w.chipPrintText(Object.assign({}, a, { rx: Object.assign({}, a.rx, { renewal: true }) })), new RegExp('^' + w.t('schema.statusRenewed.text') + ' ' + w.L('Amoxicilline')));
+  assert.equal(w.chipPrintText(Object.assign({}, a, { rx: Object.assign({}, a.rx, { ceased: true, sig: w.TR('Cessé') }) })), w.t('schema.statusCeased.text') + ' ' + w.L('Amoxicilline') + ' 500mg');
+  assert.match(w.chipPrintText(Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z', cancelledAt: '2026-09-29T15:00:00Z' })), new RegExp('^' + w.t('schema.annulee.text') + ' ' + w.L('Amoxicilline')));
 });
 
 test('ni état ni commentaire : incomplète, transmise, commentée → même texte', () => {
   const a = attrs('rx', 'amox500');
   const plain = w.chipPrintText(a);
-  const noisy = Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z', transmitError: 'x', details: Object.assign({}, a.details, { comment: 'Ne pas substituer' }) });
+  const noisy = Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z', transmitError: 'x', details: Object.assign({}, a.details, { comment: w.TR('Ne pas substituer') }) });
   assert.equal(w.chipPrintText(noisy), plain);
 });
 
 test('labo : analyses — priorité, à jeun', () => {
-  assert.equal(w.chipPrintText(attrs('lab', 'fsc')), 'FSC — Routine');
-  assert.equal(w.chipPrintText(attrs('lab', 'lipide')), 'Cholestérol total, HDL, LDL, Triglycérides — Routine, à jeun');
+  assert.equal(w.chipPrintText(attrs('lab', 'fsc')), w.TR('FSC') + ' — Routine');
+  assert.equal(w.chipPrintText(attrs('lab', 'lipide')), ['Cholestérol total', 'HDL', 'LDL', 'Triglycérides'].map((x) => w.L(x)).join(', ') + ' — Routine, ' + w.t('schema.fasting.text'));
 });
 
 test('imagerie : examen — priorité ; référence : préfixée, sinon illisible sans icône', () => {
-  assert.equal(w.chipPrintText(attrs('img', 'rxpoumon')), 'Radiographie pulmonaire — Routine');
-  assert.equal(w.chipPrintText(attrs('ref', 'cardio')), w.t('schema.referenceMain.text', { name: 'Cardiologie' }) + ' — Routine');
+  assert.equal(w.chipPrintText(attrs('img', 'rxpoumon')), w.TR('Radiographie pulmonaire') + ' — Routine');
+  assert.equal(w.chipPrintText(attrs('ref', 'cardio')), w.t('schema.referenceMain.text', { name: w.TR('Cardiologie') }) + ' — Routine');
 });
 
 test('autres puces : leur libellé', () => {
-  assert.equal(w.chipPrintText({ type: 'file', label: 'TDM abdomino-pelvien.pdf' }), 'TDM abdomino-pelvien.pdf');
+  assert.equal(w.chipPrintText({ type: 'file', label: w.TR('TDM abdomino-pelvien.pdf') }), w.TR('TDM abdomino-pelvien.pdf'));
   assert.equal(w.chipPrintText(null), '');
 });
 

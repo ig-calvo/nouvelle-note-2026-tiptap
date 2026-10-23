@@ -158,6 +158,8 @@ function dxTakenCodes(threads, sommaire, extra) {
 function dxMatch(q, label, code) {
   if (!q) return true;
   if (dxNorm(label).includes(q)) return true;
+  // Le nom dans l'autre langue (I18N.other) : « asthme » trouve « Mild asthma » en anglais.
+  if (typeof label === 'string' && dxNorm(window.I18N.other(label)).includes(q)) return true;
   if (code && dxCodeKey(code).includes(dxCodeKey(q))) return true;
   return false;
 }

@@ -5,7 +5,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPrototype } from './harness.mjs';
 
-const w = loadPrototype([]);
+// Sujet du fichier : les abréviations et accords français (« 1 comp. », « 7j »), donc épinglé en français.
+const w = loadPrototype([], { lang: 'fr' });
 const R = w.RX_TEXT;
 
 test('qtyLabel : quantité par prise + abréviation de la forme', () => {

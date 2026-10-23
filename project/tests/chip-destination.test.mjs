@@ -24,7 +24,7 @@ test('renouveler, cesser et ajuster la dose sont des actions à envoyer aussi', 
 });
 
 test('une prescription incomplète est encore une action du checkout (elle le bloque)', () => {
-  const a = w.orderChipAttrs('rx', item('rx', 'warf') || D.ORDER_DEFS.rx.items().find((it) => it.name === 'Warfarine'));
+  const a = w.orderChipAttrs('rx', item('rx', 'warf') || D.ORDER_DEFS.rx.items().find((it) => it.name === w.TR('Warfarine')));
   assert.ok(w.chipIssues(a).some((i) => i.blocking));
   assert.equal(w.chipDestination(a), 'a-envoyer');
 });
@@ -36,7 +36,7 @@ test('documentée ou mentionnée : déjà au dossier (icône noire sur fond blan
 
 test('une suggestion pas encore acceptée n’est pas au checkout : icône blanche', () => {
   assert.equal(w.chipDestination(Object.assign(rx(), { pending: true })), 'suggestion');
-  assert.equal(w.chipDestination(Object.assign(w.labChipAttrs({ tests: ['FSC'] }), { pending: true })), 'suggestion');
+  assert.equal(w.chipDestination(Object.assign(w.labChipAttrs({ tests: [w.TR('FSC')] }), { pending: true })), 'suggestion');
 });
 
 test('envoyée ou annulée : plus rien à envoyer', () => {
@@ -53,11 +53,11 @@ test('les requêtes, la référence et les consignes sont aussi des actions à e
 test('« à envoyer » coïncide avec ce qui devient un document au checkout (buildTransmissionDocs)', () => {
   const chips = {
     prescription: rx(), lab: w.orderChipAttrs('lab', item('lab', 'fsc')), imaging: w.orderChipAttrs('img', item('img', 'rxpoumon')),
-    referral: w.orderChipAttrs('ref', item('ref', 'cardio')), instructions: { cid: 'ci', type: 'instructions', label: 'Consignes', details: { title: 'Consignes' } },
+    referral: w.orderChipAttrs('ref', item('ref', 'cardio')), instructions: { cid: 'ci', type: 'instructions', label: w.TR('Consignes'), details: { title: w.TR('Consignes') } },
     medication: med('document'), file: { cid: 'cf', type: 'file', label: 'a.pdf', details: {} }, problem: { cid: 'cp', type: 'problem', label: 'HTA', details: {} }
   };
   for (const [type, attrs] of Object.entries(chips)) {
-    const d = doc(H2('Conclusion'), { type: 'paragraph', content: [{ type: 'chip', attrs: Object.assign({}, attrs, { type }) }] });
+    const d = doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [{ type: 'chip', attrs: Object.assign({}, attrs, { type }) }] });
     const nDocs = w.buildTransmissionDocs(w.scanDoc(d), {}).length;
     assert.equal(nDocs > 0, w.chipDestination(attrs) === 'a-envoyer', type);
   }

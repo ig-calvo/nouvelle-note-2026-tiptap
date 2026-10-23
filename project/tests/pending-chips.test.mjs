@@ -23,9 +23,9 @@ test('le gabarit « Otite moyenne aiguë » propose une ordonnance, en attente, 
   assert.equal(chips.length, 1);
   assert.equal(chips[0].attrs.pending, true);
   assert.equal(chips[0].attrs.type, 'prescription');
-  assert.equal(chips[0].attrs.rx.name, 'Amoxicilline');
+  assert.equal(chips[0].attrs.rx.name, w.TR('Amoxicilline'));
   assert.ok(!chips[0].attrs.savedAt); // pas encore sauvegardée : rien au Journal
-  const plan = blocks.find((b) => b.type === 'paragraph' && b.content && b.content[0].text === 'Plan : ');
+  const plan = blocks.find((b) => b.type === 'paragraph' && b.content && b.content[0].text === w.L('Impression : \nPlan : ').split('\n')[1]);
   assert.ok(plan, 'la ligne « Plan : » existe');
   assert.equal(plan.content[1].type, 'chip'); // inline, juste après le texte
 });
@@ -50,7 +50,7 @@ test('chaque gabarit de note a son entrée « / » et un id de chip unique par a
 });
 
 test('scanDoc et le Journal ignorent un chip en attente', () => {
-  const d = doc(H2('Détails'), { type: 'paragraph', content: [w.buildPendingChipNode({ kind: 'rx', key: 'amox500' })] });
+  const d = doc(H2(w.TR('Détails')), { type: 'paragraph', content: [w.buildPendingChipNode({ kind: 'rx', key: 'amox500' })] });
   const stats = w.scanDoc(d);
   assert.deepEqual(stats.chips, []);
   assert.deepEqual(stats.items, []);
@@ -61,7 +61,7 @@ test('scanDoc et le Journal ignorent un chip en attente', () => {
 test('accepté (pending: false), le même chip compte comme une prescription', () => {
   const chip = w.buildPendingChipNode({ kind: 'rx', key: 'amox500' });
   chip.attrs.pending = false;
-  const d = doc(H2('Détails'), { type: 'paragraph', content: [chip] });
+  const d = doc(H2(w.TR('Détails')), { type: 'paragraph', content: [chip] });
   assert.equal(w.scanDoc(d).counts.prescription, 1);
 });
 

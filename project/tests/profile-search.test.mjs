@@ -14,10 +14,10 @@ const row = (key) => D.PATIENT_MEDS.find((m) => m.key === key);
 test('le profil montre les 4 médications, tous statuts, dans le menu /rx', () => {
   const r = D.searchRx('');
   assert.deepEqual(r.profil.map((m) => [m.name + ' ' + m.dose, m.medStatus]), [
-    ['Contraceptif oral ', 'active'], ['Tylenol 100 mg', 'active'], ['Tylenol 500 mg', 'echue'], ['Nitrofurantoïne 100 mg', 'cessée']
+    [w.L('Contraceptif oral') + ' ', 'active'], [w.TR('Tylenol 100 mg'), 'active'], [w.TR('Tylenol 500 mg'), 'echue'], [w.L('Nitrofurantoïne') + ' 100 mg', 'cessée']
   ]);
   assert.equal(r.profilCeased, undefined); // plus de bloc replié « Médicaments cessés »
-  assert.deepEqual(r.profil.map((m) => D.MED_STATUS_LABEL[m.medStatus]), ['Actif', 'Actif', 'Échu', 'Cessé']);
+  assert.deepEqual(r.profil.map((m) => D.MED_STATUS_LABEL[m.medStatus]), [w.TR('Actif'), w.TR('Actif'), w.TR('Échu'), w.TR('Cessé')]);
 });
 
 test('la recherche filtre le profil sans distinction de statut', () => {

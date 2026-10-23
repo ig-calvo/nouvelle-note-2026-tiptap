@@ -140,7 +140,7 @@ test('L : français inchangé ; anglais depuis la table ; repli sur le français
 });
 
 test('dictionnaires lus à l’appel : un fichier chargé après i18n.js est vu', () => {
-  const win = loadPrototype([]);
+  const win = loadPrototype([], { lang: 'fr' });
   assert.equal(typeof win.I18N_DICT.fr['app.error.title'], 'string');
   assert.equal(win.t('app.error.title'), win.I18N_DICT.fr['app.error.title']);
 });
@@ -228,7 +228,8 @@ test('parité : data-en.js ne traduit que des textes qui existent encore en fran
 
 // --- lot A1 : le français d'avant, accords, dates ---
 
-const fr = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx', 'note-ui/cim10-index.jsx']);
+// Les tests ci-dessous vérifient le français lui-même (phrases d'avant, accords) : épinglés en français.
+const fr = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx', 'note-ui/cim10-index.jsx'], { lang: 'fr' });
 const NB = ' ';
 
 test('français : les pluriels écrits à la main donnent les mêmes phrases qu’avant', () => {
