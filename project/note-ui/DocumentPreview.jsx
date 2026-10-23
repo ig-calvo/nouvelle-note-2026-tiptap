@@ -12,7 +12,7 @@
 const DP_CLINIC = {
   phone: '819 555-0100',
   fax: '819 555-0101',
-  address: '12 rue Principale, Sherbrooke (Québec) J1H 4E4',
+  address: L('12 rue Principale, Sherbrooke (Québec) J1H 4E4'),
 };
 
 // Petite « signature manuscrite » en SVG — évite de dépendre d'une image.
@@ -52,21 +52,21 @@ function DocumentPreview({ doc, doctorName, institution, scale }) {
     <div style={Object.assign({}, dp.page, style)}>
       <div style={dp.head}>
         <div style={dp.headLeft}>
-          <div style={dp.doctorName}>{doctorName || 'Médecin actuel'}</div>
-          <div style={dp.clinicName}>{institution || 'Établissement actuel'}</div>
+          <div style={dp.doctorName}>{doctorName || t('documentPreview.medecinActuel.text')}</div>
+          <div style={dp.clinicName}>{institution || t('documentPreview.etablissementActuel.text')}</div>
           <div style={dp.clinicMeta}>{DP_CLINIC.address}</div>
-          <div style={dp.clinicMeta}>Tél. : {DP_CLINIC.phone} / Téléc. : {DP_CLINIC.fax}</div>
+          <div style={dp.clinicMeta}>{t('documentPreview.clinicContact.text', { phone: DP_CLINIC.phone, fax: DP_CLINIC.fax })}</div>
         </div>
       </div>
 
       <div style={dp.patientRow}>
         <div style={dp.patientCol}>
-          <div><b>Nom :</b> {P.name || 'Patient'}</div>
-          <div><b>NAM :</b> {P.ramq || '—'}</div>
+          <div><b>{t('documentPreview.nom.text')}</b> {P.name || t('documentPreview.patient.text')}</div>
+          <div><b>{t('documentPreview.nam.text')}</b> {P.ramq || '—'}</div>
         </div>
         <div style={dp.patientCol}>
-          <div><b>DDN :</b> {P.dob || '—'} ({P.age || '—'})</div>
-          <div><b>Téléphone :</b> {P.phone || '—'}</div>
+          <div><b>{t('documentPreview.ddn.text')}</b> {P.dob || '—'} ({P.age || '—'})</div>
+          <div><b>{t('documentPreview.telephone.text')}</b> {P.phone || '—'}</div>
         </div>
       </div>
 
@@ -75,8 +75,8 @@ function DocumentPreview({ doc, doctorName, institution, scale }) {
       <div style={dp.bodyHead}>
         {isRx
           ? <span style={dp.rxGlyph}>℞</span>
-          : <span style={dp.reqTitle}>{doc ? doc.title : 'Requête'}</span>}
-        <span style={dp.dateRight}>Date : {dpFmtDate()}</span>
+          : <span style={dp.reqTitle}>{doc ? doc.title : t('documentPreview.requete.text')}</span>}
+        <span style={dp.dateRight}>{t('documentPreview.date.text', { date: dpFmtDate() })}</span>
       </div>
 
       <div style={dp.body}>
@@ -85,33 +85,33 @@ function DocumentPreview({ doc, doctorName, institution, scale }) {
             <div key={it.id || i} style={dp.item}>
               <div style={Object.assign({}, dp.itemLabel, it.ceased ? dp.itemLabelCeased : {})}>{it.label}</div>
               {it.sub ? <div style={dp.itemSub}>{it.sub}</div> : null}
-              {it.ceased ? <div style={dp.itemCeased}>Cessé</div> : null}
+              {it.ceased ? <div style={dp.itemCeased}>{t('documentPreview.cesse.text')}</div> : null}
             </div>
           );
         })}
-        {items.length === 0 && <div style={dp.itemSub}>Aucun contenu.</div>}
+        {items.length === 0 && <div style={dp.itemSub}>{t('documentPreview.aucunContenu.text')}</div>}
       </div>
 
-      <div style={dp.endLine}>— Fin du document —</div>
+      <div style={dp.endLine}>{t('documentPreview.finDocument.text')}</div>
 
       <div style={dp.footer}>
         {complete
           ? <React.Fragment>
               <div style={dp.footerRow}>
                 <div style={dp.footerText}>
-                  <div>Document complété électroniquement</div>
-                  <div>Par {doctorName || 'Médecin actuel'} le {dpFmtDate()}</div>
-                  <div>Réf. : {dpFakeRef(doc && doc.id)}</div>
+                  <div>{t('documentPreview.documentCompleteElectroniquement.text')}</div>
+                  <div>{t('documentPreview.signedBy.text', { name: doctorName || t('documentPreview.medecinActuel.text'), date: dpFmtDate() })}</div>
+                  <div>{t('documentPreview.ref.text', { ref: dpFakeRef(doc && doc.id) })}</div>
                 </div>
                 <div style={dp.sigBlock}>
-                  <div style={dp.sigLabel}>Signature :</div>
+                  <div style={dp.sigLabel}>{t('documentPreview.signature.text')}</div>
                   <DPSignatureGlyph />
                 </div>
               </div>
             </React.Fragment>
-          : <div style={dp.draftNote}>Aperçu — document non complété (brouillon, sans valeur légale)</div>
+          : <div style={dp.draftNote}>{t('documentPreview.apercuDocumentNonComplete.text')}</div>
         }
-        <div style={dp.confidential}>Ce document est confidentiel.</div>
+        <div style={dp.confidential}>{t('documentPreview.documentConfidentiel.text')}</div>
       </div>
     </div>
   );

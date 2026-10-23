@@ -2,21 +2,21 @@
 function SideNav({ collapsed = false, presenting = false, onTogglePresentation }) {
   const [blueOpen, setBlueOpen] = React.useState(true);
   const primary = [
-  { label: "Nouvelles", icon: "home" },
-  { label: "Communication", icon: "forum" },
-  { label: "Résultats", icon: "science" },
-  { label: "Tâches", icon: "check_box" },
-  { label: "Journal de Notes", icon: "menu_book" },
-  { label: "Rendez-vous", icon: "event" },
-  { label: "Liste d'attente", icon: "format_list_numbered" },
-  { label: "Liste de patients", icon: "groups" }];
+  { label: t('sideNav.nouvelles.label'), icon: "home" },
+  { label: t('sideNav.communication.label'), icon: "forum" },
+  { label: t('sideNav.resultats.label'), icon: "science" },
+  { label: t('sideNav.taches.label'), icon: "check_box" },
+  { label: t('sideNav.journalNotes.label'), icon: "menu_book" },
+  { label: t('sideNav.rendez.label'), icon: "event" },
+  { label: t('sideNav.listeAttente.label'), icon: "format_list_numbered" },
+  { label: t('sideNav.listePatients.label'), icon: "groups" }];
 
   const secondary = [
-  { label: "Répertoire", icon: "contact_page" },
-  { label: "Administration", icon: "settings" },
-  { label: "Rx Vigilance", icon: "medication" },
-  { label: "Transmissions", icon: "mail_outline" },
-  { label: "Rapports", icon: "bar_chart" }];
+  { label: t('sideNav.repertoire.label'), icon: "contact_page" },
+  { label: t('sideNav.administration.label'), icon: "settings" },
+  { label: t('sideNav.rxVigilance.label'), icon: "medication" },
+  { label: t('sideNav.transmissions.label'), icon: "mail_outline" },
+  { label: t('sideNav.rapports.label'), icon: "bar_chart" }];
 
   const blueRoom = ["Sophie Bouchard", "Julien Gagnon", "Émilie Tremblay", "Maxime Roy"];
   const recent = ["Julie Tremblay", "Camille Fournier"];
@@ -51,24 +51,24 @@ function SideNav({ collapsed = false, presenting = false, onTogglePresentation }
         <div style={snStyles.divider} />
         <div
           style={{ ...snStyles.item, ...(collapsed ? snStyles.itemCollapsed : {}) }}
-          title={collapsed ? "Besoin d'aide ?" : undefined}>
+          title={collapsed ? t('sideNav.besoinAide.tooltip') : undefined}>
           <span className="material-icons-outlined" style={snStyles.icon}>help_outline</span>
-          {!collapsed && <span style={snStyles.label}>Besoin d'aide ?</span>}
+          {!collapsed && <span style={snStyles.label}>{t('sideNav.besoinAide.text')}</span>}
         </div>
         <div style={snStyles.divider} />
 
         <div
           style={{ ...snStyles.item, ...(collapsed ? snStyles.itemCollapsed : {}) }}
-          title={collapsed ? "Salles d'attente" : undefined}>
+          title={collapsed ? t('sideNav.sallesAttente.tooltip') : undefined}>
           <span className="material-icons-outlined" style={snStyles.icon}>schedule</span>
-          {!collapsed && <span style={snStyles.label}>Salles d'attente</span>}
+          {!collapsed && <span style={snStyles.label}>{t('sideNav.sallesAttente.text')}</span>}
         </div>
         {/* Détail des salles/personnes : pas de représentation en icône
             unique sensée, donc masqué en mode rail plutôt qu'à moitié rendu. */}
         {!collapsed &&
           <React.Fragment>
             <div style={snStyles.roomHead} onClick={() => setBlueOpen((o) => !o)}>
-              <span style={snStyles.roomName}>Salle Bleue</span>
+              <span style={snStyles.roomName}>{t('sideNav.salleBleue.text')}</span>
               <span
                 className="material-icons"
                 style={{ ...snStyles.roomCaret, transform: blueOpen ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.15s" }}>
@@ -78,7 +78,7 @@ function SideNav({ collapsed = false, presenting = false, onTogglePresentation }
             {blueOpen && blueRoom.map((n) => <Person key={n} name={n} />)}
 
             <div style={snStyles.divider} />
-            <div style={snStyles.sectionLabel}>Récemment consultés</div>
+            <div style={snStyles.sectionLabel}>{t('sideNav.recemmentConsultes.text')}</div>
             {recent.map((n) => <Person key={n} name={n} indent={18} />)}
           </React.Fragment>}
         <div style={{ height: 24 }} />
@@ -88,9 +88,9 @@ function SideNav({ collapsed = false, presenting = false, onTogglePresentation }
           pointerEvents « auto » : en présentation le rail latéral est inerte,
           mais cette bulle doit rester cliquable pour en sortir. */}
       <button style={{ ...snStyles.chatFab, ...(collapsed ? snStyles.chatFabCollapsed : {}), pointerEvents: 'auto' }}
-        aria-label={onTogglePresentation ? 'Mode présentation' : 'aide'}
+        aria-label={onTogglePresentation ? t('sideNav.modePresentation.aria') : t('sideNav.aide.aria')}
         aria-pressed={onTogglePresentation ? !!presenting : undefined}
-        title={onTogglePresentation ? (presenting ? 'Quitter le mode présentation' : 'Mode présentation') : undefined}
+        title={onTogglePresentation ? (presenting ? t('sideNav.quitterModePresentation.tooltip') : t('sideNav.modePresentation.tooltip')) : undefined}
         onClick={onTogglePresentation}>
         <span className="material-icons" style={{ color: "#fff", fontSize: 28 }}>chat_bubble</span>
       </button>

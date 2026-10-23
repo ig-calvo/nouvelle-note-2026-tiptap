@@ -48,77 +48,77 @@ function isPresentationMode() {
 // `actions` : amorces de geste — pour gagner du temps, jamais obligatoires.
 const PRESENTATION_CHAPTERS = [
   {
-    id: 'note', label: 'La note', needsNote: false,
+    id: 'note', label: t('presentation.note.label'), needsNote: false,
     say: [
-      'Un patient fictif, un dossier réaliste : tout se passe dans la note, sans changer d’écran.',
-      'Le sommaire reste à droite : c’est le dossier du patient.',
+      t('presentation.note.say1.text'),
+      t('presentation.note.say2.text'),
     ],
-    show: ['Écran d’arrivée, sans rien toucher.', 'Ouvrir une note.'],
-    actions: [{ label: 'Ouvrir la note', run: function (c) { c.openNote(); } }],
+    show: [t('presentation.note.show1.text'), t('presentation.note.show2.text')],
+    actions: [{ label: t('presentation.note.action.button'), run: function (c) { c.openNote(); } }],
   },
   {
-    id: 'commandes', label: 'Commandes / et +', needsNote: true, focus: '.nf-add',
+    id: 'commandes', label: t('presentation.commandes.label'), needsNote: true, focus: '.nf-add',
     say: [
-      'Deux portes d’entrée vers les mêmes fonctions : la touche « / » et le « + » à gauche du curseur.',
-      'Ordonnance, diagnostic, outils cliniques, requêtes : tout s’insère sans quitter le texte.',
+      t('presentation.commandes.say1.text'),
+      t('presentation.commandes.say2.text'),
     ],
-    show: ['Taper « / » au début d’une ligne.', 'Montrer le « + » à gauche du curseur.', 'Échap : rien ne reste dans la note.'],
-    actions: [{ label: 'Ouvrir le menu +', run: function () { window.dispatchEvent(new CustomEvent('ct-addmenu-open')); } }],
+    show: [t('presentation.commandes.show1.text'), t('presentation.commandes.show2.text'), t('presentation.commandes.show3.text')],
+    actions: [{ label: t('presentation.commandes.action.button'), run: function () { window.dispatchEvent(new CustomEvent('ct-addmenu-open')); } }],
   },
   {
-    id: 'outils', label: 'Outils cliniques', needsNote: true,
+    id: 'outils', label: t('presentation.outils.label'), needsNote: true,
     say: [
-      'Les outils cliniques sont réorganisés : Favoris pour ce qu’on utilise tous les jours, Groupes pour explorer.',
+      t('presentation.outils.say1.text'),
     ],
-    show: ['Ouvrir le sélecteur d’outils.', 'Distinguer Favoris et Groupes.', 'Ajouter un outil à la note.'],
-    actions: [{ label: 'Ouvrir les outils cliniques', run: function () { window.dispatchEvent(new CustomEvent('ct-picker-open')); } }],
+    show: [t('presentation.outils.show1.text'), t('presentation.outils.show2.text'), t('presentation.outils.show3.text')],
+    actions: [{ label: t('presentation.outils.action.button'), run: function () { window.dispatchEvent(new CustomEvent('ct-picker-open')); } }],
   },
   {
-    id: 'dx', label: 'Diagnostic /dx', needsNote: true, seed: ['tool'],
+    id: 'dx', label: t('presentation.dx.label'), needsNote: true, seed: ['tool'],
     say: [
-      'On documente un diagnostic en le cherchant : CIM-10 et SNOMED CT.',
-      'Il devient une région de la note, reliée au problème du dossier.',
+      t('presentation.dx.say1.text'),
+      t('presentation.dx.say2.text'),
     ],
-    show: ['Taper « /dx » puis quelques lettres.', 'Choisir un résultat : c’est une région, pas du texte.'],
-    actions: [{ label: 'Amorcer /dx', run: function () { window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: 'dx' } })); } }],
+    show: [t('presentation.dx.show1.text'), t('presentation.dx.show2.text')],
+    actions: [{ label: t('presentation.dx.action.button'), run: function () { window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: 'dx' } })); } }],
   },
   {
-    id: 'prescrire', label: 'Prescrire', needsNote: true, seed: ['tool', 'dx'],
+    id: 'prescrire', label: t('presentation.prescrire.label'), needsNote: true, seed: ['tool', 'dx'],
     say: [
-      'Trois façons de prescrire, au choix selon l’habitude : le « + », « /rx » + Entrée, ou « /rx » suivi du nom tapé comme du texte.',
-      'La liste vient du profil du patient : actifs, échus et cessés, chacun avec son étiquette. Rien à retourner chercher dans le sommaire.',
+      t('presentation.prescrire.say1.text'),
+      t('presentation.prescrire.say2.text'),
     ],
     show: [
-      'Chemin A : « + » puis Prescriptions.',
-      'Chemin B : « /rx » puis Entrée, filtres à droite.',
-      'Chemin C : « /rx » puis le nom du médicament.',
+      t('presentation.prescrire.show1.text'),
+      t('presentation.prescrire.show2.text'),
+      t('presentation.prescrire.show3.text'),
     ],
-    actions: [{ label: 'Amorcer /rx', run: function () { pmStartCommand('rx'); } }],
+    actions: [{ label: t('presentation.prescrire.action.button'), run: function () { pmStartCommand('rx'); } }],
   },
   {
-    id: 'apres', label: 'Après la prescription', needsNote: true, seed: ['tool', 'dx', 'rx'],
+    id: 'apres', label: t('presentation.apres.label'), needsNote: true, seed: ['tool', 'dx', 'rx'],
     say: [
-      'La puce dit ce qu’elle est : une prescription, avec son état. Si un champ manque, elle le montre à sa place.',
-      'On corrige sur place ou dans le formulaire complet, comme on préfère.',
+      t('presentation.apres.say1.text'),
+      t('presentation.apres.say2.text'),
     ],
     show: [
-      'La prescription du chapitre précédent est déjà dans la note (ajoutée au besoin).',
-      'Cliquer une valeur de la puce (ex. la fréquence) : on la change sur place.',
-      'Survoler la puce, « Modifier » : le formulaire complet.',
-      'Retirer : curseur après la puce, Retour arrière (sélectionne la puce), Retour arrière encore : « Garder en texte » ou « Supprimer ».',
+      t('presentation.apres.show1.text'),
+      t('presentation.apres.show2.text'),
+      t('presentation.apres.show3.text'),
+      t('presentation.apres.show4.text'),
     ],
     actions: [],
   },
   {
-    id: 'transmettre', label: 'Transmettre', needsNote: true, seed: ['tool', 'dx', 'rx'], focus: '.ProseMirror .chip--rx',
+    id: 'transmettre', label: t('presentation.transmettre.label'), needsNote: true, seed: ['tool', 'dx', 'rx'], focus: '.ProseMirror .chip--rx',
     say: [
-      'On finit là où on a prescrit : « Prescrire » sur la puce ouvre l’envoi rapide, sans quitter la note.',
-      'Une puce transmise le dit (double coche) et ne se modifie plus.',
+      t('presentation.transmettre.say1.text'),
+      t('presentation.transmettre.say2.text'),
     ],
     show: [
-      'Survoler la puce : « Prescrire ».',
-      'Envoi rapide : ajouter une pharmacie (les favorites sont en tête), puis « Compléter et envoyer ».',
-      'La puce affiche la double coche ; le pied de note passe à 1/1.',
+      t('presentation.transmettre.show1.text'),
+      t('presentation.transmettre.show2.text'),
+      t('presentation.transmettre.show3.text'),
     ],
     actions: [],
   },
@@ -150,14 +150,14 @@ const PM_SEEDS = {
   // Chapitre « Outils cliniques » : l'examen physique, version courte.
   tool: {
     has: function (n) { return n.type.name === 'clinicalTool'; },
-    node: function () { return window.buildClinicalToolNode('exam-court', 'Examen physique - Version courte'); },
+    node: function () { return window.buildClinicalToolNode('exam-court', L('Examen physique - Version courte')); },
   },
   // Chapitre « Diagnostic /dx » : une région, choisie dans la CIM-10.
   dx: {
     has: function (n) { return n.type.name === 'diagnosticRegion'; },
     node: function () {
       var attrs = window.makeDiagRegionAttrs(
-        { __dx: true, action: 'nouveau', pick: { source: 'cim10', name: 'Infection des voies urinaires, siège non précisé', code: 'N39.0', level: null } },
+        { __dx: true, action: 'nouveau', pick: { source: 'cim10', name: L('Infection des voies urinaires, siège non précisé'), code: 'N39.0', level: null } },
         { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
       return { type: 'diagnosticRegion', attrs: attrs, content: [{ type: 'paragraph' }] };
     },
@@ -325,28 +325,27 @@ function pmOpenQuickSend() {
 // Ajoute une pharmacie puis « Compléter et envoyer », par les boutons mêmes de
 // l'envoi rapide (QuickSendModal.jsx) : c'est le geste du présentateur, joué.
 function pmTransmit() {
+  // Repères data-pm posés par QuickSendModal : le texte change avec la langue.
   function dialog() {
-    var d = document.querySelector('[role="dialog"][aria-modal="true"]');
-    return d && /Envoi rapide/.test(d.innerText) ? d : null;
+    return document.querySelector('[data-pm="quick-send"]');
   }
-  function buttons(d) { return [].slice.call(d.querySelectorAll('button')); }
   function send() {
     var d = dialog();
-    var b = d && buttons(d).filter(function (x) { return /Compléter et envoyer/.test(x.innerText); })[0];
+    var b = d && d.querySelector('[data-pm="send"]');
     if (b && !b.disabled) b.click();
   }
   function run() {
     var d = dialog();
     if (!d) return;
-    if (!/Ajouter un destinataire pour transmettre/.test(d.innerText)) { send(); return; }
-    var add = d.querySelector('button[title="Ajouter un destinataire"]');
+    if (!d.querySelector('[data-pm="need-recipient"]')) { send(); return; }
+    var add = d.querySelector('[data-pm="add-recipient"]');
     if (!add) return;
     add.click();
     setTimeout(function () {
       var dd = dialog();
       if (!dd) return;
-      var row = buttons(dd).filter(function (x) { return /Jean-Coutu/.test(x.innerText); })[0]
-        || buttons(dd).filter(function (x) { return /\d{3} \d{3}-\d{4}/.test(x.innerText); })[0];
+      // Les favorites sont en tête de liste : la première est la pharmacie du présentateur.
+      var row = dd.querySelector('[data-pm="suggestion"][data-favorite]') || dd.querySelector('[data-pm="suggestion"]');
       if (row) row.click();
       setTimeout(send, 200);
     }, 200);
@@ -356,18 +355,18 @@ function pmTransmit() {
 }
 
 const PM_STATES = [
-  { ch: 0, label: 'Écran d’arrivée', has: [] },
-  { ch: 0, label: 'Note ouverte', has: [], open: true },
-  { ch: 1, label: 'Menu « + » ouvert', has: [], open: true, run: function () { pmFire('ct-addmenu-open'); } },
-  { ch: 2, label: 'Outils cliniques ouverts', has: [], open: true, run: function () { pmFire('ct-picker-open'); } },
-  { ch: 2, label: 'Outil ajouté', has: ['tool'], open: true },
-  { ch: 3, label: '« /dx » amorcé', has: ['tool'], open: true, run: function () { pmStartCommand('dx'); } },
-  { ch: 3, label: 'Diagnostic ajouté', has: ['tool', 'dx'], open: true },
-  { ch: 4, label: '« /rx » : menu ouvert', has: ['tool', 'dx'], open: true, run: function () { pmStartCommand('rx'); } },
-  { ch: 4, label: 'Prescription ajoutée', has: PM_ALL, open: true },
-  { ch: 5, label: 'Formulaire complet ouvert', has: PM_ALL, open: true, run: pmOpenRxForm },
-  { ch: 6, label: 'Envoi rapide ouvert', has: PM_ALL, open: true, run: pmOpenQuickSend },
-  { ch: 6, label: 'Ordonnance transmise', has: PM_ALL, open: true, run: pmTransmit },
+  { ch: 0, label: t('presentation.state1.label'), has: [] },
+  { ch: 0, label: t('presentation.state2.label'), has: [], open: true },
+  { ch: 1, label: t('presentation.state3.label'), has: [], open: true, run: function () { pmFire('ct-addmenu-open'); } },
+  { ch: 2, label: t('presentation.state4.label'), has: [], open: true, run: function () { pmFire('ct-picker-open'); } },
+  { ch: 2, label: t('presentation.state5.label'), has: ['tool'], open: true },
+  { ch: 3, label: t('presentation.state6.label'), has: ['tool'], open: true, run: function () { pmStartCommand('dx'); } },
+  { ch: 3, label: t('presentation.state7.label'), has: ['tool', 'dx'], open: true },
+  { ch: 4, label: t('presentation.state8.label'), has: ['tool', 'dx'], open: true, run: function () { pmStartCommand('rx'); } },
+  { ch: 4, label: t('presentation.state9.label'), has: PM_ALL, open: true },
+  { ch: 5, label: t('presentation.state10.label'), has: PM_ALL, open: true, run: pmOpenRxForm },
+  { ch: 6, label: t('presentation.state11.label'), has: PM_ALL, open: true, run: pmOpenQuickSend },
+  { ch: 6, label: t('presentation.state12.label'), has: PM_ALL, open: true, run: pmTransmit },
 ];
 const PM_SENT_STATE = PM_STATES.length - 1;
 
@@ -609,7 +608,7 @@ function PresentationMode({ noteOpen, onOpenNote }) {
     return (
       <div className="pm-show">
         <style>{PM_CSS}</style>
-        <button type="button" className="pm-ib pm-card" aria-label="Afficher le rail de présentation" title="Afficher (Ctrl+Alt+H)"
+        <button type="button" className="pm-ib pm-card" aria-label={t('presentation.showRail.aria')} title={t('presentation.showRail.tooltip')}
           onClick={function () { setHidden(false); }}>
           <span className="material-symbols-outlined" aria-hidden="true">slideshow</span>
         </button>
@@ -623,41 +622,41 @@ function PresentationMode({ noteOpen, onOpenNote }) {
       {ring && <div className="pm-ring" aria-hidden="true" style={{ top: ring.top - 4, left: ring.left - 4, width: ring.width + 8, height: ring.height + 8 }} />}
       {/* mousedown refusé sur les boutons : le curseur reste dans la note, sinon
           cliquer une amorce ferme le menu /rx qu'elle vient d'ouvrir. */}
-      <section className="pm-root" aria-label="Présentation"
+      <section className="pm-root" aria-label={t('presentation.region.aria')}
         onMouseDown={function (e) { if (e.target.closest && e.target.closest('button')) e.preventDefault(); }}>
         {(notesOpen || sayOpen) &&
           <div className="pm-card pm-notes" id="pm-notes">
             {sayOpen &&
               <div id="pm-say">
-                <h4>À dire</h4>
+                <h4>{t('presentation.aDire.heading')}</h4>
                 <ul>{ch.say.map(function (s, i) { return <li key={i}>{s}</li>; })}</ul>
               </div>}
             {notesOpen &&
               <React.Fragment>
                 <div>
-                  <h4>Gestes</h4>
+                  <h4>{t('presentation.gestes.heading')}</h4>
                   <ul>{ch.show.map(function (s, i) { return <li key={i}>{s}</li>; })}</ul>
                 </div>
                 {ch.actions.map(function (a) {
                   return <button key={a.label} type="button" className="pm-act" onClick={function () { runAction(a); }}>{a.label}</button>;
                 })}
-                <span className="pm-hint">Ctrl+Alt+←/→ : {auto ? 'étape' : 'chapitre'} · Ctrl+Alt+H : masquer</span>
+                <span className="pm-hint">{t('presentation.hint.text', { unit: auto ? t('presentation.unitStep.text') : t('presentation.unitChapter.text') })}</span>
               </React.Fragment>}
           </div>}
         <div className="pm-card">
           <div className="pm-bar">
             <div className="pm-title">
               {auto
-                ? <small>Étape {stepIdx + 1} sur {PM_STATES.length} · {PM_STATES[stepIdx].label}</small>
-                : <small>Chapitre {idx + 1} sur {PRESENTATION_CHAPTERS.length}</small>}
+                ? <small>{t('presentation.stepOf.text', { n: stepIdx + 1, total: PM_STATES.length, label: PM_STATES[stepIdx].label })}</small>
+                : <small>{t('presentation.chapterOf.text', { n: idx + 1, total: PRESENTATION_CHAPTERS.length })}</small>}
               <b>{ch.label}</b>
             </div>
-            <button type="button" className="pm-ib" aria-label={auto ? 'Étape précédente' : 'Chapitre précédent'}
+            <button type="button" className="pm-ib" aria-label={auto ? t('presentation.prevStep.aria') : t('presentation.prevChapter.aria')}
               disabled={auto ? stepIdx === 0 : idx === 0}
               onClick={function () { step(-1); }}>
               <span className="material-symbols-outlined" aria-hidden="true">chevron_left</span>
             </button>
-            <button type="button" className="pm-ib" aria-label={auto ? 'Étape suivante' : 'Chapitre suivant'}
+            <button type="button" className="pm-ib" aria-label={auto ? t('presentation.nextStep.aria') : t('presentation.nextChapter.aria')}
               disabled={auto ? stepIdx === lastState : idx === last}
               onClick={function () { step(1); }}>
               <span className="material-symbols-outlined" aria-hidden="true">chevron_right</span>
@@ -668,32 +667,32 @@ function PresentationMode({ noteOpen, onOpenNote }) {
               {PRESENTATION_CHAPTERS.map(function (c, i) {
                 return (
                   <button key={c.id} type="button" role="listitem" className="pm-dot" data-done={i < idx}
-                    aria-current={i === idx ? 'step' : undefined} aria-label={'Chapitre ' + (i + 1) + ' : ' + c.label}
+                    aria-current={i === idx ? 'step' : undefined} aria-label={t('presentation.chapter.aria', { n: i + 1, label: c.label })}
                     title={c.label} onClick={function () { go(i); }} />
                 );
               })}
             </div>
             <button type="button" className="pm-auto" aria-pressed={auto} onClick={toggleAuto}
-              title={auto ? 'Auto activé : précédent / suivant avancent d’une étape' : 'Auto : précédent / suivant avancent d’une étape de la démonstration'}>
+              title={auto ? t('presentation.autoOn.tooltip') : t('presentation.autoOff.tooltip')}>
               Auto
             </button>
             <button type="button" className="pm-ib pm-ib--s" aria-expanded={sayOpen} aria-controls="pm-say"
-              aria-label={sayOpen ? 'Masquer « À dire »' : 'Afficher « À dire »'}
-              title={sayOpen ? 'Masquer « À dire »' : 'Afficher « À dire »'}
+              aria-label={sayOpen ? t('presentation.hideSay.label') : t('presentation.showSay.label')}
+              title={sayOpen ? t('presentation.hideSay.label') : t('presentation.showSay.label')}
               onClick={function () { setSayOpen(function (v) { return !v; }); }}>
               <span className="material-symbols-outlined" aria-hidden="true">{sayOpen ? 'voice_over_off' : 'record_voice_over'}</span>
             </button>
             <button type="button" className="pm-ib pm-ib--s" aria-expanded={notesOpen} aria-controls="pm-notes"
-              aria-label={notesOpen ? 'Masquer les gestes' : 'Afficher les gestes'}
-              title={notesOpen ? 'Masquer les gestes' : 'Afficher les gestes'}
+              aria-label={notesOpen ? t('presentation.hideGestures.label') : t('presentation.showGestures.label')}
+              title={notesOpen ? t('presentation.hideGestures.label') : t('presentation.showGestures.label')}
               onClick={function () { setNotesOpen(function (v) { return !v; }); }}>
               <span className="material-symbols-outlined" aria-hidden="true">{notesOpen ? 'speaker_notes_off' : 'speaker_notes'}</span>
             </button>
-            <button type="button" className="pm-ib pm-ib--s" aria-label="Recommencer la démonstration" title="Recommencer (recharge la page)"
+            <button type="button" className="pm-ib pm-ib--s" aria-label={t('presentation.restart.aria')} title={t('presentation.restart.tooltip')}
               onClick={restart}>
               <span className="material-symbols-outlined" aria-hidden="true">restart_alt</span>
             </button>
-            <button type="button" className="pm-ib pm-ib--s" aria-label="Masquer le rail" title="Masquer (Ctrl+Alt+H)"
+            <button type="button" className="pm-ib pm-ib--s" aria-label={t('presentation.hideRail.aria')} title={t('presentation.hideRail.tooltip')}
               onClick={function () { setHidden(true); }}>
               <span className="material-symbols-outlined" aria-hidden="true">visibility_off</span>
             </button>

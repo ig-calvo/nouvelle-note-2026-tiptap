@@ -10,17 +10,15 @@ function SmartNoteModal({ onCancel, onConfirm }) {
     <div style={snmStyles.overlay} onMouseDown={onCancel}>
       <div style={snmStyles.dialog} onMouseDown={function (e) { e.stopPropagation(); }} role="dialog" aria-modal="true">
         <div style={snmStyles.head}>
-          <span style={snmStyles.title}>Note intelligente</span>
-          <button style={snmStyles.closeBtn} onClick={onCancel} aria-label="Fermer">
+          <span style={snmStyles.title}>{t('smartNote.noteIntelligente.text')}</span>
+          <button style={snmStyles.closeBtn} onClick={onCancel} aria-label={t('smartNote.fermer.aria')}>
             <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent)' }}>close</span>
           </button>
         </div>
-        <p style={snmStyles.body}>
-          La fonctionnalité de «&nbsp;note intelligente&nbsp;» est définitivement rattachée à la note en cours, modifier ce statut supprimera tout le contenu actuel rédigé.
-        </p>
+        <p style={snmStyles.body}>{t('smartNote.fonctionnaliteNoteIntelligenteDefi.text')}</p>
         <div style={snmStyles.actions}>
-          <button style={snmStyles.cancelBtn} onClick={onCancel}>Annuler</button>
-          <button style={snmStyles.confirmBtn} onClick={onConfirm}>Activer la note intelligente</button>
+          <button style={snmStyles.cancelBtn} onClick={onCancel}>{t('smartNote.annuler.button')}</button>
+          <button style={snmStyles.confirmBtn} onClick={onConfirm}>{t('smartNote.activerNoteIntelligente.button')}</button>
         </div>
       </div>
     </div>

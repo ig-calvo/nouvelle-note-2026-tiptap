@@ -13,10 +13,10 @@
 // =========================================================
 
 const TOOLBAR_BLOCK_TYPES = [
-  { label: 'Paragraphe', level: 0, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 400 } },
-  { label: 'Titre 1', level: 1, preview: { fontFamily: "'Inter',sans-serif", fontSize: 16, fontWeight: 600 } },
-  { label: 'Titre 2', level: 2, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 600 } },
-  { label: 'Titre 3', level: 3, preview: { fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 } }
+  { label: t('richText.paragraphe.label'), level: 0, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 400 } },
+  { label: t('richText.titre1.label'), level: 1, preview: { fontFamily: "'Inter',sans-serif", fontSize: 16, fontWeight: 600 } },
+  { label: t('richText.titre2.label'), level: 2, preview: { fontFamily: "'Inter',sans-serif", fontSize: 14, fontWeight: 600 } },
+  { label: t('richText.titre3.label'), level: 3, preview: { fontFamily: "'Inter',sans-serif", fontSize: 12, fontWeight: 600 } }
 ];
 
 const TEXT_COLORS = [
@@ -125,17 +125,17 @@ function ToolbarLinkEditRow({ linkEditor }) {
         ref={inputRef}
         value={linkEditor.url}
         onChange={(e) => linkEditor.setUrl(e.target.value)}
-        placeholder="Lien*"
+        placeholder={t('richText.lien.placeholder')}
         style={tbS.linkInput}
         onKeyDown={(e) => {
           if (e.key === 'Enter') { e.preventDefault(); linkEditor.confirm(); }
           else if (e.key === 'Escape') { e.preventDefault(); linkEditor.cancel(); }
         }} />
-      <button type="button" className="ds-tb-btn" title="Confirmer" aria-label="Confirmer" style={tbS.linkBtn}
+      <button type="button" className="ds-tb-btn" title={t('richText.confirmer.tooltip')} aria-label={t('richText.confirmer.aria')} style={tbS.linkBtn}
         onMouseDown={(e) => { e.preventDefault(); linkEditor.confirm(); }}>
         <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
       </button>
-      <button type="button" className="ds-tb-btn" title="Annuler" aria-label="Annuler" style={tbS.linkBtn}
+      <button type="button" className="ds-tb-btn" title={t('richText.annuler.tooltip')} aria-label={t('richText.annuler.aria')} style={tbS.linkBtn}
         onMouseDown={(e) => { e.preventDefault(); linkEditor.cancel(); }}>
         <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>close</span>
       </button>
@@ -169,7 +169,7 @@ function ToolbarBtn({ icon, title, active, disabled, onCmd, iconStyle, asRow }) 
 
 function ToolbarLinkBtn({ editor, linkEditor, asRow }) {
   return (
-    <ToolbarBtn asRow={asRow} icon="link" title="Lien" active={editor.isActive('link')}
+    <ToolbarBtn asRow={asRow} icon="link" title={t('richText.lien.tooltip')} active={editor.isActive('link')}
       disabled={!linkEditor.canLink} onCmd={linkEditor.start} />
   );
 }
@@ -199,7 +199,7 @@ function ToolbarColorBtn({ icon, title, current, colors, defaultBar, onPick, asR
         <>
           <div style={tbS.menuScrim} onMouseDown={(e) => { e.preventDefault(); setOpen(false); }} />
           <div style={asRow ? { ...tbS.colorMenu, left: '100%', top: 0, marginTop: 0, marginLeft: 8 } : menuStyle(tbS.colorMenu, flip)}>
-            <button type="button" className="ds-tb-swatch" title="Aucune couleur" aria-label="Aucune couleur" style={tbS.swatchBtn}
+            <button type="button" className="ds-tb-swatch" title={t('richText.aucuneCouleur.tooltip')} aria-label={t('richText.aucuneCouleur.aria')} style={tbS.swatchBtn}
               onMouseDown={(e) => { e.preventDefault(); onPick(null); setOpen(false); }}>
               <span style={tbS.swatchNone}>
                 <span className="material-icons-outlined" style={{ fontSize: 13, color: 'var(--mat-sys-on-surface-variant)' }}>block</span>
@@ -273,38 +273,38 @@ function buildToolbarChunks(editor, linkEditor, run, flip) {
   return [
     { key: 'marks', render: (asRow) => (
       <>
-        <ToolbarBtn asRow={asRow} icon="format_bold" title="Gras" active={editor.isActive('bold')} onCmd={() => run((c) => c.toggleBold())} />
-        <ToolbarBtn asRow={asRow} icon="format_italic" title="Italique" active={editor.isActive('italic')} onCmd={() => run((c) => c.toggleItalic())} iconStyle={{ fontStyle: 'italic' }} />
-        <ToolbarBtn asRow={asRow} icon="format_underlined" title="Souligné" active={editor.isActive('underline')} onCmd={() => run((c) => c.toggleUnderline())} />
-        <ToolbarBtn asRow={asRow} icon="strikethrough_s" title="Barré" active={editor.isActive('strike')} onCmd={() => run((c) => c.toggleStrike())} />
+        <ToolbarBtn asRow={asRow} icon="format_bold" title={t('richText.gras.tooltip')} active={editor.isActive('bold')} onCmd={() => run((c) => c.toggleBold())} />
+        <ToolbarBtn asRow={asRow} icon="format_italic" title={t('richText.italique.tooltip')} active={editor.isActive('italic')} onCmd={() => run((c) => c.toggleItalic())} iconStyle={{ fontStyle: 'italic' }} />
+        <ToolbarBtn asRow={asRow} icon="format_underlined" title={t('richText.souligne.tooltip')} active={editor.isActive('underline')} onCmd={() => run((c) => c.toggleUnderline())} />
+        <ToolbarBtn asRow={asRow} icon="strikethrough_s" title={t('richText.barre.tooltip')} active={editor.isActive('strike')} onCmd={() => run((c) => c.toggleStrike())} />
       </>
     ) },
     { key: 'quote', render: (asRow) => (
-      <ToolbarBtn asRow={asRow} icon="format_quote" title="Citation" active={editor.isActive('blockquote')} onCmd={() => run((c) => c.toggleBlockquote())} />
+      <ToolbarBtn asRow={asRow} icon="format_quote" title={t('richText.citation.tooltip')} active={editor.isActive('blockquote')} onCmd={() => run((c) => c.toggleBlockquote())} />
     ) },
     { key: 'link', render: (asRow) => <ToolbarLinkBtn editor={editor} linkEditor={linkEditor} asRow={asRow} /> },
     { key: 'color', render: (asRow) => (
       <>
-        <ToolbarColorBtn asRow={asRow} flip={flip} icon="format_color_text" title="Couleur du texte" current={curColor} colors={TEXT_COLORS}
+        <ToolbarColorBtn asRow={asRow} flip={flip} icon="format_color_text" title={t('richText.couleurTexte.tooltip')} current={curColor} colors={TEXT_COLORS}
           defaultBar="#1f1f1f" onPick={(v) => run((c) => v == null ? c.unsetColor() : c.setColor(v))} />
-        <ToolbarColorBtn asRow={asRow} flip={flip} icon="border_color" title="Surlignage" current={curHighlight} colors={HIGHLIGHT_COLORS}
+        <ToolbarColorBtn asRow={asRow} flip={flip} icon="border_color" title={t('richText.surlignage.tooltip')} current={curHighlight} colors={HIGHLIGHT_COLORS}
           defaultBar="#ffc01f" onPick={(v) => run((c) => v == null ? c.unsetHighlight() : c.toggleHighlight({ color: v }))} />
       </>
     ) },
     { key: 'lists', render: (asRow) => (
       <>
-        <ToolbarBtn asRow={asRow} icon="format_list_bulleted" title="Liste à puces" active={editor.isActive('bulletList')} onCmd={() => run((c) => c.toggleBulletList())} />
-        <ToolbarBtn asRow={asRow} icon="format_list_numbered" title="Liste numérotée" active={editor.isActive('orderedList')} onCmd={() => run((c) => c.toggleOrderedList())} />
+        <ToolbarBtn asRow={asRow} icon="format_list_bulleted" title={t('richText.listePuces.tooltip')} active={editor.isActive('bulletList')} onCmd={() => run((c) => c.toggleBulletList())} />
+        <ToolbarBtn asRow={asRow} icon="format_list_numbered" title={t('richText.listeNumerotee.tooltip')} active={editor.isActive('orderedList')} onCmd={() => run((c) => c.toggleOrderedList())} />
       </>
     ) },
     { key: 'indent', render: (asRow) => (
       <>
-        <ToolbarBtn asRow={asRow} icon="format_indent_decrease" title="Diminuer le retrait" disabled={!editor.can().liftListItem('listItem')} onCmd={() => run((c) => c.liftListItem('listItem'))} />
-        <ToolbarBtn asRow={asRow} icon="format_indent_increase" title="Augmenter le retrait" disabled={!editor.can().sinkListItem('listItem')} onCmd={() => run((c) => c.sinkListItem('listItem'))} />
+        <ToolbarBtn asRow={asRow} icon="format_indent_decrease" title={t('richText.diminuerRetrait.tooltip')} disabled={!editor.can().liftListItem('listItem')} onCmd={() => run((c) => c.liftListItem('listItem'))} />
+        <ToolbarBtn asRow={asRow} icon="format_indent_increase" title={t('richText.augmenterRetrait.tooltip')} disabled={!editor.can().sinkListItem('listItem')} onCmd={() => run((c) => c.sinkListItem('listItem'))} />
       </>
     ) },
     { key: 'clear', render: (asRow) => (
-      <ToolbarBtn asRow={asRow} icon="format_clear" title="Effacer la mise en forme" onCmd={() => run((c) => c.unsetAllMarks().clearNodes())} />
+      <ToolbarBtn asRow={asRow} icon="format_clear" title={t('richText.effacerMiseForme.tooltip')} onCmd={() => run((c) => c.unsetAllMarks().clearNodes())} />
     ) }
   ];
 }
@@ -314,7 +314,7 @@ function ToolbarOverflowMenu({ chunks, flip }) {
   if (!chunks.length) return null;
   return (
     <div style={{ position: 'relative', flexShrink: 0 }}>
-      <button type="button" className={'ds-tb-btn' + (open ? ' is-active' : '')} title="Plus d'options" aria-label="Plus d'options" aria-haspopup="menu" aria-expanded={open} style={{ ...tbS.btn, ...(open ? tbS.btnActive : {}) }}
+      <button type="button" className={'ds-tb-btn' + (open ? ' is-active' : '')} title={t('richText.plusOptions.tooltip')} aria-label={t('richText.plusOptions.aria')} aria-haspopup="menu" aria-expanded={open} style={{ ...tbS.btn, ...(open ? tbS.btnActive : {}) }}
         onMouseDown={(e) => { e.preventDefault(); setOpen((o) => !o); }}>
         <span className="material-icons-outlined" style={{ fontSize: 22 }}>more_horiz</span>
       </button>

@@ -3,6 +3,8 @@
 ## Besoins d'affaires
 - **BA-01** — Aligner la carte « Note Clinique » et sa barre du bas sur les règles du DS3. *Source : Ignacio Calvo, 2026-09-28.* Statut : appliqué.
 
+- **BA-02** — Le prototype doit pouvoir fonctionner en français et en anglais. *Source : Ignacio Calvo, 2026-10-22.* Décisions du 2026-10-22 : anglais canadien ; bascule par rechargement ; toutes les traductions par IA, SNOMED CT (vers le français) et CIM-10 (vers l'anglais) compris ; aucune validation, le prototype doit seulement passer une première vue. Statut : à planifier ; évaluation et plan dans `PLAN-bilingue-fr-en.md` (11,5 à 16 jours-personne pour le prototype complet, 5 à 7 pour la démonstration seule).
+
 ## Règles d'affaires
 - **RA-01** — Le contour d'un champ de formulaire doit atteindre 3:1 (WCAG 1.4.11, TGV) : `--mat-sys-outline` (4,00:1). *Source : README DS3, section Accessibilité.*
 - **RA-02** — Aucune couleur en dur là où un rôle `--mat-sys-*` existe (mode sombre, retinte de marque). *Source : README DS3.*

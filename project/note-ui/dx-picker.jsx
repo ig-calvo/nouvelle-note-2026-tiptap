@@ -27,52 +27,54 @@ function dxNorm(s) {
 function dxCodeKey(s) { return (s || '').toLowerCase().replace(/\./g, ''); }
 
 const DX_COPY = {
-  placeholder: 'Rechercher un diagnostic, un problème, un code CIM-10 ou SNOMED CT…',
+  placeholder: t('dx.copy.placeholder.text'),
   sec: {
-    note: 'Dans cette note',
-    somProblemes: 'Problèmes au sommaire',
-    somAntecedents: 'Antécédents au sommaire',
-    frequents: 'Fréquents',
+    note: t('dx.copy.secNote.text'),
+    somProblemes: t('dx.copy.secSomProblemes.text'),
+    somAntecedents: t('dx.copy.secSomAntecedents.text'),
+    frequents: t('dx.copy.secFrequents.text'),
     cim: 'CIM-10',
-    snomed: 'SNOMED CT (termes en anglais)',
+    snomed: 'SNOMED CT',
     browseRoot: 'CIM-10',
-    plusPrecis: function (code) { return 'Codes plus précis — ' + code; },
-    memeCategorie: function (code) { return 'Même catégorie — ' + code; },
+    plusPrecis: function (code) { return t('dx.copy.plusPrecis.text', { code: code }); },
+    memeCategorie: function (code) { return t('dx.copy.memeCategorie.text', { code: code }); },
     dansGroupe: function (node) {
-      if (node && node.kind === 'block') return 'Dans le bloc ' + node.crumb;
-      return 'Dans le chapitre ' + ((node && node.roman) || '');
-    }
+      if (node && node.kind === 'block') return t('dx.copy.dansBloc.text', { crumb: node.crumb });
+      return t('dx.copy.dansChapitre.text', { roman: (node && node.roman) || '' });
+    },
+    resultats: t('dx.copy.resultats.text')
   },
-  browse: 'Parcourir la CIM-10 par chapitre',
-  loading: 'Chargement de la CIM-10…',
+  browse: t('dx.copy.browse.text'),
+  loading: t('dx.copy.loading.text'),
+  replacesSub: function (name) { return t('dx.copy.replacesSub.text', { name: name }); },
   freeText: {
-    nouveau: function (term) { return { title: 'Nouveau diagnostic : ' + term, sub: 'Texte libre, sans code CIM-10' }; },
-    remplacer: function (term) { return { title: 'Remplacer par : ' + term, sub: null }; },
-    edit: function (term, hadCode) { return { title: 'Renommer : ' + term, sub: hadCode ? 'Le code sera retiré' : null }; }
+    nouveau: function (term) { return { title: t('dx.freeText.new.title', { term: term }), sub: t('dx.copy.freeTextSub.text') }; },
+    remplacer: function (term) { return { title: t('dx.freeText.replace.title', { term: term }), sub: null }; },
+    edit: function (term, hadCode) { return { title: t('dx.freeText.rename.title', { term: term }), sub: hadCode ? 'Le code sera retiré' : null }; }
   },
   banner: {
-    remplacer: function (target) { return 'Remplacer n° ' + target.number + ' « ' + target.name + ' » par…'; },
-    edit: function (region) { return 'Modifier « ' + region.name + ' »'; },
-    refine: function (region) { return 'Préciser « ' + (region.code || region.name) + ' »'; }
+    remplacer: function (target) { return t('dx.banner.replace.text', { number: target.number, name: target.name }); },
+    edit: function (region) { return t('dx.banner.edit.text', { name: region.name }); },
+    refine: function (region) { return t('dx.banner.refine.text', { name: region.code || region.name }); }
   },
   actions: {
-    reprendre: { label: 'Reprendre', title: 'Reprendre ce diagnostic (même numéro)' },
-    remplacer: { label: 'Remplacer', title: 'Remplacer par un autre diagnostic, garde le numéro' },
-    cesser: { label: 'Cesser', title: 'Cesser : passe aux antécédents du sommaire, résolu aujourd’hui' }
+    reprendre: { label: t('dx.action.reprendre.label'), title: t('dx.action.reprendre.title') },
+    remplacer: { label: t('dx.action.remplacer.label'), title: t('dx.action.remplacer.title') },
+    cesser: { label: t('dx.action.cesser.label'), title: t('dx.action.cesser.title') }
   },
   empty: {
-    none: function (term) { return 'Aucun diagnostic trouvé pour « ' + term + ' ».'; },
-    noneHint: '↵ pour l’utiliser en texte libre, ou parcourir la CIM-10.',
-    cim: function (term) { return 'Aucun code CIM-10 pour « ' + term + ' ».'; },
-    browseLeaf: 'Aucun code sous ce niveau.',
-    replace: 'Rechercher le nouveau diagnostic ou parcourir la CIM-10.'
+    none: function (term) { return t('dx.empty.none.text', { term: term }); },
+    noneHint: t('dx.copy.noneHint.text'),
+    cim: function (term) { return t('dx.empty.cim.text', { term: term }); },
+    browseLeaf: t('dx.copy.browseLeaf.text'),
+    replace: t('dx.copy.replace.text')
   },
-  more: function (n) { return '+' + n + ' autres résultats — préciser la recherche ou parcourir la CIM-10.'; },
-  moreSnomed: function (n) { return '+' + n + ' autres résultats SNOMED CT — préciser la recherche.'; },
+  more: function (n) { return t('dx.copy.more.text', { n: n }); },
+  moreSnomed: function (n) { return t('dx.copy.moreSnomed.text', { n: n }); },
   foot: {
-    nav: '↑↓ naviguer · ↵ choisir · → parcourir · ← retour · Échap fermer',
-    note: '↑↓ naviguer · ↵ reprendre · → autres actions · Échap fermer',
-    root: '↑↓ naviguer · ↵ choisir / créer · Échap fermer'
+    nav: t('dx.copy.footNav.text'),
+    note: t('dx.copy.footNote.text'),
+    root: t('dx.copy.footRoot.text')
   }
 };
 
@@ -83,9 +85,9 @@ const DX_COPY = {
 // ---------------------------------------------------------
 function dxTagsFor(target) {
   const tags = [];
-  if (target.status === 'cesse') tags.push({ kind: 'cesse', text: 'Cessé' });
-  else if (target.documentAs === 'probleme') tags.push({ kind: 'probleme', text: 'Problème' });
-  else if (target.documentAs === 'antecedent') tags.push({ kind: 'antecedent', text: 'Antécédent' });
+  if (target.status === 'cesse') tags.push({ kind: 'cesse', text: t('dx.tag.cesse.text') });
+  else if (target.documentAs === 'probleme') tags.push({ kind: 'probleme', text: t('dx.tag.probleme.text') });
+  else if (target.documentAs === 'antecedent') tags.push({ kind: 'antecedent', text: t('dx.tag.antecedent.text') });
   return tags;
 }
 function dxActionsFor(target) {
@@ -105,7 +107,7 @@ function dxThreadItem(t) {
   const target = dxTargetFromThread(t);
   return {
     key: 'note:' + t.dxKey, idx: 0, kind: 'note', label: target.name, code: target.code,
-    lead: String(t.number), sub: target.replaces ? ('remplace : ' + target.replaces.name) : null,
+    lead: String(t.number), sub: target.replaces ? DX_COPY.replacesSub(target.replaces.name) : null,
     tags: dxTagsFor(target), actions: dxActionsFor(target), selectable: true, nav: null, ref: target
   };
 }
@@ -232,7 +234,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     } else {
       const res = cim.search(term, { within: (view.nodeId === 'root' || !view.nodeId) ? null : view.nodeId, maxGroups: 6 });
       const rows = res.rows.filter(function (r) { return r.selectable; });
-      sections.push(dxSec('browse', 'Résultats', rows.map(dxCimItem),
+      sections.push(dxSec('browse', DX_COPY.sec.resultats, rows.map(dxCimItem),
         rows.length ? null : DX_COPY.empty.cim(term), res.moreGroups));
       const fx = intent.kind === 'remplacer' ? 'remplacer' : (intent.kind === 'edit' ? 'edit' : (intent.kind === 'refine' ? 'edit' : 'nouveau'));
       freeText = { name: term, kind: fx, hadCode: (intent.kind === 'edit' || intent.kind === 'refine') ? !!intent.region.code : false };
