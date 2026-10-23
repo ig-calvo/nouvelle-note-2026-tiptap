@@ -64,6 +64,16 @@ test('langue : stockage bloqué (navigation privée) → le prototype démarre q
   assert.equal(win.I18N.lang, 'en');
 });
 
+test('langue : urlFor pose ou remplace ?lang= et garde le reste de l’adresse', () => {
+  const { win } = page();
+  const f = win.I18N.urlFor;
+  assert.equal(f('en', 'http://localhost:8888/Note%20Clinique.html'), 'http://localhost:8888/Note%20Clinique.html?lang=en');
+  assert.equal(f('fr', 'http://localhost:8888/Note%20Clinique.html?lang=en'), 'http://localhost:8888/Note%20Clinique.html?lang=fr');
+  assert.equal(f('en', 'http://x/p.html?presentation&lang=fr#ch=3'), 'http://x/p.html?presentation=&lang=en#ch=3');
+  assert.equal(f('de', 'http://x/p.html?lang=en'), 'http://x/p.html?lang=fr', 'langue inconnue → français');
+  assert.equal(f('EN-CA', 'http://x/p.html'), 'http://x/p.html?lang=en');
+});
+
 test('langue : publie t, tn, L et tk sur window', () => {
   const { win } = page();
   for (const name of ['t', 'tn', 'L', 'tk']) assert.equal(typeof win[name], 'function', name);

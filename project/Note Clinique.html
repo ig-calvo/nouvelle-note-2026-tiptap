@@ -667,6 +667,16 @@ function App() {
         <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
         <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général" />
+        {/* Langue : la page se recharge dans l'autre langue (voir i18n.js, urlFor) ;
+            les réglages ci-dessus survivent au rechargement. Les noms des langues
+            ne se traduisent jamais. */}
+        <TweakRadio label="Langue"
+                    value={window.I18N.lang}
+                    options={[
+                      { value: 'fr', label: 'Français' },
+                      { value: 'en', label: 'English' },
+                    ]}
+                    onChange={(v) => { if (v !== window.I18N.lang) window.location.assign(window.I18N.urlFor(v, window.location.href)); }} />
         <TweakRadio label="Mode"
                     value={t.themeMode || 'clair'}
                     options={[

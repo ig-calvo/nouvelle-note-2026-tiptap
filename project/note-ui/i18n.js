@@ -161,6 +161,14 @@
     dict: function () { return global.I18N_DICT; },
     data: function () { return global.I18N_DATA; }
   });
+  // Adresse de la même page dans une autre langue : `?lang=` posé ou remplacé, le reste
+  // de l'adresse (autres paramètres, #ancre) intact. Un sélecteur de langue n'a plus
+  // qu'à y aller : le choix se mémorise tout seul au chargement (voir plus haut).
+  api.urlFor = function (lang, href) {
+    var url = new URL(href);
+    url.searchParams.set('lang', normalize(lang) || DEFAULT_LANG);
+    return url.toString();
+  };
   api.create = create;
   api.resolveLang = resolveLang;
   api.LOCALES = LOCALES;
