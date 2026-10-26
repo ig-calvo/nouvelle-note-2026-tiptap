@@ -477,6 +477,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     else if (newEntity.type === 'referral' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRefRx(details);
     window.updateChipEntity(editor, chipId, newEntity);
     setInlineEdit(null);
+    setLinkedChipId(null);
   }
 
   // `accept` : ajout en attente vérifié puis accepté depuis ses détails.
@@ -1229,7 +1230,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           fieldRect={inlineEdit.fieldRect}
           entity={inlineEditEntity}
           onSave={saveInlineEdit}
-          onClose={function() { setInlineEdit(null); }} />
+          onClose={function() { setInlineEdit(null); setLinkedChipId(null); }} />
       }
     </div>
   );
