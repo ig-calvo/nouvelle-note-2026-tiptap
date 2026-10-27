@@ -976,15 +976,17 @@ function orderKindForKbd(kbd) {
 // termine à la fermeture du menu (`endOrderSearch`, onExit du plugin « / »).
 let _favFreeze = {};
 // `dx` (attributs du diagnostic sous lequel la recherche est ouverte) : tant
-// que rien n'est tapé, la liste montre seulement le contexte du diagnostic
-// (`contexte`, `contextName`). Au premier caractère, ou sur un filtre du rail
-// /rx, c'est une recherche normale.
+// que rien n'est tapé, la liste montre le contexte du diagnostic (`contexte`,
+// `contextName`) puis, pour /rx, toutes les médications au dossier — souvent
+// on modifie une prescription en maladie chronique plutôt qu'on en crée une
+// (rencontre du 2026-10-27, A1). Au premier caractère, ou sur un filtre du
+// rail /rx, c'est une recherche normale.
 function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
   if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
-    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: [], favoris: [], frequents: [], autres: [] };
+    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
   }
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
   const r = d.search(q, _favFreeze[kind]);

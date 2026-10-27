@@ -37,12 +37,21 @@ test('chaque clé de la table existe au catalogue', () => {
   }));
 });
 
-test('/rx sous un asthme, rien de tapé : seulement le contexte, favoris en tête', () => {
+test('/rx sous un asthme, rien de tapé : le contexte, favoris en tête, puis toutes les médications au dossier', () => {
   const r = D.searchOrder('rx', '', { name: 'Asthme léger', code: 'J45.9' });
   assert.equal(r.contextName, 'Asthme léger');
   assert.deepEqual(keys(r.contexte), ['vento100', 'cat-35', 'cat-37', 'cat-39']);
-  assert.deepEqual([r.profil, r.favoris, r.frequents, r.autres].map((l) => l.length), [0, 0, 0, 0]);
-  assert.deepEqual(keys(w.flattenRxResults(r)), keys(r.contexte), 'la navigation au clavier suit la liste affichée');
+  assert.deepEqual(keys(r.profil), keys(D.searchOrder('rx', '').profil), 'tout le dossier, tous statuts, même sans lien au diagnostic');
+  assert.ok(r.profil.length > 0);
+  D.endOrderSearch();
+  assert.deepEqual([r.favoris, r.frequents, r.autres].map((l) => l.length), [0, 0, 0]);
+  assert.deepEqual(keys(w.flattenRxResults(r)), keys(r.contexte).concat(keys(r.profil)), 'la navigation au clavier suit la liste affichée');
+});
+
+test('/lab sous un asthme : le contexte seul, pas de dossier pharmacologique', () => {
+  const r = D.searchOrder('lab', '', { name: 'Asthme léger', code: 'J45.9' });
+  assert.deepEqual(keys(r.contexte), ['efr']);
+  assert.equal(r.profil.length, 0);
 });
 
 test('taper quitte le contexte : recherche normale', () => {
