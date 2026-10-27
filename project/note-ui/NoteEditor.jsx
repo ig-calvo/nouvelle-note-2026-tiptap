@@ -1008,10 +1008,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             drafts={drafts} />
         </div>}
 
-      {/* Réglage « Suggestions » : la colonne (SuggestionsColumn.jsx), étroite,
-          à droite de la zone d'écriture. */}
-      <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
-      <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
         <FloatField label={t('noteEditor.raisonConsultation.label')} flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { setRaisonActive(true); if (onOpen) onOpen(); }} />
@@ -1068,6 +1064,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {isOpen &&
         <div style={{ marginTop: 20, animation: 'note-expand 300ms ease-in-out' }}>
 
+          {/* Réglage « Suggestions » : la colonne (SuggestionsColumn.jsx),
+              étroite, à côté de la zone d'écriture seulement — sous les champs
+              et l'Assistant IA, à la hauteur de l'éditeur. */}
+          <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
+          <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
+
           {/* Position de la barre (tweak "Position de la barre") : "haut" la
               place avant le cadre de la note (comportement d'origine), "bas"
               la déplace après — le cadre (noteDiv) continue d'entourer
@@ -1094,6 +1096,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div style={neStyles.noteDiv} />
 
           {ftBarStyle === 'haut' && ftBarPosition === 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
+          </div>
+          {suggestionsColumn &&
+            <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
+              startOnly={suggestionsBar} />}
+          </div>
 
           <div className="ct-default-zone">
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -1157,12 +1164,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <ActionLog docJson={docJson} events={actionEvents} editor={editorInstance} />
         </div>
       }
-      </div>
-      {suggestionsColumn &&
-        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
-          startOnly={suggestionsBar} />}
       {suggestionsBar && <window.SuggestionBar editor={editorInstance} />}
-      </div>
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,
           jamais réaffiché ensuite (il n'y en a qu'un par note). */}
@@ -1853,7 +1855,7 @@ const neStyles = {
   // dessous — repris de la maquette Figma (« redaction » y démarre par cette
   // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
   withSuggestions: { display: 'flex', gap: 'var(--ds-spacing-m)', alignItems: 'flex-start' },
-  writingZone: { flex: '2 1 0', minWidth: 0 },
+  writingZone: { flex: '1 1 0', minWidth: 0 },
   noteDiv: { height: 1, background: 'var(--mat-sys-outline-variant)', margin: 'var(--ds-spacing-12) 0' },
   topRow: { display: 'flex', alignItems: 'flex-start', gap: 'var(--ds-spacing-12)', marginBottom: 'var(--ds-spacing-s)' },
   titleRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xxs)' },
