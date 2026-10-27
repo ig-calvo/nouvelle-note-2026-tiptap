@@ -699,6 +699,141 @@ const ORDER_DEFS = {
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
 };
 
+// Table d'intention thérapeutique (rencontre vision 2026-10-27) : ce qu'une
+// recherche ouverte SOUS un diagnostic montre avant toute frappe — « comme une
+// recherche par défaut » sur le diagnostic. Simule la table d'intention que
+// le produit exposerait dans l'index. Items du catalogue seulement ; contenu
+// SIMULÉ, à valider cliniquement. Clés : cat-35 Fluticasone/salmétérol,
+// cat-37 Montélukast, cat-38 Cétirizine, cat-39 Prednisone, cat-40
+// Acétaminophène, cat-41 Ibuprofène, cat-44 Nitrofurantoïne, cat-45
+// TMP-SMX, cat-46 Fosfomycine, cat-48 Amoxicilline-clavulanate.
+// `cim10` : préfixes de code ; `snomed` : codes exacts ; `words` : mots du
+// libellé (les deux langues), pour un diagnostic saisi en texte libre.
+// `conclusion` : gabarit de conclusion Omnimed du diagnostic — des lignes de
+// texte et des ajouts proposés ({ kind, key, details? }, comme `proposals`
+// dans NOTE_TEMPLATES), appliqués EN ATTENTE sous le diagnostic
+// (buildConclusionBlocks, editor-schema.jsx). `mine` : le gabarit que le
+// médecin s'est fait pour ce diagnostic, même forme (simulé).
+const DX_CONTEXTS = [
+  { key: 'itu', cim10: ['N30', 'N39.0'], snomed: ['68566005', '38822007'],
+    words: ['infection urinaire', 'cystite', 'itu', 'urinary tract infection', 'cystitis', 'uti'],
+    rx: ['cat-44', 'cat-46', 'cat-45'], lab: ['srum'], img: [],
+    conclusion: { name: L('Infection urinaire non compliquée'),
+      content: L('Plan : antibiothérapie 5 jours, hydratation.\nConsulter si fièvre ou douleur lombaire.'),
+      proposals: [{ kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } }, { kind: 'lab', key: 'srum' }] },
+    mine: { name: L('Cystite — dose unique'),
+      content: L('Plan : fosfomycine dose unique, culture d’urine.\nRevoir si symptômes persistent après 72 h.'),
+      proposals: [{ kind: 'rx', key: 'cat-46' }, { kind: 'lab', key: 'srum' }] } },
+  { key: 'asthme', cim10: ['J45', 'J46'], snomed: ['195967001'],
+    words: ['asthme', 'asthma'],
+    rx: ['vento100', 'cat-35', 'cat-37', 'cat-39'], lab: [], img: ['rxpoumon'],
+    conclusion: { name: L('Asthme léger'),
+      content: L('Plan : bronchodilatateur au besoin, revoir la technique d’inhalation.\nPlan d’action écrit remis.'),
+      proposals: [{ kind: 'rx', key: 'vento100' }] },
+    mine: { name: L('Asthme — palier 2'),
+      content: L('Plan : corticostéroïde inhalé quotidien, bronchodilatateur au besoin.\nRéévaluation du contrôle dans 3 mois.'),
+      proposals: [{ kind: 'rx', key: 'vento100' }, { kind: 'rx', key: 'cat-35' }] } },
+  { key: 'pneumonie', cim10: ['J12', 'J13', 'J14', 'J15', 'J16', 'J17', 'J18'], snomed: ['233604007'],
+    words: ['pneumonie', 'pneumonia'],
+    rx: ['amox500', 'cat-48', 'cat-40'], lab: ['fsc'], img: ['rxpoumon'],
+    conclusion: { name: L('Pneumonie (suspicion)'),
+      content: L('Plan : radiographie pulmonaire, antibiothérapie.\nRevoir dans 48 à 72 h.'),
+      proposals: [{ kind: 'img', key: 'rxpoumon' }, { kind: 'lab', key: 'fsc' }, { kind: 'rx', key: 'cat-48', details: { frequency: '' } }] } },
+  { key: 'otite', cim10: ['H65', 'H66'], snomed: ['65363002'],
+    words: ['otite', 'otitis'],
+    rx: ['amox500', 'cat-48', 'cat-40', 'cat-41'], lab: [], img: [],
+    conclusion: { name: L('Otite moyenne aiguë'),
+      content: L('Plan : analgésie, antibiothérapie.\nRevoir si pas d’amélioration en 48 h.'),
+      proposals: [{ kind: 'rx', key: 'amox500' }, { kind: 'rx', key: 'cat-40' }] } },
+  { key: 'ivrs', cim10: ['J00', 'J01', 'J02', 'J03', 'J04', 'J05', 'J06', 'J10', 'J11'], snomed: [],
+    words: ['ivrs', 'syndrome viral', 'rhume', 'grippe', 'common cold', 'viral syndrome', 'influenza', 'uri'],
+    rx: ['cat-40', 'cat-41', 'cat-38'], lab: [], img: [],
+    conclusion: { name: L('Syndrome viral / IVRS'),
+      content: L('Plan : traitement symptomatique, hydratation, repos.\nConsulter si dyspnée ou fièvre au-delà de 5 jours.'),
+      proposals: [{ kind: 'rx', key: 'cat-40' }] } },
+];
+
+// Attributs d'un diagnostic (name, code) → son contexte, ou null. Le code
+// l'emporte ; sinon un mot entier du libellé, dans l'une ou l'autre langue.
+function dxContextFor(dx) {
+  if (!dx) return null;
+  const code = String(dx.code || '').toUpperCase();
+  const byCode = code && DX_CONTEXTS.find(function (c) {
+    return c.snomed.indexOf(code) >= 0 || c.cim10.some(function (p) { return code === p || code.indexOf(p + '.') === 0 || (p.indexOf('.') > 0 && code.indexOf(p) === 0); });
+  });
+  if (byCode) return byCode;
+  const hay = ' ' + _hay(dx.name || '').replace(/[^a-z0-9]+/g, ' ') + ' ';
+  return DX_CONTEXTS.find(function (c) {
+    return c.words.some(function (w) { return hay.indexOf(' ' + _norm(w) + ' ') >= 0; });
+  }) || null;
+}
+
+// Date d'une note antérieure sans l'heure, en minuscules dans la langue de
+// l'interface : « 8 DÉCEMBRE 2025 09:15 » → « 8 décembre 2025 » ;
+// « DECEMBER 8, 2025 9:15 AM » → « December 8, 2025 ».
+function noteDayLabel(date) {
+  const day = (date || '').replace(/\s+\d{1,2}:\d{2}(\s*[AP]M)?\s*$/i, '').toLowerCase();
+  return window.I18N.lang === 'fr' ? day : day.replace(/^[a-z]/, function (c) { return c.toUpperCase(); });
+}
+
+// Gabarits de conclusion offerts sous un diagnostic, dans l'ordre de la
+// rencontre vision (2026-10-27) : réutiliser la dernière conclusion, mon
+// gabarit, le gabarit Omnimed. Chaque option : { id, kind, name, content,
+// proposals, source, date?, author? } ; `source` signe ses ajouts en attente.
+// « Dernière conclusion » : seulement si le problème est au dossier
+// (`ctx.sommaire`, lignes de getSommaireDiagnostics) ET qu'une note
+// antérieure (`ctx.notes`, la plus récente d'abord) le conclut — son texte et
+// ses ajouts réutilisables (`reuse`).
+function dxConclusionOptions(dx, ctx) {
+  const c = dxContextFor(dx);
+  if (!c) return [];
+  const same = function (other) { const o = dxContextFor(other); return !!o && o.key === c.key; };
+  const out = [];
+  const inChart = ((ctx && ctx.sommaire) || []).some(same);
+  const note = inChart && ((ctx && ctx.notes) || []).find(function (n) {
+    return n.conclusion && (n.diagnostics || []).some(function (name) { return same({ name: name }); });
+  });
+  if (note) {
+    const date = noteDayLabel(note.date);
+    out.push({ id: 'last', kind: 'last', name: t('suggest.derniereConclusion.title'), date: date, author: note.author,
+      content: note.conclusion, proposals: note.reuse || [], source: t('template.lastConclusion.label', { date: date }) });
+  }
+  if (c.mine) out.push(Object.assign({ id: 'mine', kind: 'mine', source: t('template.source.label', { name: c.mine.name }) }, c.mine));
+  if (c.conclusion) out.push(Object.assign({ id: 'omnimed', kind: 'omnimed', source: t('template.source.label', { name: c.conclusion.name }) }, c.conclusion));
+  return out;
+}
+
+// Gabarit de note sans son outil clinique (réglage « Outils cliniques »
+// désactivé — rencontre vision 2026-10-27 : « 80 % des outils cliniques, ce
+// sont des requêtes ») : ses requêtes `toolRequests` sont proposées à la fin
+// de sa dernière section, comme ses autres ajouts.
+function templateWithoutTool(tpl) {
+  if (!tpl || !tpl.tool) return tpl;
+  const sections = (tpl.sections || []).map(function (s, i, all) {
+    return i === all.length - 1 ? Object.assign({}, s, { proposals: (s.proposals || []).concat(tpl.toolRequests || []) }) : s;
+  });
+  return Object.assign({}, tpl, { tool: null, sections: sections });
+}
+
+// Résultats d'une recherche `kind` en contexte d'un diagnostic, favoris en
+// tête. /req réunit labo et imagerie, chacun avec son `orderKind`.
+function contextResultsFor(dx, kind) {
+  const c = dxContextFor(dx);
+  if (!c) return [];
+  const pick = function (k) {
+    const d = ORDER_DEFS[k];
+    return (c[k] || []).map(function (key) { return d.items().find(function (it) { return it.key === key; }); }).filter(Boolean);
+  };
+  if (kind === 'req') {
+    return pick('lab').map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); })
+      .concat(pick('img').map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); }));
+  }
+  if (!ORDER_DEFS[kind] || !c[kind]) return [];
+  const favs = ORDER_DEFS[kind].favs;
+  const list = pick(kind);
+  return list.filter(function (it) { return favs.has(it.key); }).concat(list.filter(function (it) { return !favs.has(it.key); }));
+}
+
 // Éléments structurés que l'Assistant IA propose pour la transcription
 // d'exemple (AIBox.jsx : brûlures mictionnelles, bandelette positive) — tweak
 // « IA : éléments structurés proposés ». Items du catalogue seulement ;
@@ -835,9 +970,17 @@ function orderKindForKbd(kbd) {
 // lit toujours les favoris à jour (`ORDER_DEFS[kind].favs`). La session se
 // termine à la fermeture du menu (`endOrderSearch`, onExit du plugin « / »).
 let _favFreeze = {};
-function searchOrder(kind, q) {
+// `dx` (attributs du diagnostic sous lequel la recherche est ouverte) : tant
+// que rien n'est tapé, la liste montre seulement le contexte du diagnostic
+// (`contexte`, `contextName`). Au premier caractère, ou sur un filtre du rail
+// /rx, c'est une recherche normale.
+function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
+  if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
+    const ctx = contextResultsFor(dx, kind);
+    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: [], favoris: [], frequents: [], autres: [] };
+  }
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
   const r = d.search(q, _favFreeze[kind]);
   return kind === 'rx' ? applyRxFilter(r, _rxFilter) : r;
@@ -885,6 +1028,7 @@ const SLASH_ITEMS = [
   { key: 'tpl-virus', section: L('Gabarits de note'), icon: 'coronavirus', title: L('Syndrome viral / IVRS'), desc: L('Histoire, examen, conclusion'), kbd: 'virus',
     hideWhenEmpty: true, noteTemplate: 'virus' },
   { key: 'tpl-itu', section: L('Gabarits de note'), icon: 'medical_information', title: L('Infection urinaire'), desc: L('Structure + outil clinique ITU'), kbd: 'itu',
+    descNoTool: L('Structure + analyse d’urine proposée'),
     hideWhenEmpty: true, noteTemplate: 'itu' },
   { key: 'tpl-periodique', section: L('Gabarits de note'), icon: 'event_repeat', title: L('Examen périodique'), desc: L('Antécédents, examen, conclusion'), kbd: 'periodique',
     hideWhenEmpty: true, noteTemplate: 'periodique' },
@@ -957,6 +1101,7 @@ const NOTE_TEMPLATES = [
       { title: t('sections.conclusion.heading'), content: L('Impression : \nPlan : ') },
     ],
     tool: 'itu',
+    toolRequests: [{ kind: 'lab', key: 'srum' }],
   },
   {
     key: 'periodique', name: L('Examen périodique'),
@@ -1057,8 +1202,28 @@ const SCENARIOS = [
     hint: L('Cliquez sur un chip pour modifier les détails.') },
 ];
 
+// Gabarits de note suggérés selon la raison de consultation (colonne de
+// suggestions, rencontre vision 2026-10-27) : mots de la raison, dans les deux
+// langues, qui appellent chaque gabarit. Au plus `max` gabarits, dans l'ordre
+// de NOTE_TEMPLATES. Contenu SIMULÉ, à valider.
+const TEMPLATE_REASON_WORDS = {
+  virus: ['rhume', 'toux', 'fievre', 'gorge', 'congestion', 'ivrs', 'grippe', 'viral', 'cold', 'cough', 'fever', 'throat', 'flu'],
+  itu: ['urinaire', 'urinaires', 'urine', 'brulure', 'brulures', 'mictionnelle', 'mictionnelles', 'dysurie', 'cystite', 'urinary', 'burning', 'dysuria', 'cystitis'],
+  periodique: ['periodique', 'annuel', 'bilan', 'periodic', 'annual', 'checkup', 'physical'],
+  otite: ['oreille', 'otalgie', 'otite', 'ear', 'earache', 'otalgia', 'otitis'],
+  pneumonie: ['toux', 'fievre', 'dyspnee', 'pneumonie', 'cough', 'fever', 'dyspnea', 'pneumonia'],
+};
+function templatesForReason(text, max) {
+  const words = ' ' + _hay(text || '').replace(/[^a-z0-9]+/g, ' ') + ' ';
+  if (!words.trim()) return [];
+  return NOTE_TEMPLATES.filter(function (tpl) {
+    return (TEMPLATE_REASON_WORDS[tpl.key] || []).some(function (w) { return words.indexOf(' ' + w + ' ') >= 0; });
+  }).slice(0, max || 3);
+}
+
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchRequests, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS };
+  LAB_PROFILES, searchRequests, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason,
+  dxConclusionOptions, noteDayLabel, templateWithoutTool };

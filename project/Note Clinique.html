@@ -329,6 +329,7 @@
     'note-ui/QuickSendModal.jsx',
     'note-ui/rich-text-controls.jsx',
     'note-ui/ActionLog.jsx',
+    'note-ui/SuggestionsColumn.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
     'note-ui/SmartNoteModal.jsx',
@@ -390,6 +391,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "inlineFieldEdit": true,
   "aiProposals": false,
   "summaryAddToNote": false,
+  "suggestionsColumn": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -614,7 +616,8 @@ function App() {
               groupRequests={t.groupRequests === true}
               inlineFieldEdit={t.inlineFieldEdit !== false}
               pendingBadge={t.pendingBadge !== false}
-              aiProposals={t.aiProposals === true} />
+              aiProposals={t.aiProposals === true}
+              suggestionsColumn={t.suggestionsColumn === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -708,7 +711,7 @@ function App() {
                     ]}
                     onChange={(v) => setTweak('ftBarPosition', v)} />
         <TweakSection label="Checkout" />
-        <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
+        <TweakToggle label="Suggestions de destinataires (✨)" value={t.checkoutSuggestions === true}
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
         <TweakRadio label="Checkout des requêtes"
                     value={t.groupRequests === true ? 'type' : 'puce'}
@@ -733,6 +736,8 @@ function App() {
         <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
                      onChange={(v) => setTweak('pendingBadge', v)} />
         <TweakSection label="Pistes (vision)" />
+        <TweakToggle label="Colonne de suggestions" value={t.suggestionsColumn === true}
+                     onChange={(v) => setTweak('suggestionsColumn', v)} />
         <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
                      onChange={(v) => setTweak('aiProposals', v)} />
         <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}

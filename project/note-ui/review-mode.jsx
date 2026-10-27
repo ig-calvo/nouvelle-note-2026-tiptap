@@ -478,7 +478,8 @@ function pendingSummaryText(summary) {
 }
 
 function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {
-  const who = summary.sources.length === 1 ? summary.sources[0] : 'Gabarit';
+  // Plusieurs sources (gabarit de note, dernière conclusion…) : un libellé commun.
+  const who = summary.sources.length === 1 ? summary.sources[0] : t('review.plusieursSources.text');
   return (
     <div style={rvwS.pendingBar} role="region" aria-label={t('review.ajoutsAttente.aria')}>
       <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>playlist_add_check</span>

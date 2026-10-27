@@ -2049,6 +2049,9 @@ function filterSlashItems(query) {
   // n'existe (voir window.__HAS_DIAGNOSTICS, posé par syncDiagnosticRefs
   // dans editor-field.jsx à chaque transaction).
   if (!window.__HAS_DIAGNOSTICS) items = items.filter(function (it) { return !it.diagRefPicker; });
+  // Sans outils cliniques, un gabarit qui en ajoutait un se décrit par ce
+  // qu'il propose à la place (templateWithoutTool, editor-data.jsx).
+  if (window.__SHOW_CLINICAL_TOOLS === false) items = items.map(function (it) { return it.descNoTool ? Object.assign({}, it, { desc: it.descNoTool }) : it; });
   if (!t) return items.filter(function (it) { return !it.hideWhenEmpty; });
   return items.filter(function (it) { return it.title.toLowerCase().includes(t) || window.I18N.other(it.title).toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
 }
@@ -2069,7 +2072,19 @@ function parseSlashQuery(query) {
 // Aplatit {profil?, favoris, frequents, autres} dans l'ordre de rendu de
 // RxMenu — sert de liste unique pour la navigation clavier (↑↓/Entrée).
 function flattenRxResults(r) {
-  return (r.profil || []).concat(r.favoris || [], r.frequents || [], r.autres || []);
+  return (r.contexte || []).concat(r.profil || [], r.favoris || [], r.frequents || [], r.autres || []);
+}
+
+// Attributs de la région de diagnostic qui contient le curseur, ou null —
+// une ligne sous un diagnostic est un paragraphe DE sa région. Sert à ouvrir
+// une recherche (/rx, /lab, /img, /req) dans le contexte de ce diagnostic.
+function dxRegionAtSelection(state) {
+  const $from = state && state.selection && state.selection.$from;
+  if (!$from) return null;
+  for (let d = $from.depth; d > 0; d--) {
+    if ($from.node(d).type.name === 'diagnosticRegion') return $from.node(d).attrs;
+  }
+  return null;
 }
 
 // ---------------------------------------------------------
@@ -2089,7 +2104,7 @@ function buildSlashExtension(handlers) {
           decorationClass: 'slash-pending',
           items: function (props) {
             const parsed = parseSlashQuery(props.query);
-            if (parsed.mode === 'order') return flattenRxResults(window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim()));
+            if (parsed.mode === 'order') return flattenRxResults(window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim(), dxRegionAtSelection(props.editor && props.editor.state)));
             // Mode dx : le modèle affiché/navigué vient de dxBuildModel, construit
             // une seule fois par le contrôleur (editor-field.jsx) — items() ne sert
             // qu'à activer/désactiver la navigation clavier interne du plugin
@@ -2636,7 +2651,7 @@ function buildRequestChips(items, kind) {
 // Auteur des marques « insertion » posées sur le texte d'un gabarit quand il
 // est proposé (tweak « Gabarit : texte proposé ») — même mécanisme que le
 // texte de l'Assistant IA (markBlocksAsInsertion, review-mode.jsx).
-const TEMPLATE_AUTHOR = { id: 'gabarit', name: 'Gabarit' };
+const TEMPLATE_AUTHOR = { id: 'gabarit', name: t('template.author.name') };
 
 // { kind: 'rx'|'lab'|'img'|'ref', key, details? } → node chip en attente, ou
 // null si l'item n'existe pas au catalogue. `details` remplace des champs de
@@ -2689,6 +2704,28 @@ function buildTemplateBlocks(tpl, opts) {
     }
     blocks = blocks.concat(sec);
   });
+  return blocks;
+}
+
+// Option de gabarit de conclusion (dxConclusionOptions, editor-data.jsx :
+// dernière conclusion, mon gabarit, gabarit Omnimed) → paragraphes à placer
+// DANS la région du diagnostic (qui n'accepte que des paragraphes). Comme
+// buildTemplateBlocks : les ajouts proposés arrivent en attente, signés par
+// `opt.source`, sur une ligne à eux ; opts.proposeText met aussi le texte en
+// suggestion.
+function buildConclusionBlocks(opt, opts) {
+  if (!opt) return [];
+  const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
+  let blocks = (opt.content || '').split('\n').map(function (line) {
+    return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
+  });
+  if (proposeText) blocks = blocks.map(function (b) { return b.content ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
+  const nodes = (opt.proposals || []).map(function (p) { return buildPendingChipNode(p, opt.source); }).filter(Boolean);
+  if (nodes.length) {
+    const inline = [];
+    nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });
+    blocks.push({ type: 'paragraph', content: inline });
+  }
   return blocks;
 }
 
@@ -2831,6 +2868,7 @@ Object.assign(window, {
   buildRequestChips,
   buildPendingChipNode,
   buildTemplateBlocks,
+  buildConclusionBlocks,
   acceptPendingChip,
   rejectPendingChip,
   pendingSummary,
@@ -2850,6 +2888,7 @@ Object.assign(window, {
   filterSlashItems,
   parseSlashQuery,
   flattenRxResults,
+  dxRegionAtSelection,
   buildSlashExtension,
   DEFAULT_DOC,
   scanDoc,

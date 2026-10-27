@@ -29,6 +29,7 @@ const PRESENTATION_TWEAKS = {
   templateTextProposed: false,
   aiProposals: false,
   summaryAddToNote: false,
+  suggestionsColumn: false,
   inlineFieldEdit: true,
   formOpenMode: 'auto',
   themeMode: 'clair',

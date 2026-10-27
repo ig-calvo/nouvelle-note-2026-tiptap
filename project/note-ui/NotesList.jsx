@@ -51,6 +51,22 @@ const NOTE_ITEMS_TEMPLATE = [
     ],
   },
   {
+    date: L("12 MARS 2026 14:20"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Suivi asthme"),
+    icons: [],
+    diagnostics: [L("Asthme léger")],
+    details: L("Motif : Suivi d'asthme.\nSubjectif : Ventolin 1 à 2 fois par semaine, aucun réveil nocturne, aucune visite à l'urgence.\nObjectif : Auscultation pulmonaire normale. Débit de pointe à 92 % de la valeur prédite."),
+    conclusion: L("Impression : Asthme léger bien contrôlé.\nPlan : Poursuivre Ventolin au besoin. Technique d'inhalation revue. Réévaluation dans 6 mois."),
+    // Ajouts que « Réutiliser ma dernière conclusion » propose (colonne de
+    // suggestions, dxConclusionOptions) : ce que la conclusion prescrivait.
+    reuse: [{ kind: 'rx', key: 'vento100' }],
+    files: [],
+  },
+  {
     date: L("8 DÉCEMBRE 2025 09:15"),
     author: "Dr Marc Lefebvre",
     clinic: "%%CLINIC%%",
@@ -61,6 +77,7 @@ const NOTE_ITEMS_TEMPLATE = [
     diagnostics: [L("Cystite aiguë non compliquée")],
     details: L("Motif : Brûlures mictionnelles depuis 3 jours.\nSubjectif : Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Pas enceinte.\nObjectif : Apyrétique. Abdomen souple, sensibilité sus-pubienne légère. Loges rénales indolores. Bandelette urinaire : Leu+++, Nit+, Sang trace."),
     conclusion: L("Impression : Cystite aiguë non compliquée.\nPlan : Nitrofurantoïne 100 mg BID × 5 jours. Culture d'urine envoyée. Conseils d'hydratation. Retour si fièvre, douleur lombaire ou non-amélioration après 48h."),
+    reuse: [{ kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } }, { kind: 'lab', key: 'srum' }],
     files: [
       { name: L("Bandelette urinaire.jpg"), size: "200KB" },
       { name: L("Culture d'urine.pdf"), size: "220KB" },
@@ -83,6 +100,10 @@ const NOTE_ITEMS_TEMPLATE = [
     ],
   },
 ];
+
+// Notes antérieures lues par la colonne de suggestions (« Réutiliser ma
+// dernière conclusion », dxConclusionOptions) — la plus récente d'abord.
+window.PAST_NOTES = NOTE_ITEMS_TEMPLATE;
 
 // Chip en lecture (note complétée, liste des notes) : son texte seulement,
 // comme à l'impression — ni pastille, ni icône, ni état (chipPrintText,

@@ -390,7 +390,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const parsed = parseSlashQuery(query);
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
-        const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
+        // Ouverte sous un diagnostic, sans rien de tapé : la liste en contexte
+        // de ce diagnostic (searchOrder) ; le rail de filtres se cache alors.
+        const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim(), window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
+        const inContext = !!(results.contexte && results.contexte.length);
         // La liste navigable est la liste affichée (le filtre du rail la change sans
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
@@ -398,7 +401,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         setSlash({ mode: 'order', kind: parsed.kind,
           filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
           railFocus: parsed.kind === 'rx' && railFocus,
-          counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }

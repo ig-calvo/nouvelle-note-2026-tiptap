@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true }) {
+  aiProposals = false, pendingBadge = true, suggestionsColumn = false }) {
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
@@ -150,12 +150,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [tags, setTags] = React.useState([]);
 
   const [raison, setRaison] = React.useState('');
+  // Colonne de suggestions : vrai quand le dernier point actif est la raison
+  // de consultation (le curseur de la note reprend la main dès qu'elle a le focus).
+  const [raisonActive, setRaisonActive] = React.useState(false);
   const noteCardRef = React.useRef(null);
 
   function handleEditorReady(editor) {
     editorRef.current = editor;
     setEditorInstance(editor);
   }
+  React.useEffect(function() {
+    if (!editorInstance) return undefined;
+    function onFocus() { setRaisonActive(false); }
+    editorInstance.on('focus', onFocus);
+    return function() { editorInstance.off('focus', onFocus); };
+  }, [editorInstance]);
 
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
@@ -279,6 +288,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
+      // Sans outils cliniques, le gabarit propose ses requêtes à la place.
+      if (window.__SHOW_CLINICAL_TOOLS === false) tpl = window.NOTE_DATA.templateWithoutTool(tpl);
       var blocks = window.buildTemplateBlocks(tpl, { proposeText: templateTextProposedRef.current });
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', t('noteEditor.ituRoadmap.text')));
       if (editorRef.current) {
@@ -298,7 +309,26 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       if (onOpen) onOpen();
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
-    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
+    // Gabarit de conclusion d'un diagnostic (colonne de suggestions) : ses
+    // lignes et ses ajouts, en attente, à la fin de la région du diagnostic —
+    // à la place de son dernier paragraphe s'il est vide. `optionId` : une
+    // option de dxConclusionOptions (dernière conclusion, mon gabarit, Omnimed).
+    function onApplyDxTemplate(e) {
+      var editor = editorRef.current, id = e.detail && e.detail.regionId, optionId = e.detail && e.detail.optionId;
+      if (!editor || !id) return;
+      var found = null;
+      editor.state.doc.forEach(function(node, offset) { if (!found && node.type.name === 'diagnosticRegion' && node.attrs.id === id) found = { pos: offset, node: node }; });
+      if (!found) return;
+      var opt = window.NOTE_DATA.dxConclusionOptions(found.node.attrs, window.dxConclusionContext()).find(function(o) { return o.id === optionId; });
+      var blocks = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
+      if (!blocks.length) return;
+      var end = found.pos + found.node.nodeSize - 1;
+      var last = found.node.lastChild;
+      var range = last && last.content.size === 0 ? { from: end - last.nodeSize, to: end } : end;
+      editor.chain().focus().insertContentAt(range, blocks).run();
+    }
+    window.addEventListener('note:apply-dx-template', onApplyDxTemplate);
+    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); };
   }, []);
 
   // « + » Problèmes / Antécédents / Médications du Sommaire (tweak, piste de
@@ -927,9 +957,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             drafts={drafts} />
         </div>}
 
+      {/* Réglage « Colonne de suggestions » : la zone d'écriture aux deux
+          tiers, la colonne (SuggestionsColumn.jsx) au tiers droit. */}
+      <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
+      <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
-        <FloatField label={t('noteEditor.raisonConsultation.label')} flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
+        <FloatField label={t('noteEditor.raisonConsultation.label')} flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { setRaisonActive(true); if (onOpen) onOpen(); }} />
         {/* Date, heure et type restent groupés : quand la carte est trop étroite
             (≈ 760 px dans l'app), le groupe passe sous la raison de consultation
             au lieu d'écraser le sélecteur de type. */}
@@ -1072,6 +1106,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <ActionLog docJson={docJson} events={actionEvents} editor={editorInstance} />
         </div>
       }
+      </div>
+      {suggestionsColumn &&
+        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} />}
+      </div>
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,
           jamais réaffiché ensuite (il n'y en a qu'un par note). */}
@@ -1761,6 +1799,8 @@ const neStyles = {
   // Cadre le corps éditable de la note (NoteBody) — un trait au-dessus, un en
   // dessous — repris de la maquette Figma (« redaction » y démarre par cette
   // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
+  withSuggestions: { display: 'flex', gap: 'var(--ds-spacing-m)', alignItems: 'flex-start' },
+  writingZone: { flex: '2 1 0', minWidth: 0 },
   noteDiv: { height: 1, background: 'var(--mat-sys-outline-variant)', margin: 'var(--ds-spacing-12) 0' },
   topRow: { display: 'flex', alignItems: 'flex-start', gap: 'var(--ds-spacing-12)', marginBottom: 'var(--ds-spacing-s)' },
   titleRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xxs)' },

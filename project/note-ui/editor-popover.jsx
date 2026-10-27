@@ -844,12 +844,16 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const d = def || window.NOTE_DATA.ORDER_DEFS.rx;
   const favSet = d.favs;
   const profil = results.profil || [];
+  const contexte = results.contexte || [];
   const sections = [];
+  // Ouverte sous un diagnostic : une seule section, titrée par le diagnostic
+  // (searchOrder) — taper remplace la liste par une recherche normale.
+  if (contexte.length) sections.push([t('popover.contextFor.text', { name: results.contextName || '' }), contexte]);
   if (profil.length) sections.push([t('popover.chartMedications.text'), profil]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = profil.length + results.favoris.length + results.frequents.length + results.autres.length;
+  const total = contexte.length + profil.length + results.favoris.length + results.frequents.length + results.autres.length;
   // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
   const railOn = kind === 'rx' && !!counts;
   let flat = -1;
