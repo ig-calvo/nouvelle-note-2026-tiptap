@@ -721,6 +721,8 @@ html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { 
 .chip--rx .chip-rx-glyph:hover { opacity: 0.75; }
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
+.chip--exam .chip-rx-glyph { color: light-dark(#b04a6f, #e6a3bc); }
+.chip--serv .chip-rx-glyph { color: light-dark(#3d7f8f, #9fd0db); }
 
 /* Ajout en attente (proposé par un gabarit, pas encore accepté) : même chip,
    contour en tirets + fond teinté, rien de cliquable sauf ✓ (accepter) et
@@ -829,6 +831,9 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-med-btn--stop:hover { background: rgba(211,47,47,0.10); color: light-dark(#d32f2f, #e9a5a5); }
 .rx-empty { padding: 18px 16px; font-size: 13px; color: var(--fg-3); }
 .rx-menu__foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 12px; font-size: 10px; color: var(--fg-3); border-top: 1px solid var(--border-subtle); background: var(--bg-subtle); }
+.rx-mode { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px 1px 6px; border-radius: 999px; font-weight: 600; color: var(--mat-sys-on-surface-variant); background: var(--mat-sys-surface-container-high); white-space: nowrap; }
+.rx-mode .material-symbols-outlined { font-size: 13px; }
+.rx-mode--multi { color: var(--mat-sys-on-primary-container); background: var(--mat-sys-primary-container); }
 .rx-menu__foot kbd { font-family: var(--font-mono); font-size: 9px; background: var(--surface-2); border: 1px solid var(--border-subtle); padding: 1px 4px; border-radius: 3px; color: var(--fg-2); font-weight: 600; }
 
 /* Dx picker dropdown (commande /dx) — dx-picker.jsx (modèle) + DiagnosticDropdown/

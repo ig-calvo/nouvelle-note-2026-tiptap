@@ -42,7 +42,9 @@ function buildChipDom(data, existingEl) {
 //                checkout : icône noire sur fond blanc (hypothèse, Q-36)
 // Les types qui produisent un document au checkout sont ceux de
 // buildTransmissionDocs.
-const CHECKOUT_CHIP_TYPES = ['prescription', 'lab', 'imaging', 'referral', 'instructions'];
+const CHECKOUT_CHIP_TYPES = ['prescription', 'lab', 'imaging', 'referral', 'exam', 'service', 'instructions'];
+// Glyphe d'une puce de requête, selon sa recherche (`rx.kind`).
+const CHIP_KIND_GLYPH = { lab: 'science', img: 'radiology', ref: 'person_add', exam: 'monitor_heart', serv: 'medical_services' };
 function chipDestination(a) {
   if (!a) return 'dossier';
   if (a.pending) return 'suggestion';
@@ -243,6 +245,12 @@ function chipPrintText(a) {
   } else if (a.type === 'referral') {
     main = t('schema.referenceMain.text', { name: window.NOTE_DATA.valueLabel(d.specialty) || rx.name || a.label });
     second = window.NOTE_DATA.valueLabel(d.priority) || '';
+  } else if (a.type === 'exam') {
+    main = d.exam || rx.name || a.label;
+    second = window.NOTE_DATA.valueLabel(d.priority) || '';
+  } else if (a.type === 'service') {
+    main = d.service || rx.name || a.label;
+    second = join([d.frequency, window.NOTE_DATA.valueLabel(d.priority)], ', ');
   } else if (a.type === 'medication') {
     main = join([rx.name, rx.dose], ' ');
     second = join([rx.sig, window.NOTE_DATA && window.NOTE_DATA.medStatusText ? window.NOTE_DATA.medStatusText(rx) : ''], ', ');
@@ -307,7 +315,7 @@ function buildDraftChipDom(data, existingEl) {
     ic.textContent = '℞';
   } else {
     ic.className = 'material-symbols-outlined chip-rx-glyph';
-    ic.textContent = kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark';
+    ic.textContent = CHIP_KIND_GLYPH[kind] || 'bookmark';
   }
   ic.setAttribute('aria-hidden', 'true');
   node.appendChild(ic);
@@ -481,7 +489,7 @@ function buildChipDomBase(data, existingEl) {
       ic.className = 'material-symbols-outlined chip-rx-glyph';
       ic.setAttribute('data-action', 'modal');
       ic.setAttribute('title', t('schema.modifierDetails.tooltip'));
-      ic.textContent = kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark';
+      ic.textContent = CHIP_KIND_GLYPH[kind] || 'bookmark';
     }
     node.appendChild(ic);
     if (kind === 'rx') {
@@ -2120,7 +2128,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref|exam|serv|ant)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -2284,7 +2292,7 @@ const ACTION_LOG_META = {
 // chip.attrs.type → clé du journal — seuls les types réellement produits par
 // un chip dans ce prototype sont mappés ('problem' n'a pas de flux de
 // création dédié, il reste hors journal pour l'instant).
-const CHIP_TYPE_TO_LOG = { prescription: 'prescriptions', medication: 'inscriptionMedication', lab: 'requetes', imaging: 'requetes', referral: 'requetes', instructions: 'consignes', file: 'fichier' };
+const CHIP_TYPE_TO_LOG = { prescription: 'prescriptions', medication: 'inscriptionMedication', lab: 'requetes', imaging: 'requetes', referral: 'requetes', exam: 'requetes', service: 'requetes', instructions: 'consignes', file: 'fichier' };
 
 // Reprend exactement l'icône (et sa couleur, voir chip--rx/lab/img/ref et
 // .chip .chip-icon dans editor.css) que ce chip affiche déjà dans le corps
@@ -2296,7 +2304,7 @@ function chipLogIcon(node) {
     const kind = node.attrs.rx.kind || 'rx';
     if (kind === 'rx') return { isRx: true };
     return {
-      icon: kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : kind === 'med' ? 'medication' : 'bookmark',
+      icon: kind === 'med' ? 'medication' : (CHIP_KIND_GLYPH[kind] || 'bookmark'),
       colorClass: 'action-log__icon--' + kind
     };
   }
@@ -2427,6 +2435,12 @@ function buildTransmissionDocs(docStats, txState, opts) {
     } else if (t === 'referral') {
       label = window.NOTE_DATA.valueLabel(d.specialty) || ent.label;
       sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');
+    } else if (t === 'exam') {
+      label = d.exam || ent.label;
+      sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');
+    } else if (t === 'service') {
+      label = d.service || ent.label;
+      sub = [d.frequency, window.NOTE_DATA.valueLabel(d.priority)].filter(Boolean).join(' · ');
     } else if (t === 'instructions') {
       label = d.title || ent.label || window.t('schema.patientInstructions.text');
     }
@@ -2498,7 +2512,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
     var its = ents.filter(function(e) { return e.entity.type === g[0]; }).map(mkItem);
     if (its.length) docs.push(withTx(g[0], g[0], g[1], its));
   });
-  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'instructions'].indexOf(e.entity.type) >= 0 && grouped.indexOf(e.entity.type) < 0; })
+  ents.filter(function(e) { return ['lab', 'imaging', 'referral', 'exam', 'service', 'instructions'].indexOf(e.entity.type) >= 0 && grouped.indexOf(e.entity.type) < 0; })
     .forEach(function(e) {
       var item = mkItem(e);
       docs.push(withTx(e.cid, e.entity.type, item.label, [item]));
@@ -2747,6 +2761,20 @@ function buildPendingChipNode(proposal, source) {
 // section — donc inline, à la suite du texte (« Plan : » + ordonnance).
 // opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
 // en suggestion, à accepter ou refuser (D-03, tout le gabarit).
+// Antécédents choisis dans /ant → régions de diagnostic documentées comme
+// antécédents (comme depuis le « + » Antécédents du Sommaire), une par
+// choix, un paragraphe de corps vide chacune pour le commentaire.
+function buildAntecedentRegions(items, opts) {
+  const now = (opts && opts.now) || new Date().toISOString();
+  const author = (opts && opts.author) || null;
+  return (items || []).map(function (it) {
+    const attrs = window.makeDiagRegionAttrs({ action: 'nouveau', pick: { source: 'cim10', name: it.name, code: it.code } },
+      { id: window.newDiagId(), now: now, author: author });
+    return { type: 'diagnosticRegion', attrs: Object.assign(attrs, { documentAs: 'antecedent', documentedAt: now, documentedBy: author }),
+      content: [{ type: 'paragraph' }] };
+  });
+}
+
 // Ligne à compléter (état 1) pour un ajout de gabarit : la fonction et le
 // terme seulement, sans item choisi (buildDraftChipDom). Un profil se
 // cherche dans /lab. Mêmes ajouts que buildPendingChipNode.
@@ -2984,6 +3012,7 @@ Object.assign(window, {
   buildPendingChipNode,
   buildDraftChipNode,
   buildTemplateChipNode,
+  buildAntecedentRegions,
   buildTemplateBlocks,
   buildConclusionBlocks,
   buildVisitStartDoc,

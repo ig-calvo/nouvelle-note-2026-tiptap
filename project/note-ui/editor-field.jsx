@@ -171,6 +171,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
     const kind = props.kind, item = props.item, action = props.action;
+    // /ant : des antécédents, pas des puces — une région de diagnostic
+    // documentée comme antécédent par choix.
+    if (kind === 'ant') { runAntecedentsCommand(editor, range, props.items || (item ? [item] : [])); return; }
     // Plusieurs résultats cochés ou un profil : une puce labo pour toutes les
     // analyses (buildRequestChips, editor-schema.jsx).
     if (props.items || (item && item.profile)) {
@@ -219,6 +222,29 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
     ]).run();
+  }
+
+  // « /ant … » → les antécédents choisis, en régions de diagnostic, à la place
+  // de la ligne de la commande (ou juste après le diagnostic où elle est
+  // tapée : une région ne se loge pas dans une autre). Curseur dans la
+  // dernière, pour son commentaire.
+  function runAntecedentsCommand(editor, range, items) {
+    const regions = window.buildAntecedentRegions(items, { author: window.__CURRENT_AUTHOR || null });
+    if (!regions.length) return;
+    const $from = editor.state.doc.resolve(range.from);
+    const whole = $from.parent.type.name === 'paragraph' && $from.start() === range.from && $from.end() === range.to;
+    if ($from.depth >= 2 && $from.node(1).type.name === 'diagnosticRegion') {
+      const after = $from.after(1) - (range.to - range.from);
+      editor.chain().focus().deleteRange(range).insertContentAt(after, regions).run();
+    } else {
+      editor.chain().focus().insertContentAt(whole ? { from: $from.before(), to: $from.after() } : range, regions).run();
+    }
+    const lastId = regions[regions.length - 1].attrs.id;
+    let regionPos = null;
+    editor.state.doc.descendants(function (node, pos) {
+      if (node.type.name === 'diagnosticRegion' && node.attrs.id === lastId) { regionPos = pos; return false; }
+    });
+    if (regionPos != null) editor.chain().setTextSelection(regionPos + 2).run();
   }
 
   // Crée (bientôt aussi : Reprend/Remplace/Cesse — dx-picker.jsx) une région

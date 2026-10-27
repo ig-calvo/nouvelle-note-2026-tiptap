@@ -79,3 +79,40 @@ test('la puce garde le nom du profil d’origine, pour le rappel dans le formula
   assert.equal(w.buildRequestChips([prof('prof-anemie')], 'lab')[0].details.profile, w.TR('Bilan anémie'));
   assert.equal(w.buildRequestChips([lab('fsc')], 'lab')[0].details.profile, undefined);
 });
+
+// Examen diagnostique (/exam) et services (/serv), rencontre du 2026-10-27 (C2) :
+// des requêtes en sélection unique, chacune un document au checkout.
+test('/exam et /serv : recherches en sélection unique, une puce « à envoyer », un document au checkout chacune', () => {
+  assert.deepEqual(w.parseSlashQuery('exam hol'), { mode: 'order', kind: 'exam', term: 'hol' });
+  assert.deepEqual(w.parseSlashQuery('serv pans'), { mode: 'order', kind: 'serv', term: 'pans' });
+  assert.ok(!D.ORDER_DEFS.exam.multi && !D.ORDER_DEFS.serv.multi);
+  assert.deepEqual(D.searchOrder('exam', '').favoris.map((it) => it.key), ['ecg', 'holter']);
+  D.endOrderSearch();
+  assert.ok(D.searchOrder('serv', 'point').frequents.some((it) => it.key === 'points'));
+  D.endOrderSearch();
+  const exam = w.orderChipAttrs('exam', D.ORDER_DEFS.exam.items().find((it) => it.key === 'holter'));
+  const serv = w.orderChipAttrs('serv', D.ORDER_DEFS.serv.items().find((it) => it.key === 'pansement'));
+  assert.deepEqual([exam.type, exam.rx.kind, serv.type, serv.rx.kind], ['exam', 'exam', 'service', 'serv']);
+  assert.equal(w.chipDestination(exam), 'a-envoyer');
+  const d = doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [{ type: 'chip', attrs: exam }, { type: 'text', text: ' ' }, { type: 'chip', attrs: serv }] });
+  const docs = w.buildTransmissionDocs(w.scanDoc(d), {});
+  assert.deepEqual(docs.map((x) => [x.kind, x.title]), [['exam', w.TR('Holter 24 h')], ['service', w.TR('Soins de plaie et pansement')]]);
+  assert.equal(w.chipPrintText(exam), w.TR('Holter 24 h') + ' — Routine');
+});
+
+// Antécédents (/ant), rencontre du 2026-10-27 (C5) : sélection multiple des
+// plus fréquents ; chacun devient un diagnostic documenté comme antécédent.
+test('/ant : plusieurs antécédents cochés → une région de diagnostic documentée comme antécédent par choix', () => {
+  assert.deepEqual(w.parseSlashQuery('ant hyp'), { mode: 'order', kind: 'ant', term: 'hyp' });
+  assert.ok(D.ORDER_DEFS.ant.multi);
+  assert.ok(D.SLASH_ITEMS.some((it) => it.kbd === 'ant'));
+  const all = D.searchOrder('ant', '');
+  assert.ok(all.frequents.length >= 8);
+  D.endOrderSearch();
+  const picks = ['hta', 'asthme'].map((k) => D.ORDER_DEFS.ant.items().find((it) => it.key === k));
+  const regions = w.buildAntecedentRegions(picks, { now: '2026-10-27T10:00:00Z', author: 'Dr X' });
+  assert.deepEqual(regions.map((r) => [r.type, r.attrs.code, r.attrs.documentAs, r.attrs.documentedBy]),
+    [['diagnosticRegion', 'I10', 'antecedent', 'Dr X'], ['diagnosticRegion', 'J45.9', 'antecedent', 'Dr X']]);
+  assert.notEqual(regions[0].attrs.id, regions[1].attrs.id);
+  assert.deepEqual(regions[0].content, [{ type: 'paragraph' }]);
+});
