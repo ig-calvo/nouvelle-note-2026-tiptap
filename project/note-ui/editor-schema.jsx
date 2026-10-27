@@ -2059,7 +2059,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref|req)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -2069,15 +2069,16 @@ function parseSlashQuery(query) {
   return { mode: 'menu' };
 }
 
-// Aplatit {profil?, favoris, frequents, autres} dans l'ordre de rendu de
-// RxMenu — sert de liste unique pour la navigation clavier (↑↓/Entrée).
+// Aplatit {contexte?, profil?, profiles?, favoris, frequents, autres} dans
+// l'ordre de rendu de RxMenu — sert de liste unique pour la navigation
+// clavier (↑↓/Entrée).
 function flattenRxResults(r) {
-  return (r.contexte || []).concat(r.profil || [], r.favoris || [], r.frequents || [], r.autres || []);
+  return (r.contexte || []).concat(r.profil || [], r.profiles || [], r.favoris || [], r.frequents || [], r.autres || []);
 }
 
 // Attributs de la région de diagnostic qui contient le curseur, ou null —
 // une ligne sous un diagnostic est un paragraphe DE sa région. Sert à ouvrir
-// une recherche (/rx, /lab, /img, /req) dans le contexte de ce diagnostic.
+// une recherche (/rx, /lab, /img) dans le contexte de ce diagnostic.
 function dxRegionAtSelection(state) {
   const $from = state && state.selection && state.selection.$from;
   if (!$from) return null;

@@ -124,14 +124,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
     const kind = props.kind, item = props.item, action = props.action;
-    // Plusieurs résultats cochés, un profil, ou la recherche unifiée /req :
-    // une puce labo pour les analyses, une puce par examen d'imagerie
-    // (buildRequestChips, editor-schema.jsx).
-    if (props.items || kind === 'req' || (item && item.profile)) {
+    // Plusieurs résultats cochés ou un profil : une puce labo pour toutes les
+    // analyses (buildRequestChips, editor-schema.jsx).
+    if (props.items || (item && item.profile)) {
       const list = props.items || (item ? [item] : []);
       const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
       const nodes = [];
-      window.buildRequestChips(list, kind === 'req' ? null : kind).forEach(function (a) {
+      window.buildRequestChips(list, kind).forEach(function (a) {
         nodes.push({ type: 'chip', attrs: Object.assign(a, stamp) }, { type: 'text', text: ' ' });
       });
       if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
@@ -313,7 +312,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // piège de searchDx, deux appels indépendants).
     let dxState = null, dxModel = null, dxSelfRewrite = false;
     // Sélection multiple des recherches de requêtes (ORDER_DEFS[kind].multi :
-    // /req, /lab, /img) : items cochés, gardés quand la recherche change,
+    // /lab) : items cochés, gardés quand la recherche change,
     // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
     let checked = [];
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).

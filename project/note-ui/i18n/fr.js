@@ -1013,8 +1013,6 @@
   'data.sectionImgFrequent.title': 'Examens fréquemment demandés',
   'data.sectionImgOther.title': 'Autres examens',
   'data.sectionProfiles.title': 'Profils',
-  'data.sectionLab.title': 'Laboratoire',
-  'data.sectionImaging.title': 'Imagerie',
   'data.sectionRefFrequent.title': 'Spécialités fréquentes',
   'data.sectionRefOther.title': 'Autres spécialités',
   'data.profileSig.text': { one: 'Profil · {n} analyse : {tests}', other: 'Profil · {n} analyses : {tests}' },
