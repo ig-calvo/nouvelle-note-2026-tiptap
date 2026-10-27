@@ -159,7 +159,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Gabarit de début appliqué : ses diagnostics suggérés suivent dans les
   // suggestions (flux de Sacha, SuggestionsColumn.jsx).
   const [appliedTemplate, setAppliedTemplate] = React.useState(null);
-  const suggestionsColumn = suggestionsPlacement === 'colonne';
+  // Réglage « Suggestions » : colonne, barre en ligne (« curseur »), ou les deux.
+  const suggestionsColumn = suggestionsPlacement === 'colonne' || suggestionsPlacement === 'les-deux';
+  const suggestionsBar = suggestionsPlacement === 'curseur' || suggestionsPlacement === 'les-deux';
   const noteCardRef = React.useRef(null);
 
   function handleEditorReady(editor) {
@@ -1000,8 +1002,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             drafts={drafts} />
         </div>}
 
-      {/* Réglage « Colonne de suggestions » : la zone d'écriture aux deux
-          tiers, la colonne (SuggestionsColumn.jsx) au tiers droit. */}
+      {/* Réglage « Suggestions » : la colonne (SuggestionsColumn.jsx), étroite,
+          à droite de la zone d'écriture. */}
       <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
       <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
       {/* Fields */}
@@ -1151,10 +1153,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       }
       </div>
       {suggestionsColumn &&
-        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate} />}
-      {suggestionsPlacement === 'curseur' &&
-        <window.SuggestionsColumn placement="curseur" editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
-          raisonAnchor={function() { return noteCardRef.current && noteCardRef.current.querySelector('input'); }} />}
+        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
+          startOnly={suggestionsBar} />}
+      {suggestionsBar && <window.SuggestionBar editor={editorInstance} />}
       </div>
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,

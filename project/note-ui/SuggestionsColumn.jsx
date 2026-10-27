@@ -1,10 +1,17 @@
 /* global React */
 // =========================================================
-// SuggestionsColumn.jsx — suggestions qui suivent le point actif de la note
-// (rencontre vision 2026-10-27, réglage « Suggestions ») : en colonne à
-// droite de la zone d'écriture, au tiers de la largeur de la note, ou près
-// du curseur (une pastille qui ouvre la même liste). Elles suivent le point actif
-// et ne montre que ses suggestions, jamais toutes à la fois :
+// SuggestionsColumn.jsx — suggestions de la note (rencontre vision
+// 2026-10-27, réglage « Suggestions »), en deux formats :
+//   - SuggestionsColumn : une colonne étroite et repliable à droite de la
+//     zone d'écriture. Elle part d'une page blanche (raison de consultation,
+//     gabarits de base). Seule, elle suit aussi le curseur dans un diagnostic ;
+//     avec la barre (« Les deux »), elle ne garde que la page blanche.
+//   - SuggestionBar : une barre en ligne, sous la ligne du curseur, qui part
+//     du curseur, après chaque fonction ajoutée (rencontre du 2026-10-27,
+//     lot 2 ; forme reprise du mode « En ligne (au curseur) » du proto de
+//     suggestions de Vanessa Bois). Elle propose la suite (nextStepSuggestions).
+// La colonne suit le point actif et ne montre que ses suggestions, jamais
+// toutes à la fois :
 //   - raison de consultation, ou détails hors diagnostic → gabarits de note
 //     selon la raison (templatesForReason), puis les diagnostics que suggère
 //     le gabarit (flux de Sacha, note:add-suggested-dx, NoteEditor.jsx) ;
@@ -74,35 +81,24 @@ function scDiagnosesIn(doc) {
   return out;
 }
 
-// placement : 'colonne' (au tiers droit de la note) ou 'curseur' (une
-// pastille au bout de la ligne active, qui ouvre la même liste — rien ne
-// s'affiche tant que le médecin ne l'ouvre pas). appliedTemplate : clé du
-// gabarit de début appliqué, dont les diagnostics suggérés suivent (flux de
-// Sacha). raisonAnchor() : le champ de la raison de consultation.
-function SuggestionsColumn({ editor, raison, raisonActive, placement = 'colonne', appliedTemplate, raisonAnchor }) {
+// startOnly : avec la barre en ligne (« Les deux »), la colonne ne sert que
+// la page blanche — la barre prend le relais dans un diagnostic.
+// appliedTemplate : clé du gabarit de début appliqué, dont les diagnostics
+// suggérés suivent (flux de Sacha).
+function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, appliedTemplate }) {
   // Re-rendu à chaque déplacement du curseur ou changement du document.
   const [, refresh] = React.useReducer(function (x) { return x + 1; }, 0);
-  const [open, setOpen] = React.useState(false);
+  // Repliée : un rail de 48 px avec l'icône et le nombre de suggestions.
+  const [collapsed, setCollapsed] = React.useState(false);
   React.useEffect(function () {
     if (!editor) return undefined;
     editor.on('selectionUpdate', refresh);
     editor.on('update', refresh);
     return function () { editor.off('selectionUpdate', refresh); editor.off('update', refresh); };
   }, [editor]);
-  // Près du curseur : la pastille suit la page quand elle défile.
-  React.useEffect(function () {
-    if (placement !== 'curseur') return undefined;
-    window.addEventListener('scroll', refresh, true);
-    window.addEventListener('resize', refresh);
-    return function () { window.removeEventListener('scroll', refresh, true); window.removeEventListener('resize', refresh); };
-  }, [placement]);
 
-  const region = !raisonActive && editor ? window.dxRegionAtSelection(editor.state) : null;
+  const region = !raisonActive && !startOnly && editor ? window.dxRegionAtSelection(editor.state) : null;
   const point = raisonActive ? 'raison' : (region ? 'dx' : (editor && editor.isFocused ? 'note' : 'raison'));
-  const pointKey = point + ':' + (region ? region.id : '');
-  // La liste près du curseur se referme quand le point actif change.
-  const lastPoint = React.useRef(pointKey);
-  if (lastPoint.current !== pointKey) { lastPoint.current = pointKey; if (open) setOpen(false); }
 
   // Ajoute la puce sous le diagnostic : dans son dernier paragraphe s'il est
   // vide, sinon dans un nouveau paragraphe à la fin de la région.
@@ -187,7 +183,7 @@ function SuggestionsColumn({ editor, raison, raisonActive, placement = 'colonne'
     const dxTaken = function (d) { return inNote.some(function (a) { return (a.code && a.code === d.code) || a.name === d.name; }); };
     count = tpls.length + dxs.filter(function (d) { return !dxTaken(d); }).length;
     body = (tpls.length === 0 && dxs.length === 0)
-      ? <p style={scS.hint}>{(raison || '').trim() ? t('suggest.aucunGabarit.text') : t('suggest.ecrireRaison.text')}</p>
+      ? <p style={scS.hint}>{(raison || '').trim() ? t('suggest.aucunGabarit.text') : (startOnly ? t('suggest.ecrireRaisonSeule.text') : t('suggest.ecrireRaison.text'))}</p>
       : (
         <React.Fragment>
           {tpls.length > 0 && <div style={scS.group}>{t('suggest.gabarits.title')}</div>}
@@ -213,46 +209,26 @@ function SuggestionsColumn({ editor, raison, raisonActive, placement = 'colonne'
       {t('suggest.pour.text', { name: context })}
     </div>;
 
-  if (placement === 'curseur') {
-    // Ancre : la ligne du curseur dans la note, sinon le champ de la raison.
-    if (count === 0) return null;
-    let anchor = null;
-    if (point !== 'raison' && editor && editor.view) {
-      const c = editor.view.coordsAtPos(editor.state.selection.from);
-      const r = editor.view.dom.getBoundingClientRect();
-      anchor = { top: c.top, bottom: c.bottom, right: r.right };
-    } else {
-      const el = raisonAnchor && raisonAnchor();
-      if (el) { const r = el.getBoundingClientRect(); anchor = { top: r.top + (r.height - 28) / 2, bottom: r.bottom, right: r.right - 8 }; }
-    }
-    if (!anchor) return null;
-    const right = Math.max(8, window.innerWidth - anchor.right);
-    // Pastille compacte (icône + nombre) pour couvrir le moins possible la
-    // ligne ; le texte complet est dans l'infobulle et le nom accessible.
-    const label = context ? tn('suggest.pastilleDx.text', count, { name: context }) : tn('suggest.pastille.text', count);
+  if (collapsed) {
     return (
-      <React.Fragment>
-        <button type="button" style={Object.assign({}, scS.pill, { top: anchor.top - 2, right: right })} onMouseDown={keepFocus}
-          aria-expanded={open} aria-label={label} title={label}
-          onClick={function () { setOpen(function (o) { return !o; }); }}>
-          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 16 }}>tips_and_updates</span>
-          <span aria-hidden="true">{count}</span>
+      <aside style={Object.assign({}, scS.col, scS.colCollapsed)} aria-label={t('suggest.colonne.aria')}>
+        <button type="button" style={scS.railBtn} onMouseDown={keepFocus} onClick={function () { setCollapsed(false); }}
+          aria-expanded="false" aria-label={t('suggest.deplier.aria', { n: count })} title={t('suggest.deplier.aria', { n: count })}>
+          <span className="material-icons-outlined" aria-hidden="true" style={scS.headIcon}>tips_and_updates</span>
+          {count > 0 && <span style={scS.railCount} aria-hidden="true">{count}</span>}
         </button>
-        {open &&
-          <div role="dialog" aria-label={t('suggest.colonne.aria')} style={Object.assign({}, scS.pop, { top: anchor.bottom + 6, right: right })}
-            onKeyDown={function (e) { if (e.key === 'Escape') setOpen(false); }}>
-            {contextLine}
-            {body}
-          </div>}
-      </React.Fragment>
+      </aside>
     );
   }
-
   return (
     <aside style={scS.col} aria-label={t('suggest.colonne.aria')}>
       <div style={scS.head}>
         <span className="material-icons-outlined" aria-hidden="true" style={scS.headIcon}>tips_and_updates</span>
-        {t('suggest.colonne.title')}
+        <span style={{ flex: 1 }}>{t('suggest.colonne.title')}</span>
+        <button type="button" style={scS.collapseBtn} onMouseDown={keepFocus} onClick={function () { setCollapsed(true); }}
+          aria-expanded="true" aria-label={t('suggest.replier.aria')} title={t('suggest.replier.aria')}>
+          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 20 }}>last_page</span>
+        </button>
       </div>
       {contextLine}
       {body}
@@ -261,13 +237,18 @@ function SuggestionsColumn({ editor, raison, raisonActive, placement = 'colonne'
 }
 
 const scS = {
+  // 260 px : moins large que le Sommaire (300 px), qu'on élargira un jour.
   col: {
-    flex: '1 1 0', minWidth: 0, position: 'sticky', top: 0, alignSelf: 'flex-start',
+    width: 260, flexShrink: 0, boxSizing: 'border-box', position: 'sticky', top: 0, alignSelf: 'flex-start',
     display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xxs)',
     padding: 'var(--ds-spacing-12)', borderRadius: 'var(--mat-sys-corner-medium)',
     background: 'var(--mat-sys-surface-container-low)', border: '1px solid var(--mat-sys-outline-variant)',
   },
   head: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', font: 'var(--mat-sys-title-small)', color: 'var(--mat-sys-on-surface)', marginBottom: 'var(--ds-spacing-xxs)' },
+  colCollapsed: { width: 48, padding: 'var(--ds-spacing-xxs)', alignItems: 'center' },
+  collapseBtn: { width: 32, height: 32, border: 0, borderRadius: 'var(--mat-sys-corner-small)', background: 'transparent', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' },
+  railBtn: { width: 40, minHeight: 48, border: 0, borderRadius: 'var(--mat-sys-corner-small)', background: 'transparent', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 },
+  railCount: { font: 'var(--mat-sys-label-medium)', color: 'var(--mat-sys-primary)' },
   headIcon: { fontSize: 20, color: 'var(--mat-sys-primary)' },
   context: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)', font: 'var(--mat-sys-label-large)', color: 'var(--mat-sys-on-surface)', padding: 'var(--ds-spacing-xxs) 0' },
   contextIcon: { fontSize: 18, color: 'var(--mat-sys-on-surface-variant)' },
@@ -284,18 +265,239 @@ const scS = {
   rowTitle: { font: 'var(--mat-sys-body-medium)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   rowDesc: { font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   rowAction: { fontSize: 20, color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
-  pill: {
-    position: 'fixed', zIndex: 40, display: 'inline-flex', alignItems: 'center', gap: 4, height: 28, padding: '0 10px',
-    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 999, cursor: 'pointer',
-    background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-primary)', font: 'var(--mat-sys-label-medium)',
-    boxShadow: 'var(--mat-sys-level1)', whiteSpace: 'nowrap',
-  },
-  pop: {
-    position: 'fixed', zIndex: 41, width: 320, maxHeight: '60vh', overflowY: 'auto', boxSizing: 'border-box',
-    display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xxs)', padding: 'var(--ds-spacing-12)',
-    borderRadius: 'var(--mat-sys-corner-medium)', background: 'var(--mat-sys-surface-container-low)',
+  // Barre en ligne (SuggestionBar) : capsule sous la ligne du curseur.
+  bar: {
+    position: 'fixed', zIndex: 41, display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xxs)', boxSizing: 'border-box',
+    padding: '4px 6px', borderRadius: 999, background: 'var(--mat-sys-surface-container-lowest)',
     border: '1px solid var(--mat-sys-outline-variant)', boxShadow: 'var(--mat-sys-level2)',
   },
+  barSpark: { fontSize: 16, color: 'var(--mat-sys-primary)', margin: '0 2px 0 4px', flexShrink: 0 },
+  barPill: {
+    display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 28, maxWidth: 240, padding: '0 10px', border: 0, borderRadius: 999,
+    background: 'var(--mat-sys-surface-container)', color: 'var(--mat-sys-on-surface)', font: 'var(--mat-sys-label-large)',
+    cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flexShrink: 1, minWidth: 0,
+  },
+  barPillAll: { background: 'var(--mat-sys-primary-container)', color: 'var(--mat-sys-on-primary-container)', flexShrink: 0 },
+  barPillIcon: { fontSize: 16, color: 'var(--mat-sys-primary)', flexShrink: 0 },
+  barPillText: { overflow: 'hidden', textOverflow: 'ellipsis' },
+  barNum: { font: '600 10px var(--font-body)', color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
+  barKbd: { font: '600 10px var(--font-body)', padding: '1px 5px', borderRadius: 4, border: '1px solid var(--mat-sys-outline-variant)', color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
+  barClose: { width: 24, height: 24, border: 0, borderRadius: '50%', background: 'transparent', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 };
 
 window.SuggestionsColumn = SuggestionsColumn;
+
+// ---------------------------------------------------------------------------
+// SuggestionBar — la suite après chaque fonction ajoutée (rencontre du
+// 2026-10-27 : « à chaque fonction », après l'ajout). La dernière fonction
+// ajoutée (un diagnostic, ou une puce qui n'est pas en attente) ouvre la
+// barre ; elle reste tant que le curseur est dans son diagnostic (ou sur sa
+// ligne, hors diagnostic), et se ferme par ✕ ou Échap jusqu'à la fonction
+// suivante. Au plus 3 pastilles, plus « Tout » quand au moins 2
+// prescriptions ou requêtes sont suggérées.
+// Clavier : Tab entre dans la barre ; ← → passent d'une pastille à l'autre,
+// Entrée choisit, 1 2 3 choisissent directement, T ajoute tout ; Échap ou Tab
+// rend la main à la note.
+// ---------------------------------------------------------------------------
+const SB_MAX = 3;
+
+// Fonctions de la note : diagnostics et puces (sauf celles en attente, que
+// le médecin n'a pas encore ajoutées).
+function sbScan(doc) {
+  const cids = [], regions = [];
+  doc.descendants(function (n) {
+    if (n.type.name === 'diagnosticRegion') regions.push(n.attrs.id);
+    else if (n.type.name === 'chip' && !n.attrs.pending) cids.push(n.attrs.cid);
+  });
+  return { cids: cids, regions: regions };
+}
+
+function sbFindChip(doc, cid) {
+  let found = null;
+  doc.descendants(function (n, pos) {
+    if (found) return false;
+    if (n.type.name === 'chip' && n.attrs.cid === cid) { found = { node: n, pos: pos }; return false; }
+  });
+  return found;
+}
+
+function sbRegionOf($pos) {
+  for (let d = $pos.depth; d > 0; d--) if ($pos.node(d).type.name === 'diagnosticRegion') return $pos.node(d).attrs;
+  return null;
+}
+
+function SuggestionBar({ editor }) {
+  const [, refresh] = React.useReducer(function (x) { return x + 1; }, 0);
+  const [added, setAdded] = React.useState(null); // { region: id } ou { cid }
+  const [dismissed, setDismissed] = React.useState(false);
+  const seen = React.useRef(null);
+  const barRef = React.useRef(null);
+  const visibleRef = React.useRef(false);
+
+  React.useEffect(function () {
+    if (!editor) return undefined;
+    seen.current = sbScan(editor.state.doc);
+    function onUpdate() {
+      const now = sbScan(editor.state.doc);
+      const prev = seen.current;
+      seen.current = now;
+      const region = now.regions.filter(function (id) { return prev.regions.indexOf(id) < 0; }).pop();
+      const cid = now.cids.filter(function (c) { return prev.cids.indexOf(c) < 0; }).pop();
+      if (region) { setAdded({ region: region }); setDismissed(false); }
+      else if (cid) { setAdded({ cid: cid }); setDismissed(false); }
+      refresh();
+    }
+    // Tab (entrer dans la barre) et Échap (la fermer), avant l'éditeur, sauf
+    // quand un menu de la note est ouvert ou qu'une puce est sélectionnée.
+    function onKey(e) {
+      if (!visibleRef.current || !editor.view.dom.contains(e.target)) return;
+      if (document.querySelector('.slash-menu, .rx-menu, .dx-menu')) return;
+      if (e.key === 'Tab' && !e.shiftKey && editor.state.selection.empty) {
+        const b = barRef.current && barRef.current.querySelector('button[data-sb]');
+        if (b) { e.preventDefault(); e.stopPropagation(); b.focus(); }
+      } else if (e.key === 'Escape') setDismissed(true);
+    }
+    editor.on('update', onUpdate);
+    editor.on('selectionUpdate', refresh);
+    document.addEventListener('keydown', onKey, true);
+    window.addEventListener('scroll', refresh, true);
+    window.addEventListener('resize', refresh);
+    // La note change de largeur sans redimensionner la fenêtre (colonne de
+    // suggestions repliée, Sommaire) : la barre suit la ligne du curseur.
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(function () { refresh(); }) : null;
+    if (ro) ro.observe(editor.view.dom);
+    return function () {
+      if (ro) ro.disconnect();
+      editor.off('update', onUpdate);
+      editor.off('selectionUpdate', refresh);
+      document.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('scroll', refresh, true);
+      window.removeEventListener('resize', refresh);
+    };
+  }, [editor]);
+
+  // Où est la fonction ajoutée, et le curseur y est-il encore ?
+  let list = [], region = null, line = null;
+  if (editor && added && !dismissed) {
+    const st = editor.state, doc = st.doc;
+    const here = window.dxRegionAtSelection(st);
+    if (added.region) {
+      if (here && here.id === added.region) region = scFindRegion(doc, added.region);
+    } else {
+      const chip = sbFindChip(doc, added.cid);
+      if (chip) {
+        const $c = doc.resolve(chip.pos);
+        const inRegion = sbRegionOf($c);
+        if (inRegion) { if (here && here.id === inRegion.id) region = scFindRegion(doc, inRegion.id); }
+        else if (st.selection.$from.parent === $c.parent) line = { chip: chip, $c: $c };
+      }
+    }
+    const ctx = dxConclusionContext();
+    if (region) {
+      const present = [], sources = [];
+      region.node.descendants(function (n) {
+        if (n.type.name !== 'chip') return;
+        present.push(n.attrs);
+        if (n.attrs.proposedBy) sources.push(n.attrs.proposedBy);
+      });
+      list = window.NOTE_DATA.nextStepSuggestions({ region: region.node.attrs, present: present, sources: sources, ctx: ctx });
+    } else if (line) {
+      const present = [];
+      line.$c.parent.descendants(function (n) { if (n.type.name === 'chip') present.push(n.attrs); });
+      list = window.NOTE_DATA.nextStepSuggestions({ chip: line.chip.node.attrs, present: present, diagnoses: scDiagnosesIn(doc), ctx: ctx });
+    }
+  }
+  visibleRef.current = list.length > 0;
+  if (!list.length) return null;
+
+  function fire(name, detail) { window.dispatchEvent(new CustomEvent(name, { detail: detail })); }
+  function keepFocus(e) { e.preventDefault(); }
+
+  // Une ordonnance ou une requête : à la fin du diagnostic (dans son dernier
+  // paragraphe s'il est vide), sinon au bout de la ligne de la fonction.
+  function addOrder(s) {
+    const doc = editor.state.doc;
+    const attrs = Object.assign(scChipAttrs(s.orderKind, s.item), { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    const chip = { type: 'chip', attrs: attrs };
+    if (region) {
+      const found = scFindRegion(doc, region.node.attrs.id);
+      if (!found) return;
+      const end = found.pos + found.node.nodeSize - 1;
+      const last = found.node.lastChild;
+      if (last && last.content.size === 0) editor.chain().focus().insertContentAt(end - 1, [chip, { type: 'text', text: ' ' }]).run();
+      else editor.chain().focus().insertContentAt(end, { type: 'paragraph', content: [chip, { type: 'text', text: ' ' }] }).run();
+      return;
+    }
+    const found = sbFindChip(doc, added.cid);
+    if (!found) return;
+    const $c = doc.resolve(found.pos);
+    const prev = $c.parent.lastChild;
+    const space = prev && !(prev.isText && /\s$/.test(prev.text)) ? [{ type: 'text', text: ' ' }] : [];
+    editor.chain().focus().insertContentAt($c.end(), space.concat([chip, { type: 'text', text: ' ' }])).run();
+  }
+
+  function choose(s) {
+    if (s.kind === 'template') fire('note:apply-dx-template', { regionId: s.regionId, optionId: s.option.id });
+    else if (s.kind === 'dx') fire('note:add-suggested-dx', { name: s.dx.name, code: s.dx.code });
+    else addOrder(s);
+  }
+  const orders = list.filter(function (s) { return s.kind === 'order'; });
+  function chooseAll() { orders.forEach(addOrder); }
+
+  function onBarKey(e) {
+    const btns = Array.prototype.slice.call(barRef.current.querySelectorAll('button[data-sb]'));
+    const i = btns.indexOf(document.activeElement);
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const next = btns[(i + (e.key === 'ArrowRight' ? 1 : -1) + btns.length) % btns.length];
+      if (next) next.focus();
+    } else if (/^[1-3]$/.test(e.key)) {
+      const b = btns.filter(function (x) { return /^\d$/.test(x.getAttribute('data-sb')); })[Number(e.key) - 1];
+      if (b) { e.preventDefault(); b.click(); }
+    } else if (e.key === 't' || e.key === 'T') {
+      const b = barRef.current.querySelector('button[data-sb="all"]');
+      if (b) { e.preventDefault(); b.click(); }
+    } else if (e.key === 'Escape' || e.key === 'Tab') {
+      e.preventDefault();
+      if (e.key === 'Escape') setDismissed(true);
+      editor.commands.focus();
+    }
+  }
+
+  // Sous la ligne du curseur, à partir du curseur, ramenée dans la note.
+  const c = editor.view.coordsAtPos(editor.state.selection.from);
+  const box = editor.view.dom.getBoundingClientRect();
+  const left = Math.max(box.left, Math.min(c.left, box.right - 640));
+  const shown = list.slice(0, SB_MAX);
+  const ctxName = region ? region.node.attrs.name : null;
+  return (
+    <div ref={barRef} role="toolbar" aria-label={t('suggest.barre.aria')} style={Object.assign({}, scS.bar, { top: c.bottom + 6, left: left, maxWidth: Math.max(320, box.right - left) })} onKeyDown={onBarKey}>
+      <span className="material-icons-outlined" aria-hidden="true" style={scS.barSpark}>auto_awesome</span>
+      {shown.map(function (s, i) {
+        const action = s.kind === 'template' ? t('suggest.appliquerGabarit.tooltip')
+          : s.kind === 'dx' ? t('suggest.ajouterDiagnostic.tooltip')
+          : ctxName ? t('suggest.ajouterSous.tooltip', { name: ctxName }) : t('suggest.ajouterLigne.tooltip');
+        return (
+          <button key={s.id} type="button" data-sb={String(i + 1)} style={scS.barPill} onMouseDown={keepFocus}
+            onClick={function () { choose(s); }} title={action + ' : ' + (s.desc ? s.label + ' — ' + s.desc : s.label)}>
+            <span style={scS.barNum} aria-hidden="true">{i + 1}</span>
+            <span className="material-symbols-outlined" aria-hidden="true" style={scS.barPillIcon}>{s.icon}</span>
+            <span style={scS.barPillText}>{s.label}</span>
+          </button>
+        );
+      })}
+      {orders.length >= 2 &&
+        <button type="button" data-sb="all" style={Object.assign({}, scS.barPill, scS.barPillAll)} onMouseDown={keepFocus}
+          onClick={chooseAll} title={t('suggest.toutAjouter.tooltip', { n: orders.length })}>
+          {t('suggest.toutAjouter.button', { n: orders.length })}
+        </button>}
+      <kbd style={scS.barKbd} title={t('suggest.barre.clavier.tooltip')}>{t('suggest.barre.tab.text')}</kbd>
+      <button type="button" data-sb="close" style={scS.barClose} onMouseDown={keepFocus}
+        onClick={function () { setDismissed(true); editor.commands.focus(); }} aria-label={t('suggest.ignorer.aria')} title={t('suggest.ignorer.aria')}>
+        <span className="material-icons" aria-hidden="true" style={{ fontSize: 16 }}>close</span>
+      </button>
+    </div>
+  );
+}
+
+window.SuggestionBar = SuggestionBar;

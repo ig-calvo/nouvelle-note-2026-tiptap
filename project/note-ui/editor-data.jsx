@@ -840,6 +840,93 @@ function contextResultsFor(dx, kind) {
   return list.filter(function (it) { return favs.has(it.key); }).concat(list.filter(function (it) { return !favs.has(it.key); }));
 }
 
+// ---------------------------------------------------------------------------
+// Suggestions de la suite, après chaque fonction ajoutée (rencontre du
+// 2026-10-27, lot 2 : barre en ligne sous le curseur, SuggestionBar).
+// ---------------------------------------------------------------------------
+
+// Tests d'une analyse ou d'une puce labo (une puce labo réunit plusieurs analyses).
+function _labTests(x) { return (x && x.details && x.details.tests) || (x ? [x.name] : []); }
+
+// Vrai si la puce `attrs` est déjà l'item `item` de la recherche `kind`
+// ('rx', 'lab', 'img', ou 'req' avec item.orderKind) : même libellé pour une
+// ordonnance ou un examen, analyses comprises dans une puce labo, ou ligne à
+// compléter sur le même terme.
+function chipIsItem(attrs, kind, item) {
+  if (!attrs || !item) return false;
+  const k = kind === 'req' ? (item.orderKind || 'lab') : kind;
+  if (attrs.draft) return attrs.draft.kind === k && attrs.draft.term === item.name;
+  const rk = attrs.rx && attrs.rx.kind;
+  if (k === 'lab') {
+    if (attrs.type !== 'lab') return false;
+    const have = _labTests(attrs);
+    return _labTests(item).every(function (x) { return have.indexOf(x) >= 0; });
+  }
+  return rk === k && attrs.label === (item.name + ' ' + (item.dose || '')).trim();
+}
+
+// La puce `attrs` → { kind, item } du catalogue (ordonnance, analyse, examen), ou null.
+function orderItemForChip(attrs) {
+  if (!attrs || attrs.draft) return null;
+  const k = attrs.type === 'lab' ? 'lab' : (attrs.rx && attrs.rx.kind);
+  if (['rx', 'lab', 'img'].indexOf(k) < 0) return null;
+  const item = ORDER_DEFS[k].items().find(function (it) { return chipIsItem(attrs, k, it); });
+  return item ? { kind: k, item: item } : null;
+}
+
+// Le diagnostic à suggérer pour un contexte : celui qu'un gabarit de note
+// suggère déjà (nom et code réels), sinon le nom de sa conclusion.
+function dxSuggestionFor(c) {
+  let found = null;
+  NOTE_TEMPLATES.some(function (tpl) {
+    found = (tpl.dxSuggestions || []).find(function (d) { const o = dxContextFor(d); return o && o.key === c.key; }) || null;
+    return !!found;
+  });
+  return found || { name: c.conclusion.name, code: c.cim10[0] };
+}
+
+const NEXT_TEMPLATE_ICON = { last: 'history', mine: 'person', omnimed: 'library_add' };
+
+// Suggestions de la suite, dans l'ordre de la barre. `a` :
+//   region     attributs du diagnostic où vient d'arriver la fonction, ou null ;
+//   chip       la puce ajoutée hors d'un diagnostic, ou null ;
+//   present    attributs des puces déjà là (dans le diagnostic, ou la ligne) ;
+//   sources    `proposedBy` déjà présents (un gabarit déjà appliqué) ;
+//   diagnoses  attributs des diagnostics de la note ;
+//   ctx        { notes, sommaire } pour la dernière conclusion.
+// Sous un diagnostic : son meilleur gabarit de conclusion pas encore
+// appliqué, puis ses prescriptions et requêtes. Après une ordonnance ou une
+// requête hors diagnostic : le diagnostic qui va avec (s'il n'est pas déjà
+// dans la note), puis les autres prescriptions et requêtes de ce diagnostic.
+// Entrées : { id, kind: 'template'|'dx'|'order', icon, label, desc, … }.
+function nextStepSuggestions(a) {
+  const present = a.present || [], sources = a.sources || [];
+  let dx = a.region, out = [];
+  let except = null;
+  if (dx) {
+    const opt = dxConclusionOptions(dx, a.ctx).filter(function (o) { return sources.indexOf(o.source) < 0; })[0];
+    if (opt) out.push({ id: 'tpl:' + opt.id, kind: 'template', icon: NEXT_TEMPLATE_ICON[opt.kind], label: opt.name, option: opt, regionId: dx.id });
+  } else {
+    except = orderItemForChip(a.chip);
+    const c = except && DX_CONTEXTS.find(function (x) { return (x[except.kind] || []).indexOf(except.item.key) >= 0; });
+    if (!c) return [];
+    const d = dxSuggestionFor(c);
+    dx = { name: d.name, code: d.code };
+    const inNote = (a.diagnoses || []).some(function (n) { const o = dxContextFor(n); return o && o.key === c.key; });
+    if (!inNote) out.push({ id: 'dx:' + d.code, kind: 'dx', icon: 'local_hospital', label: d.name, desc: d.code, dx: d });
+  }
+  const orders = contextResultsFor(dx, 'rx').map(function (it) { return { kind: 'rx', item: it }; })
+    .concat(contextResultsFor(dx, 'req').map(function (it) { return { kind: 'req', item: it }; }));
+  orders.forEach(function (o) {
+    if (except && except.item.key === o.item.key) return;
+    if (present.some(function (p) { return chipIsItem(p, o.kind, o.item); })) return;
+    const k = o.kind === 'rx' ? 'rx' : o.item.orderKind;
+    out.push({ id: 'order:' + k + ':' + o.item.key, kind: 'order', icon: ORDER_DEFS[k].icon,
+      label: (o.item.name + ' ' + (o.item.dose || '')).trim(), desc: o.item.sig || '', orderKind: o.kind, item: o.item });
+  });
+  return out;
+}
+
 // Éléments structurés que l'Assistant IA propose pour la transcription
 // d'exemple (AIBox.jsx : brûlures mictionnelles, bandelette positive) — tweak
 // « IA : éléments structurés proposés ». Items du catalogue seulement ;
@@ -1288,6 +1375,6 @@ window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_T
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason,
+  LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };
