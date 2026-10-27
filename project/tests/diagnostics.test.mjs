@@ -396,3 +396,20 @@ test('sommaireDxRowView met en forme left/mid/right/title pour l’affichage du 
   const ceasedFromProblem = w.sommaireDxRowView({ name: w.TR('Rhinite allergique'), code: 'J30.4', since: '2019', status: 'resolu', resolvedOn: '28/09/2026' });
   assert.equal(ceasedFromProblem.right, '28/09/2026');
 });
+
+// Édition simple dans la tuile (rencontre du 2026-10-27, lot 4, D2) : la date
+// d'un problème ou d'un antécédent se change sur place, sans pop-up.
+test('tuile : la date d’une ligne Problèmes ou Antécédents se modifie sur place', () => {
+  const base = w.sommaireDxSeed();
+  assert.equal(w.sommaireDxDateField(base.problems[0]), 'since');
+  assert.equal(w.sommaireDxDateField(base.history[0]), 'resolvedOn');
+  const p = w.sommaireDxPatchDate(base, 'problems', 'som-asthme', ' 03/2017 ');
+  assert.equal(p.problems.find((r) => r.id === 'som-asthme').since, '03/2017');
+  assert.equal(base.problems[0].since, '2018', 'la base reçue n’est pas modifiée');
+  assert.equal(p.history, base.history);
+  const h = w.sommaireDxPatchDate(base, 'history', 'som-colique', '01/07/2026');
+  assert.equal(h.history.find((r) => r.id === 'som-colique').resolvedOn, '01/07/2026');
+  assert.equal(w.sommaireDxPatchDate(base, 'problems', 'som-asthme', '').problems[0].since, null, 'vide retire la date');
+  ['hier', '2018-03', '32/2018/1', '18'].forEach((bad) => assert.equal(w.sommaireDxPatchDate(base, 'problems', 'som-asthme', bad), null, bad));
+  ['2018', '3/2018', '05/03/2018'].forEach((ok) => assert.ok(w.sommaireDxValidDate(ok), ok));
+});

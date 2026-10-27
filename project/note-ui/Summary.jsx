@@ -204,6 +204,18 @@ function Summary({ addToNote }) {
     });
   }
 
+  // Date d'une ligne Problèmes / Antécédents modifiée dans la tuile (lot 4).
+  function updateDxDate(section, row, value) {
+    var ok = window.sommaireDxValidDate(value);
+    if (!ok) return false;
+    setData(function(prev) {
+      var next = window.sommaireDxPatchDate({ problems: prev.problems, history: prev.history }, section, row.id, value);
+      return next ? Object.assign({}, prev, next) : prev;
+    });
+    if (window.toast) window.toast(t('summary.dateModifiee.toast', { name: row.name }), { icon: 'event' });
+    return true;
+  }
+
   function deleteItem(section, item) {
     setData(function(prev){
       return Object.assign({}, prev, { [section]: prev[section].filter(function(i){ return i !== item; }) });
@@ -309,6 +321,7 @@ function Summary({ addToNote }) {
                 }
                 setModal({ section:cfg.id, type:'add' });
               }}
+              onEditDate={(cfg.id === 'problems' || cfg.id === 'history') ? function(row, value){ return updateDxDate(cfg.id, row, value); } : null}
               onTitle={function(){
                 if (cfg.link) { if (window.toast) window.toast(t('summary.comingSoon.toast', { label: cfg.label }), { icon: 'info' }); return; }
                 if (cfg.list||cfg.dots) setModal({ section:cfg.id, type:'list' });
@@ -324,7 +337,7 @@ function Summary({ addToNote }) {
   );
 }
 
-function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, canAdd, onAdd, onTitle }) {
+function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDragOver, onDragEnd, onNoteDragStart, onNoteDragEnd, canAdd, onAdd, onTitle, onEditDate }) {
   pending = pending || [];
   // Réordonnancement actif uniquement en mode `reorder`. Sinon ces handlers NE
   // doivent PAS exister : le dragstart du <span> « Glisser vers la note » remonte
@@ -365,7 +378,7 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
       </div>
       {(items.length > 0 || pending.length > 0) && (
         <div style={suS.rows}>
-          {items.slice(0, 6).map(function(r, i){ return <SummaryRow key={i} r={r} sId={cfg.id} />; })}
+          {items.slice(0, 6).map(function(r, i){ return <SummaryRow key={r.id || i} r={r} sId={cfg.id} onEditDate={onEditDate} />; })}
           {items.length > 6 && <div style={suS.more}>{t('summary.more.text', { n: items.length - 6 })}</div>}
           {pending.map(function(p, i){ return (
             <div key={'p'+i} style={suS.row}>
@@ -380,7 +393,41 @@ function SummaryBox({ cfg, items, pending, reorder, draggable, onDragStart, onDr
   );
 }
 
-function SummaryRow({ r, sId }) {
+// Date d'une ligne Problèmes / Antécédents, modifiable sur place : un clic
+// la change en champ ; Entrée ou quitter le champ enregistre (si la date est
+// valable, sinon rien ne change), Échap annule. Une ligne « en attente »
+// (touchée par la note en cours) reste en lecture seule.
+function DxDateEdit({ r, onSave }) {
+  var field = window.sommaireDxDateField(r);
+  var raw = r[field] || '';
+  var [editing, setEditing] = React.useState(false);
+  var [val, setVal] = React.useState(raw);
+  var [bad, setBad] = React.useState(false);
+  function start(e) { e.stopPropagation(); setVal(raw); setBad(false); setEditing(true); }
+  function save() { if (onSave(r, val)) setEditing(false); else setBad(true); }
+  if (editing) {
+    return (
+      <input autoFocus value={val} style={{ ...suS.dateInput, ...(bad ? suS.dateInputBad : {}) }}
+        aria-label={t('summary.date.aria', { name: r.name })} aria-invalid={bad || undefined}
+        placeholder={t('summary.dateFormat.placeholder')} title={bad ? t('summary.dateInvalide.text') : undefined}
+        onFocus={function(e){ e.target.select(); }}
+        onChange={function(e){ setVal(e.target.value); setBad(false); }}
+        onKeyDown={function(e){
+          if (e.key === 'Enter') { e.preventDefault(); save(); }
+          else if (e.key === 'Escape') { e.preventDefault(); setEditing(false); }
+        }}
+        onBlur={function(){ if (window.sommaireDxValidDate(val)) onSave(r, val); setEditing(false); }} />
+    );
+  }
+  return (
+    <button type="button" style={suS.dateBtn} onClick={start}
+      title={t('summary.modifierDate.tooltip')} aria-label={t('summary.date.aria', { name: r.name }) + (r.right ? ' : ' + r.right : '')}>
+      {r.right || t('summary.ajouterDate.text')}
+    </button>
+  );
+}
+
+function SummaryRow({ r, sId, onEditDate }) {
   if (sId === 'meds') {
     var c = MEDS_STATUS_COLOR[r.status] || MEDS_STATUS_COLOR.active;
     return (
@@ -408,7 +455,9 @@ function SummaryRow({ r, sId }) {
     <div style={suS.row} title={r.title || undefined}>
       <span style={suS.rLeft}>{r.left || r.name}</span>
       {r.mid && <span style={suS.rMid}>{r.mid}</span>}
-      {r.right && <span style={suS.rRight}>{r.right}</span>}
+      {onEditDate && !r.pending && r.id
+        ? <><span style={{ flex: 1 }} /><DxDateEdit r={r} onSave={onEditDate} /></>
+        : r.right && <span style={suS.rRight}>{r.right}</span>}
       {/* Ligne touchée par la note en cours, pas encore complétée — voir
           mergeSommaireDx (diagnostics.jsx) et note:diagnostics-change
           (NoteEditor.jsx). pendingNote explique CE QUI a changé au survol. */}
@@ -458,6 +507,11 @@ var suS = {
   rLeft:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:108, fontSize:12 },
   rMid:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 52%, transparent)', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:12 },
   rRight:{ color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize:11, fontVariantNumeric:'tabular-nums', flexShrink:0 },
+  // Date modifiable sur place (DxDateEdit) : même allure que rRight, soulignée
+  // en pointillé pour dire qu'elle se clique.
+  dateBtn:{ border:0, background:'transparent', padding:'2px 4px', margin:'-2px -4px', borderRadius:4, cursor:'pointer', color:'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', fontSize:11, fontVariantNumeric:'tabular-nums', flexShrink:0, textDecoration:'underline dotted', textUnderlineOffset:2, fontFamily:'inherit' },
+  dateInput:{ width:92, flexShrink:0, fontSize:11, padding:'2px 4px', border:'1px solid var(--mat-sys-outline)', borderRadius:4, background:'var(--mat-sys-surface-container-lowest)', color:'var(--mat-sys-on-surface)', fontFamily:'inherit', fontVariantNumeric:'tabular-nums' },
+  dateInputBad:{ borderColor:'var(--mat-sys-error)', outline:'1px solid var(--mat-sys-error)' },
   more:{ fontSize:11, color:'var(--mat-sys-primary)', cursor:'pointer' },
   pendingTag:{ fontSize:9, fontWeight:700, color:'light-dark(#c07a00, #e9d0a5)', background:'light-dark(#fdf3e2, #4c3d24)', borderRadius:4, padding:'1px 5px', letterSpacing:0.3, textTransform:'uppercase', marginLeft:'auto', flexShrink:0, whiteSpace:'nowrap' },
 };
