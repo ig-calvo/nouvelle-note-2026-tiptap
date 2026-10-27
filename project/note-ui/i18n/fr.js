@@ -902,6 +902,7 @@
   'suggest.requetes.title': 'Requêtes',
   'suggest.gabarits.title': 'Gabarits suggérés',
   'suggest.gabaritsNote.title': 'Gabarits de note',
+  'suggest.gabaritsVisite.title': 'Pour commencer la note',
   'suggest.ecrireRaison.text': 'Écrivez la raison de consultation pour des gabarits ciblés, ou placez le curseur sous un diagnostic.',
   'suggest.ecrireRaisonSeule.text': 'Écrivez la raison de consultation pour des gabarits ciblés.',
   'suggest.aucunGabarit.text': 'Aucun gabarit ciblé pour cette raison de consultation.',

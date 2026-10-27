@@ -169,3 +169,16 @@ test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img (e
   assert.deepEqual(D.contextResultsFor(dx, 'req').map((it) => it.orderKind + ':' + it.key), ['lab:efr', 'img:rxpoumon']);
   D.endOrderSearch();
 });
+
+// Gabarits de visite (demande d'Ignacio Calvo, 2026-10-27) : proposés dans la
+// colonne tant que la note est vide, avant les gabarits par maladie.
+test('gabarits de visite : première rencontre, suivi, problème aigu, examen périodique ; atteints aussi par la raison', () => {
+  assert.deepEqual(D.NOTE_TEMPLATES.filter((tpl) => tpl.general).map((tpl) => tpl.key), ['premiere', 'suivi', 'aigu', 'periodique']);
+  D.NOTE_TEMPLATES.filter((tpl) => tpl.general).forEach((tpl) => {
+    assert.ok(D.SLASH_ITEMS.some((it) => it.noteTemplate === tpl.key), tpl.key + ' : au menu « / »');
+  });
+  assert.deepEqual(D.templatesForReason('Suivi du diabète').map((tpl) => tpl.key), ['suivi']);
+  assert.deepEqual(D.templatesForReason('Follow-up for hypertension').map((tpl) => tpl.key), ['suivi']);
+  assert.deepEqual(D.templatesForReason('Nouveau patient').map((tpl) => tpl.key), ['premiere']);
+  assert.ok(w.docIsBlank(w.DEFAULT_DOC()), 'une note neuve est vide : la colonne propose les gabarits de visite');
+});

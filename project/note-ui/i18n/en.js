@@ -1268,6 +1268,7 @@
   'suggest.requetes.title': 'Requests',
   'suggest.gabarits.title': 'Suggested templates',
   'suggest.gabaritsNote.title': 'Note templates',
+  'suggest.gabaritsVisite.title': 'To start the note',
   'suggest.ecrireRaison.text': 'Enter the reason for visit for targeted templates, or place the cursor under a diagnosis.',
   'suggest.ecrireRaisonSeule.text': 'Enter the reason for visit for targeted templates.',
   'suggest.aucunGabarit.text': 'No targeted template for this reason for visit.',
