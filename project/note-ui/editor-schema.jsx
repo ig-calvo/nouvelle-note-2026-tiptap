@@ -19,6 +19,7 @@ function newChipId() { return 'c' + _chipSeq++; }
 // ProseMirror garde une référence stable au `dom` retourné par le NodeView).
 // ---------------------------------------------------------
 function buildChipDom(data, existingEl) {
+  if (data.draft) return buildDraftChipDom(data, existingEl);
   const node = buildChipDomBase(data, existingEl);
   decorateChipDestination(node, data);
   decorateChipStates(node, data);
@@ -282,6 +283,61 @@ function formatChipStamp(iso) {
   });
 }
 
+// Ligne à compléter, état 1 (réglage « Gabarit : lignes à compléter »,
+// rencontre du 2026-10-27, A3) : un gabarit pose la fonction et le terme
+// (« ℞ Nitrofurantoïne ») sans choisir l'item. Un clic, ou Entrée sur la puce
+// sélectionnée, rouvre la recherche « /rx Nitrofurantoïne » à sa place
+// (openDraftSearch, editor-field.jsx) : c'est le médecin qui choisit, et les
+// règles (allergies, interactions) s'appliquent à ce moment, à un seul
+// endroit. Seul ✕ s'ajoute : il n'y a rien à accepter avant le choix.
+function buildDraftChipDom(data, existingEl) {
+  const node = existingEl || document.createElement('span');
+  while (node.firstChild) node.removeChild(node.firstChild);
+  const kind = data.draft.kind;
+  node.className = 'ql-chip chip chip--rx chip--' + kind + ' chip--pending chip--draft';
+  node.setAttribute('data-cid', data.cid);
+  node.setAttribute('data-type', data.type || '');
+  node.setAttribute('contenteditable', 'false');
+  node.setAttribute('data-pending', 'true');
+  node.removeAttribute('data-sent');
+  node.setAttribute('title', t('schema.draftOpen.tooltip', { term: data.draft.term }));
+  const ic = document.createElement('span');
+  if (kind === 'rx') {
+    ic.className = 'chip-rx-icon';
+    ic.textContent = '℞';
+  } else {
+    ic.className = 'material-symbols-outlined chip-rx-glyph';
+    ic.textContent = kind === 'lab' ? 'science' : kind === 'img' ? 'radiology' : kind === 'ref' ? 'person_add' : 'bookmark';
+  }
+  ic.setAttribute('aria-hidden', 'true');
+  node.appendChild(ic);
+  const badge = document.createElement('span');
+  badge.className = 'chip-status chip-status--draft';
+  badge.textContent = t('schema.draft.badge');
+  node.appendChild(badge);
+  const nm = document.createElement('span');
+  nm.className = 'chip-rx-name';
+  nm.textContent = data.draft.term;
+  node.appendChild(nm);
+  decorateChipDestination(node, data);
+  const wrap = document.createElement('span');
+  wrap.className = 'chip-pending-actions';
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'chip-pending-btn chip-pending-btn--reject';
+  b.setAttribute('data-pending', 'reject');
+  b.setAttribute('aria-label', t('common.labelValue.text', { label: t('schema.rejectAdd.aria'), value: data.draft.term }));
+  b.setAttribute('title', t('schema.rejectAdd.aria'));
+  const x = document.createElement('span');
+  x.className = 'material-symbols-outlined';
+  x.setAttribute('aria-hidden', 'true');
+  x.textContent = 'close';
+  b.appendChild(x);
+  wrap.appendChild(b);
+  node.appendChild(wrap);
+  return node;
+}
+
 // Chip en attente (ajout proposé par un gabarit, pas encore accepté) : même
 // rendu que le chip réel, mais aucune zone n'est cliquable (plus de
 // data-action / data-field, donc ni édition inline ni menu ; double-clic ou
@@ -543,7 +599,10 @@ function makeChipNode() { return window.Tiptap.Node.create({
       // transmission ») — effacé par une transmission réussie.
       transmitError: { default: null },
       // Qui propose un ajout en attente (« Gabarit « Otite moyenne aiguë » »).
-      proposedBy: { default: null }
+      proposedBy: { default: null },
+      // Ligne à compléter (état 1) : { kind, term } — la recherche à rouvrir
+      // (« rx », « Nitrofurantoïne »). Toujours `pending` aussi.
+      draft: { default: null }
     };
   },
   parseHTML() {
@@ -689,6 +748,8 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
             return true;
           }
         }
+        // Ligne à compléter : Entrée rouvre sa recherche.
+        if (chip.attrs.draft) { window.openDraftSearch(editor, chip.attrs.cid); return true; }
         // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
         // Une puce en attente s'ouvre aussi : on peut la vérifier avant d'accepter.
         window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
@@ -2059,7 +2120,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref|req)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -2069,15 +2130,16 @@ function parseSlashQuery(query) {
   return { mode: 'menu' };
 }
 
-// Aplatit {profil?, favoris, frequents, autres} dans l'ordre de rendu de
-// RxMenu — sert de liste unique pour la navigation clavier (↑↓/Entrée).
+// Aplatit {contexte?, profil?, profiles?, favoris, frequents, autres} dans
+// l'ordre de rendu de RxMenu — sert de liste unique pour la navigation
+// clavier (↑↓/Entrée).
 function flattenRxResults(r) {
-  return (r.contexte || []).concat(r.profil || [], r.favoris || [], r.frequents || [], r.autres || []);
+  return (r.contexte || []).concat(r.profil || [], r.profiles || [], r.favoris || [], r.frequents || [], r.autres || []);
 }
 
 // Attributs de la région de diagnostic qui contient le curseur, ou null —
 // une ligne sous un diagnostic est un paragraphe DE sa région. Sert à ouvrir
-// une recherche (/rx, /lab, /img, /req) dans le contexte de ce diagnostic.
+// une recherche (/rx, /lab, /img) dans le contexte de ce diagnostic.
 function dxRegionAtSelection(state) {
   const $from = state && state.selection && state.selection.$from;
   if (!$from) return null;
@@ -2685,6 +2747,28 @@ function buildPendingChipNode(proposal, source) {
 // section — donc inline, à la suite du texte (« Plan : » + ordonnance).
 // opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
 // en suggestion, à accepter ou refuser (D-03, tout le gabarit).
+// Ligne à compléter (état 1) pour un ajout de gabarit : la fonction et le
+// terme seulement, sans item choisi (buildDraftChipDom). Un profil se
+// cherche dans /lab. Mêmes ajouts que buildPendingChipNode.
+function buildDraftChipNode(proposal, source) {
+  const kind = proposal.kind === 'profile' ? 'lab' : proposal.kind;
+  const def = window.NOTE_DATA.ORDER_DEFS[kind];
+  if (!def) return null;
+  const item = proposal.kind === 'profile'
+    ? (window.NOTE_DATA.LAB_PROFILES || []).find(function (p) { return p.key === proposal.key; })
+    : def.items().find(function (it) { return it.key === proposal.key; });
+  if (!item) return null;
+  return { type: 'chip', attrs: {
+    cid: newChipId(), type: def.type, label: item.name, icon: def.icon, text: item.name, rx: null, details: null,
+    pending: true, proposedBy: source || null, draft: { kind: def.kbd, term: item.name }
+  } };
+}
+// Un ajout de gabarit : ligne à compléter si le réglage est allumé
+// (window.__TEMPLATE_DRAFT_LINES, NoteEditor.jsx), sinon puce en attente.
+function buildTemplateChipNode(proposal, source) {
+  return window.__TEMPLATE_DRAFT_LINES ? buildDraftChipNode(proposal, source) : buildPendingChipNode(proposal, source);
+}
+
 function buildTemplateBlocks(tpl, opts) {
   const source = t('template.source.label', { name: tpl.name || tpl.key });
   const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
@@ -2694,7 +2778,7 @@ function buildTemplateBlocks(tpl, opts) {
     if (proposeText) {
       sec = sec.map(function (b) { return b.type === 'paragraph' ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
     }
-    const nodes = (s.proposals || []).map(function (p) { return buildPendingChipNode(p, source); }).filter(Boolean);
+    const nodes = (s.proposals || []).map(function (p) { return buildTemplateChipNode(p, source); }).filter(Boolean);
     if (nodes.length) {
       const last = sec[sec.length - 1];
       const inline = [];
@@ -2720,7 +2804,7 @@ function buildConclusionBlocks(opt, opts) {
     return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
   });
   if (proposeText) blocks = blocks.map(function (b) { return b.content ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
-  const nodes = (opt.proposals || []).map(function (p) { return buildPendingChipNode(p, opt.source); }).filter(Boolean);
+  const nodes = (opt.proposals || []).map(function (p) { return buildTemplateChipNode(p, opt.source); }).filter(Boolean);
   if (nodes.length) {
     const inline = [];
     nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });
@@ -2789,7 +2873,7 @@ function rejectPendingChip(editor, cid) {
 // Ajouts en attente d'un doc JSON : puces `pending` et paragraphes qui
 // portent du texte proposé par un gabarit. `sources` = qui les propose.
 function pendingSummary(docJson) {
-  let chips = 0, paragraphs = 0;
+  let chips = 0, paragraphs = 0, drafts = 0; // drafts : lignes à compléter, comptées aussi dans chips
   const sources = [];
   const isTemplateText = function (n) {
     return n.type === 'text' && (n.marks || []).some(function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; });
@@ -2798,22 +2882,25 @@ function pendingSummary(docJson) {
     if (!node) return;
     if (node.type === 'chip' && node.attrs && node.attrs.pending) {
       chips++;
+      if (node.attrs.draft) drafts++;
       if (node.attrs.proposedBy && sources.indexOf(node.attrs.proposedBy) < 0) sources.push(node.attrs.proposedBy);
     }
     if (node.type === 'paragraph' && (node.content || []).some(isTemplateText)) paragraphs++;
     (node.content || []).forEach(walk);
   }
   walk(docJson);
-  return { chips: chips, paragraphs: paragraphs, count: chips + paragraphs, sources: sources };
+  return { chips: chips, paragraphs: paragraphs, drafts: drafts, count: chips + paragraphs, sources: sources };
 }
 
 // Tout accepter / tout refuser les ajouts en attente, en UNE transaction
 // (un seul Ctrl+Z). `reviewAction` : le traqueur du mode révision l'ignore.
+// Une ligne à compléter (`draft`) ne s'accepte pas : elle attend le choix du
+// médecin ; refuser la retire comme les autres.
 function resolveAllPending(editor, accept) {
   const doc = editor.state.doc;
   const ops = [];
   doc.descendants(function (node, pos) {
-    if (node.type.name === 'chip' && node.attrs.pending) ops.push({ chip: node, from: pos });
+    if (node.type.name === 'chip' && node.attrs.pending && !(accept && node.attrs.draft)) ops.push({ chip: node, from: pos });
   });
   (window.scanReviewChanges ? window.scanReviewChanges(doc) : []).forEach(function (c) {
     if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id) ops.push({ from: c.from, to: c.to });
@@ -2850,7 +2937,10 @@ function resolvePendingInDoc(docJson, accept) {
       }
       dropSpace = false;
       if (c.type === 'chip' && c.attrs && c.attrs.pending) {
-        if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false }) }));
+        // Une ligne à compléter acceptée reste ce que le gabarit voulait dire,
+        // en texte : rien n'est prescrit sans choix.
+        if (accept && c.attrs.draft) content.push({ type: 'text', text: c.attrs.draft.term });
+        else if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false }) }));
         else {
           const prev = content[content.length - 1];
           dropSpace = !prev || (prev.type === 'text' && /\s$/.test(prev.text));
@@ -2892,6 +2982,8 @@ Object.assign(window, {
   labChipAttrs,
   buildRequestChips,
   buildPendingChipNode,
+  buildDraftChipNode,
+  buildTemplateChipNode,
   buildTemplateBlocks,
   buildConclusionBlocks,
   buildVisitStartDoc,

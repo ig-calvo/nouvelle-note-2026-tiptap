@@ -17,6 +17,32 @@ const { parseSlashQuery, flattenRxResults } = window;
 // - onReady(editor|null) : instance créée (puis null au démontage).
 // - onDocChange(docJson) : à chaque transaction (frappe ou commande).
 // ---------------------------------------------------------
+// Rouvre la recherche d'une ligne à compléter (état 1, buildDraftChipDom) :
+// la puce `cid` devient « /rx Nitrofurantoïne », curseur au bout, et le menu
+// « / » s'ouvre comme si le médecin l'avait tapé. Choisir remplace le texte
+// par la vraie puce ; abandonner remet la ligne (onExit, restoreDraftChip).
+function openDraftSearch(editor, cid) {
+  if (!editor) return;
+  let found = null;
+  editor.state.doc.descendants(function (node, pos) {
+    if (found) return false;
+    if (node.type.name === 'chip' && node.attrs.cid === cid) { found = { node: node, pos: pos }; return false; }
+  });
+  if (!found || !found.node.attrs.draft) return;
+  const d = found.node.attrs.draft;
+  // Le plugin n'ouvre « / » qu'en début de ligne ou après une espace.
+  const prev = editor.state.doc.resolve(found.pos).nodeBefore;
+  const space = prev && !(prev.isText && /\s$/.test(prev.text)) ? ' ' : '';
+  const text = '/' + d.kind + ' ' + d.term;
+  const from = found.pos + space.length;
+  window.__DRAFT_REOPEN = { attrs: found.node.attrs, from: from };
+  editor.chain().focus()
+    .insertContentAt({ from: found.pos, to: found.pos + found.node.nodeSize }, space + text)
+    .setTextSelection(from + text.length)
+    .run();
+}
+window.openDraftSearch = openDraftSearch;
+
 function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, linkedChipId }) {
   const hostRef = useRefE(null);
   const editorRef = useRefE(null);
@@ -93,6 +119,27 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }, 0);
   }
 
+  // Ligne à compléter abandonnée (Échap, clic ailleurs) : la puce revient à
+  // la place de « /rx Nitrofurantoïne », telle que le gabarit l'avait posée.
+  // Même garde que removeAbandonedSearch : rien si le texte a changé.
+  function restoreDraftChip(range, query, attrs) {
+    setTimeout(function () {
+      const editor = editorRef.current; if (!editor || !range) return;
+      const doc = editor.state.doc;
+      if (range.from < 0 || range.to > doc.content.size) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
+      editor.view.dispatch(editor.state.tr.replaceWith(range.from, range.to, editor.schema.nodes.chip.create(attrs)));
+    }, 0);
+  }
+
+  // Abandon d'une recherche de fonction : la ligne à compléter d'où elle a
+  // été rouverte revient (openDraftSearch), sinon « /rx amox » est retiré.
+  function abandonSearch(range, query) {
+    const draft = window.__DRAFT_REOPEN; window.__DRAFT_REOPEN = null;
+    if (draft && range && range.from === draft.from) restoreDraftChip(range, query, draft.attrs);
+    else removeAbandonedSearch(range, query);
+  }
+
   function openSlashMenu() {
     const editor = editorRef.current; if (!editor) return;
     if (slashRef.current) { setSlash(null); return; }
@@ -124,14 +171,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
     const kind = props.kind, item = props.item, action = props.action;
-    // Plusieurs résultats cochés, un profil, ou la recherche unifiée /req :
-    // une puce labo pour les analyses, une puce par examen d'imagerie
-    // (buildRequestChips, editor-schema.jsx).
-    if (props.items || kind === 'req' || (item && item.profile)) {
+    // Plusieurs résultats cochés ou un profil : une puce labo pour toutes les
+    // analyses (buildRequestChips, editor-schema.jsx).
+    if (props.items || (item && item.profile)) {
       const list = props.items || (item ? [item] : []);
       const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
       const nodes = [];
-      window.buildRequestChips(list, kind === 'req' ? null : kind).forEach(function (a) {
+      window.buildRequestChips(list, kind).forEach(function (a) {
         nodes.push({ type: 'chip', attrs: Object.assign(a, stamp) }, { type: 'text', text: ' ' });
       });
       if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
@@ -313,7 +359,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // piège de searchDx, deux appels indépendants).
     let dxState = null, dxModel = null, dxSelfRewrite = false;
     // Sélection multiple des recherches de requêtes (ORDER_DEFS[kind].multi :
-    // /req, /lab, /img) : items cochés, gardés quand la recherche change,
+    // /lab) : items cochés, gardés quand la recherche change,
     // ajoutés d'un coup par Entrée ou « Ajouter (n) ».
     let checked = [];
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
@@ -462,7 +508,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           // Le plugin « / » ne se ferme pas de lui-même quand onKeyDown renvoie
           // true : en mode fonction, on retire la requête du document, ce qui le
           // ferme (onExit). Le menu générique garde son texte (texte libre).
-          if (parsed.mode === 'order' && currentRange) removeAbandonedSearch(currentRange, lastQuery);
+          if (parsed.mode === 'order' && currentRange) abandonSearch(currentRange, lastQuery);
           setSlash(null); return true;
         }
         // Menu générique sans aucun résultat : on n'intercepte plus les
@@ -530,7 +576,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = []; window.__DX_DOCUMENT_AS = null;
         window.NOTE_DATA.endOrderSearch();
         setSlash(null);
-        if (abandoned) removeAbandonedSearch(range, query);
+        if (abandoned) abandonSearch(range, query);
+        else window.__DRAFT_REOPEN = null;
       },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
       // Souris (RxMenu) : case à cocher d'un résultat, bouton « Ajouter (n) ».
@@ -815,6 +862,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const chipEl = e.target.closest('.chip[data-cid]');
       if (!chipEl) return;
       e.preventDefault();
+      // Ligne à compléter : un clic (hors ✕) rouvre sa recherche.
+      if (chipEl.classList.contains('chip--draft') && !e.target.closest('.chip-pending-btn')) {
+        window.openDraftSearch(editor, chipEl.getAttribute('data-cid'));
+        return;
+      }
       // Ajout en attente (gabarit) : rien à ouvrir, seuls ✓ / ✕ agissent (click, ci-dessous).
       if (chipEl.classList.contains('chip--pending')) return;
       const cid = chipEl.getAttribute('data-cid');
@@ -837,7 +889,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // Double-clic sur un chip en attente : ses détails, pour le vérifier et
     // l'ajuster avant de l'accepter (Q-07 renversée, rencontre inline entity).
     editor.view.dom.addEventListener('dblclick', (e) => {
-      const chipEl = e.target.closest('.chip--pending[data-cid]');
+      const chipEl = e.target.closest('.chip--pending[data-cid]:not(.chip--draft)');
       if (!chipEl || e.target.closest('.chip-pending-btn')) return;
       e.preventDefault();
       onChipClickRef.current(chipEl.getAttribute('data-cid'), chipEl.getBoundingClientRect(), { action: 'modal' });

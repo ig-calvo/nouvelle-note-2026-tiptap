@@ -492,9 +492,12 @@ function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {
         <button type="button" style={rvwS.pendingBtnOutline} onClick={onRejectAll}>
           <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> {t('review.toutRefuser.button')}
         </button>
+        {/* Une ligne à compléter ne s'accepte pas (elle attend un choix) : sans
+            autre ajout, « Tout accepter » n'aurait rien à faire. */}
+        {summary.drafts !== summary.count &&
         <button type="button" style={rvwS.pendingBtnPrimary} onClick={onAcceptAll}>
           <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> {t('review.toutAccepter.button')}
-        </button>
+        </button>}
       </span>
     </div>
   );

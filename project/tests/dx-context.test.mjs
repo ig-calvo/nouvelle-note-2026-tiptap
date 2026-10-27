@@ -1,5 +1,5 @@
 // Recherche en contexte d'un diagnostic (rencontre vision 2026-10-27) : une
-// recherche /rx, /lab, /img ou /req ouverte sous un diagnostic montre, avant
+// recherche /rx, /lab ou /img ouverte sous un diagnostic montre, avant
 // toute frappe, ce qui se rapporte à ce diagnostic ; taper revient à une
 // recherche normale.
 // Lancer : node --test project/tests/*.test.mjs
@@ -37,12 +37,21 @@ test('chaque clé de la table existe au catalogue', () => {
   }));
 });
 
-test('/rx sous un asthme, rien de tapé : seulement le contexte, favoris en tête', () => {
+test('/rx sous un asthme, rien de tapé : le contexte, favoris en tête, puis toutes les médications au dossier', () => {
   const r = D.searchOrder('rx', '', { name: 'Asthme léger', code: 'J45.9' });
   assert.equal(r.contextName, 'Asthme léger');
   assert.deepEqual(keys(r.contexte), ['vento100', 'cat-35', 'cat-37', 'cat-39']);
-  assert.deepEqual([r.profil, r.favoris, r.frequents, r.autres].map((l) => l.length), [0, 0, 0, 0]);
-  assert.deepEqual(keys(w.flattenRxResults(r)), keys(r.contexte), 'la navigation au clavier suit la liste affichée');
+  assert.deepEqual(keys(r.profil), keys(D.searchOrder('rx', '').profil), 'tout le dossier, tous statuts, même sans lien au diagnostic');
+  assert.ok(r.profil.length > 0);
+  D.endOrderSearch();
+  assert.deepEqual([r.favoris, r.frequents, r.autres].map((l) => l.length), [0, 0, 0]);
+  assert.deepEqual(keys(w.flattenRxResults(r)), keys(r.contexte).concat(keys(r.profil)), 'la navigation au clavier suit la liste affichée');
+});
+
+test('/lab sous un asthme : le contexte seul, pas de dossier pharmacologique', () => {
+  const r = D.searchOrder('lab', '', { name: 'Asthme léger', code: 'J45.9' });
+  assert.deepEqual(keys(r.contexte), ['efr']);
+  assert.equal(r.profil.length, 0);
 });
 
 test('taper quitte le contexte : recherche normale', () => {
@@ -59,9 +68,9 @@ test('un filtre du rail /rx quitte aussi le contexte', () => {
   D.endOrderSearch();
 });
 
-test('/req sous une ITU : labo et imagerie, chacun avec sa nature ; /img sans contexte : recherche normale', () => {
-  const r = D.searchOrder('req', '', { name: 'Cystite', code: 'N30.0' });
-  assert.deepEqual(r.contexte.map((it) => it.orderKind + ':' + it.key), ['lab:srum']);
+test('requêtes d’une ITU (colonne) : labo et imagerie, chacun avec sa nature ; /img sans contexte : recherche normale', () => {
+  const r = D.contextResultsFor({ name: 'Cystite', code: 'N30.0' }, 'req');
+  assert.deepEqual(r.map((it) => it.orderKind + ':' + it.key), ['lab:srum']);
   const img = D.searchOrder('img', '', { name: 'Cystite', code: 'N30.0' });
   assert.equal(img.contexte, undefined, 'rien pour ce diagnostic : la liste habituelle');
   D.endOrderSearch();
@@ -152,11 +161,11 @@ test('menu « / » sans outils cliniques : ni item Outils cliniques, ni outil da
   delete w.__SHOW_CLINICAL_TOOLS;
 });
 
-test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img, /req', () => {
+test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img (et les requêtes de la colonne)', () => {
   const dx = { name: w.TR('Asthme léger'), code: 'J45.9' };
   assert.deepEqual(keys(D.searchOrder('rx', '', dx).contexte), ['vento100', 'cat-35', 'cat-37', 'cat-39']);
   assert.deepEqual(keys(D.searchOrder('lab', '', dx).contexte), ['efr']);
   assert.deepEqual(keys(D.searchOrder('img', '', dx).contexte), ['rxpoumon']);
-  assert.deepEqual(D.searchOrder('req', '', dx).contexte.map((it) => it.orderKind + ':' + it.key), ['lab:efr', 'img:rxpoumon']);
+  assert.deepEqual(D.contextResultsFor(dx, 'req').map((it) => it.orderKind + ':' + it.key), ['lab:efr', 'img:rxpoumon']);
   D.endOrderSearch();
 });

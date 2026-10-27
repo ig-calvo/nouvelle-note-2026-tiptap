@@ -688,17 +688,16 @@ const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: t('data.rxVerb.text'), emptyNoun: t('data.rxNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
+  // Labo en sélection multiple, profils en tête (`profiles`, searchLab).
+  // Imagerie en sélection unique : on commande un examen précis à la fois
+  // (rencontre du 2026-10-27 : Xavier Boilard, A2). Plus de recherche unifiée
+  // /req : on va directement aux branches (C1).
   lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.labNoun.text'), multi: true,
          sections: [t('data.sectionFavorites.title'), t('data.sectionLabFrequent.title'), t('data.sectionLabOther.title')],
-         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q, favs) { return _searchList(LAB_ITEMS, favs || LAB_FAVS, q); } },
-  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'), multi: true,
+         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q, favs) { return searchLab(q, favs || LAB_FAVS); } },
+  img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionImgFrequent.title'), t('data.sectionImgOther.title')],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
-  // Recherche unifiée (profils + labo + imagerie) : un résultat peut être de
-  // plusieurs natures, voir `orderKind` (searchRequests).
-  req: { kbd: 'req', type: 'lab',          icon: 'lab_profile', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.imagingNoun.text'), multi: true,
-         sections: [t('data.sectionProfiles.title'), t('data.sectionLab.title'), t('data.sectionImaging.title')],
-         favs: new Set(), items: function () { return LAB_PROFILES.concat(LAB_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); }), IMG_ITEMS.map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); })); }, search: searchRequests },
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
@@ -829,6 +828,8 @@ function contextResultsFor(dx, kind) {
     const d = ORDER_DEFS[k];
     return (c[k] || []).map(function (key) { return d.items().find(function (it) { return it.key === key; }); }).filter(Boolean);
   };
+  // 'req' n'est plus une commande : c'est la vue « requêtes » de la colonne de
+  // suggestions (labo et imagerie réunis, chacun avec son `orderKind`).
   if (kind === 'req') {
     return pick('lab').map(function (it) { return Object.assign({}, it, { orderKind: 'lab' }); })
       .concat(pick('img').map(function (it) { return Object.assign({}, it, { orderKind: 'img' }); }));
@@ -937,20 +938,13 @@ const LAB_PROFILES = [
     details: { tests: tests, priority: 'Routine', fasting: items.some(function (it) { return it.details.fasting; }), context: '', profile: p.name } };
 });
 
-// Recherche unifiée des requêtes (/req) : profils, analyses et examens
-// d'imagerie dans une seule liste, en trois sections (mêmes clés que les
-// autres recherches, pour RxMenu). Chaque résultat porte son `orderKind`.
-function searchRequests(q) {
-  const tag = function (kind) { return function (it) { return Object.assign({}, it, { orderKind: kind }); }; };
+// Recherche /lab : les profils en tête (`profiles`, une section de plus pour
+// RxMenu), puis les analyses en trois sections. Un profil se trouve par son
+// nom ou par une de ses analyses (« hba1c » trouve le profil diabète).
+function searchLab(q, favSet) {
   const nq = _norm((q || '').trim());
   const match = function (it) { return !nq || _hay(it.name).includes(nq) || _hay(it.sig || '').includes(nq); };
-  const lab = _searchList(LAB_ITEMS, LAB_FAVS, q), img = _searchList(IMG_ITEMS, IMG_FAVS, q);
-  const firstOf = function (r) { return r.favoris.concat(r.frequents, r.autres); };
-  return {
-    favoris: LAB_PROFILES.filter(match),
-    frequents: firstOf(lab).map(tag('lab')),
-    autres: firstOf(img).map(tag('img'))
-  };
+  return Object.assign({ profiles: LAB_PROFILES.filter(match) }, _searchList(LAB_ITEMS, favSet, q));
 }
 
 function _searchList(list, favSet, q) {
@@ -976,15 +970,17 @@ function orderKindForKbd(kbd) {
 // termine à la fermeture du menu (`endOrderSearch`, onExit du plugin « / »).
 let _favFreeze = {};
 // `dx` (attributs du diagnostic sous lequel la recherche est ouverte) : tant
-// que rien n'est tapé, la liste montre seulement le contexte du diagnostic
-// (`contexte`, `contextName`). Au premier caractère, ou sur un filtre du rail
-// /rx, c'est une recherche normale.
+// que rien n'est tapé, la liste montre le contexte du diagnostic (`contexte`,
+// `contextName`) puis, pour /rx, toutes les médications au dossier — souvent
+// on modifie une prescription en maladie chronique plutôt qu'on en crée une
+// (rencontre du 2026-10-27, A1). Au premier caractère, ou sur un filtre du
+// rail /rx, c'est une recherche normale.
 function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
   if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
-    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: [], favoris: [], frequents: [], autres: [] };
+    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
   }
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
   const r = d.search(q, _favFreeze[kind]);
@@ -1061,8 +1057,6 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'lab', label: L('Demande de laboratoire'), text: L('Demande de laboratoire'),
       details: { tests: [L('FSC')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } } },
-  { key: 'requests', section: L('Fonctions'), icon: 'lab_profile', title: L('Requêtes'), desc: L('Labo, imagerie et profils — plusieurs à la fois'), kbd: 'req',
-    orderSearch: true },
   { key: 'imaging', section: L('Fonctions'), icon: 'radiology', title: L('Imagerie'), desc: L('Radio, écho, TDM'), kbd: 'img',
     orderSearch: true,
     template: { type: 'imaging', label: L("Demande d'imagerie"), text: L("Demande d'imagerie"),
@@ -1294,6 +1288,6 @@ window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_T
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
-  LAB_PROFILES, searchRequests, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason,
+  LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

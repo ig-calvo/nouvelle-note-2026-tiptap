@@ -850,19 +850,22 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   // (searchOrder) — taper remplace la liste par une recherche normale.
   if (contexte.length) sections.push([t('popover.contextFor.text', { name: results.contextName || '' }), contexte]);
   if (profil.length) sections.push([t('popover.chartMedications.text'), profil]);
+  // Profils de laboratoire, en tête de /lab (searchLab).
+  const profiles = results.profiles || [];
+  if (profiles.length) sections.push([t('data.sectionProfiles.title'), profiles]);
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = contexte.length + profil.length + results.favoris.length + results.frequents.length + results.autres.length;
+  const total = contexte.length + profil.length + profiles.length + results.favoris.length + results.frequents.length + results.autres.length;
   // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
   const railOn = kind === 'rx' && !!counts;
   let flat = -1;
-  // Sélection multiple (/req, /lab, /img) : case à cocher par résultat ; dès
+  // Sélection multiple (/lab) : case à cocher par résultat ; dès
   // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
   const multi = !!d.multi;
   const checkedKeys = checked || [];
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
-  const noFav = kind === 'req'; // favoris propres à chaque recherche
+  const noFav = (it) => !!it.profile; // un profil n'a pas de favori
 
   return (
     <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
@@ -940,7 +943,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               <span className="material-icons-outlined">add</span>
                             </button>}
                         </span>
-                      : noFav ? null
+                      : noFav(it) ? null
                       : <>
                           {kind === 'rx' && !it.active &&
                             <span className="rx-med-actions rx-med-actions--heart">

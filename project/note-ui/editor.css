@@ -746,6 +746,12 @@ html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { 
    ✓ / ✕ sous la puce au survol ou au focus ; « violet » (Xavier) : puce
    mauve, ✓ / ✕ en pastilles dans le coin supérieur droit. */
 .chip--pending { position: relative; }
+/* Ligne à compléter (état 1, buildDraftChipDom) : une suggestion qui se clique
+   pour rouvrir sa recherche. */
+.chip--rx.chip--draft { cursor: pointer; }
+.chip--rx.chip--draft:hover { background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface-container-lowest)); }
+.chip--draft .chip-rx-icon, .chip--draft .chip-rx-glyph { cursor: pointer; }
+.chip-status--draft { background: var(--mat-sys-tertiary-container); color: var(--mat-sys-on-tertiary-container); }
 html[data-suggestion-style="opacite"] .chip--rx.chip--pending { border-style: solid; background: var(--mat-sys-surface-container-lowest); padding-right: 8px; }
 html[data-suggestion-style="opacite"] .chip--pending > :not(.chip-pending-actions) { opacity: 0.55; }
 html[data-suggestion-style="opacite"] .chip--pending .chip-pending-actions { position: absolute; top: calc(100% + 2px); left: 0; z-index: 5; margin: 0; padding: 2px; border: 1px solid var(--mat-sys-outline-variant); border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-lowest); box-shadow: var(--mat-sys-level2, 0 2px 6px rgba(0,0,0,.15)); visibility: hidden; }

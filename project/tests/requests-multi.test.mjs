@@ -1,5 +1,6 @@
-// Requêtes : recherche unifiée, sélection multiple, profils, regroupement au
-// checkout (lot 7, rencontre inline entity — Antoine Cloutier, Xavier Boilard).
+// Requêtes : sélection multiple en labo, profils en tête de /lab, regroupement
+// au checkout (lot 7, rencontre inline entity — Antoine Cloutier, Xavier
+// Boilard ; /req retiré, rencontre du 2026-10-27).
 // Lancer : node --test project/tests/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,15 +12,20 @@ const lab = (key) => D.ORDER_DEFS.lab.items().find((it) => it.key === key);
 const img = (key) => D.ORDER_DEFS.img.items().find((it) => it.key === key);
 const prof = (key) => D.LAB_PROFILES.find((p) => p.key === key);
 
-test('/req ouvre la recherche unifiée ; profils, labo et imagerie en trois sections', () => {
-  assert.deepEqual(w.parseSlashQuery('req diab'), { mode: 'order', kind: 'req', term: 'diab' });
-  const all = D.searchRequests('');
-  assert.equal(all.favoris.length, 3);
-  assert.ok(all.frequents.length > 0 && all.frequents.every((it) => it.orderKind === 'lab'));
-  assert.ok(all.autres.length > 0 && all.autres.every((it) => it.orderKind === 'img'));
-  assert.deepEqual(D.searchRequests('diab').favoris.map((p) => p.name), [w.TR('Profil diabète')]);
-  assert.ok(D.searchRequests('radio').autres.some((it) => it.key === 'rxpoumon'));
-  assert.ok(D.ORDER_DEFS.req.multi && D.ORDER_DEFS.lab.multi && D.ORDER_DEFS.img.multi && !D.ORDER_DEFS.rx.multi);
+test('plus de /req : /lab montre les profils en tête, puis les analyses ; l’imagerie en sélection unique', () => {
+  assert.deepEqual(w.parseSlashQuery('req diab'), { mode: 'menu' }, '« /req » n’ouvre plus de recherche');
+  assert.ok(!D.ORDER_DEFS.req);
+  assert.ok(!D.SLASH_ITEMS.some((it) => it.kbd === 'req'));
+  const all = D.searchOrder('lab', '');
+  assert.deepEqual(all.profiles.map((p) => p.key), ['prof-diabete', 'prof-annuel', 'prof-anemie']);
+  assert.ok(all.frequents.length > 0);
+  assert.deepEqual(w.flattenRxResults(all).slice(0, 3).map((it) => it.key), ['prof-diabete', 'prof-annuel', 'prof-anemie'], 'au clavier, les profils d’abord');
+  D.endOrderSearch();
+  assert.deepEqual(D.searchOrder('lab', 'diab').profiles.map((p) => p.name), [w.TR('Profil diabète')]);
+  D.endOrderSearch();
+  assert.equal(D.searchOrder('img', '').profiles, undefined, 'pas de profils en imagerie');
+  D.endOrderSearch();
+  assert.ok(D.ORDER_DEFS.lab.multi && !D.ORDER_DEFS.img.multi && !D.ORDER_DEFS.rx.multi);
 });
 
 test('un profil déploie ses analyses, sans doublon', () => {

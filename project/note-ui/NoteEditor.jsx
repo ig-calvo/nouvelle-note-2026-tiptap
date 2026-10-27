@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false }) {
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true }) {
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
@@ -15,6 +15,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
   // pour que le pied de note et le checkout le voient dès ce rendu-ci.
   window.__GROUP_REQUESTS = !!groupRequests;
+  // Tweak « Gabarit : lignes à compléter » (A3) : lu par buildTemplateChipNode
+  // (editor-schema.jsx) à l'application d'un gabarit, de note ou de conclusion.
+  window.__TEMPLATE_DRAFT_LINES = templateDraftLines !== false;
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {

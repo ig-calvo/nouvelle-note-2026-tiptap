@@ -385,6 +385,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "checkoutSuggestions": false,
   "simulateTxFailure": false,
   "templateTextProposed": false,
+  "templateDraftLines": true,
   "suggestionStyle": "tirets",
   "pendingBadge": true,
   "formOpenMode": "auto",
@@ -613,6 +614,7 @@ function App() {
               checkoutSuggestions={t.checkoutSuggestions === true}
               simulateTxFailure={t.simulateTxFailure === true}
               templateTextProposed={t.templateTextProposed === true}
+              templateDraftLines={t.templateDraftLines !== false}
               suggestionStyle={t.suggestionStyle || 'tirets'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
@@ -729,6 +731,8 @@ function App() {
                        onChange={(v) => setTweak('simulateTxFailure', v)} />
         </TweakSection>
         <TweakSection label="Gabarits">
+          <TweakToggle label="Gabarit : lignes à compléter" value={t.templateDraftLines !== false}
+                       onChange={(v) => setTweak('templateDraftLines', v)} />
           <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
                        onChange={(v) => setTweak('templateTextProposed', v)} />
           <TweakRadio label="Style des suggestions"
