@@ -1092,6 +1092,15 @@ const NOTE_TEMPLATES = [
         content: L('Apyrétique / fébrile (T°) : \nAuscultation pulmonaire : \nOropharynx / tympans : ') },
       { title: t('sections.conclusion.heading'), content: L('Impression : \nPlan : ') },
     ],
+    // Flux de Sacha (rencontre vision 2026-10-27) : à la fin d'un gabarit de
+    // début de note, 3 ou 4 diagnostics suggérés ; un clic ajoute le
+    // diagnostic et son gabarit de conclusion. Codes CIM-10 ; à valider.
+    dxSuggestions: [
+      { name: L('Infection des voies respiratoires supérieures'), code: 'J06.9' },
+      { name: L('Pharyngite aiguë'), code: 'J02.9' },
+      { name: L('Sinusite aiguë'), code: 'J01.9' },
+      { name: L('Pneumonie'), code: 'J18.9' },
+    ],
   },
   {
     key: 'itu', name: L('Infection urinaire'),
@@ -1102,6 +1111,12 @@ const NOTE_TEMPLATES = [
     ],
     tool: 'itu',
     toolRequests: [{ kind: 'lab', key: 'srum' }],
+    dxSuggestions: [
+      { name: L('Cystite aiguë non compliquée'), code: 'N30.0' },
+      { name: L('Pyélonéphrite aiguë'), code: 'N10' },
+      { name: L('Urétrite'), code: 'N34.1' },
+      { name: L('Vaginite'), code: 'N76.0' },
+    ],
   },
   {
     key: 'periodique', name: L('Examen périodique'),
@@ -1129,6 +1144,11 @@ const NOTE_TEMPLATES = [
       { title: t('sections.conclusion.heading'), content: L('Impression : Otite moyenne aiguë.\nPlan : '),
         proposals: [{ kind: 'rx', key: 'amox500' }] },
     ],
+    dxSuggestions: [
+      { name: L('Otite moyenne aiguë'), code: 'H66.9' },
+      { name: L('Otite externe'), code: 'H60.9' },
+      { name: L('Otite séreuse'), code: 'H65.9' },
+    ],
   },
   // Gabarit avec plusieurs ajouts proposés, dont une ordonnance INCOMPLÈTE
   // (fréquence laissée vide, cas soulevé en rencontre : un gabarit de
@@ -1149,6 +1169,11 @@ const NOTE_TEMPLATES = [
           { kind: 'lab', key: 'fsc' },
           { kind: 'rx', key: 'cat-48', details: { frequency: '' } }
         ] },
+    ],
+    dxSuggestions: [
+      { name: L('Pneumonie'), code: 'J18.9' },
+      { name: L('Bronchite aiguë'), code: 'J20.9' },
+      { name: L('Infection des voies respiratoires supérieures'), code: 'J06.9' },
     ],
   },
 ];
@@ -1221,9 +1246,49 @@ function templatesForReason(text, max) {
   }).slice(0, max || 3);
 }
 
+// Points de départ de la visite (rencontre vision 2026-10-27, Xavier
+// Boilard) : au début de la visite, le contexte du rendez-vous, puis un ou
+// plusieurs points de départ — la raison du rendez-vous, le suivi d'un
+// résultat, un problème au dossier — et un gabarit de début de note suggéré
+// selon ces choix. Données SIMULÉES : le rendez-vous du jour (sans rendez-vous,
+// scénario infection urinaire des tests) et un résultat à suivre.
+const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception') };
+const RESULTS_TO_FOLLOW = [
+  { id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },
+];
+
+// ctx = { appointment, results, sommaire (lignes de getSommaireDiagnostics) }
+// → [{ id, kind: 'raison'|'resultat'|'probleme', label, detail, text, short, target? }].
+// `text` : les mots qui choisissent le gabarit ; `short` : ce qui entre dans la
+// raison de consultation ; `target` : la ligne du dossier, pour reprendre le
+// problème en diagnostic. Problèmes actifs seulement (pas les antécédents).
+function visitStartPoints(ctx) {
+  const out = [];
+  const a = ctx && ctx.appointment;
+  if (a && a.reason) out.push({ id: 'raison', kind: 'raison', label: t('visit.raisonRdv.label'), detail: a.reason, text: a.reason, short: a.reason });
+  ((ctx && ctx.results) || []).forEach(function (r) {
+    out.push({ id: 'res:' + r.id, kind: 'resultat', label: t('visit.suiviResultat.label', { name: r.name }),
+      detail: [r.value, r.flag, r.date].filter(Boolean).join(' · '),
+      text: t('visit.suiviResultat.text', { name: r.name, value: r.value, date: r.date }), short: t('visit.suiviResultat.label', { name: r.name }) });
+  });
+  ((ctx && ctx.sommaire) || []).filter(function (row) { return row.sommaireKind === 'probleme' && row.sommaireStatus !== 'resolu'; }).forEach(function (row) {
+    out.push({ id: 'pb:' + row.sommaireId, kind: 'probleme', label: row.name, detail: row.meta || '', text: row.name, short: row.name, target: row });
+  });
+  return out;
+}
+// Gabarits de début de note pour les points de départ choisis (au plus 3).
+function startTemplatesFor(points) {
+  return templatesForReason((points || []).map(function (p) { return p.text; }).join(' '), 3);
+}
+// Raison de consultation de la note : les points choisis, dans l'ordre.
+function visitReason(points) {
+  return (points || []).map(function (p) { return p.short; }).join(' · ');
+}
+
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
   LAB_PROFILES, searchRequests, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason,
-  dxConclusionOptions, noteDayLabel, templateWithoutTool };
+  dxConclusionOptions, noteDayLabel, templateWithoutTool,
+  VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

@@ -746,5 +746,20 @@
   'Plan : fosfomycine dose unique, culture d’urine.\nRevoir si symptômes persistent après 72 h.': 'Plan: single-dose fosfomycin, urine culture.\nFollow up if symptoms persist after 72 h.',
   'Asthme — palier 2': 'Asthma — step 2',
   'Plan : corticostéroïde inhalé quotidien, bronchodilatateur au besoin.\nRéévaluation du contrôle dans 3 mois.': 'Plan: daily inhaled corticosteroid, bronchodilator as needed.\nReassess control in 3 months.',
-  'Structure + analyse d’urine proposée': 'Structure + proposed urinalysis'
+  'Structure + analyse d’urine proposée': 'Structure + proposed urinalysis',
+  'Infection des voies respiratoires supérieures': 'Upper respiratory tract infection',
+  'Pharyngite aiguë': 'Acute pharyngitis',
+  'Sinusite aiguë': 'Acute sinusitis',
+  'Pneumonie': 'Pneumonia',
+  'Pyélonéphrite aiguë': 'Acute pyelonephritis',
+  'Urétrite': 'Urethritis',
+  'Vaginite': 'Vaginitis',
+  'Otite externe': 'Otitis externa',
+  'Otite séreuse': 'Serous otitis media',
+  'Bronchite aiguë': 'Acute bronchitis',
+  'Brûlures mictionnelles depuis 3 jours': 'Burning on urination for 3 days',
+  'Prise par la réception': 'Booked by reception',
+  'À la limite': 'Borderline',
+  '20 octobre 2026': 'October 20, 2026',
+  '6,4 %': '6.4%'
 };

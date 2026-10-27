@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsColumn = false }) {
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false }) {
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
@@ -153,6 +153,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Colonne de suggestions : vrai quand le dernier point actif est la raison
   // de consultation (le curseur de la note reprend la main dès qu'elle a le focus).
   const [raisonActive, setRaisonActive] = React.useState(false);
+  // Gabarit de début appliqué : ses diagnostics suggérés suivent dans les
+  // suggestions (flux de Sacha, SuggestionsColumn.jsx).
+  const [appliedTemplate, setAppliedTemplate] = React.useState(null);
+  const suggestionsColumn = suggestionsPlacement === 'colonne';
   const noteCardRef = React.useRef(null);
 
   function handleEditorReady(editor) {
@@ -306,6 +310,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
+      setAppliedTemplate(tpl.key);
       if (onOpen) onOpen();
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
@@ -328,7 +333,25 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       editor.chain().focus().insertContentAt(range, blocks).run();
     }
     window.addEventListener('note:apply-dx-template', onApplyDxTemplate);
-    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); };
+    // Diagnostic suggéré par le gabarit de début (flux de Sacha) : la région
+    // à la fin de la conclusion, déjà remplie de son gabarit de conclusion en
+    // attente — mon gabarit s'il existe, sinon celui d'Omnimed.
+    function onAddSuggestedDx(e) {
+      var editor = editorRef.current, d = e.detail;
+      if (!editor || !d) return;
+      var attrs = window.makeDiagRegionAttrs({ action: 'nouveau', pick: { source: 'cim10', name: d.name, code: d.code } },
+        { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+      var opts = window.NOTE_DATA.dxConclusionOptions(attrs, window.dxConclusionContext());
+      var opt = opts.find(function(o) { return o.id === 'mine'; }) || opts.find(function(o) { return o.id === 'omnimed'; });
+      var body = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
+      var end = editor.state.doc.content.size;
+      editor.chain().focus().insertContentAt(end, { type: 'diagnosticRegion', attrs: attrs, content: body.length ? body : [{ type: 'paragraph' }] }).run();
+      var regionPos = null;
+      editor.state.doc.forEach(function(node, offset) { if (node.type.name === 'diagnosticRegion' && node.attrs.id === attrs.id) regionPos = offset; });
+      if (regionPos != null) editor.chain().setTextSelection(regionPos + 2).run();
+    }
+    window.addEventListener('note:add-suggested-dx', onAddSuggestedDx);
+    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); window.removeEventListener('note:add-suggested-dx', onAddSuggestedDx); };
   }, []);
 
   // « + » Problèmes / Antécédents / Médications du Sommaire (tweak, piste de
@@ -691,6 +714,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     if (onOpen) onOpen();
   }
 
+  // Points de départ de la visite (VisitStartPanel.jsx) : la note de départ
+  // construite d'après les choix, puis ouverte.
+  function handleVisitStart(choice) {
+    initialDocRef.current = window.buildVisitStartDoc(choice.points, choice.tplKey,
+      { showTools: showClinicalTools, proposeText: templateTextProposed });
+    setRaison(window.NOTE_DATA.visitReason(choice.points));
+    setAppliedTemplate(choice.tplKey || null);
+    if (onOpen) onOpen();
+  }
+
   function handleStartPick(key, payload) {
     if (key === 'nouvelle') { if (onOpen) onOpen(); return; }
     if (key === 'derniere') { startFromLast(); return; }
@@ -949,7 +982,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       </div>
 
       {/* Points de départ — tweak "Points de départ", masqués une fois la note ouverte */}
-      {startPoints && !isOpen &&
+      {visitStart && !isOpen &&
+        <div style={{ marginBottom: 20 }}>
+          <window.VisitStartPanel onStart={handleVisitStart} showTools={showClinicalTools} />
+        </div>}
+      {startPoints && !visitStart && !isOpen &&
         <div style={{ marginBottom: 20 }}>
           <NoteStartCards
             onPick={handleStartPick}
@@ -1108,7 +1145,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       }
       </div>
       {suggestionsColumn &&
-        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} />}
+        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate} />}
+      {suggestionsPlacement === 'curseur' &&
+        <window.SuggestionsColumn placement="curseur" editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
+          raisonAnchor={function() { return noteCardRef.current && noteCardRef.current.querySelector('input'); }} />}
       </div>
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,

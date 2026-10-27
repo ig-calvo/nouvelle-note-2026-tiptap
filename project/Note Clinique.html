@@ -330,6 +330,7 @@
     'note-ui/rich-text-controls.jsx',
     'note-ui/ActionLog.jsx',
     'note-ui/SuggestionsColumn.jsx',
+    'note-ui/VisitStartPanel.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
     'note-ui/SmartNoteModal.jsx',
@@ -391,7 +392,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "inlineFieldEdit": true,
   "aiProposals": false,
   "summaryAddToNote": false,
-  "suggestionsColumn": false,
+  "suggestionsPlacement": "aucune",
+  "visitStart": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -617,7 +619,8 @@ function App() {
               inlineFieldEdit={t.inlineFieldEdit !== false}
               pendingBadge={t.pendingBadge !== false}
               aiProposals={t.aiProposals === true}
-              suggestionsColumn={t.suggestionsColumn === true} />
+              suggestionsPlacement={t.suggestionsPlacement || 'aucune'}
+              visitStart={t.visitStart === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -736,8 +739,16 @@ function App() {
         <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
                      onChange={(v) => setTweak('pendingBadge', v)} />
         <TweakSection label="Pistes (vision)" />
-        <TweakToggle label="Colonne de suggestions" value={t.suggestionsColumn === true}
-                     onChange={(v) => setTweak('suggestionsColumn', v)} />
+        <TweakRadio label="Suggestions"
+                    value={t.suggestionsPlacement || 'aucune'}
+                    options={[
+                      { value: 'aucune', label: 'Aucune' },
+                      { value: 'colonne', label: 'Colonne' },
+                      { value: 'curseur', label: 'Près du curseur' },
+                    ]}
+                    onChange={(v) => setTweak('suggestionsPlacement', v)} />
+        <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
+                     onChange={(v) => setTweak('visitStart', v)} />
         <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
                      onChange={(v) => setTweak('aiProposals', v)} />
         <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}

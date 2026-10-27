@@ -2729,6 +2729,31 @@ function buildConclusionBlocks(opt, opts) {
   return blocks;
 }
 
+// Note de départ d'une visite (points de départ, rencontre vision
+// 2026-10-27) : le gabarit de début choisi (sans outil clinique si le
+// réglage est désactivé), une ligne par résultat à suivre en tête des
+// détails, et chaque problème choisi repris en diagnostic à la fin de la
+// conclusion — relié à sa ligne du dossier, donc avec sa dernière conclusion
+// à réutiliser. opts = { showTools, proposeText }.
+function buildVisitStartDoc(points, tplKey, opts) {
+  let tpl = tplKey ? (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function (x) { return x.key === tplKey; }) : null;
+  if (tpl && opts && opts.showTools === false) tpl = window.NOTE_DATA.templateWithoutTool(tpl);
+  const blocks = tpl ? buildTemplateBlocks(tpl, { proposeText: !!(opts && opts.proposeText) }) : DEFAULT_DOC().content;
+  if (tpl && tpl.tool === 'itu') blocks.push(buildClinicalToolNode('itu', t('noteEditor.ituRoadmap.text')));
+  const doc = window.ensureSplit({ type: 'doc', content: blocks });
+  const followUps = (points || []).filter(function (p) { return p.kind === 'resultat'; }).map(function (p) {
+    return { type: 'paragraph', content: [{ type: 'text', text: p.text }] };
+  });
+  const first = doc.content[0];
+  doc.content = followUps.concat(first && first.type === 'paragraph' && !first.content && followUps.length ? doc.content.slice(1) : doc.content);
+  const now = new Date().toISOString();
+  (points || []).filter(function (p) { return p.kind === 'probleme' && p.target; }).forEach(function (p) {
+    const attrs = window.makeDiagRegionAttrs({ action: 'reprendre', target: p.target }, { id: window.newDiagId(), now: now });
+    if (attrs) doc.content.push({ type: 'diagnosticRegion', attrs: attrs, content: [{ type: 'paragraph' }] });
+  });
+  return doc;
+}
+
 function acceptPendingChip(editor, cid) {
   const pos = findChipPos(editor, cid);
   if (pos < 0) return;
@@ -2869,6 +2894,7 @@ Object.assign(window, {
   buildPendingChipNode,
   buildTemplateBlocks,
   buildConclusionBlocks,
+  buildVisitStartDoc,
   acceptPendingChip,
   rejectPendingChip,
   pendingSummary,
