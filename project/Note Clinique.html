@@ -752,7 +752,8 @@ function App() {
                       options={[
                         { value: 'aucune', label: 'Aucune' },
                         { value: 'colonne', label: 'Colonne' },
-                        { value: 'curseur', label: 'Près du curseur' },
+                        { value: 'curseur', label: 'En ligne' },
+                        { value: 'les-deux', label: 'Les deux' },
                       ]}
                       onChange={(v) => setTweak('suggestionsPlacement', v)} />
           <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
