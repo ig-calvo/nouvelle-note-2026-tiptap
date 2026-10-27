@@ -53,7 +53,8 @@ test('les requêtes, la référence et les consignes sont aussi des actions à e
 test('« à envoyer » coïncide avec ce qui devient un document au checkout (buildTransmissionDocs)', () => {
   const chips = {
     prescription: rx(), lab: w.orderChipAttrs('lab', item('lab', 'fsc')), imaging: w.orderChipAttrs('img', item('img', 'rxpoumon')),
-    referral: w.orderChipAttrs('ref', item('ref', 'cardio')), instructions: { cid: 'ci', type: 'instructions', label: w.TR('Consignes'), details: { title: w.TR('Consignes') } },
+    referral: w.orderChipAttrs('ref', item('ref', 'cardio')),
+    exam: w.orderChipAttrs('exam', item('exam', 'ecg')), service: w.orderChipAttrs('serv', item('serv', 'pansement')), instructions: { cid: 'ci', type: 'instructions', label: w.TR('Consignes'), details: { title: w.TR('Consignes') } },
     medication: med('document'), file: { cid: 'cf', type: 'file', label: 'a.pdf', details: {} }, problem: { cid: 'cp', type: 'problem', label: 'HTA', details: {} }
   };
   for (const [type, attrs] of Object.entries(chips)) {
@@ -61,5 +62,5 @@ test('« à envoyer » coïncide avec ce qui devient un document au checkout (bu
     const nDocs = w.buildTransmissionDocs(w.scanDoc(d), {}).length;
     assert.equal(nDocs > 0, w.chipDestination(attrs) === 'a-envoyer', type);
   }
-  assert.deepEqual(w.CHECKOUT_CHIP_TYPES.slice().sort(), ['imaging', 'instructions', 'lab', 'prescription', 'referral']);
+  assert.deepEqual(w.CHECKOUT_CHIP_TYPES.slice().sort(), ['exam', 'imaging', 'instructions', 'lab', 'prescription', 'referral', 'service']);
 });

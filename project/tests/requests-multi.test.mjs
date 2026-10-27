@@ -79,3 +79,23 @@ test('la puce garde le nom du profil d’origine, pour le rappel dans le formula
   assert.equal(w.buildRequestChips([prof('prof-anemie')], 'lab')[0].details.profile, w.TR('Bilan anémie'));
   assert.equal(w.buildRequestChips([lab('fsc')], 'lab')[0].details.profile, undefined);
 });
+
+// Examen diagnostique (/exam) et services (/serv), rencontre du 2026-10-27 (C2) :
+// des requêtes en sélection unique, chacune un document au checkout.
+test('/exam et /serv : recherches en sélection unique, une puce « à envoyer », un document au checkout chacune', () => {
+  assert.deepEqual(w.parseSlashQuery('exam hol'), { mode: 'order', kind: 'exam', term: 'hol' });
+  assert.deepEqual(w.parseSlashQuery('serv pans'), { mode: 'order', kind: 'serv', term: 'pans' });
+  assert.ok(!D.ORDER_DEFS.exam.multi && !D.ORDER_DEFS.serv.multi);
+  assert.deepEqual(D.searchOrder('exam', '').favoris.map((it) => it.key), ['ecg', 'holter']);
+  D.endOrderSearch();
+  assert.ok(D.searchOrder('serv', 'point').frequents.some((it) => it.key === 'points'));
+  D.endOrderSearch();
+  const exam = w.orderChipAttrs('exam', D.ORDER_DEFS.exam.items().find((it) => it.key === 'holter'));
+  const serv = w.orderChipAttrs('serv', D.ORDER_DEFS.serv.items().find((it) => it.key === 'pansement'));
+  assert.deepEqual([exam.type, exam.rx.kind, serv.type, serv.rx.kind], ['exam', 'exam', 'service', 'serv']);
+  assert.equal(w.chipDestination(exam), 'a-envoyer');
+  const d = doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [{ type: 'chip', attrs: exam }, { type: 'text', text: ' ' }, { type: 'chip', attrs: serv }] });
+  const docs = w.buildTransmissionDocs(w.scanDoc(d), {});
+  assert.deepEqual(docs.map((x) => [x.kind, x.title]), [['exam', w.TR('Holter 24 h')], ['service', w.TR('Soins de plaie et pansement')]]);
+  assert.equal(w.chipPrintText(exam), w.TR('Holter 24 h') + ' — Routine');
+});

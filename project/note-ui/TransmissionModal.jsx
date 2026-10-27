@@ -60,6 +60,28 @@ const TX_META = {
       { name: L('Cardiologie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1113', favorite: false },
     ],
   },
+  // Examen diagnostique et service (rencontre du 2026-10-27, C2). Destinations
+  // d'exemple, fictives.
+  exam: {
+    icon: 'monitor_heart', accent: '#b04a6f', nounPhrase: t('transmission.txNounExam.text'),
+    attachments: [L('Note clinique'), L('Résultats antérieurs')],
+    attachmentsOn: [],
+    noteLabel: t('transmission.txNoteExam.label'),
+    suggestions: [
+      { name: L('Électrophysiologie — CHUS Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1114', favorite: true },
+      { name: L('Clinique du sommeil de l’Estrie'), address: L('580 rue Bowen Sud, Sherbrooke (Québec) J1G 2E8'), phone: '819 563-2222', fax: '819 563-2223', favorite: false },
+    ],
+  },
+  service: {
+    icon: 'medical_services', accent: '#3d7f8f', nounPhrase: t('transmission.txNounService.text'),
+    attachments: [L('Note clinique'), L('Liste de médicaments active')],
+    attachmentsOn: [L('Note clinique')],
+    noteLabel: t('transmission.txNoteService.label'),
+    suggestions: [
+      { name: L('Soins infirmiers — Clinique du Centre-ville'), address: '', phone: '', fax: '', favorite: true },
+      { name: L('CLSC de Sherbrooke — soins à domicile'), address: L('50 rue Camirand, Sherbrooke (Québec) J1H 4J5'), phone: '819 780-2222', fax: '819 780-2223', favorite: false },
+    ],
+  },
   clinicalTool: {
     icon: 'handyman', accent: '#5b54b8', nounPhrase: t('transmission.txNounForm.text'),
     titlePrefix: t('transmission.txTitlePrefixTool.text'),
@@ -85,7 +107,7 @@ const TX_META = {
 // Groupes de la sidebar, dans l'ordre d'affichage : un par famille de document.
 const TX_SIDE_GROUPS = [
   { title: t('transmission.ordonnance.tooltip'), kinds: ['prescription'] },
-  { title: t('transmission.requetes.tooltip'), kinds: ['lab', 'imaging', 'referral'] },
+  { title: t('transmission.requetes.tooltip'), kinds: ['lab', 'imaging', 'referral', 'exam', 'service'] },
   { title: t('transmission.outilsCliniques.tooltip'), kinds: ['clinicalTool'] },
   { title: t('transmission.consignes.tooltip'), kinds: ['instructions'] },
 ];

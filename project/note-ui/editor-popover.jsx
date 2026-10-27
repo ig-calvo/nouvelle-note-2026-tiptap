@@ -361,6 +361,8 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
         {draft.type === 'instructions' && <InsFields d={draft.details} up={up} />}
         {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
+        {draft.type === 'exam' && <ExamFields d={draft.details} up={up} />}
+        {draft.type === 'service' && <ServFields d={draft.details} up={up} />}
       </fieldset></div>
       {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
       pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
@@ -491,6 +493,26 @@ function InsFields({ d, up }) { return (<>
   <div className="field"><label>{t('popover.titre.label')}</label><input value={d.title} onChange={e=>up('title', e.target.value)} /></div>
   <div className="field"><label>{t('popover.contenu.label')}</label><textarea rows={4} value={d.body} onChange={e=>up('body', e.target.value)} /></div>
 </>); }
+// Examen diagnostique et service (rencontre du 2026-10-27, C2).
+function ExamFields({ d, up }) { return (<>
+  <div className="field"><label>{t('popover.examen.label')}</label><input value={d.exam || ''} onChange={e=>up('exam', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.questionClinique.label')}</label><textarea rows={2} value={d.question || ''} onChange={e=>up('question', e.target.value)} /></div>
+  <div className="row">
+    <div className="field"><label>{t('popover.priorite.label')}</label>
+      <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
+  </div>
+  <div className="field"><label>{t('popover.commentaireService.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
+</>); }
+function ServFields({ d, up }) { return (<>
+  <div className="field"><label>{t('popover.service.label')}</label><input value={d.service || ''} onChange={e=>up('service', e.target.value)} /></div>
+  <div className="row">
+    <div className="field"><label>{t('popover.frequenceService.label')}</label><input value={d.frequency || ''} onChange={e=>up('frequency', e.target.value)} /></div>
+    <div className="field"><label>{t('popover.priorite.label')}</label>
+      <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
+  </div>
+  <div className="field"><label>{t('popover.consignesInfirmiere.label')}</label><textarea rows={2} value={d.instructions || ''} onChange={e=>up('instructions', e.target.value)} /></div>
+</>); }
+
 function RefFields({ d, up }) { return (<>
   <div className="field"><label>{t('popover.specialite.label')}</label>
     <select value={d.specialty||''} onChange={e=>up('specialty', e.target.value)}>

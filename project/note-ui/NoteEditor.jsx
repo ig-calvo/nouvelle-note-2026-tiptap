@@ -198,7 +198,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // aussi bien à chaque changement de contenu (docStats) qu'à chaque
   // complétion/transmission dans le checkout (txState), les deux faisant
   // varier complete/transmitted dans buildTransmissionDocs().
-  const DOC_KIND_ORDER = ['prescription', 'clinicalTool', 'lab', 'imaging', 'referral', 'instructions'];
+  const DOC_KIND_ORDER = ['prescription', 'clinicalTool', 'lab', 'imaging', 'referral', 'exam', 'service', 'instructions'];
   React.useEffect(function() {
     var byKind = {};
     buildTransmissionDocs().forEach(function(d) {
@@ -421,6 +421,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     if (entity.type === 'lab') return d.tests && d.tests[0] ? d.tests.join(', ').slice(0, 40) : entity.label;
     if (entity.type === 'imaging') return [d.modality, d.region].filter(Boolean).join(' ') || entity.label;
     if (entity.type === 'referral') return d.specialty || entity.label;
+    if (entity.type === 'exam') return d.exam || entity.label;
+    if (entity.type === 'service') return d.service || entity.label;
     if (entity.type === 'problem') return d.name || entity.label;
     if (entity.type === 'instructions') return d.title || entity.label;
     return entity.label;
@@ -456,7 +458,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     // Zone click → inline autocomplete editor (prescription, lab, imaging, referral)
     // — seulement si l'édition inline est active (D-02) ; sinon formulaire complet.
     if (extra && extra.field && entity && inlineFieldEdit !== false) {
-      var editableTypes = ['prescription', 'lab', 'imaging', 'referral'];
+      var editableTypes = ['prescription', 'lab', 'imaging', 'referral', 'exam', 'service'];
       if (editableTypes.indexOf(entity.type) !== -1) {
         setInlineEdit({ chipId: chipId, field: extra.field, fieldRect: extra.fieldRect || rect });
         setLinkedChipId(chipId);
@@ -519,7 +521,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         var rfm = /R?\s*(\d+)/i.exec(val.trim());
         details.refills = rfm ? rfm[1] : '0';
       }
-    } else if (type === 'lab' || type === 'imaging' || type === 'referral') {
+    } else if (type === 'lab' || type === 'imaging' || type === 'referral' || type === 'exam' || type === 'service') {
       if (field === 'priority') {
         details.priority = val;
       } else if (field === 'exam' && type === 'imaging') {
@@ -536,6 +538,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     else if (newEntity.type === 'lab' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveLabRx(details);
     else if (newEntity.type === 'imaging' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveImgRx(details);
     else if (newEntity.type === 'referral' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveRefRx(details);
+    else if (newEntity.type === 'exam' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveExamRx(details);
+    else if (newEntity.type === 'service' && newEntity.rx) newEntity.rx = window.NOTE_DATA.deriveServRx(details);
     window.updateChipEntity(editor, chipId, newEntity);
     setInlineEdit(null);
     setLinkedChipId(null);
@@ -548,6 +552,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     else if (ent.type === 'lab' && ent.rx) ent.rx = window.NOTE_DATA.deriveLabRx(ent.details || {});
     else if (ent.type === 'imaging' && ent.rx) ent.rx = window.NOTE_DATA.deriveImgRx(ent.details || {});
     else if (ent.type === 'referral' && ent.rx) ent.rx = window.NOTE_DATA.deriveRefRx(ent.details || {});
+    else if (ent.type === 'exam' && ent.rx) ent.rx = window.NOTE_DATA.deriveExamRx(ent.details || {});
+    else if (ent.type === 'service' && ent.rx) ent.rx = window.NOTE_DATA.deriveServRx(ent.details || {});
     if (editorRef.current) window.updateChipEntity(editorRef.current, chipId, ent, accept ? { pending: false } : null);
     setPopover(null);
   }

@@ -12,6 +12,9 @@ const ENTITY_TYPES = {
   diagnostic:   { key: 'diagnostic',   label: L('Diagnostic'),   icon: 'local_hospital', summaryGroup: L('Diagnostics') },
   file:         { key: 'file',         label: L('Fichier'),       icon: 'attach_file',    summaryGroup: L('Fichiers') },
   referral:     { key: 'referral',     label: L('Référence'),     icon: 'person_add',     summaryGroup: L('Références') },
+  // Requêtes ajoutées à la rencontre du 2026-10-27 (C2) : examen diagnostique et service.
+  exam:         { key: 'exam',         label: L('Examen diagnostique'), icon: 'monitor_heart', summaryGroup: L('Résultats') },
+  service:      { key: 'service',      label: L('Service'),       icon: 'medical_services', summaryGroup: L('Services') },
 };
 
 // MED_CATALOG — catalogue de recherche /rx (source : medicaments.json, 50 entrées)
@@ -683,7 +686,44 @@ const REF_ITEMS = [
     details: { specialty: 'Ophtalmologie',      question: '', indication: '', priority: 'Routine', crds: '' } },
 ];
 
-// Unified order registry (rx / lab / img / ref) — shared search + favorites
+// =========================================================
+// Examen diagnostique — commande « /exam » ; services — commande « /serv »
+// (rencontre du 2026-10-27, C2 : les branches de la requête, avec labo,
+// imagerie et référence). La spirométrie reste dans /lab. Contenu
+// d'exemple, à valider cliniquement.
+// =========================================================
+const EXAM_FAVS = new Set(['ecg', 'holter']);
+const EXAM_ITEMS = [
+  { key: 'ecg', name: L('ECG au repos'), dose: '', freq: true, sig: L('12 dérivations · Routine'), chipSig: L('Routine'),
+    details: { exam: L('ECG au repos'), question: '', priority: 'Routine', comment: '' } },
+  { key: 'holter', name: L('Holter 24 h'), dose: '', freq: true, sig: L('Enregistrement de 24 h · Routine'), chipSig: L('Routine'),
+    details: { exam: L('Holter 24 h'), question: '', priority: 'Routine', comment: '' } },
+  { key: 'mapa', name: L('MAPA 24 h'), dose: '', freq: true, sig: L('Monitorage ambulatoire de la pression artérielle · Routine'), chipSig: L('Routine'),
+    details: { exam: L('MAPA 24 h'), question: '', priority: 'Routine', comment: '' } },
+  { key: 'effort', name: L('Épreuve d’effort'), dose: '', sig: L('Sur tapis roulant · Routine'), chipSig: L('Routine'),
+    details: { exam: L('Épreuve d’effort'), question: '', priority: 'Routine', comment: '' } },
+  { key: 'oxymetrie', name: L('Oxymétrie nocturne'), dose: '', sig: L('À domicile · Routine'), chipSig: L('Routine'),
+    details: { exam: L('Oxymétrie nocturne'), question: '', priority: 'Routine', comment: '' } },
+  { key: 'polysomno', name: L('Polysomnographie'), dose: '', sig: L('En laboratoire du sommeil · Routine'), chipSig: L('Routine'),
+    details: { exam: L('Polysomnographie'), question: '', priority: 'Routine', comment: '' } },
+];
+const SERV_FAVS = new Set(['pansement', 'injection']);
+const SERV_ITEMS = [
+  { key: 'pansement', name: L('Soins de plaie et pansement'), dose: '', freq: true, sig: L('Infirmière · Routine'), chipSig: L('Routine'),
+    details: { service: L('Soins de plaie et pansement'), frequency: '', priority: 'Routine', instructions: '' } },
+  { key: 'injection', name: L('Injection par l’infirmière'), dose: '', freq: true, sig: L('Vaccin, vitamine B12… · Routine'), chipSig: L('Routine'),
+    details: { service: L('Injection par l’infirmière'), frequency: '', priority: 'Routine', instructions: '' } },
+  { key: 'points', name: L('Retrait de points de suture'), dose: '', freq: true, sig: L('Dans 7 à 10 jours · Routine'), chipSig: L('Routine'),
+    details: { service: L('Retrait de points de suture'), frequency: '', priority: 'Routine', instructions: '' } },
+  { key: 'suivipa', name: L('Suivi de la pression artérielle'), dose: '', sig: L('Prises par l’infirmière · Routine'), chipSig: L('Routine'),
+    details: { service: L('Suivi de la pression artérielle'), frequency: '', priority: 'Routine', instructions: '' } },
+  { key: 'enseignement', name: L('Enseignement au patient'), dose: '', sig: L('Inhalateur, glucomètre… · Routine'), chipSig: L('Routine'),
+    details: { service: L('Enseignement au patient'), frequency: '', priority: 'Routine', instructions: '' } },
+  { key: 'prelevement', name: L('Prélèvements à domicile'), dose: '', sig: L('CLSC · Routine'), chipSig: L('Routine'),
+    details: { service: L('Prélèvements à domicile'), frequency: '', priority: 'Routine', instructions: '' } },
+];
+
+// Unified order registry (rx / lab / img / ref / exam / serv) — shared search + favorites
 const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: t('data.rxVerb.text'), emptyNoun: t('data.rxNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
@@ -701,6 +741,12 @@ const ORDER_DEFS = {
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
+  exam: { kbd: 'exam', type: 'exam',       icon: 'monitor_heart', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.examNoun.text'),
+         sections: [t('data.sectionFavorites.title'), t('data.sectionExamFrequent.title'), t('data.sectionExamOther.title')],
+         favs: EXAM_FAVS, items: function () { return EXAM_ITEMS; }, search: function (q, favs) { return _searchList(EXAM_ITEMS, favs || EXAM_FAVS, q); } },
+  serv: { kbd: 'serv', type: 'service',    icon: 'medical_services', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.serviceNoun.text'),
+         sections: [t('data.sectionFavorites.title'), t('data.sectionServFrequent.title'), t('data.sectionServOther.title')],
+         favs: SERV_FAVS, items: function () { return SERV_ITEMS; }, search: function (q, favs) { return _searchList(SERV_ITEMS, favs || SERV_FAVS, q); } },
 };
 
 // Table d'intention thérapeutique (rencontre vision 2026-10-27) : ce qu'une
@@ -1094,6 +1140,13 @@ function deriveRefRx(d) {
   const sig = valueLabel(d.priority || 'Routine');
   return { name: name, dose: '', sig: sig, kind: 'ref' };
 }
+function deriveExamRx(d) {
+  return { name: d.exam || t('data.examRequest.text'), dose: '', sig: valueLabel(d.priority || 'Routine'), kind: 'exam' };
+}
+function deriveServRx(d) {
+  const sig = [d.frequency, valueLabel(d.priority || 'Routine')].filter(Boolean).join(' · ');
+  return { name: d.service || t('data.serviceRequest.text'), dose: '', sig: sig, kind: 'serv' };
+}
 
 // Suggestions de médicaments en prose DÉSACTIVÉES : les suggestions
 // n'apparaissent désormais que via la fonction « /rx ». Avec le catalogue
@@ -1152,6 +1205,14 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'referral', label: L('Référence spécialiste'), text: L('Référence spécialiste'),
       details: { specialty: '', question: '', indication: '', priority: 'Routine', crds: '' } } },
+  { key: 'exam', section: L('Fonctions'), icon: 'monitor_heart', title: L('Examen diagnostique'), desc: L('ECG, Holter, MAPA…'), kbd: 'exam',
+    orderSearch: true,
+    template: { type: 'exam', label: L('Examen diagnostique'), text: L('Examen diagnostique'),
+      details: { exam: '', question: '', priority: 'Routine', comment: '' } } },
+  { key: 'service', section: L('Fonctions'), icon: 'medical_services', title: L('Services'), desc: L('Soins infirmiers, pansement…'), kbd: 'serv',
+    orderSearch: true,
+    template: { type: 'service', label: L('Service'), text: L('Service'),
+      details: { service: '', frequency: '', priority: 'Routine', instructions: '' } } },
   // ── accessible via /pb uniquement (masqué dans menu vide) ─
   { key: 'problem', section: L('Fonctions'), icon: 'flag', title: L('Problème'), desc: L('Ajouter au problématique'), kbd: 'pb',
     hideWhenEmpty: true,
@@ -1374,7 +1435,7 @@ function visitReason(points) {
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
-  ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx,
+  ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

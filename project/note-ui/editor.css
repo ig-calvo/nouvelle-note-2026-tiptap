@@ -721,6 +721,8 @@ html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { 
 .chip--rx .chip-rx-glyph:hover { opacity: 0.75; }
 /* Referral chip accent colour */
 .chip--ref .chip-rx-glyph { color: var(--mat-sys-secondary); }
+.chip--exam .chip-rx-glyph { color: light-dark(#b04a6f, #e6a3bc); }
+.chip--serv .chip-rx-glyph { color: light-dark(#3d7f8f, #9fd0db); }
 
 /* Ajout en attente (proposé par un gabarit, pas encore accepté) : même chip,
    contour en tirets + fond teinté, rien de cliquable sauf ✓ (accepter) et

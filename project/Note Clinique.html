@@ -426,7 +426,8 @@ class AppErrorBoundary extends React.Component {
 const DOC_KIND_LABEL = {
   prescription: t('document.kind.prescription'), clinicalTool: t('document.kind.clinicalTool'),
   lab: t('document.kind.lab'), imaging: t('document.kind.imaging'),
-  referral: t('document.kind.referral'), instructions: t('document.kind.instructions'),
+  referral: t('document.kind.referral'), exam: t('document.kind.exam'), service: t('document.kind.service'),
+  instructions: t('document.kind.instructions'),
 };
 // Nom accessible d'une pastille : `title` seul n'est ni lu de façon fiable par
 // les lecteurs d'écran ni atteignable au clavier — chaque pastille porte donc
@@ -438,7 +439,7 @@ function docPillLabel(kind, done, total) {
 // imagerie, laboratoire et références à un spécialiste. Le compteur monte dès
 // l'ajout dans la note (pas à la transmission) et, comme les autres pastilles,
 // la pastille n'existe pas tant qu'il vaut 0.
-const PORTAL_KINDS = ['instructions', 'imaging', 'lab', 'referral'];
+const PORTAL_KINDS = ['instructions', 'imaging', 'lab', 'referral', 'exam'];
 function portalSharedCount(summary) {
   return summary.reduce(function (n, s) { return PORTAL_KINDS.indexOf(s.kind) >= 0 ? n + s.total : n; }, 0);
 }
