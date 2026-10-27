@@ -669,12 +669,10 @@ function App() {
       {presenting && <PresentationMode noteOpen={noteOpen} onOpenNote={handleNoteOpen} />}
       {!presenting &&
       <TweaksPanel title="Tweaks">
-        <TweakSection label="Identité" />
-        <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
-        <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
-        <TweakSection label="Général" />
-        {/* Langue : la page se recharge dans l'autre langue (voir i18n.js, urlFor) ;
-            les réglages ci-dessus survivent au rechargement. Les noms des langues
+        {/* Toujours visibles en tête : ce qu'on règle en premier. Le reste vit
+            dans des sections repliables (fermées par défaut, état mémorisé).
+            Langue : la page se recharge dans l'autre langue (voir i18n.js, urlFor) ;
+            les autres réglages survivent au rechargement. Les noms des langues
             ne se traduisent jamais. */}
         <TweakRadio label="Langue"
                     value={window.I18N.lang}
@@ -690,98 +688,108 @@ function App() {
                       { value: 'sombre', label: 'Sombre' },
                     ]}
                     onChange={(v) => setTweak('themeMode', v)} />
-        <TweakToggle label="Outils cliniques" value={t.showClinicalTools !== false}
-                     onChange={(v) => setTweak('showClinicalTools', v)} />
-        <TweakToggle label="Portail patient actif" value={t.portalActive !== false}
-                     onChange={(v) => setTweak('portalActive', v)} />
-        <TweakToggle label="Points de départ" value={t.startPoints === true}
-                     onChange={(v) => setTweak('startPoints', v)} />
-        <TweakRadio label="Barre de mise en forme"
-                    value={t.ftBarStyle || 'haut'}
-                    options={[
-                      { value: 'haut', label: 'Haut de note' },
-                      { value: 'flottant', label: 'Flottante' },
-                    ]}
-                    onChange={(v) => setTweak('ftBarStyle', v)} />
-        {/* "Haut de note" : bas = après le corps de la note (avant les outils
-            cliniques) plutôt qu'avant. "Flottante" : bas = sous la sélection
-            plutôt qu'au-dessus. */}
-        <TweakRadio label="Position de la barre"
-                    value={t.ftBarPosition || 'haut'}
-                    options={[
-                      { value: 'haut', label: 'Haut' },
-                      { value: 'bas', label: 'Bas' },
-                    ]}
-                    onChange={(v) => setTweak('ftBarPosition', v)} />
-        <TweakSection label="Checkout" />
-        <TweakToggle label="Suggestions de destinataires (✨)" value={t.checkoutSuggestions === true}
-                     onChange={(v) => setTweak('checkoutSuggestions', v)} />
-        <TweakRadio label="Checkout des requêtes"
-                    value={t.groupRequests === true ? 'type' : 'puce'}
-                    options={[
-                      { value: 'puce', label: 'Une par puce' },
-                      { value: 'type', label: 'Regroupées' },
-                    ]}
-                    onChange={(v) => setTweak('groupRequests', v === 'type')} />
-        <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
-                     onChange={(v) => setTweak('simulateTxFailure', v)} />
-        <TweakSection label="Gabarits" />
-        <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
-                     onChange={(v) => setTweak('templateTextProposed', v)} />
-        <TweakRadio label="Style des suggestions"
-                    value={t.suggestionStyle || 'tirets'}
-                    options={[
-                      { value: 'tirets', label: 'Tirets' },
-                      { value: 'opacite', label: 'Estompé' },
-                      { value: 'violet', label: 'Mauve' },
-                    ]}
-                    onChange={(v) => setTweak('suggestionStyle', v)} />
-        <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
-                     onChange={(v) => setTweak('pendingBadge', v)} />
-        <TweakSection label="Pistes (vision)" />
-        <TweakRadio label="Suggestions"
-                    value={t.suggestionsPlacement || 'aucune'}
-                    options={[
-                      { value: 'aucune', label: 'Aucune' },
-                      { value: 'colonne', label: 'Colonne' },
-                      { value: 'curseur', label: 'Près du curseur' },
-                    ]}
-                    onChange={(v) => setTweak('suggestionsPlacement', v)} />
-        <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
-                     onChange={(v) => setTweak('visitStart', v)} />
-        <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
-                     onChange={(v) => setTweak('aiProposals', v)} />
-        <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}
-                     onChange={(v) => setTweak('summaryAddToNote', v)} />
-        <TweakSection label="Formulaire d'une puce" />
-        <TweakToggle label="Édition inline des valeurs secondaires (après Q1 2027)" value={t.inlineFieldEdit !== false}
-                     onChange={(v) => setTweak('inlineFieldEdit', v)} />
-        <TweakSelect label="Ouverture du formulaire"
-                     value={t.formOpenMode || 'auto'}
-                     options={[
-                       { value: 'auto', label: 'Auto (sous, au-dessus, sinon centré)' },
-                       { value: 'sous', label: 'Sous la puce (corps qui défile)' },
-                       { value: 'centre', label: 'Centré' },
-                       { value: 'sheet', label: 'Bottom sheet' },
-                     ]}
-                     onChange={(v) => setTweak('formOpenMode', v)} />
-        <TweakSection label="Mode révision" />
-        <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
-                     onChange={(v) => setTweak('reviewingMode', v)} />
-        <TweakSelect label="Écrire en tant que…"
-                    value={t.reviewAuthor || 'me'}
-                    options={(window.reviewHumanAuthors ? window.reviewHumanAuthors(t.doctorName) : []).map((a) => ({ value: a.id, label: a.name }))}
-                    onChange={(v) => setTweak('reviewAuthor', v)} />
-        <TweakSection label="Diagnostics" />
-        <TweakRadio label="Style de région"
-                    value={t.diagStyle || 'actuel'}
-                    options={[
-                      { value: 'numbered', label: 'Numéroté' },
-                      { value: 'actuel', label: 'Actuel' },
-                      { value: 'carte', label: 'Carte' },
-                      { value: 'etiquette', label: 'Étiquette' },
-                    ]}
-                    onChange={(v) => setTweak('diagStyle', v)} />
+        <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
+        <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
+        <TweakSection label="Général">
+          <TweakToggle label="Outils cliniques" value={t.showClinicalTools !== false}
+                       onChange={(v) => setTweak('showClinicalTools', v)} />
+          <TweakToggle label="Portail patient actif" value={t.portalActive !== false}
+                       onChange={(v) => setTweak('portalActive', v)} />
+          <TweakToggle label="Points de départ" value={t.startPoints === true}
+                       onChange={(v) => setTweak('startPoints', v)} />
+          <TweakRadio label="Barre de mise en forme"
+                      value={t.ftBarStyle || 'haut'}
+                      options={[
+                        { value: 'haut', label: 'Haut de note' },
+                        { value: 'flottant', label: 'Flottante' },
+                      ]}
+                      onChange={(v) => setTweak('ftBarStyle', v)} />
+          {/* "Haut de note" : bas = après le corps de la note (avant les outils
+              cliniques) plutôt qu'avant. "Flottante" : bas = sous la sélection
+              plutôt qu'au-dessus. */}
+          <TweakRadio label="Position de la barre"
+                      value={t.ftBarPosition || 'haut'}
+                      options={[
+                        { value: 'haut', label: 'Haut' },
+                        { value: 'bas', label: 'Bas' },
+                      ]}
+                      onChange={(v) => setTweak('ftBarPosition', v)} />
+        </TweakSection>
+        <TweakSection label="Checkout">
+          <TweakToggle label="Suggestions de destinataires (✨)" value={t.checkoutSuggestions === true}
+                       onChange={(v) => setTweak('checkoutSuggestions', v)} />
+          <TweakRadio label="Checkout des requêtes"
+                      value={t.groupRequests === true ? 'type' : 'puce'}
+                      options={[
+                        { value: 'puce', label: 'Une par puce' },
+                        { value: 'type', label: 'Regroupées' },
+                      ]}
+                      onChange={(v) => setTweak('groupRequests', v === 'type')} />
+          <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
+                       onChange={(v) => setTweak('simulateTxFailure', v)} />
+        </TweakSection>
+        <TweakSection label="Gabarits">
+          <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
+                       onChange={(v) => setTweak('templateTextProposed', v)} />
+          <TweakRadio label="Style des suggestions"
+                      value={t.suggestionStyle || 'tirets'}
+                      options={[
+                        { value: 'tirets', label: 'Tirets' },
+                        { value: 'opacite', label: 'Estompé' },
+                        { value: 'violet', label: 'Mauve' },
+                      ]}
+                      onChange={(v) => setTweak('suggestionStyle', v)} />
+          <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
+                       onChange={(v) => setTweak('pendingBadge', v)} />
+        </TweakSection>
+        <TweakSection label="Pistes (vision)">
+          <TweakRadio label="Suggestions"
+                      value={t.suggestionsPlacement || 'aucune'}
+                      options={[
+                        { value: 'aucune', label: 'Aucune' },
+                        { value: 'colonne', label: 'Colonne' },
+                        { value: 'curseur', label: 'Près du curseur' },
+                      ]}
+                      onChange={(v) => setTweak('suggestionsPlacement', v)} />
+          <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
+                       onChange={(v) => setTweak('visitStart', v)} />
+          <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
+                       onChange={(v) => setTweak('aiProposals', v)} />
+          <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}
+                       onChange={(v) => setTweak('summaryAddToNote', v)} />
+        </TweakSection>
+        <TweakSection label="Formulaire d'une puce">
+          <TweakToggle label="Édition inline des valeurs secondaires (après Q1 2027)" value={t.inlineFieldEdit !== false}
+                       onChange={(v) => setTweak('inlineFieldEdit', v)} />
+          <TweakSelect label="Ouverture du formulaire"
+                       value={t.formOpenMode || 'auto'}
+                       options={[
+                         { value: 'auto', label: 'Auto (sous, au-dessus, sinon centré)' },
+                         { value: 'sous', label: 'Sous la puce (corps qui défile)' },
+                         { value: 'centre', label: 'Centré' },
+                         { value: 'sheet', label: 'Bottom sheet' },
+                       ]}
+                       onChange={(v) => setTweak('formOpenMode', v)} />
+        </TweakSection>
+        <TweakSection label="Mode révision">
+          <TweakToggle label="Mode révision (flag)" value={t.reviewingMode === true}
+                       onChange={(v) => setTweak('reviewingMode', v)} />
+          <TweakSelect label="Écrire en tant que…"
+                      value={t.reviewAuthor || 'me'}
+                      options={(window.reviewHumanAuthors ? window.reviewHumanAuthors(t.doctorName) : []).map((a) => ({ value: a.id, label: a.name }))}
+                      onChange={(v) => setTweak('reviewAuthor', v)} />
+        </TweakSection>
+        <TweakSection label="Diagnostics">
+          <TweakRadio label="Style de région"
+                      value={t.diagStyle || 'actuel'}
+                      options={[
+                        { value: 'numbered', label: 'Numéroté' },
+                        { value: 'actuel', label: 'Actuel' },
+                        { value: 'carte', label: 'Carte' },
+                        { value: 'etiquette', label: 'Étiquette' },
+                      ]}
+                      onChange={(v) => setTweak('diagStyle', v)} />
+        </TweakSection>
       </TweaksPanel>}
     </div>);
 
