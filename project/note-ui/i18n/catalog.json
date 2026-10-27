@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1279,
+    "interface": 1283,
     "donnees": 761
   },
   "interface": {
@@ -4871,7 +4871,7 @@
       "empreinte": "2e0f0469e2f7",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-popover.jsx:994"
+        "note-ui/editor-popover.jsx:1000"
       ]
     },
     "popover.addSelection.text": {
@@ -4879,7 +4879,7 @@
       "empreinte": "62dd5c722263",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:990"
+        "note-ui/editor-popover.jsx:996"
       ]
     },
     "popover.aerosolDoseur.label": {
@@ -4975,7 +4975,7 @@
       "empreinte": "36238be9474d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:990"
+        "note-ui/editor-popover.jsx:996"
       ]
     },
     "popover.bilateral.label": {
@@ -4991,7 +4991,7 @@
       "empreinte": "aba4aeb26e7e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:991"
+        "note-ui/editor-popover.jsx:997"
       ]
     },
     "popover.cancelledReadonly.text": {
@@ -5031,7 +5031,7 @@
       "empreinte": "9d301be9e974",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:989"
+        "note-ui/editor-popover.jsx:995"
       ]
     },
     "popover.choisir.label": {
@@ -5249,7 +5249,7 @@
       "empreinte": "1f7a4f9e2f70",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:991"
+        "note-ui/editor-popover.jsx:997"
       ]
     },
     "popover.explorer.tooltip": {
@@ -5281,7 +5281,7 @@
       "empreinte": "2c801d4abf50",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:988"
+        "note-ui/editor-popover.jsx:994"
       ]
     },
     "popover.filtresMedications.aria": {
@@ -5483,7 +5483,7 @@
       "empreinte": "6a5e4e939fee",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:987"
+        "note-ui/editor-popover.jsx:993"
       ]
     },
     "popover.nePasSubstituer.tooltip": {
@@ -5800,7 +5800,7 @@
       "empreinte": "3bb1fc6a4d17",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:988"
+        "note-ui/editor-popover.jsx:994"
       ]
     },
     "popover.retirerFavoris.tooltip": {
@@ -5817,6 +5817,38 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/editor-popover.jsx:138"
+      ]
+    },
+    "popover.selectionMultiple.text": {
+      "fr": "Sélection multiple",
+      "empreinte": "77e30a25e55e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:991"
+      ]
+    },
+    "popover.selectionMultiple.tooltip": {
+      "fr": "Cochez plusieurs résultats, puis ajoutez-les ensemble",
+      "empreinte": "d4f53524b1a1",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:989"
+      ]
+    },
+    "popover.selectionUnique.text": {
+      "fr": "Sélection unique",
+      "empreinte": "aa8cf592860e",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:991"
+      ]
+    },
+    "popover.selectionUnique.tooltip": {
+      "fr": "Un résultat à la fois : le choisir l’ajoute",
+      "empreinte": "a6d6eea3f2b7",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/editor-popover.jsx:989"
       ]
     },
     "popover.severe.label": {

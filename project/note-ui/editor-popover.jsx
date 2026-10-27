@@ -984,6 +984,12 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
             </button>))}
         </nav>}
       <div className="rx-menu__foot">
+        {/* Mode de sélection de la recherche (rencontre du 2026-10-27, C3) :
+            plusieurs résultats à cocher (labo) ou un seul à la fois. */}
+        <span className={'rx-mode' + (multi ? ' rx-mode--multi' : '')} title={multi ? t('popover.selectionMultiple.tooltip') : t('popover.selectionUnique.tooltip')}>
+          <span className="material-symbols-outlined" aria-hidden="true">{multi ? 'checklist' : 'radio_button_checked'}</span>
+          {multi ? t('popover.selectionMultiple.text') : t('popover.selectionUnique.text')}
+        </span>
         <span><kbd>↑ ↓</kbd> {t('popover.navigate.text')}</span>
         {railOn && <span><kbd>⇥</kbd> {railFocus ? t('popover.results.text') : t('popover.filters.text')}</span>}
         {multi && <span><kbd>⇧ ↵</kbd> {t('popover.check.text')}</span>}
