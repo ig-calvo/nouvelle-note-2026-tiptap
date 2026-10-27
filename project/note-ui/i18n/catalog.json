@@ -4,7 +4,7 @@
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
     "interface": 1271,
-    "donnees": 760
+    "donnees": 763
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -84,7 +84,7 @@
       "empreinte": "94f6f208e9ce",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1043",
+        "note-ui/NoteEditor.jsx:1046",
         "note-ui/editor-schema.jsx:297",
         "note-ui/review-mode.jsx:28"
       ]
@@ -1956,8 +1956,8 @@
       "empreinte": "ae0de9e32bf6",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:689",
-        "note-ui/editor-data.jsx:694"
+        "note-ui/editor-data.jsx:694",
+        "note-ui/editor-data.jsx:699"
       ]
     },
     "data.imagingRequest.text": {
@@ -1965,7 +1965,7 @@
       "empreinte": "41c129a8f264",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:1000"
+        "note-ui/editor-data.jsx:1005"
       ]
     },
     "data.labNoun.text": {
@@ -1973,7 +1973,7 @@
       "empreinte": "c5c81bdc4788",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:686"
+        "note-ui/editor-data.jsx:691"
       ]
     },
     "data.medStatusActive.text": {
@@ -2005,9 +2005,9 @@
       "empreinte": "51ca0abb2c70",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:686",
-        "note-ui/editor-data.jsx:689",
-        "note-ui/editor-data.jsx:694"
+        "note-ui/editor-data.jsx:691",
+        "note-ui/editor-data.jsx:694",
+        "note-ui/editor-data.jsx:699"
       ]
     },
     "data.profileSig.text": {
@@ -2018,7 +2018,7 @@
       "empreinte": "f86dffcc419f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:931"
+        "note-ui/editor-data.jsx:936"
       ]
     },
     "data.refVerb.text": {
@@ -2026,7 +2026,7 @@
       "empreinte": "2821271e118c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:697"
+        "note-ui/editor-data.jsx:702"
       ]
     },
     "data.referralSpecialist.text": {
@@ -2034,7 +2034,7 @@
       "empreinte": "7fd6b1e7b87f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:1005"
+        "note-ui/editor-data.jsx:1010"
       ]
     },
     "data.rxNoun.text": {
@@ -2042,7 +2042,7 @@
       "empreinte": "0e57b0e7da2b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:683"
+        "note-ui/editor-data.jsx:688"
       ]
     },
     "data.rxVerb.text": {
@@ -2050,7 +2050,7 @@
       "empreinte": "27660cccf623",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:683"
+        "note-ui/editor-data.jsx:688"
       ]
     },
     "data.sectionFavorites.title": {
@@ -2058,10 +2058,10 @@
       "empreinte": "1020d9085c8a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:684",
-        "note-ui/editor-data.jsx:687",
-        "note-ui/editor-data.jsx:690",
-        "note-ui/editor-data.jsx:698"
+        "note-ui/editor-data.jsx:689",
+        "note-ui/editor-data.jsx:692",
+        "note-ui/editor-data.jsx:695",
+        "note-ui/editor-data.jsx:703"
       ]
     },
     "data.sectionImaging.title": {
@@ -2069,7 +2069,7 @@
       "empreinte": "876ab0ce03e2",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:695"
+        "note-ui/editor-data.jsx:700"
       ]
     },
     "data.sectionImgFrequent.title": {
@@ -2077,7 +2077,7 @@
       "empreinte": "9421c1461cc4",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:690"
+        "note-ui/editor-data.jsx:695"
       ]
     },
     "data.sectionImgOther.title": {
@@ -2085,7 +2085,7 @@
       "empreinte": "84655f7b871f",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:690"
+        "note-ui/editor-data.jsx:695"
       ]
     },
     "data.sectionLab.title": {
@@ -2093,7 +2093,7 @@
       "empreinte": "0f78e26d87bf",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:695"
+        "note-ui/editor-data.jsx:700"
       ]
     },
     "data.sectionLabFrequent.title": {
@@ -2101,7 +2101,7 @@
       "empreinte": "7105a924a4de",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:687"
+        "note-ui/editor-data.jsx:692"
       ]
     },
     "data.sectionLabOther.title": {
@@ -2109,7 +2109,7 @@
       "empreinte": "66bbdf8d2ba0",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:687"
+        "note-ui/editor-data.jsx:692"
       ]
     },
     "data.sectionProfiles.title": {
@@ -2117,7 +2117,7 @@
       "empreinte": "f78e0be05948",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:695"
+        "note-ui/editor-data.jsx:700"
       ]
     },
     "data.sectionRefFrequent.title": {
@@ -2125,7 +2125,7 @@
       "empreinte": "831405fcab32",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:698"
+        "note-ui/editor-data.jsx:703"
       ]
     },
     "data.sectionRefOther.title": {
@@ -2133,7 +2133,7 @@
       "empreinte": "1fbdbc352457",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:698"
+        "note-ui/editor-data.jsx:703"
       ]
     },
     "data.sectionRxFrequent.title": {
@@ -2141,7 +2141,7 @@
       "empreinte": "fe26861728ac",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:684"
+        "note-ui/editor-data.jsx:689"
       ]
     },
     "data.sectionRxPhrases.title": {
@@ -2149,7 +2149,7 @@
       "empreinte": "c4583232a14a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:684"
+        "note-ui/editor-data.jsx:689"
       ]
     },
     "data.specialtyNoun.text": {
@@ -2157,7 +2157,7 @@
       "empreinte": "6ef6d4e20d18",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:697"
+        "note-ui/editor-data.jsx:702"
       ]
     },
     "data.withContrast.text": {
@@ -2165,7 +2165,7 @@
       "empreinte": "4a33f01809ce",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:1001"
+        "note-ui/editor-data.jsx:1006"
       ]
     },
     "data.withContrastLower.text": {
@@ -3980,7 +3980,7 @@
       "empreinte": "bbb276c7a418",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1928"
+        "note-ui/NoteEditor.jsx:1931"
       ]
     },
     "noteEditor.ajouterEtiquette.placeholder": {
@@ -3988,7 +3988,7 @@
       "empreinte": "1097cb8e1d00",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1928"
+        "note-ui/NoteEditor.jsx:1931"
       ]
     },
     "noteEditor.ajouterEtiquettes.aria": {
@@ -3996,7 +3996,7 @@
       "empreinte": "5b6efbfeb4be",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1015"
+        "note-ui/NoteEditor.jsx:1018"
       ]
     },
     "noteEditor.ajouterEtiquettes.tooltip": {
@@ -4004,7 +4004,7 @@
       "empreinte": "5b6efbfeb4be",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1014"
+        "note-ui/NoteEditor.jsx:1017"
       ]
     },
     "noteEditor.annulationEnvoyee.toast": {
@@ -4012,7 +4012,7 @@
       "empreinte": "a4746d901e98",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:802"
+        "note-ui/NoteEditor.jsx:805"
       ]
     },
     "noteEditor.annuler.button": {
@@ -4020,8 +4020,8 @@
       "empreinte": "49ba3292420c",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1171",
-        "note-ui/NoteEditor.jsx:1197"
+        "note-ui/NoteEditor.jsx:1174",
+        "note-ui/NoteEditor.jsx:1200"
       ]
     },
     "noteEditor.appuyerAfficherCommandes.placeholder": {
@@ -4029,7 +4029,7 @@
       "empreinte": "d94edcaf8119",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1073"
+        "note-ui/NoteEditor.jsx:1076"
       ]
     },
     "noteEditor.assurancePrivee.label": {
@@ -4037,7 +4037,7 @@
       "empreinte": "918e94b73c5c",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1100"
+        "note-ui/NoteEditor.jsx:1103"
       ]
     },
     "noteEditor.aucunElementDossier.text": {
@@ -4045,7 +4045,7 @@
       "empreinte": "1efba1d1ad4e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:615"
+        "note-ui/NoteEditor.jsx:618"
       ]
     },
     "noteEditor.aujourdHui.button": {
@@ -4053,7 +4053,7 @@
       "empreinte": "ba0603b43d81",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1762"
+        "note-ui/NoteEditor.jsx:1765"
       ]
     },
     "noteEditor.brouillonSauvegarde.toast": {
@@ -4061,7 +4061,7 @@
       "empreinte": "94be170991d3",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:701"
+        "note-ui/NoteEditor.jsx:704"
       ]
     },
     "noteEditor.cardiologie.label": {
@@ -4069,7 +4069,7 @@
       "empreinte": "f1703cc56ce5",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1101"
+        "note-ui/NoteEditor.jsx:1104"
       ]
     },
     "noteEditor.champsConfidentiel.text": {
@@ -4077,7 +4077,7 @@
       "empreinte": "5b03afb49e23",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1127"
+        "note-ui/NoteEditor.jsx:1130"
       ]
     },
     "noteEditor.choisirHeure.label": {
@@ -4085,7 +4085,7 @@
       "empreinte": "36cf897a5208",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1668"
+        "note-ui/NoteEditor.jsx:1671"
       ]
     },
     "noteEditor.contenuChampsNoteConfidentielle.text": {
@@ -4093,7 +4093,7 @@
       "empreinte": "11e31bfb5215",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1168"
+        "note-ui/NoteEditor.jsx:1171"
       ]
     },
     "noteEditor.contenuRedigeSeraDefinitivement.text": {
@@ -4101,7 +4101,7 @@
       "empreinte": "14d426cecdd7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1194"
+        "note-ui/NoteEditor.jsx:1197"
       ]
     },
     "noteEditor.cours.text": {
@@ -4109,7 +4109,7 @@
       "empreinte": "bc9b533a4353",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:960"
+        "note-ui/NoteEditor.jsx:963"
       ]
     },
     "noteEditor.date.label": {
@@ -4117,7 +4117,7 @@
       "empreinte": "eb9a4bc1c0c1",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1008"
+        "note-ui/NoteEditor.jsx:1011"
       ]
     },
     "noteEditor.documenterChampConfidentiel.placeholder": {
@@ -4125,7 +4125,7 @@
       "empreinte": "0bd36a500c86",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1137"
+        "note-ui/NoteEditor.jsx:1140"
       ]
     },
     "noteEditor.echecTransmissionSimule.toast": {
@@ -4133,7 +4133,7 @@
       "empreinte": "b06e61b328de",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:763"
+        "note-ui/NoteEditor.jsx:766"
       ]
     },
     "noteEditor.ecrire.button": {
@@ -4141,7 +4141,7 @@
       "empreinte": "4a2abc77808a",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1175"
+        "note-ui/NoteEditor.jsx:1178"
       ]
     },
     "noteEditor.etiquettes.text": {
@@ -4149,7 +4149,7 @@
       "empreinte": "e26c690ca57a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1912"
+        "note-ui/NoteEditor.jsx:1915"
       ]
     },
     "noteEditor.examenPhysiqueVersionCourte.label": {
@@ -4157,7 +4157,7 @@
       "empreinte": "2d854507c050",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1103"
+        "note-ui/NoteEditor.jsx:1106"
       ]
     },
     "noteEditor.fieldDose.label": {
@@ -4165,7 +4165,7 @@
       "empreinte": "da7f99e8cbbf",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1401"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     "noteEditor.fieldDuration.label": {
@@ -4173,7 +4173,7 @@
       "empreinte": "6feac25effc5",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1402"
+        "note-ui/NoteEditor.jsx:1405"
       ]
     },
     "noteEditor.fieldDurationRefills.label": {
@@ -4181,7 +4181,7 @@
       "empreinte": "14e03029b192",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1401"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     "noteEditor.fieldExam.label": {
@@ -4189,7 +4189,7 @@
       "empreinte": "f0a010017d3b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1403"
+        "note-ui/NoteEditor.jsx:1406"
       ]
     },
     "noteEditor.fieldForm.label": {
@@ -4197,7 +4197,7 @@
       "empreinte": "5f9d25690e5c",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1401"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     "noteEditor.fieldFrequency.label": {
@@ -4205,7 +4205,7 @@
       "empreinte": "bafbfba73ab9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1401"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     "noteEditor.fieldPriority.label": {
@@ -4213,7 +4213,7 @@
       "empreinte": "eede91d2f77e",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1403"
+        "note-ui/NoteEditor.jsx:1406"
       ]
     },
     "noteEditor.fieldRefills.label": {
@@ -4221,7 +4221,7 @@
       "empreinte": "5b961f3ab582",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1402"
+        "note-ui/NoteEditor.jsx:1405"
       ]
     },
     "noteEditor.fieldRoute.label": {
@@ -4229,7 +4229,7 @@
       "empreinte": "2085078a7f15",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1401"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     "noteEditor.fieldSpecialty.label": {
@@ -4237,7 +4237,7 @@
       "empreinte": "cbaf96abb0f9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1403"
+        "note-ui/NoteEditor.jsx:1406"
       ]
     },
     "noteEditor.heure.label": {
@@ -4245,7 +4245,7 @@
       "empreinte": "5073129fadb8",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1009"
+        "note-ui/NoteEditor.jsx:1012"
       ]
     },
     "noteEditor.heures.aria": {
@@ -4253,7 +4253,7 @@
       "empreinte": "b4448c06daab",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1797"
+        "note-ui/NoteEditor.jsx:1800"
       ]
     },
     "noteEditor.ituRoadmap.text": {
@@ -4270,7 +4270,7 @@
       "empreinte": "aa3638ab7fd0",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1015"
+        "note-ui/NoteEditor.jsx:1018"
       ]
     },
     "noteEditor.masquerEtiquettes.tooltip": {
@@ -4278,7 +4278,7 @@
       "empreinte": "aa3638ab7fd0",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1014"
+        "note-ui/NoteEditor.jsx:1017"
       ]
     },
     "noteEditor.moisPrecedent.aria": {
@@ -4286,7 +4286,7 @@
       "empreinte": "535707c762c5",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1716"
+        "note-ui/NoteEditor.jsx:1719"
       ]
     },
     "noteEditor.moisSuivant.aria": {
@@ -4294,7 +4294,7 @@
       "empreinte": "7b08eaecd203",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1720"
+        "note-ui/NoteEditor.jsx:1723"
       ]
     },
     "noteEditor.noSuggestion.empty": {
@@ -4302,7 +4302,7 @@
       "empreinte": "7bec56e7dee9",
       "contexte": "état vide",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1464"
+        "note-ui/NoteEditor.jsx:1467"
       ]
     },
     "noteEditor.noteClinique.text": {
@@ -4310,7 +4310,7 @@
       "empreinte": "faa86995709c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:959"
+        "note-ui/NoteEditor.jsx:962"
       ]
     },
     "noteEditor.noteClinique.tooltip": {
@@ -4318,7 +4318,7 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1231"
+        "note-ui/NoteEditor.jsx:1234"
       ]
     },
     "noteEditor.noteConfidentielle.text": {
@@ -4326,7 +4326,7 @@
       "empreinte": "82d714bd9df8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1161"
+        "note-ui/NoteEditor.jsx:1164"
       ]
     },
     "noteEditor.outilsCliniques.tooltip": {
@@ -4334,7 +4334,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1090"
+        "note-ui/NoteEditor.jsx:1093"
       ]
     },
     "noteEditor.ouvrirCalendrier.label": {
@@ -4342,7 +4342,7 @@
       "empreinte": "68d7da0b9a5a",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1661"
+        "note-ui/NoteEditor.jsx:1664"
       ]
     },
     "noteEditor.raisonConsultation.label": {
@@ -4350,7 +4350,7 @@
       "empreinte": "0526229047e4",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1003"
+        "note-ui/NoteEditor.jsx:1006"
       ]
     },
     "noteEditor.rechercher.placeholder": {
@@ -4358,7 +4358,7 @@
       "empreinte": "1d12cdfbd87a",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1458"
+        "note-ui/NoteEditor.jsx:1461"
       ]
     },
     "noteEditor.redactionAssistee.text": {
@@ -4366,7 +4366,7 @@
       "empreinte": "163625c39eea",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:976"
+        "note-ui/NoteEditor.jsx:979"
       ]
     },
     "noteEditor.removeTag.aria": {
@@ -4374,7 +4374,7 @@
       "empreinte": "fe1edfe26212",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1919"
+        "note-ui/NoteEditor.jsx:1922"
       ]
     },
     "noteEditor.savedAt.text": {
@@ -4382,7 +4382,7 @@
       "empreinte": "cd9c83173831",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:694"
+        "note-ui/NoteEditor.jsx:697"
       ]
     },
     "noteEditor.supprimer.button": {
@@ -4390,7 +4390,7 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1202"
+        "note-ui/NoteEditor.jsx:1205"
       ]
     },
     "noteEditor.supprimerChampConfidentiel.text": {
@@ -4398,7 +4398,7 @@
       "empreinte": "f20d3a776dcf",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1188"
+        "note-ui/NoteEditor.jsx:1191"
       ]
     },
     "noteEditor.supprimerChampConfidentiel.tooltip": {
@@ -4406,7 +4406,7 @@
       "empreinte": "f6a7cc5392c1",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1129"
+        "note-ui/NoteEditor.jsx:1132"
       ]
     },
     "noteEditor.txSimulatedFailure.text": {
@@ -4414,7 +4414,7 @@
       "empreinte": "035b9fb963d3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:761"
+        "note-ui/NoteEditor.jsx:764"
       ]
     },
     "noteEditor.typeVisite.label": {
@@ -4422,7 +4422,7 @@
       "empreinte": "35ece345adca",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1010"
+        "note-ui/NoteEditor.jsx:1013"
       ]
     },
     "noteEditor.voulezVraimentEcrireNote.text": {
@@ -4430,7 +4430,7 @@
       "empreinte": "e75d4c71cc40",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1167"
+        "note-ui/NoteEditor.jsx:1170"
       ]
     },
     "noteStart.assistedWriting.label": {
@@ -7643,7 +7643,7 @@
       "empreinte": "b28bdda2d053",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:996",
+        "note-ui/editor-data.jsx:1001",
         "note-ui/editor-schema.jsx:2361",
         "note-ui/editor-schema.jsx:238"
       ]
@@ -7717,7 +7717,7 @@
       "empreinte": "d9df2e9d0a87",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:995",
+        "note-ui/editor-data.jsx:1000",
         "note-ui/editor-schema.jsx:2360"
       ]
     },
@@ -8072,11 +8072,11 @@
       "empreinte": "e39262defe80",
       "contexte": "titre de section",
       "fichiers": [
-        "note-ui/editor-data.jsx:1093",
-        "note-ui/editor-data.jsx:1110",
-        "note-ui/editor-data.jsx:1129",
-        "note-ui/editor-data.jsx:1144",
-        "note-ui/editor-data.jsx:1166",
+        "note-ui/editor-data.jsx:1098",
+        "note-ui/editor-data.jsx:1115",
+        "note-ui/editor-data.jsx:1134",
+        "note-ui/editor-data.jsx:1149",
+        "note-ui/editor-data.jsx:1171",
         "note-ui/note-sections.jsx:26"
       ]
     },
@@ -8085,7 +8085,7 @@
       "empreinte": "000491153ba9",
       "contexte": "titre de section",
       "fichiers": [
-        "note-ui/editor-data.jsx:1109",
+        "note-ui/editor-data.jsx:1114",
         "note-ui/note-sections.jsx:30"
       ]
     },
@@ -8410,7 +8410,7 @@
       "empreinte": "e4b4eadb018d",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-data.jsx:798"
+        "note-ui/editor-data.jsx:803"
       ]
     },
     "suggest.diagnosticDejaNote.tooltip": {
@@ -9856,7 +9856,7 @@
       "empreinte": "36b08fd3d321",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:799"
+        "note-ui/editor-data.jsx:804"
       ]
     },
     "template.source.label": {
@@ -9864,8 +9864,8 @@
       "empreinte": "2545b76f4262",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:801",
-        "note-ui/editor-data.jsx:802",
+        "note-ui/editor-data.jsx:806",
+        "note-ui/editor-data.jsx:807",
         "note-ui/editor-schema.jsx:2689"
       ]
     },
@@ -10329,7 +10329,7 @@
       "empreinte": "bdbab40c55b6",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:1268"
+        "note-ui/editor-data.jsx:1273"
       ]
     },
     "visit.rdv.text": {
@@ -10353,8 +10353,8 @@
       "empreinte": "4738c69c6acd",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:1270",
-        "note-ui/editor-data.jsx:1272"
+        "note-ui/editor-data.jsx:1275",
+        "note-ui/editor-data.jsx:1277"
       ]
     },
     "visit.suiviResultat.text": {
@@ -10362,7 +10362,7 @@
       "empreinte": "5a5d16809ad1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:1272"
+        "note-ui/editor-data.jsx:1277"
       ]
     },
     "visit.type.clinic": {
@@ -10370,7 +10370,7 @@
       "empreinte": "c73d6f09340e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1492"
       ]
     },
     "visit.type.phone": {
@@ -10378,7 +10378,7 @@
       "empreinte": "6536a7ce83c4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1492"
       ]
     },
     "visit.type.update": {
@@ -10386,7 +10386,7 @@
       "empreinte": "f1241990ae57",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1492"
       ]
     }
   },
@@ -10406,7 +10406,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "dob: L('03 mai 1987'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1186"
+        "note-ui/editor-data.jsx:1191"
       ]
     },
     {
@@ -10415,7 +10415,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -10424,7 +10424,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('6 mois R1'), L('1 an R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1379"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -10535,7 +10535,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10544,7 +10544,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1373"
+        "note-ui/NoteEditor.jsx:1376"
       ]
     },
     {
@@ -10600,7 +10600,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10609,7 +10609,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1373"
+        "note-ui/NoteEditor.jsx:1376"
       ]
     },
     {
@@ -10664,7 +10664,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('2 incidences (PA + latérale) · Sans contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:605"
+        "note-ui/editor-data.jsx:610"
       ]
     },
     {
@@ -10673,7 +10673,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "chipSig: L('2 incidences · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:606"
+        "note-ui/editor-data.jsx:611"
       ]
     },
     {
@@ -10700,7 +10700,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'r2', ttl: L('TSH — 12 janv 2026'), meta: L('2,1 mUI/L'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1203"
+        "note-ui/editor-data.jsx:1208"
       ]
     },
     {
@@ -10709,7 +10709,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1257"
+        "note-ui/editor-data.jsx:1262"
       ]
     },
     {
@@ -10727,7 +10727,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10736,7 +10736,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('21 jours R0'), L('28 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1374"
+        "note-ui/NoteEditor.jsx:1377"
       ]
     },
     {
@@ -10745,7 +10745,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10754,7 +10754,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('21 jours R0'), L('28 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1374"
+        "note-ui/NoteEditor.jsx:1377"
       ]
     },
     {
@@ -10763,7 +10763,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "chipSig: L('3 incidences · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:614"
+        "note-ui/editor-data.jsx:619"
       ]
     },
     {
@@ -10772,7 +10772,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('3 incidences · Sans contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:613"
+        "note-ui/editor-data.jsx:618"
       ]
     },
     {
@@ -10781,7 +10781,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10790,7 +10790,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1373"
+        "note-ui/NoteEditor.jsx:1376"
       ]
     },
     {
@@ -10799,7 +10799,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -10808,7 +10808,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1378"
       ]
     },
     {
@@ -10817,7 +10817,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1378"
       ]
     },
     {
@@ -10826,7 +10826,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R5'), L('30 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1376"
+        "note-ui/NoteEditor.jsx:1379"
       ]
     },
     {
@@ -10835,7 +10835,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1378"
       ]
     },
     {
@@ -10844,7 +10844,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1378"
       ]
     },
     {
@@ -10853,7 +10853,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R5'), L('30 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1376"
+        "note-ui/NoteEditor.jsx:1379"
       ]
     },
     {
@@ -10902,7 +10902,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "age: L('38 ans'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1184"
+        "note-ui/editor-data.jsx:1189"
       ]
     },
     {
@@ -10920,7 +10920,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -10929,7 +10929,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1373"
+        "note-ui/NoteEditor.jsx:1376"
       ]
     },
     {
@@ -10947,7 +10947,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -10956,7 +10956,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('6 mois R1'), L('1 an R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1379"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -10965,7 +10965,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1257"
+        "note-ui/editor-data.jsx:1262"
       ]
     },
     {
@@ -10974,7 +10974,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -10983,7 +10983,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('60 jours R0'), L('60 jours R5'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1377"
+        "note-ui/NoteEditor.jsx:1380"
       ]
     },
     {
@@ -10992,7 +10992,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('60 jours R0'), L('60 jours R5'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1377"
+        "note-ui/NoteEditor.jsx:1380"
       ]
     },
     {
@@ -11001,7 +11001,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1383"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -11010,7 +11010,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1373"
+        "note-ui/NoteEditor.jsx:1376"
       ]
     },
     {
@@ -11028,7 +11028,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -11037,7 +11037,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1378"
+        "note-ui/NoteEditor.jsx:1381"
       ]
     },
     {
@@ -11046,7 +11046,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1378"
+        "note-ui/NoteEditor.jsx:1381"
       ]
     },
     {
@@ -11055,7 +11055,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1378"
+        "note-ui/NoteEditor.jsx:1381"
       ]
     },
     {
@@ -11077,7 +11077,7 @@
       "extrait": "L('ALT'),L('AST'),L('GGT'),L('Phosphatase alcaline'),L('Bilirubine totale'),L('Bilirubine conjuguée'),",
       "fichiers": [
         "note-ui/SummaryModals.jsx:748",
-        "note-ui/editor-data.jsx:1224",
+        "note-ui/editor-data.jsx:1229",
         "note-ui/editor-data.jsx:590"
       ]
     },
@@ -11096,7 +11096,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'AP + latérale': L('AP + latérale'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:887"
+        "note-ui/editor-data.jsx:892"
       ]
     },
     {
@@ -11105,7 +11105,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'AP + latérale + rotule': L('AP + latérale + rotule'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:888"
+        "note-ui/editor-data.jsx:893"
       ]
     },
     {
@@ -11152,7 +11152,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Abdomen': L('Abdomen'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:879"
+        "note-ui/editor-data.jsx:884"
       ]
     },
     {
@@ -11161,7 +11161,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Abdomen complet · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:609"
+        "note-ui/editor-data.jsx:614"
       ]
     },
     {
@@ -11242,7 +11242,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'problem', section: L('Fonctions'), icon: 'flag', title: L('Problème'), desc: L('Ajouter au problématique'), kbd: 'pb',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1070"
+        "note-ui/editor-data.jsx:1075"
       ]
     },
     {
@@ -11251,7 +11251,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'add-file', section: L('Fonctions'), icon: 'upload_file', title: L('Ajouter des fichiers'), desc: L('PDF, image depuis ordinateur…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1040"
+        "note-ui/editor-data.jsx:1045"
       ]
     },
     {
@@ -11565,7 +11565,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: L('Antécédents et revue des systèmes'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1125"
+        "note-ui/editor-data.jsx:1130"
       ]
     },
     {
@@ -11574,7 +11574,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Antécédents personnels : \\nMédication actuelle : \\nAllergies : \\nHabitudes de vie : \\nRevue des systèmes : sans particularité') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1126"
+        "note-ui/editor-data.jsx:1131"
       ]
     },
     {
@@ -11583,7 +11583,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-periodique', section: L('Gabarits de note'), icon: 'event_repeat', title: L('Examen périodique'), desc: L('Antécédents, examen, conclusion'), kbd: '",
       "fichiers": [
-        "note-ui/editor-data.jsx:1033"
+        "note-ui/editor-data.jsx:1038"
       ]
     },
     {
@@ -11628,7 +11628,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -11637,7 +11637,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Apyrétique / fébrile (T°) : \\nAuscultation pulmonaire : \\nOropharynx / tympans : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1092"
+        "note-ui/editor-data.jsx:1097"
       ]
     },
     {
@@ -11683,7 +11683,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -11694,7 +11694,7 @@
       "fichiers": [
         "note-ui/NotesList.jsx:61",
         "note-ui/diagnostics.jsx:438",
-        "note-ui/editor-data.jsx:730"
+        "note-ui/editor-data.jsx:735"
       ]
     },
     {
@@ -11703,7 +11703,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mine: { name: L('Asthme — palier 2'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:733"
+        "note-ui/editor-data.jsx:738"
       ]
     },
     {
@@ -11713,7 +11713,7 @@
       "extrait": "<SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherMedicament.placeholder')} suggestions={[L('Metformine'),L('Ramipril'),L('Ato",
       "fichiers": [
         "note-ui/SummaryModals.jsx:351",
-        "note-ui/editor-data.jsx:1219",
+        "note-ui/editor-data.jsx:1224",
         "note-ui/editor-data.jsx:22"
       ]
     },
@@ -11741,7 +11741,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ slot: 'conclusion', entity: { type: 'prescription', label: L('Atorvastatine 20 mg'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1217"
+        "note-ui/editor-data.jsx:1222"
       ]
     },
     {
@@ -11750,7 +11750,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "text: L('Atorvastatine 20 mg — HS × 90 jours'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1218"
+        "note-ui/editor-data.jsx:1223"
       ]
     },
     {
@@ -11759,7 +11759,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "fasting: true, context: L('Suivi statine'), collection: L('Au CH') } } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1225"
+        "note-ui/editor-data.jsx:1230"
       ]
     },
     {
@@ -11768,7 +11768,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { tests: [L('FSC')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1058",
+        "note-ui/editor-data.jsx:1063",
         "note-ui/editor-data.jsx:557",
         "note-ui/editor-data.jsx:561",
         "note-ui/editor-data.jsx:565",
@@ -11862,7 +11862,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Thorax · Avec contraste · Routine'), chipSig: L('Avec contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:631"
+        "note-ui/editor-data.jsx:636"
       ]
     },
     {
@@ -11871,7 +11871,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis cardiologie · Routine'),      chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:644"
+        "note-ui/editor-data.jsx:649"
       ]
     },
     {
@@ -11880,7 +11880,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis dermatologie · Routine'),     chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:650"
+        "note-ui/editor-data.jsx:655"
       ]
     },
     {
@@ -11889,7 +11889,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis endocrinologie · Routine'),   chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:665"
+        "note-ui/editor-data.jsx:670"
       ]
     },
     {
@@ -11898,7 +11898,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis gastroentérologie · Routine'), chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:653"
+        "note-ui/editor-data.jsx:658"
       ]
     },
     {
@@ -11907,7 +11907,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis gynécologie · Routine'),      chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:674"
+        "note-ui/editor-data.jsx:679"
       ]
     },
     {
@@ -11916,7 +11916,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis neurologie · Routine'),       chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:656"
+        "note-ui/editor-data.jsx:661"
       ]
     },
     {
@@ -11925,7 +11925,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis néphrologie · Routine'),      chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:668"
+        "note-ui/editor-data.jsx:673"
       ]
     },
     {
@@ -11934,7 +11934,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis ophtalmologie · Routine'),    chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:677"
+        "note-ui/editor-data.jsx:682"
       ]
     },
     {
@@ -11943,7 +11943,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis orthopédie · Routine'),       chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:647"
+        "note-ui/editor-data.jsx:652"
       ]
     },
     {
@@ -11952,7 +11952,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis pneumologie · Routine'),      chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:659"
+        "note-ui/editor-data.jsx:664"
       ]
     },
     {
@@ -11961,7 +11961,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis rhumatologie · Routine'),     chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:662"
+        "note-ui/editor-data.jsx:667"
       ]
     },
     {
@@ -11970,7 +11970,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Avis urologie · Routine'),         chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:671"
+        "note-ui/editor-data.jsx:676"
       ]
     },
     {
@@ -12028,7 +12028,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'prof-annuel', name: L('Bilan annuel'), labKeys: ['fsc', 'glyc', 'lipide', 'creat', 'tsh'] },",
       "fichiers": [
-        "note-ui/editor-data.jsx:924"
+        "note-ui/editor-data.jsx:929"
       ]
     },
     {
@@ -12037,7 +12037,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "detail: L('Bilan annuel. HTA et dyslipidémie suivis. Pas de plainte.\\nTA 138/86, FC 72 rég. Auscultation normale.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1214"
+        "note-ui/editor-data.jsx:1219"
       ]
     },
     {
@@ -12046,7 +12046,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'prof-anemie', name: L('Bilan anémie'), labKeys: ['fsc', 'ferritine', 'b12'] },",
       "fichiers": [
-        "note-ui/editor-data.jsx:925"
+        "note-ui/editor-data.jsx:930"
       ]
     },
     {
@@ -12064,7 +12064,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'lipide', name: L('Bilan lipidique'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1222",
+        "note-ui/editor-data.jsx:1227",
         "note-ui/editor-data.jsx:558"
       ]
     },
@@ -12074,7 +12074,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "text: L('Bilan lipidique + ALT + créat'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1223"
+        "note-ui/editor-data.jsx:1228"
       ]
     },
     {
@@ -12083,7 +12083,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "conclusion: L('Bilan stable. Renouvellement atorvastatine. Bilan lipidique annuel à jeun. Suivi 3 mois.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1215"
+        "note-ui/editor-data.jsx:1220"
       ]
     },
     {
@@ -12092,7 +12092,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Bilatéral': L('Bilatéral'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:894"
+        "note-ui/editor-data.jsx:899"
       ]
     },
     {
@@ -12101,7 +12101,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Bilatérale': L('Bilatérale'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:890"
+        "note-ui/editor-data.jsx:895"
       ]
     },
     {
@@ -12110,7 +12110,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Bilatérale · Dépistage · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:621"
+        "note-ui/editor-data.jsx:626"
       ]
     },
     {
@@ -12119,7 +12119,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "chipSig: L('Bilatérale · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:622"
+        "note-ui/editor-data.jsx:627"
       ]
     },
     {
@@ -12191,7 +12191,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Bronchite aiguë'), code: 'J20.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1175"
+        "note-ui/editor-data.jsx:1180"
       ]
     },
     {
@@ -12219,7 +12219,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception'",
       "fichiers": [
-        "note-ui/editor-data.jsx:1255"
+        "note-ui/editor-data.jsx:1260"
       ]
     },
     {
@@ -12265,7 +12265,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -12339,7 +12339,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'referral', section: L('Fonctions'), icon: 'person_add', title: L('Référence spécialiste'), desc: L('Cardio, ortho, derm…'), kbd: 'ref',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1065"
+        "note-ui/editor-data.jsx:1070"
       ]
     },
     {
@@ -12348,9 +12348,9 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
-        "note-ui/editor-data.jsx:643",
-        "note-ui/editor-data.jsx:895"
+        "note-ui/NoteEditor.jsx:1884",
+        "note-ui/editor-data.jsx:648",
+        "note-ui/editor-data.jsx:900"
       ]
     },
     {
@@ -12395,7 +12395,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Cerveau': L('Cerveau'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:881"
+        "note-ui/editor-data.jsx:886"
       ]
     },
     {
@@ -12449,7 +12449,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'confidential-field', section: L('Confidentiel'), icon: 'lock', title: L('Champ confidentiel'), desc: L('Visible seulement par vous'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1076"
+        "note-ui/editor-data.jsx:1081"
       ]
     },
     {
@@ -12458,7 +12458,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Chirurgie générale': L('Chirurgie générale'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:908"
+        "note-ui/editor-data.jsx:913"
       ]
     },
     {
@@ -12467,7 +12467,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Chirurgie vasculaire': L('Chirurgie vasculaire'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:909"
+        "note-ui/editor-data.jsx:914"
       ]
     },
     {
@@ -12486,7 +12486,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { tests: [L('Chol total'), L('HDL'), L('LDL'), L('TG'), L('ALT'), L('Créat')], priority: 'Routine',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1224"
+        "note-ui/editor-data.jsx:1229"
       ]
     },
     {
@@ -12587,7 +12587,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "hint: L('Cliquez sur un chip pour modifier les détails.') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1227"
+        "note-ui/editor-data.jsx:1232"
       ]
     },
     {
@@ -12651,7 +12651,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Colonne dorsolombaire': L('Colonne dorsolombaire'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:885"
+        "note-ui/editor-data.jsx:890"
       ]
     },
     {
@@ -12660,7 +12660,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'empty',  name: L('Note vierge'), desc: L('Commencer à zéro'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1207"
+        "note-ui/editor-data.jsx:1212"
       ]
     },
     {
@@ -12669,7 +12669,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Complète': L('Complète'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:889"
+        "note-ui/editor-data.jsx:894"
       ]
     },
     {
@@ -12678,7 +12678,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'confidential-field', section: L('Confidentiel'), icon: 'lock', title: L('Champ confidentiel'), desc: L('Visible seulement par vous'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1076"
+        "note-ui/editor-data.jsx:1081"
       ]
     },
     {
@@ -12687,7 +12687,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "instructions: { key: 'instructions', label: L('Consignes'),    icon: 'menu_book', summaryGroup: L('Consignes') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1043",
+        "note-ui/editor-data.jsx:1048",
         "note-ui/editor-data.jsx:11"
       ]
     },
@@ -12697,8 +12697,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'instructions', section: L('Fonctions'), icon: 'menu_book', title: L('Instructions patient'), desc: L('Consignes au patient'), kbd: 'instr',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1042",
-        "note-ui/editor-data.jsx:1043"
+        "note-ui/editor-data.jsx:1047",
+        "note-ui/editor-data.jsx:1048"
       ]
     },
     {
@@ -12781,7 +12781,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { tests: [L('Chol total'), L('HDL'), L('LDL'), L('TG'), L('ALT'), L('Créat')], priority: 'Routine',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1224"
+        "note-ui/editor-data.jsx:1229"
       ]
     },
     {
@@ -12818,7 +12818,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'diagnostic', section: L('Fonctions'), icon: 'local_hospital', title: L('Diagnostic'), desc: L('Créer une section diagnostic'), kbd: 'dx',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1047"
+        "note-ui/editor-data.jsx:1052"
       ]
     },
     {
@@ -12865,7 +12865,7 @@
       "fichiers": [
         "note-ui/NotesList.jsx:77",
         "note-ui/diagnostics.jsx:443",
-        "note-ui/editor-data.jsx:1115"
+        "note-ui/editor-data.jsx:1120"
       ]
     },
     {
@@ -12885,7 +12885,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mine: { name: L('Cystite — dose unique'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:724"
+        "note-ui/editor-data.jsx:729"
       ]
     },
     {
@@ -12894,7 +12894,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { modality: 'TDM', region: 'Cerveau', views: '', priority: 'Prioritaire', context: L('Céphalées'), contrast: 'Sans' } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:619"
+        "note-ui/editor-data.jsx:624"
       ]
     },
     {
@@ -12930,7 +12930,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "template: { type: 'imaging', label: L(\"Demande d'imagerie\"), text: L(\"Demande d'imagerie\"),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1063"
+        "note-ui/editor-data.jsx:1068"
       ]
     },
     {
@@ -12939,7 +12939,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "template: { type: 'lab', label: L('Demande de laboratoire'), text: L('Demande de laboratoire'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1057"
+        "note-ui/editor-data.jsx:1062"
       ]
     },
     {
@@ -12948,7 +12948,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Depuis : \\nOtalgie (côté) : \\nFièvre : \\nÉcoulement / hypoacousie : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1141"
+        "note-ui/editor-data.jsx:1146"
       ]
     },
     {
@@ -12957,7 +12957,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Depuis : \\nSymptômes : \\nDrapeaux rouges (absents) : dyspnée, douleur thoracique, confusion, incapacité à s’hydrater') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1090"
+        "note-ui/editor-data.jsx:1095"
       ]
     },
     {
@@ -12966,8 +12966,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'derm',    name: L('Dermatologie'),       dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:649",
-        "note-ui/editor-data.jsx:897"
+        "note-ui/editor-data.jsx:654",
+        "note-ui/editor-data.jsx:902"
       ]
     },
     {
@@ -12985,7 +12985,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "diagnostic:   { key: 'diagnostic',   label: L('Diagnostic'),   icon: 'local_hospital', summaryGroup: L('Diagnostics') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1047",
+        "note-ui/editor-data.jsx:1052",
         "note-ui/editor-data.jsx:12"
       ]
     },
@@ -13088,7 +13088,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Droite': L('Droite'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:893"
+        "note-ui/editor-data.jsx:898"
       ]
     },
     {
@@ -13106,7 +13106,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "quantity: '90', refills: '3', indication: L('Dyslipidémie'), notes: L('Surveiller CK.') } } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1221"
+        "note-ui/editor-data.jsx:1226"
       ]
     },
     {
@@ -13115,7 +13115,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rx',     name: L('Démo — prescription'), desc: L('Tapez « mét » pour voir la liste'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1209"
+        "note-ui/editor-data.jsx:1214"
       ]
     },
     {
@@ -13124,7 +13124,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { modality: 'Mammographie', region: 'Seins', views: 'Bilatérale', priority: 'Routine', context: L('Dépistage'), contrast: 'Sans' } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:623"
+        "note-ui/editor-data.jsx:628"
       ]
     },
     {
@@ -13197,7 +13197,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "status: L('En consultation'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1190"
+        "note-ui/editor-data.jsx:1195"
       ]
     },
     {
@@ -13206,8 +13206,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'endo',    name: L('Endocrinologie'),     dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:664",
-        "note-ui/editor-data.jsx:902"
+        "note-ui/editor-data.jsx:669",
+        "note-ui/editor-data.jsx:907"
       ]
     },
     {
@@ -13279,7 +13279,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "raison: L('Examen médical périodique'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1123"
+        "note-ui/editor-data.jsx:1128"
       ]
     },
     {
@@ -13288,10 +13288,10 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: L('Examen physique'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1091",
-        "note-ui/editor-data.jsx:1127",
-        "note-ui/editor-data.jsx:1142",
-        "note-ui/editor-data.jsx:1164"
+        "note-ui/editor-data.jsx:1096",
+        "note-ui/editor-data.jsx:1132",
+        "note-ui/editor-data.jsx:1147",
+        "note-ui/editor-data.jsx:1169"
       ]
     },
     {
@@ -13309,8 +13309,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-periodique', section: L('Gabarits de note'), icon: 'event_repeat', title: L('Examen périodique'), desc: L('Antécédents, examen, conclusion'), kbd: '",
       "fichiers": [
-        "note-ui/editor-data.jsx:1033",
-        "note-ui/editor-data.jsx:1122"
+        "note-ui/editor-data.jsx:1038",
+        "note-ui/editor-data.jsx:1127"
       ]
     },
     {
@@ -13337,7 +13337,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ ic: 'favorite',      lbl: L('FC'),            val: '84 bpm' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1195"
+        "note-ui/editor-data.jsx:1200"
       ]
     },
     {
@@ -13346,7 +13346,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'fsc', name: L('FSC'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1058",
+        "note-ui/editor-data.jsx:1063",
         "note-ui/editor-data.jsx:554",
         "note-ui/editor-data.jsx:557"
       ]
@@ -13357,7 +13357,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'r1', ttl: L('FSC — 17 mars 2026'), meta: L('Hb 128 g/L · Leuco 9,2'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1202"
+        "note-ui/editor-data.jsx:1207"
       ]
     },
     {
@@ -13402,7 +13402,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'lab', section: L('Fonctions'), icon: 'science', title: L('Laboratoire'), desc: L('FSC, TSH, bilan…'), kbd: 'lab',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1055"
+        "note-ui/editor-data.jsx:1060"
       ]
     },
     {
@@ -13485,17 +13485,17 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'add-file', section: L('Fonctions'), icon: 'upload_file', title: L('Ajouter des fichiers'), desc: L('PDF, image depuis ordinateur…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1040",
-        "note-ui/editor-data.jsx:1042",
         "note-ui/editor-data.jsx:1045",
         "note-ui/editor-data.jsx:1047",
-        "note-ui/editor-data.jsx:1051",
-        "note-ui/editor-data.jsx:1053",
-        "note-ui/editor-data.jsx:1055",
-        "note-ui/editor-data.jsx:1059",
-        "note-ui/editor-data.jsx:1061",
-        "note-ui/editor-data.jsx:1065",
-        "note-ui/editor-data.jsx:1070"
+        "note-ui/editor-data.jsx:1050",
+        "note-ui/editor-data.jsx:1052",
+        "note-ui/editor-data.jsx:1056",
+        "note-ui/editor-data.jsx:1058",
+        "note-ui/editor-data.jsx:1060",
+        "note-ui/editor-data.jsx:1064",
+        "note-ui/editor-data.jsx:1066",
+        "note-ui/editor-data.jsx:1070",
+        "note-ui/editor-data.jsx:1075"
       ]
     },
     {
@@ -13642,12 +13642,12 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'note-templates', section: L('Structure'), icon: 'post_add', title: L('Gabarits de note'), desc: L('Syndrome viral, infection urinaire, examen périodique",
       "fichiers": [
-        "note-ui/editor-data.jsx:1021",
-        "note-ui/editor-data.jsx:1028",
-        "note-ui/editor-data.jsx:1030",
+        "note-ui/editor-data.jsx:1026",
         "note-ui/editor-data.jsx:1033",
         "note-ui/editor-data.jsx:1035",
-        "note-ui/editor-data.jsx:1037"
+        "note-ui/editor-data.jsx:1038",
+        "note-ui/editor-data.jsx:1040",
+        "note-ui/editor-data.jsx:1042"
       ]
     },
     {
@@ -13656,8 +13656,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'gastro',  name: L('Gastroentérologie'),  dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:652",
-        "note-ui/editor-data.jsx:898"
+        "note-ui/editor-data.jsx:657",
+        "note-ui/editor-data.jsx:903"
       ]
     },
     {
@@ -13666,7 +13666,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Gauche': L('Gauche'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:892"
+        "note-ui/editor-data.jsx:897"
       ]
     },
     {
@@ -13675,7 +13675,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Genou': L('Genou'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:880"
+        "note-ui/editor-data.jsx:885"
       ]
     },
     {
@@ -13794,8 +13794,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'gyn',     name: L('Gynécologie'),        dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:673",
-        "note-ui/editor-data.jsx:905"
+        "note-ui/editor-data.jsx:678",
+        "note-ui/editor-data.jsx:910"
       ]
     },
     {
@@ -13804,7 +13804,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Gériatrie': L('Gériatrie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:913"
+        "note-ui/editor-data.jsx:918"
       ]
     },
     {
@@ -13823,7 +13823,7 @@
       "extrait": "L('Cholestérol total'),L('LDL'),L('HDL'),L('Triglycérides'),L('Rapport cholestérol/HDL'),L('Non-HDL'),",
       "fichiers": [
         "note-ui/SummaryModals.jsx:744",
-        "note-ui/editor-data.jsx:1224",
+        "note-ui/editor-data.jsx:1229",
         "note-ui/editor-data.jsx:561"
       ]
     },
@@ -13851,7 +13851,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'r1', ttl: L('FSC — 17 mars 2026'), meta: L('Hb 128 g/L · Leuco 9,2'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1202"
+        "note-ui/editor-data.jsx:1207"
       ]
     },
     {
@@ -13860,7 +13860,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'hba1c', name: L('HbA1c'), dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:1257",
+        "note-ui/editor-data.jsx:1262",
         "note-ui/editor-data.jsx:570",
         "note-ui/editor-data.jsx:573"
       ]
@@ -13880,9 +13880,9 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: L('Histoire de la maladie actuelle'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1089",
-        "note-ui/editor-data.jsx:1140",
-        "note-ui/editor-data.jsx:1162"
+        "note-ui/editor-data.jsx:1094",
+        "note-ui/editor-data.jsx:1145",
+        "note-ui/editor-data.jsx:1167"
       ]
     },
     {
@@ -13891,7 +13891,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-virus', section: L('Gabarits de note'), icon: 'coronavirus', title: L('Syndrome viral / IVRS'), desc: L('Histoire, examen, conclusion'), kbd: 'virus",
       "fichiers": [
-        "note-ui/editor-data.jsx:1028"
+        "note-ui/editor-data.jsx:1033"
       ]
     },
     {
@@ -13900,7 +13900,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-otite', section: L('Gabarits de note'), icon: 'hearing', title: L('Otite moyenne aiguë'), desc: L('Histoire, examen, conclusion + ordonnance proposé",
       "fichiers": [
-        "note-ui/editor-data.jsx:1035"
+        "note-ui/editor-data.jsx:1040"
       ]
     },
     {
@@ -13909,7 +13909,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-pneumonie', section: L('Gabarits de note'), icon: 'pulmonology', title: L('Pneumonie (suspicion)'), desc: L('Histoire, examen, conclusion + requêtes",
       "fichiers": [
-        "note-ui/editor-data.jsx:1037"
+        "note-ui/editor-data.jsx:1042"
       ]
     },
     {
@@ -13986,7 +13986,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Hématologie': L('Hématologie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:910"
+        "note-ui/editor-data.jsx:915"
       ]
     },
     {
@@ -14078,7 +14078,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'IRM': L('IRM'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:876"
+        "note-ui/editor-data.jsx:881"
       ]
     },
     {
@@ -14087,7 +14087,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1394"
+        "note-ui/NoteEditor.jsx:1397"
       ]
     },
     {
@@ -14096,7 +14096,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1395"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -14105,7 +14105,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1395"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -14114,7 +14114,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1394"
+        "note-ui/NoteEditor.jsx:1397"
       ]
     },
     {
@@ -14123,7 +14123,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1394"
+        "note-ui/NoteEditor.jsx:1397"
       ]
     },
     {
@@ -14132,7 +14132,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'irmlomb', name: L('IRM lombaire'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:624"
+        "note-ui/editor-data.jsx:629"
       ]
     },
     {
@@ -14141,7 +14141,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1395"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -14210,7 +14210,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "imaging:      { key: 'imaging',      label: L('Imagerie'),     icon: 'radiology', summaryGroup: L('Résultats') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1061",
+        "note-ui/editor-data.jsx:1066",
         "note-ui/editor-data.jsx:9"
       ]
     },
@@ -14220,7 +14220,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "conclusion: L('Impression\\nInfection bactérienne — plan de traitement à venir.\\n\\nPlan\\nAntibiothérapie: mét'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1211"
+        "note-ui/editor-data.jsx:1216"
       ]
     },
     {
@@ -14229,8 +14229,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: t('sections.conclusion.heading'), content: L('Impression : \\nPlan : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1093",
-        "note-ui/editor-data.jsx:1110"
+        "note-ui/editor-data.jsx:1098",
+        "note-ui/editor-data.jsx:1115"
       ]
     },
     {
@@ -14248,7 +14248,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: t('sections.conclusion.heading'), content: L('Impression : Bonne santé générale.\\nPlan : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1129"
+        "note-ui/editor-data.jsx:1134"
       ]
     },
     {
@@ -14275,7 +14275,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: t('sections.conclusion.heading'), content: L('Impression : Otite moyenne aiguë.\\nPlan : '),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1144"
+        "note-ui/editor-data.jsx:1149"
       ]
     },
     {
@@ -14284,7 +14284,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ title: t('sections.conclusion.heading'), content: L('Impression : Pneumonie acquise en communauté à confirmer.\\nPlan : '),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1166"
+        "note-ui/editor-data.jsx:1171"
       ]
     },
     {
@@ -14311,8 +14311,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Infection des voies respiratoires supérieures'), code: 'J06.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1099",
-        "note-ui/editor-data.jsx:1176"
+        "note-ui/editor-data.jsx:1104",
+        "note-ui/editor-data.jsx:1181"
       ]
     },
     {
@@ -14331,8 +14331,8 @@
       "extrait": "title: L(\"Infection urinaire\"),",
       "fichiers": [
         "note-ui/NotesList.jsx:75",
-        "note-ui/editor-data.jsx:1030",
-        "note-ui/editor-data.jsx:1106",
+        "note-ui/editor-data.jsx:1035",
+        "note-ui/editor-data.jsx:1111",
         "note-ui/editor-data.jsx:424"
       ]
     },
@@ -14342,7 +14342,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "conclusion: { name: L('Infection urinaire non compliquée'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:721"
+        "note-ui/editor-data.jsx:726"
       ]
     },
     {
@@ -14361,7 +14361,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'instructions', section: L('Fonctions'), icon: 'menu_book', title: L('Instructions patient'), desc: L('Consignes au patient'), kbd: 'instr',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1042"
+        "note-ui/editor-data.jsx:1047"
       ]
     },
     {
@@ -14416,7 +14416,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'diagnostic-ref', section: L('Fonctions'), icon: 'tag', title: L('Renvoi à un diagnostic'), desc: L('Insère le numéro d’un diagnostic déjà ajouté'), kbd:",
       "fichiers": [
-        "note-ui/editor-data.jsx:1051"
+        "note-ui/editor-data.jsx:1056"
       ]
     },
     {
@@ -14425,7 +14425,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'textes-rapides', section: L('Fonctions'), icon: 'bolt', title: L('Textes rapides'), desc: L('Insérer un modèle de texte'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1045"
+        "note-ui/editor-data.jsx:1050"
       ]
     },
     {
@@ -14462,7 +14462,7 @@
       "extrait": "L('Cholestérol total'),L('LDL'),L('HDL'),L('Triglycérides'),L('Rapport cholestérol/HDL'),L('Non-HDL'),",
       "fichiers": [
         "note-ui/SummaryModals.jsx:744",
-        "note-ui/editor-data.jsx:1224",
+        "note-ui/editor-data.jsx:1229",
         "note-ui/editor-data.jsx:561"
       ]
     },
@@ -14472,7 +14472,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'requests', section: L('Fonctions'), icon: 'lab_profile', title: L('Requêtes'), desc: L('Labo, imagerie et profils — plusieurs à la fois'), kbd: 'req',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1059"
+        "note-ui/editor-data.jsx:1064"
       ]
     },
     {
@@ -14481,8 +14481,17 @@
       "contexte": "donnée de démonstration",
       "extrait": "lab:          { key: 'lab',          label: L('Laboratoire'),  icon: 'science', summaryGroup: L('Résultats') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1055",
+        "note-ui/editor-data.jsx:1060",
         "note-ui/editor-data.jsx:8"
+      ]
+    },
+    {
+      "fr": "Laboratoire de physiologie respiratoire",
+      "empreinte": "2a828c84a7e4",
+      "contexte": "donnée de démonstration",
+      "extrait": "details: { tests: [L('Spirométrie (EFR)')], priority: 'Routine', fasting: false, context: '', collection: L('Laboratoire de physiologie respiratoire') } },",
+      "fichiers": [
+        "note-ui/editor-data.jsx:601"
       ]
     },
     {
@@ -14500,7 +14509,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "hint: L('Le curseur est placé après « mét ». Continuez à taper pour filtrer la liste. ↑ ↓ pour naviguer, Entrée / Tab pour choisir.') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1212"
+        "note-ui/editor-data.jsx:1217"
       ]
     },
     {
@@ -14549,7 +14558,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { modality: 'IRM', region: 'Rachis lombaire', views: '', priority: 'Routine', context: L('Lombalgie persistante'), contrast: 'Sans' } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:626"
+        "note-ui/editor-data.jsx:631"
       ]
     },
     {
@@ -14558,7 +14567,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1384"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -14567,7 +14576,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1380"
+        "note-ui/NoteEditor.jsx:1383"
       ]
     },
     {
@@ -14576,7 +14585,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1380"
+        "note-ui/NoteEditor.jsx:1383"
       ]
     },
     {
@@ -14585,7 +14594,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1380"
+        "note-ui/NoteEditor.jsx:1383"
       ]
     },
     {
@@ -14684,8 +14693,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'mammo', name: L('Mammographie'), dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:620",
-        "note-ui/editor-data.jsx:877"
+        "note-ui/editor-data.jsx:625",
+        "note-ui/editor-data.jsx:882"
       ]
     },
     {
@@ -14694,7 +14703,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Mammographie Bilatérale')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1396"
+        "note-ui/NoteEditor.jsx:1399"
       ]
     },
     {
@@ -14821,7 +14830,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "detail: L(\"Motif de consultation\\nPatiente enceinte de 22 sem consulte pour otalgie droite depuis 48 h, accompagnée d'un écoulement clair intermittent et d'une ",
       "fichiers": [
-        "note-ui/editor-data.jsx:1210"
+        "note-ui/editor-data.jsx:1215"
       ]
     },
     {
@@ -14870,7 +14879,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Médecine interne': L('Médecine interne')",
       "fichiers": [
-        "note-ui/editor-data.jsx:914"
+        "note-ui/editor-data.jsx:919"
       ]
     },
     {
@@ -14963,8 +14972,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'neuro',   name: L('Neurologie'),         dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:655",
-        "note-ui/editor-data.jsx:899"
+        "note-ui/editor-data.jsx:660",
+        "note-ui/editor-data.jsx:904"
       ]
     },
     {
@@ -15046,8 +15055,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'r1', ttl: L('FSC — 17 mars 2026'), meta: L('Hb 128 g/L · Leuco 9,2'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1202",
-        "note-ui/editor-data.jsx:1203"
+        "note-ui/editor-data.jsx:1207",
+        "note-ui/editor-data.jsx:1208"
       ]
     },
     {
@@ -15056,7 +15065,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'composed', name: L('Note avancée'), desc: L('Plusieurs items confirmés'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1213"
+        "note-ui/editor-data.jsx:1218"
       ]
     },
     {
@@ -15090,7 +15099,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'empty',  name: L('Note vierge'), desc: L('Commencer à zéro'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1207"
+        "note-ui/editor-data.jsx:1212"
       ]
     },
     {
@@ -15108,8 +15117,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'nephro',  name: L('Néphrologie'),        dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:667",
-        "note-ui/editor-data.jsx:903"
+        "note-ui/editor-data.jsx:672",
+        "note-ui/editor-data.jsx:908"
       ]
     },
     {
@@ -15118,7 +15127,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'ORL': L('ORL'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:907"
+        "note-ui/editor-data.jsx:912"
       ]
     },
     {
@@ -15172,7 +15181,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Oncologie': L('Oncologie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:911"
+        "note-ui/editor-data.jsx:916"
       ]
     },
     {
@@ -15181,8 +15190,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'ophthal', name: L('Ophtalmologie'),      dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:676",
-        "note-ui/editor-data.jsx:906"
+        "note-ui/editor-data.jsx:681",
+        "note-ui/editor-data.jsx:911"
       ]
     },
     {
@@ -15211,8 +15220,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'ortho',   name: L('Orthopédie'),         dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:646",
-        "note-ui/editor-data.jsx:896"
+        "note-ui/editor-data.jsx:651",
+        "note-ui/editor-data.jsx:901"
       ]
     },
     {
@@ -15221,7 +15230,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "raison: L('Otalgie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1138"
+        "note-ui/editor-data.jsx:1143"
       ]
     },
     {
@@ -15230,7 +15239,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Otite externe'), code: 'H60.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1149"
+        "note-ui/editor-data.jsx:1154"
       ]
     },
     {
@@ -15239,12 +15248,12 @@
       "contexte": "donnée de démonstration",
       "extrait": "indication: L('Otite moyenne aiguë'), notes: L('Prendre avec nourriture.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1035",
-        "note-ui/editor-data.jsx:1137",
-        "note-ui/editor-data.jsx:1148",
-        "note-ui/editor-data.jsx:1189",
+        "note-ui/editor-data.jsx:1040",
+        "note-ui/editor-data.jsx:1142",
+        "note-ui/editor-data.jsx:1153",
+        "note-ui/editor-data.jsx:1194",
         "note-ui/editor-data.jsx:340",
-        "note-ui/editor-data.jsx:745"
+        "note-ui/editor-data.jsx:750"
       ]
     },
     {
@@ -15253,7 +15262,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Otite séreuse'), code: 'H65.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1150"
+        "note-ui/editor-data.jsx:1155"
       ]
     },
     {
@@ -15262,7 +15271,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'outils-cliniques', section: L('Structure'), icon: 'handyman', title: L('Outils cliniques'), desc: L('Score, calculatrice, outil clinique…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1019"
+        "note-ui/editor-data.jsx:1024"
       ]
     },
     {
@@ -15271,7 +15280,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'PA + latérale': L('PA + latérale'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:886"
+        "note-ui/editor-data.jsx:891"
       ]
     },
     {
@@ -15289,7 +15298,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'add-file', section: L('Fonctions'), icon: 'upload_file', title: L('Ajouter des fichiers'), desc: L('PDF, image depuis ordinateur…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1040"
+        "note-ui/editor-data.jsx:1045"
       ]
     },
     {
@@ -15397,7 +15406,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Pelvis': L('Pelvis'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:884"
+        "note-ui/editor-data.jsx:889"
       ]
     },
     {
@@ -15406,7 +15415,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Pelvis · Routine'), chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:628"
+        "note-ui/editor-data.jsx:633"
       ]
     },
     {
@@ -15451,7 +15460,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Pharyngite aiguë'), code: 'J02.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1100"
+        "note-ui/editor-data.jsx:1105"
       ]
     },
     {
@@ -15478,7 +15487,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : analgésie, antibiothérapie.\\nRevoir si pas d’amélioration en 48 h.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:746"
+        "note-ui/editor-data.jsx:751"
       ]
     },
     {
@@ -15487,7 +15496,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : antibiothérapie 5 jours, hydratation.\\nConsulter si fièvre ou douleur lombaire.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:722"
+        "note-ui/editor-data.jsx:727"
       ]
     },
     {
@@ -15496,7 +15505,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : bronchodilatateur au besoin, revoir la technique d’inhalation.\\nPlan d’action écrit remis.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:731"
+        "note-ui/editor-data.jsx:736"
       ]
     },
     {
@@ -15505,7 +15514,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : corticostéroïde inhalé quotidien, bronchodilatateur au besoin.\\nRéévaluation du contrôle dans 3 mois.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:734"
+        "note-ui/editor-data.jsx:739"
       ]
     },
     {
@@ -15514,7 +15523,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : fosfomycine dose unique, culture d’urine.\\nRevoir si symptômes persistent après 72 h.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:725"
+        "note-ui/editor-data.jsx:730"
       ]
     },
     {
@@ -15523,7 +15532,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : radiographie pulmonaire, antibiothérapie.\\nRevoir dans 48 à 72 h.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:740"
+        "note-ui/editor-data.jsx:745"
       ]
     },
     {
@@ -15532,7 +15541,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Plan : traitement symptomatique, hydratation, repos.\\nConsulter si dyspnée ou fièvre au-delà de 5 jours.'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:752"
+        "note-ui/editor-data.jsx:757"
       ]
     },
     {
@@ -15541,7 +15550,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'composed', name: L('Note avancée'), desc: L('Plusieurs items confirmés'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1213"
+        "note-ui/editor-data.jsx:1218"
       ]
     },
     {
@@ -15550,8 +15559,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'pneumo',  name: L('Pneumologie'),        dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:658",
-        "note-ui/editor-data.jsx:900"
+        "note-ui/editor-data.jsx:663",
+        "note-ui/editor-data.jsx:905"
       ]
     },
     {
@@ -15560,8 +15569,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Pneumonie'), code: 'J18.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1102",
-        "note-ui/editor-data.jsx:1174"
+        "note-ui/editor-data.jsx:1107",
+        "note-ui/editor-data.jsx:1179"
       ]
     },
     {
@@ -15570,9 +15579,9 @@
       "contexte": "donnée de démonstration",
       "extrait": "conclusion: { name: L('Pneumonie (suspicion)'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1037",
-        "note-ui/editor-data.jsx:1159",
-        "note-ui/editor-data.jsx:739"
+        "note-ui/editor-data.jsx:1042",
+        "note-ui/editor-data.jsx:1164",
+        "note-ui/editor-data.jsx:744"
       ]
     },
     {
@@ -15583,7 +15592,7 @@
       "fichiers": [
         "note-ui/Summary.jsx:13",
         "note-ui/Summary.jsx:191",
-        "note-ui/editor-data.jsx:1198"
+        "note-ui/editor-data.jsx:1203"
       ]
     },
     {
@@ -15665,7 +15674,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'prescription', section: L('Fonctions'), icon: 'prescriptions', title: L('Prescriptions'), desc: L('Rechercher et prescrire un médicament'), kbd: 'rx',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1053"
+        "note-ui/editor-data.jsx:1058"
       ]
     },
     {
@@ -15685,7 +15694,7 @@
       "extrait": "sig: L('Temps de prothrombine · Prioritaire'), chipSig: L('Prioritaire'),",
       "fichiers": [
         "note-ui/editor-data.jsx:592",
-        "note-ui/editor-data.jsx:869"
+        "note-ui/editor-data.jsx:874"
       ]
     },
     {
@@ -15694,7 +15703,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception'",
       "fichiers": [
-        "note-ui/editor-data.jsx:1255"
+        "note-ui/editor-data.jsx:1260"
       ]
     },
     {
@@ -15704,8 +15713,8 @@
       "extrait": "problem:      { key: 'problem',      label: L('Problème'), icon: 'flag', summaryGroup: L('Problèmes') },",
       "fichiers": [
         "note-ui/editor-data.jsx:10",
-        "note-ui/editor-data.jsx:1070",
-        "note-ui/editor-data.jsx:1072"
+        "note-ui/editor-data.jsx:1075",
+        "note-ui/editor-data.jsx:1077"
       ]
     },
     {
@@ -15733,7 +15742,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'prof-diabete', name: L('Profil diabète'), labKeys: ['hba1c', 'glyc', 'creat', 'lipide'] },",
       "fichiers": [
-        "note-ui/editor-data.jsx:923"
+        "note-ui/editor-data.jsx:928"
       ]
     },
     {
@@ -15746,12 +15755,21 @@
       ]
     },
     {
+      "fr": "Pré et post bronchodilatateur · Routine",
+      "empreinte": "fe6c146dd682",
+      "contexte": "donnée de démonstration",
+      "extrait": "sig: L('Pré et post bronchodilatateur · Routine'), chipSig: L('Routine'),",
+      "fichiers": [
+        "note-ui/editor-data.jsx:600"
+      ]
+    },
+    {
       "fr": "Psychiatrie",
       "empreinte": "6e2b0749572b",
       "contexte": "donnée de démonstration",
       "extrait": "'Psychiatrie': L('Psychiatrie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:912"
+        "note-ui/editor-data.jsx:917"
       ]
     },
     {
@@ -15769,7 +15787,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Pyélonéphrite aiguë'), code: 'N10' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1116"
+        "note-ui/editor-data.jsx:1121"
       ]
     },
     {
@@ -15805,7 +15823,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Rachis lombaire': L('Rachis lombaire'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:883"
+        "note-ui/editor-data.jsx:888"
       ]
     },
     {
@@ -15814,7 +15832,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Rachis lombaire · Sans contraste · Routine'), chipSig: L('Sans contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:625"
+        "note-ui/editor-data.jsx:630"
       ]
     },
     {
@@ -15823,7 +15841,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Rachis · Sans contraste · Routine'), chipSig: L('Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:634"
+        "note-ui/editor-data.jsx:639"
       ]
     },
     {
@@ -15832,7 +15850,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'imaging', section: L('Fonctions'), icon: 'radiology', title: L('Imagerie'), desc: L('Radio, écho, TDM'), kbd: 'img',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1061"
+        "note-ui/editor-data.jsx:1066"
       ]
     },
     {
@@ -15841,7 +15859,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Radiographie': L('Radiographie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:873"
+        "note-ui/editor-data.jsx:878"
       ]
     },
     {
@@ -15850,7 +15868,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1390"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -15859,7 +15877,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1390"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -15868,7 +15886,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1389"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -15877,7 +15895,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1389"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -15886,7 +15904,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1390"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -15895,7 +15913,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1389"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -15904,7 +15922,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rxcolonne', name: L('Radiographie colonne'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:633"
+        "note-ui/editor-data.jsx:638"
       ]
     },
     {
@@ -15913,7 +15931,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rxgenou', name: L('Radiographie genou'), dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:612"
+        "note-ui/editor-data.jsx:617"
       ]
     },
     {
@@ -15922,7 +15940,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rxpoumon', name: L('Radiographie pulmonaire'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:604"
+        "note-ui/editor-data.jsx:609"
       ]
     },
     {
@@ -16014,7 +16032,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'prescription', section: L('Fonctions'), icon: 'prescriptions', title: L('Prescriptions'), desc: L('Rechercher et prescrire un médicament'), kbd: 'rx',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1053"
+        "note-ui/editor-data.jsx:1058"
       ]
     },
     {
@@ -16032,7 +16050,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'diagnostic-ref', section: L('Fonctions'), icon: 'tag', title: L('Renvoi à un diagnostic'), desc: L('Insère le numéro d’un diagnostic déjà ajouté'), kbd:",
       "fichiers": [
-        "note-ui/editor-data.jsx:1051"
+        "note-ui/editor-data.jsx:1056"
       ]
     },
     {
@@ -16041,7 +16059,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'requests', section: L('Fonctions'), icon: 'lab_profile', title: L('Requêtes'), desc: L('Labo, imagerie et profils — plusieurs à la fois'), kbd: 'req',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1059"
+        "note-ui/editor-data.jsx:1064"
       ]
     },
     {
@@ -16068,8 +16086,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rhuma',   name: L('Rhumatologie'),       dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:661",
-        "note-ui/editor-data.jsx:901"
+        "note-ui/editor-data.jsx:666",
+        "note-ui/editor-data.jsx:906"
       ]
     },
     {
@@ -16141,22 +16159,23 @@
         "note-ui/editor-data.jsx:586",
         "note-ui/editor-data.jsx:589",
         "note-ui/editor-data.jsx:595",
-        "note-ui/editor-data.jsx:610",
-        "note-ui/editor-data.jsx:628",
-        "note-ui/editor-data.jsx:634",
-        "note-ui/editor-data.jsx:644",
-        "note-ui/editor-data.jsx:647",
-        "note-ui/editor-data.jsx:650",
-        "note-ui/editor-data.jsx:653",
-        "note-ui/editor-data.jsx:656",
-        "note-ui/editor-data.jsx:659",
-        "note-ui/editor-data.jsx:662",
-        "note-ui/editor-data.jsx:665",
-        "note-ui/editor-data.jsx:668",
-        "note-ui/editor-data.jsx:671",
-        "note-ui/editor-data.jsx:674",
-        "note-ui/editor-data.jsx:677",
-        "note-ui/editor-data.jsx:868"
+        "note-ui/editor-data.jsx:600",
+        "note-ui/editor-data.jsx:615",
+        "note-ui/editor-data.jsx:633",
+        "note-ui/editor-data.jsx:639",
+        "note-ui/editor-data.jsx:649",
+        "note-ui/editor-data.jsx:652",
+        "note-ui/editor-data.jsx:655",
+        "note-ui/editor-data.jsx:658",
+        "note-ui/editor-data.jsx:661",
+        "note-ui/editor-data.jsx:664",
+        "note-ui/editor-data.jsx:667",
+        "note-ui/editor-data.jsx:670",
+        "note-ui/editor-data.jsx:673",
+        "note-ui/editor-data.jsx:676",
+        "note-ui/editor-data.jsx:679",
+        "note-ui/editor-data.jsx:682",
+        "note-ui/editor-data.jsx:873"
       ]
     },
     {
@@ -16174,8 +16193,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'referral', section: L('Fonctions'), icon: 'person_add', title: L('Référence spécialiste'), desc: L('Cardio, ortho, derm…'), kbd: 'ref',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1065",
-        "note-ui/editor-data.jsx:1067"
+        "note-ui/editor-data.jsx:1070",
+        "note-ui/editor-data.jsx:1072"
       ]
     },
     {
@@ -16243,7 +16262,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'STAT': L('STAT'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:872"
+        "note-ui/editor-data.jsx:877"
       ]
     },
     {
@@ -16288,8 +16307,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Sans contraste · Prioritaire'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:617",
-        "note-ui/editor-data.jsx:618"
+        "note-ui/editor-data.jsx:622",
+        "note-ui/editor-data.jsx:623"
       ]
     },
     {
@@ -16298,7 +16317,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Rachis lombaire · Sans contraste · Routine'), chipSig: L('Sans contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:625"
+        "note-ui/editor-data.jsx:630"
       ]
     },
     {
@@ -16316,8 +16335,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
-        "note-ui/editor-data.jsx:1255"
+        "note-ui/NoteEditor.jsx:1884",
+        "note-ui/editor-data.jsx:1260"
       ]
     },
     {
@@ -16344,7 +16363,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'outils-cliniques', section: L('Structure'), icon: 'handyman', title: L('Outils cliniques'), desc: L('Score, calculatrice, outil clinique…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1019"
+        "note-ui/editor-data.jsx:1024"
       ]
     },
     {
@@ -16353,7 +16372,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Seins': L('Seins'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:882"
+        "note-ui/editor-data.jsx:887"
       ]
     },
     {
@@ -16362,7 +16381,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Semi-urgent': L('Semi-urgent'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:870"
+        "note-ui/editor-data.jsx:875"
       ]
     },
     {
@@ -16398,7 +16417,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Signes vitaux : TA _/_, pouls _, poids _ kg, IMC _\\nExamen général : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1128"
+        "note-ui/editor-data.jsx:1133"
       ]
     },
     {
@@ -16407,7 +16426,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Sinusite aiguë'), code: 'J01.9' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1101"
+        "note-ui/editor-data.jsx:1106"
       ]
     },
     {
@@ -16444,7 +16463,17 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ ic: 'air',           lbl: L('SpO₂'),     val: '98 %' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1197"
+        "note-ui/editor-data.jsx:1202"
+      ]
+    },
+    {
+      "fr": "Spirométrie (EFR)",
+      "empreinte": "389d7c2cf618",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ key: 'efr', name: L('Spirométrie (EFR)'), dose: '',",
+      "fichiers": [
+        "note-ui/editor-data.jsx:599",
+        "note-ui/editor-data.jsx:601"
       ]
     },
     {
@@ -16453,8 +16482,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'outils-cliniques', section: L('Structure'), icon: 'handyman', title: L('Outils cliniques'), desc: L('Score, calculatrice, outil clinique…'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1019",
-        "note-ui/editor-data.jsx:1021"
+        "note-ui/editor-data.jsx:1024",
+        "note-ui/editor-data.jsx:1026"
       ]
     },
     {
@@ -16463,7 +16492,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "descNoTool: L('Structure + analyse d’urine proposée'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1031"
+        "note-ui/editor-data.jsx:1036"
       ]
     },
     {
@@ -16472,7 +16501,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tpl-itu', section: L('Gabarits de note'), icon: 'medical_information', title: L('Infection urinaire'), desc: L('Structure + outil clinique ITU'), kbd: '",
       "fichiers": [
-        "note-ui/editor-data.jsx:1030"
+        "note-ui/editor-data.jsx:1035"
       ]
     },
     {
@@ -16491,7 +16520,7 @@
       "extrait": "const GABARITS = [L('Canevas'), L('Première visite'), L('Suivi'), L('Consultation SOAP'), L('Note de décharge')];",
       "fichiers": [
         "note-ui/AIBox.jsx:3",
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -16527,7 +16556,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "fasting: true, context: L('Suivi statine'), collection: L('Au CH') } } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1225"
+        "note-ui/editor-data.jsx:1230"
       ]
     },
     {
@@ -16555,7 +16584,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "quantity: '90', refills: '3', indication: L('Dyslipidémie'), notes: L('Surveiller CK.') } } },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1221"
+        "note-ui/editor-data.jsx:1226"
       ]
     },
     {
@@ -16564,7 +16593,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Sus-pubienne + endovaginale': L('Sus-pubienne + endovaginale'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:891"
+        "note-ui/editor-data.jsx:896"
       ]
     },
     {
@@ -16573,7 +16602,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "raison: L('Symptômes de rhume / syndrome viral'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1087"
+        "note-ui/editor-data.jsx:1092"
       ]
     },
     {
@@ -16582,7 +16611,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "raison: L('Symptômes urinaires'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1107"
+        "note-ui/editor-data.jsx:1112"
       ]
     },
     {
@@ -16591,9 +16620,9 @@
       "contexte": "donnée de démonstration",
       "extrait": "conclusion: { name: L('Syndrome viral / IVRS'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1028",
-        "note-ui/editor-data.jsx:1086",
-        "note-ui/editor-data.jsx:751"
+        "note-ui/editor-data.jsx:1033",
+        "note-ui/editor-data.jsx:1091",
+        "note-ui/editor-data.jsx:756"
       ]
     },
     {
@@ -16602,7 +16631,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'note-templates', section: L('Structure'), icon: 'post_add', title: L('Gabarits de note'), desc: L('Syndrome viral, infection urinaire, examen périodique",
       "fichiers": [
-        "note-ui/editor-data.jsx:1021"
+        "note-ui/editor-data.jsx:1026"
       ]
     },
     {
@@ -16665,7 +16694,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ ic: 'monitor_heart', lbl: L('TA'),            val: '118/72' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1196"
+        "note-ui/editor-data.jsx:1201"
       ]
     },
     {
@@ -16683,7 +16712,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'TDM': L('TDM'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:875"
+        "note-ui/editor-data.jsx:880"
       ]
     },
     {
@@ -16692,7 +16721,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1393"
+        "note-ui/NoteEditor.jsx:1396"
       ]
     },
     {
@@ -16701,7 +16730,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1393"
+        "note-ui/NoteEditor.jsx:1396"
       ]
     },
     {
@@ -16710,7 +16739,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1393"
+        "note-ui/NoteEditor.jsx:1396"
       ]
     },
     {
@@ -16719,7 +16748,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1393"
+        "note-ui/NoteEditor.jsx:1396"
       ]
     },
     {
@@ -16747,7 +16776,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tdmcereb', name: L('TDM cérébrale'), dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:616"
+        "note-ui/editor-data.jsx:621"
       ]
     },
     {
@@ -16756,7 +16785,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'tdmthorax', name: L('TDM thoracique'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:630"
+        "note-ui/editor-data.jsx:635"
       ]
     },
     {
@@ -16765,7 +16794,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "details: { tests: [L('Chol total'), L('HDL'), L('LDL'), L('TG'), L('ALT'), L('Créat')], priority: 'Routine',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1224"
+        "note-ui/editor-data.jsx:1229"
       ]
     },
     {
@@ -16785,7 +16814,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'r2', ttl: L('TSH — 12 janv 2026'), meta: L('2,1 mUI/L'), sev: 'ok', sevLbl: L('Normal') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1203"
+        "note-ui/editor-data.jsx:1208"
       ]
     },
     {
@@ -16823,7 +16852,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'rx',     name: L('Démo — prescription'), desc: L('Tapez « mét » pour voir la liste'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1209"
+        "note-ui/editor-data.jsx:1214"
       ]
     },
     {
@@ -16841,7 +16870,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ ic: 'thermostat',    lbl: L('Température'), val: '38,1 °C' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1194"
+        "note-ui/editor-data.jsx:1199"
       ]
     },
     {
@@ -16850,7 +16879,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Température : \\nFR / SpO2 : \\nAuscultation pulmonaire : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1165"
+        "note-ui/editor-data.jsx:1170"
       ]
     },
     {
@@ -16859,7 +16888,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Température : \\nOtoscopie droite : \\nOtoscopie gauche : \\nOropharynx : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1143"
+        "note-ui/editor-data.jsx:1148"
       ]
     },
     {
@@ -16877,7 +16906,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'textes-rapides', section: L('Fonctions'), icon: 'bolt', title: L('Textes rapides'), desc: L('Insérer un modèle de texte'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1045"
+        "note-ui/editor-data.jsx:1050"
       ]
     },
     {
@@ -16886,7 +16915,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Thorax': L('Thorax'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:878"
+        "note-ui/editor-data.jsx:883"
       ]
     },
     {
@@ -16895,7 +16924,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "sig: L('Thorax · Avec contraste · Routine'), chipSig: L('Avec contraste · Routine'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:631"
+        "note-ui/editor-data.jsx:636"
       ]
     },
     {
@@ -16940,7 +16969,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "content: L('Toux depuis : \\nFièvre : \\nDyspnée / douleur thoracique : \\nExpectorations : ') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1163"
+        "note-ui/editor-data.jsx:1168"
       ]
     },
     {
@@ -16949,7 +16978,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "raison: L('Toux et fièvre'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:1160"
+        "note-ui/editor-data.jsx:1165"
       ]
     },
     {
@@ -17061,7 +17090,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -17097,8 +17126,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
-        "note-ui/editor-data.jsx:871"
+        "note-ui/NoteEditor.jsx:1884",
+        "note-ui/editor-data.jsx:876"
       ]
     },
     {
@@ -17107,8 +17136,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'uro',     name: L('Urologie'),           dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:670",
-        "note-ui/editor-data.jsx:904"
+        "note-ui/editor-data.jsx:675",
+        "note-ui/editor-data.jsx:909"
       ]
     },
     {
@@ -17126,7 +17155,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Urétrite'), code: 'N34.1' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1117"
+        "note-ui/editor-data.jsx:1122"
       ]
     },
     {
@@ -17144,7 +17173,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Vaginite'), code: 'N76.0' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1118"
+        "note-ui/editor-data.jsx:1123"
       ]
     },
     {
@@ -17198,7 +17227,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'confidential-field', section: L('Confidentiel'), icon: 'lock', title: L('Champ confidentiel'), desc: L('Visible seulement par vous'), kbd: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:1076"
+        "note-ui/editor-data.jsx:1081"
       ]
     },
     {
@@ -17207,7 +17236,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1884"
       ]
     },
     {
@@ -17393,7 +17422,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1257"
+        "note-ui/editor-data.jsx:1262"
       ]
     },
     {
@@ -17402,7 +17431,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "'Échographie': L('Échographie'),",
       "fichiers": [
-        "note-ui/editor-data.jsx:874"
+        "note-ui/editor-data.jsx:879"
       ]
     },
     {
@@ -17411,7 +17440,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1391"
+        "note-ui/NoteEditor.jsx:1394"
       ]
     },
     {
@@ -17420,7 +17449,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1392"
+        "note-ui/NoteEditor.jsx:1395"
       ]
     },
     {
@@ -17429,7 +17458,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1392"
+        "note-ui/NoteEditor.jsx:1395"
       ]
     },
     {
@@ -17438,7 +17467,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1391"
+        "note-ui/NoteEditor.jsx:1394"
       ]
     },
     {
@@ -17447,7 +17476,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1392"
+        "note-ui/NoteEditor.jsx:1395"
       ]
     },
     {
@@ -17456,7 +17485,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1391"
+        "note-ui/NoteEditor.jsx:1394"
       ]
     },
     {
@@ -17465,7 +17494,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'echoabdo', name: L('Échographie abdominale'), dose: '', freq: true,",
       "fichiers": [
-        "note-ui/editor-data.jsx:608"
+        "note-ui/editor-data.jsx:613"
       ]
     },
     {
@@ -17474,7 +17503,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'echopelv', name: L('Échographie pelvienne'), dose: '',",
       "fichiers": [
-        "note-ui/editor-data.jsx:627"
+        "note-ui/editor-data.jsx:632"
       ]
     },
     {

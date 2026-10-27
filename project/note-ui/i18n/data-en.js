@@ -761,5 +761,8 @@
   'Prise par la réception': 'Booked by reception',
   'À la limite': 'Borderline',
   '20 octobre 2026': 'October 20, 2026',
-  '6,4 %': '6.4%'
+  '6,4 %': '6.4%',
+  'Spirométrie (EFR)': 'Spirometry (PFT)',
+  'Pré et post bronchodilatateur · Routine': 'Pre- and post-bronchodilator · Routine',
+  'Laboratoire de physiologie respiratoire': 'Respiratory physiology laboratory'
 };

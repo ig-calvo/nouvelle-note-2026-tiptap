@@ -151,3 +151,12 @@ test('menu « / » sans outils cliniques : ni item Outils cliniques, ni outil da
   assert.equal(w.filterSlashItems('itu').find((it) => it.key === 'tpl-itu').desc, w.TR('Structure + outil clinique ITU'));
   delete w.__SHOW_CLINICAL_TOOLS;
 });
+
+test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img, /req', () => {
+  const dx = { name: w.TR('Asthme léger'), code: 'J45.9' };
+  assert.deepEqual(keys(D.searchOrder('rx', '', dx).contexte), ['vento100', 'cat-35', 'cat-37', 'cat-39']);
+  assert.deepEqual(keys(D.searchOrder('lab', '', dx).contexte), ['efr']);
+  assert.deepEqual(keys(D.searchOrder('img', '', dx).contexte), ['rxpoumon']);
+  assert.deepEqual(D.searchOrder('req', '', dx).contexte.map((it) => it.orderKind + ':' + it.key), ['lab:efr', 'img:rxpoumon']);
+  D.endOrderSearch();
+});

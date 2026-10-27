@@ -594,6 +594,11 @@ const LAB_ITEMS = [
   { key: 'srum', name: L("Analyse d'urine (SMU-DCA)"), dose: '',
     sig: L('Sommaire microscopique + culture · Routine'), chipSig: L('Routine'),
     details: { tests: [L('SMU'), L('Culture urinaire')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
+  // Requête liée à l'asthme (table d'intention thérapeutique, DX_CONTEXTS) :
+  // contenu d'exemple, à valider.
+  { key: 'efr', name: L('Spirométrie (EFR)'), dose: '',
+    sig: L('Pré et post bronchodilatateur · Routine'), chipSig: L('Routine'),
+    details: { tests: [L('Spirométrie (EFR)')], priority: 'Routine', fasting: false, context: '', collection: L('Laboratoire de physiologie respiratoire') } },
 ];
 
 // =========================================================
@@ -726,7 +731,7 @@ const DX_CONTEXTS = [
       proposals: [{ kind: 'rx', key: 'cat-46' }, { kind: 'lab', key: 'srum' }] } },
   { key: 'asthme', cim10: ['J45', 'J46'], snomed: ['195967001'],
     words: ['asthme', 'asthma'],
-    rx: ['vento100', 'cat-35', 'cat-37', 'cat-39'], lab: [], img: ['rxpoumon'],
+    rx: ['vento100', 'cat-35', 'cat-37', 'cat-39'], lab: ['efr'], img: ['rxpoumon'],
     conclusion: { name: L('Asthme léger'),
       content: L('Plan : bronchodilatateur au besoin, revoir la technique d’inhalation.\nPlan d’action écrit remis.'),
       proposals: [{ kind: 'rx', key: 'vento100' }] },
