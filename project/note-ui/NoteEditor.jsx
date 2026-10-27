@@ -371,10 +371,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         var editor = editorRef.current;
         if (!editor) { if (++tries < 30) setTimeout(insertWhenReady, 50); return; }
         var state = editor.state, $from = state.selection.$from;
-        // Paragraphe de premier niveau seulement : une région diagnostic ne se
-        // loge pas dans une autre.
-        var inText = wasOpen && state.selection.from > 1 && $from.parent.type.name === 'paragraph' && $from.depth === 1;
-        var pos = inText ? $from.after($from.depth) : window.endOfFirstSectionPos(state.doc);
+        var inPara = wasOpen && state.selection.from > 1 && $from.parent.type.name === 'paragraph';
+        // Sous un diagnostic, la fonction (/rx…) reste dans sa région, donc
+        // dans son contexte (searchOrder) ; une région diagnostic (/dx) ne se
+        // loge pas dans une autre : elle va juste après.
+        var inRegion = inPara && $from.depth === 2 && $from.node(1).type.name === 'diagnosticRegion';
+        var pos = inRegion ? (command === 'dx' ? $from.after(1) : $from.after(2))
+          : (inPara && $from.depth === 1 ? $from.after(1) : window.endOfFirstSectionPos(state.doc));
         if (documentAs) window.__DX_DOCUMENT_AS = documentAs;
         var typed = '/' + command + ' ';
         editor.chain().focus()
