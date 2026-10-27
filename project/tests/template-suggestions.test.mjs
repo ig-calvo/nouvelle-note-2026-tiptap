@@ -81,3 +81,34 @@ test('sans le tweak, le texte du gabarit n’est pas proposé', () => {
   assert.equal(s.paragraphs, 0);
   assert.equal(s.chips, 1);
 });
+
+// Réglage « Gabarit : lignes à compléter » (rencontre du 2026-10-27, A3) : le
+// gabarit pose la fonction et le terme, sans item choisi ; le médecin choisit.
+test('lignes à compléter : chaque ajout du gabarit est une ligne d’état 1 (fonction + terme), en attente', () => {
+  w.__TEMPLATE_DRAFT_LINES = true;
+  try {
+    const chips = chipsIn(w.buildTemplateBlocks(tpl('pneumonie')));
+    assert.deepEqual(chips.map((c) => c.attrs.draft.kind), ['img', 'lab', 'rx']);
+    assert.ok(chips.every((c) => c.attrs.pending && c.attrs.rx === null && c.attrs.draft.term === c.attrs.label));
+    assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'prescription']);
+    // Un profil se rouvre dans /lab, sous son nom.
+    const prof = w.buildDraftChipNode({ kind: 'profile', key: 'prof-anemie' }, 'x');
+    assert.deepEqual(prof.attrs.draft, { kind: 'lab', term: w.TR('Bilan anémie') });
+    // Une conclusion de diagnostic aussi.
+    const opt = w.NOTE_DATA.dxConclusionOptions({ name: 'Cystite', code: 'N30.0' }, { notes: [], sommaire: [] })[0];
+    assert.ok(chipsIn(w.buildConclusionBlocks(opt)).every((c) => c.attrs.draft));
+  } finally { delete w.__TEMPLATE_DRAFT_LINES; }
+});
+
+test('lignes à compléter : accepter les garde en texte (rien n’est prescrit sans choix), refuser les retire', () => {
+  w.__TEMPLATE_DRAFT_LINES = true;
+  let d;
+  try { d = doc(...w.buildTemplateBlocks(tpl('otite'))); } finally { delete w.__TEMPLATE_DRAFT_LINES; }
+  const terms = chipsIn([d]).map((c) => c.attrs.draft.term);
+  assert.ok(terms.length > 0);
+  const accepted = w.resolvePendingInDoc(d, true);
+  assert.equal(chipsIn([accepted]).length, 0);
+  terms.forEach((term) => assert.ok(textOf([accepted]).includes(term), term));
+  assert.equal(w.pendingSummary(accepted).count, 0);
+  assert.equal(chipsIn([w.resolvePendingInDoc(d, false)]).length, 0);
+});

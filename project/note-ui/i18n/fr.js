@@ -928,6 +928,8 @@
   'schema.referenceMain.text': 'Référence : {name}',
   'schema.acceptAdd.aria': 'Accepter l’ajout',
   'schema.rejectAdd.aria': 'Refuser l’ajout',
+  'schema.draft.badge': 'À compléter',
+  'schema.draftOpen.tooltip': 'Cliquer pour choisir : {term}',
   'schema.nameCeasedShort.text': '{name} (cessé)',
   'schema.verbDocumentedF.text': 'Documentée',
   'schema.labRequest.text': 'Demande de laboratoire',

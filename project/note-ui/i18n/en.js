@@ -965,6 +965,8 @@
   'schema.reference.text': 'Referral — {source}',
   'schema.referenceMain.text': 'Referral: {name}',
   'schema.rejectAdd.aria': 'Decline addition',
+  'schema.draft.badge': 'To complete',
+  'schema.draftOpen.tooltip': 'Click to choose: {term}',
   'schema.renouvellement.tooltip': 'Renewal',
   'schema.replaces.text': 'replaces: {name}',
   'schema.requetes.label': 'Requests',
