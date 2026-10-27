@@ -218,7 +218,7 @@ function App() {
       </div>
 
       <TweaksPanel title="Tweaks">
-        <TweakSection title="Mise en page">
+        <TweakSection label="Mise en page" defaultOpen>
           <TweakSlider
             label="Largeur"
             value={tweaks.width}
@@ -234,7 +234,7 @@ function App() {
             onChange={(v) => setTweak("expanded", v)}
           />
         </TweakSection>
-        <TweakSection title="Identité">
+        <TweakSection label="Identité" defaultOpen>
           <TweakText
             label="Nom du patient"
             value={tweaks.patientName}

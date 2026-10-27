@@ -101,6 +101,19 @@ const __TWEAKS_STYLE = `
     color:rgba(41,38,27,.45);padding:10px 0 0}
   .twk-sect:first-child{padding-top:0}
 
+  .twk-grp{display:flex;flex-direction:column;gap:10px;margin:0 -14px;padding:0 14px;
+    border-top:.5px solid rgba(0,0,0,.08)}
+  .twk-grp+.twk-grp{margin-top:-10px}
+  .twk-grp[data-open="1"]{padding-bottom:12px}
+  .twk-grp-h{appearance:none;display:flex;align-items:center;justify-content:space-between;
+    gap:8px;width:100%;border:0;background:transparent;padding:9px 0;margin:0;text-align:left;
+    font:inherit;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:rgba(41,38,27,.55);cursor:default}
+  .twk-grp-h:hover{color:#29261b}
+  .twk-grp[data-open="1"] .twk-grp-h{padding-bottom:0}
+  .twk-grp-h svg{width:10px;height:10px;flex-shrink:0;transition:transform .15s}
+  .twk-grp[data-open="1"] .twk-grp-h svg{transform:rotate(90deg)}
+
   .twk-field{appearance:none;box-sizing:border-box;width:100%;min-width:0;height:26px;padding:0 8px;
     border:.5px solid rgba(0,0,0,.1);border-radius:7px;
     background:rgba(255,255,255,.6);color:inherit;font:inherit;outline:none}
@@ -434,12 +447,42 @@ function TweaksPanel({ title = 'Tweaks', children }) {
 
 // ── Layout helpers ──────────────────────────────────────────────────────────
 
-function TweakSection({ label, children }) {
+// Sections repliables : une TweakSection qui ENVELOPPE ses réglages devient
+// un groupe qu'on replie (fermé par défaut, sauf defaultOpen). Sans enfants,
+// elle reste le simple intertitre d'origine. L'état ouvert/fermé est mémorisé
+// par page et par libellé, à part des valeurs de tweaks : « Réinitialiser »
+// n'y touche pas.
+const __TWK_OPEN_KEY = 'omd-tweaks-open:' + (typeof location !== 'undefined' ? location.pathname : '');
+function readOpenSections() {
+  try { return JSON.parse(localStorage.getItem(__TWK_OPEN_KEY) || '{}') || {}; }
+  catch (e) { return {}; }
+}
+
+function TweakSection({ label, title, defaultOpen = false, children }) {
+  const name = label ?? title;
+  const [open, setOpen] = React.useState(function () {
+    const saved = readOpenSections();
+    return name in saved ? saved[name] : defaultOpen;
+  });
+  if (children == null) return <div className="twk-sect">{name}</div>;
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    try {
+      localStorage.setItem(__TWK_OPEN_KEY, JSON.stringify({ ...readOpenSections(), [name]: next }));
+    } catch (e) { /* stockage indisponible — l'état vaut pour la session */ }
+  };
   return (
-    <>
-      <div className="twk-sect">{label}</div>
-      {children}
-    </>
+    <div className="twk-grp" data-open={open ? '1' : '0'}>
+      <button type="button" className="twk-grp-h" aria-expanded={open} onClick={toggle}>
+        <span>{name}</span>
+        <svg viewBox="0 0 10 10" aria-hidden="true">
+          <path d="M3.5 2 6.5 5 3.5 8" fill="none" stroke="currentColor" strokeWidth="1.4"
+                strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      {open && children}
+    </div>
   );
 }
 
