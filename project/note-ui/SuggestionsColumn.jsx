@@ -302,11 +302,12 @@ window.SuggestionsColumn = SuggestionsColumn;
 const SB_MAX = 3;
 
 // Fonctions de la note : diagnostics et puces (sauf celles en attente, que
-// le médecin n'a pas encore ajoutées).
+// le médecin n'a pas encore ajoutées, et les antécédents documentés par
+// /ant, qui ne sont pas des diagnostics de la visite).
 function sbScan(doc) {
   const cids = [], regions = [];
   doc.descendants(function (n) {
-    if (n.type.name === 'diagnosticRegion') regions.push(n.attrs.id);
+    if (n.type.name === 'diagnosticRegion') { if (n.attrs.documentAs !== 'antecedent') regions.push(n.attrs.id); }
     else if (n.type.name === 'chip' && !n.attrs.pending) cids.push(n.attrs.cid);
   });
   return { cids: cids, regions: regions };

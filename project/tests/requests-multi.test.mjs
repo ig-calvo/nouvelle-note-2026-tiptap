@@ -99,3 +99,20 @@ test('/exam et /serv : recherches en sélection unique, une puce « à envoyer �
   assert.deepEqual(docs.map((x) => [x.kind, x.title]), [['exam', w.TR('Holter 24 h')], ['service', w.TR('Soins de plaie et pansement')]]);
   assert.equal(w.chipPrintText(exam), w.TR('Holter 24 h') + ' — Routine');
 });
+
+// Antécédents (/ant), rencontre du 2026-10-27 (C5) : sélection multiple des
+// plus fréquents ; chacun devient un diagnostic documenté comme antécédent.
+test('/ant : plusieurs antécédents cochés → une région de diagnostic documentée comme antécédent par choix', () => {
+  assert.deepEqual(w.parseSlashQuery('ant hyp'), { mode: 'order', kind: 'ant', term: 'hyp' });
+  assert.ok(D.ORDER_DEFS.ant.multi);
+  assert.ok(D.SLASH_ITEMS.some((it) => it.kbd === 'ant'));
+  const all = D.searchOrder('ant', '');
+  assert.ok(all.frequents.length >= 8);
+  D.endOrderSearch();
+  const picks = ['hta', 'asthme'].map((k) => D.ORDER_DEFS.ant.items().find((it) => it.key === k));
+  const regions = w.buildAntecedentRegions(picks, { now: '2026-10-27T10:00:00Z', author: 'Dr X' });
+  assert.deepEqual(regions.map((r) => [r.type, r.attrs.code, r.attrs.documentAs, r.attrs.documentedBy]),
+    [['diagnosticRegion', 'I10', 'antecedent', 'Dr X'], ['diagnosticRegion', 'J45.9', 'antecedent', 'Dr X']]);
+  assert.notEqual(regions[0].attrs.id, regions[1].attrs.id);
+  assert.deepEqual(regions[0].content, [{ type: 'paragraph' }]);
+});

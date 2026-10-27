@@ -723,7 +723,29 @@ const SERV_ITEMS = [
     details: { service: L('Prélèvements à domicile'), frequency: '', priority: 'Routine', instructions: '' } },
 ];
 
-// Unified order registry (rx / lab / img / ref / exam / serv) — shared search + favorites
+// =========================================================
+// Antécédents — commande « /ant » (rencontre du 2026-10-27, C5) : les
+// antécédents les plus fréquents, à cocher. Chacun devient un diagnostic
+// documenté comme antécédent (même approche que le « + » Antécédents du
+// Sommaire, buildAntecedentRegions). Codes CIM-10 ; contenu à valider.
+// =========================================================
+const ANT_FAVS = new Set();
+const ANT_ITEMS = [
+  { key: 'hta', name: L('Hypertension artérielle'), code: 'I10', freq: true },
+  { key: 'db2', name: L('Diabète de type 2'), code: 'E11.9', freq: true },
+  { key: 'dlp', name: L('Dyslipidémie'), code: 'E78.5', freq: true },
+  { key: 'asthme', name: L('Asthme'), code: 'J45.9', freq: true },
+  { key: 'mpoc', name: L('MPOC'), code: 'J44.9', freq: true },
+  { key: 'hypothyr', name: L('Hypothyroïdie'), code: 'E03.9', freq: true },
+  { key: 'depression', name: L('Dépression'), code: 'F32.9', freq: true },
+  { key: 'anxiete', name: L('Trouble anxieux'), code: 'F41.9', freq: true },
+  { key: 'rgo', name: L('Reflux gastro-œsophagien'), code: 'K21.9' },
+  { key: 'arthrose', name: L('Arthrose'), code: 'M19.9' },
+  { key: 'fa', name: L('Fibrillation auriculaire'), code: 'I48.9' },
+  { key: 'mci', name: L('Cardiopathie ischémique'), code: 'I25.9' },
+].map(function (it) { return Object.assign({ dose: '', sig: it.code }, it); });
+
+// Unified order registry (rx / lab / img / ref / exam / serv / ant) — shared search + favorites
 const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: t('data.rxVerb.text'), emptyNoun: t('data.rxNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
@@ -747,6 +769,10 @@ const ORDER_DEFS = {
   serv: { kbd: 'serv', type: 'service',    icon: 'medical_services', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.serviceNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionServFrequent.title'), t('data.sectionServOther.title')],
          favs: SERV_FAVS, items: function () { return SERV_ITEMS; }, search: function (q, favs) { return _searchList(SERV_ITEMS, favs || SERV_FAVS, q); } },
+  // Pas une puce : des diagnostics documentés comme antécédents (runOrderCommand).
+  ant:  { kbd: 'ant', type: 'antecedent',  icon: 'history', glyph: null, verb: t('data.antVerb.text'), emptyNoun: t('data.antNoun.text'), multi: true,
+         sections: [t('data.sectionFavorites.title'), t('data.sectionAntFrequent.title'), t('data.sectionAntOther.title')],
+         favs: ANT_FAVS, items: function () { return ANT_ITEMS; }, search: function (q, favs) { return _searchList(ANT_ITEMS, favs || ANT_FAVS, q); } },
 };
 
 // Table d'intention thérapeutique (rencontre vision 2026-10-27) : ce qu'une
@@ -1213,6 +1239,8 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'service', label: L('Service'), text: L('Service'),
       details: { service: '', frequency: '', priority: 'Routine', instructions: '' } } },
+  { key: 'antecedents', section: L('Fonctions'), icon: 'history', title: L('Antécédents'), desc: L('Plusieurs à la fois, documentés au dossier'), kbd: 'ant',
+    orderSearch: true },
   // ── accessible via /pb uniquement (masqué dans menu vide) ─
   { key: 'problem', section: L('Fonctions'), icon: 'flag', title: L('Problème'), desc: L('Ajouter au problématique'), kbd: 'pb',
     hideWhenEmpty: true,

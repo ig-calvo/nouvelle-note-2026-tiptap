@@ -2,6 +2,18 @@
 // humaine (PLAN-bilingue-fr-en.md, piste B, lot B2). Table « texte français → anglais » :
 // une entrée absente affiche le français. Les noms de marque restent identiques.
 (window.I18N_DATA = window.I18N_DATA || {}).en = {
+  'Hypertension artérielle': 'Hypertension',
+  'Diabète de type 2': 'Type 2 diabetes',
+  'Asthme': 'Asthma',
+  'Hypothyroïdie': 'Hypothyroidism',
+  'Dépression': 'Depression',
+  'Trouble anxieux': 'Anxiety disorder',
+  'Reflux gastro-œsophagien': 'Gastroesophageal reflux',
+  'Arthrose': 'Osteoarthritis',
+  'Fibrillation auriculaire': 'Atrial fibrillation',
+  'Cardiopathie ischémique': 'Ischemic heart disease',
+  'Antécédents': 'History',
+  'Plusieurs à la fois, documentés au dossier': 'Several at once, documented in the chart',
   'Examen diagnostique': 'Diagnostic test',
   'Service': 'Service',
   'Services': 'Services',

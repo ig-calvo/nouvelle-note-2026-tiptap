@@ -2128,7 +2128,7 @@ function filterSlashItems(query) {
 // Requête « rx amox » / « lab fsc » / « img thorax » / « ref cardio » →
 // mode ordre. Sinon menu générique.
 function parseSlashQuery(query) {
-  const m = /^(rx|lab|img|ref|exam|serv)\s([\s\S]*)$/i.exec(query || '');
+  const m = /^(rx|lab|img|ref|exam|serv|ant)\s([\s\S]*)$/i.exec(query || '');
   if (m) {
     const kbd = m[1].toLowerCase();
     return { mode: 'order', kind: window.NOTE_DATA.orderKindForKbd(kbd) || kbd, term: m[2] };
@@ -2761,6 +2761,20 @@ function buildPendingChipNode(proposal, source) {
 // section — donc inline, à la suite du texte (« Plan : » + ordonnance).
 // opts.proposeText : le texte des paragraphes (pas les titres) arrive aussi
 // en suggestion, à accepter ou refuser (D-03, tout le gabarit).
+// Antécédents choisis dans /ant → régions de diagnostic documentées comme
+// antécédents (comme depuis le « + » Antécédents du Sommaire), une par
+// choix, un paragraphe de corps vide chacune pour le commentaire.
+function buildAntecedentRegions(items, opts) {
+  const now = (opts && opts.now) || new Date().toISOString();
+  const author = (opts && opts.author) || null;
+  return (items || []).map(function (it) {
+    const attrs = window.makeDiagRegionAttrs({ action: 'nouveau', pick: { source: 'cim10', name: it.name, code: it.code } },
+      { id: window.newDiagId(), now: now, author: author });
+    return { type: 'diagnosticRegion', attrs: Object.assign(attrs, { documentAs: 'antecedent', documentedAt: now, documentedBy: author }),
+      content: [{ type: 'paragraph' }] };
+  });
+}
+
 // Ligne à compléter (état 1) pour un ajout de gabarit : la fonction et le
 // terme seulement, sans item choisi (buildDraftChipDom). Un profil se
 // cherche dans /lab. Mêmes ajouts que buildPendingChipNode.
@@ -2998,6 +3012,7 @@ Object.assign(window, {
   buildPendingChipNode,
   buildDraftChipNode,
   buildTemplateChipNode,
+  buildAntecedentRegions,
   buildTemplateBlocks,
   buildConclusionBlocks,
   buildVisitStartDoc,
