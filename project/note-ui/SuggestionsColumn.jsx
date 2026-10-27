@@ -173,26 +173,36 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
   } else {
     // Gabarit de début appliqué : ses diagnostics suggérés seulement (il n'y a
     // plus de gabarit à choisir). Sinon les gabarits selon la raison, et les
-    // diagnostics du premier dans la place qui reste.
+    // diagnostics du premier dans la place qui reste. Sans rien de ciblé (pas
+    // de raison, ou aucune qui corresponde), les gabarits de note eux-mêmes,
+    // pour partir d'une page blanche (demande d'Ignacio Calvo, 2026-10-27).
     const all = window.NOTE_DATA.NOTE_TEMPLATES || [];
     const applied = appliedTemplate ? all.find(function (x) { return x.key === appliedTemplate; }) : null;
     const tpls = applied ? [] : window.NOTE_DATA.templatesForReason(raison, 3);
+    const general = (applied || tpls.length) ? [] : all.slice(0, SC_MAX_ROWS);
     const dxFrom = applied || tpls[0] || null;
     const dxs = ((dxFrom && dxFrom.dxSuggestions) || []).slice(0, SC_MAX_ROWS - tpls.length);
     const inNote = editor ? scDiagnosesIn(editor.state.doc) : [];
     const dxTaken = function (d) { return inNote.some(function (a) { return (a.code && a.code === d.code) || a.name === d.name; }); };
-    count = tpls.length + dxs.filter(function (d) { return !dxTaken(d); }).length;
+    count = tpls.length + general.length + dxs.filter(function (d) { return !dxTaken(d); }).length;
+    const templateRow = function (tpl) {
+      const item = (window.NOTE_DATA.SLASH_ITEMS || []).find(function (it) { return it.key === 'tpl-' + tpl.key; }) || {};
+      const desc = window.__SHOW_CLINICAL_TOOLS === false && item.descNoTool ? item.descNoTool : item.desc;
+      return suggestionRow(tpl.key, item.icon || 'description', tpl.name, desc, false,
+        function () { fire('note:apply-template', { key: tpl.key }); }, '', t('suggest.appliquerGabaritNote.tooltip'));
+    };
     body = (tpls.length === 0 && dxs.length === 0)
-      ? <p style={scS.hint}>{(raison || '').trim() ? t('suggest.aucunGabarit.text') : (startOnly ? t('suggest.ecrireRaisonSeule.text') : t('suggest.ecrireRaison.text'))}</p>
+      ? (
+        <React.Fragment>
+          {general.length > 0 && <div style={scS.group}>{t('suggest.gabaritsNote.title')}</div>}
+          {general.map(templateRow)}
+          <p style={scS.hint}>{(raison || '').trim() ? t('suggest.aucunGabarit.text') : (startOnly ? t('suggest.ecrireRaisonSeule.text') : t('suggest.ecrireRaison.text'))}</p>
+        </React.Fragment>
+      )
       : (
         <React.Fragment>
           {tpls.length > 0 && <div style={scS.group}>{t('suggest.gabarits.title')}</div>}
-          {tpls.map(function (tpl) {
-            const item = (window.NOTE_DATA.SLASH_ITEMS || []).find(function (it) { return it.key === 'tpl-' + tpl.key; }) || {};
-            const desc = window.__SHOW_CLINICAL_TOOLS === false && item.descNoTool ? item.descNoTool : item.desc;
-            return suggestionRow(tpl.key, item.icon || 'description', tpl.name, desc, false,
-              function () { fire('note:apply-template', { key: tpl.key }); }, '', t('suggest.appliquerGabaritNote.tooltip'));
-          })}
+          {tpls.map(templateRow)}
           {dxs.length > 0 && <div style={scS.group}>{t('suggest.diagnostics.title', { name: dxFrom.name })}</div>}
           {dxs.map(function (d) {
             return suggestionRow('dx:' + d.code, 'local_hospital', d.name, d.code, dxTaken(d),

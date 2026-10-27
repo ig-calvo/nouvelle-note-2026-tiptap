@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1306,
+    "interface": 1307,
     "donnees": 808
   },
   "interface": {
@@ -8530,8 +8530,8 @@
       "empreinte": "7412fb68e8ae",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:200",
-        "note-ui/SuggestionsColumn.jsx:479"
+        "note-ui/SuggestionsColumn.jsx:210",
+        "note-ui/SuggestionsColumn.jsx:489"
       ]
     },
     "suggest.ajouterLigne.tooltip": {
@@ -8539,7 +8539,7 @@
       "empreinte": "a996b7943de2",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:480"
+        "note-ui/SuggestionsColumn.jsx:490"
       ]
     },
     "suggest.ajouterSous.tooltip": {
@@ -8548,7 +8548,7 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/SuggestionsColumn.jsx:154",
-        "note-ui/SuggestionsColumn.jsx:480"
+        "note-ui/SuggestionsColumn.jsx:490"
       ]
     },
     "suggest.appliquerGabarit.tooltip": {
@@ -8557,7 +8557,7 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/SuggestionsColumn.jsx:165",
-        "note-ui/SuggestionsColumn.jsx:478"
+        "note-ui/SuggestionsColumn.jsx:488"
       ]
     },
     "suggest.appliquerGabaritNote.tooltip": {
@@ -8565,15 +8565,15 @@
       "empreinte": "d350f203f85c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:194"
+        "note-ui/SuggestionsColumn.jsx:192"
       ]
     },
     "suggest.aucunGabarit.text": {
-      "fr": "Aucun gabarit pour cette raison de consultation.",
-      "empreinte": "eacc2c871d65",
+      "fr": "Aucun gabarit ciblé pour cette raison de consultation.",
+      "empreinte": "9a418368277d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:186"
+        "note-ui/SuggestionsColumn.jsx:199"
       ]
     },
     "suggest.barre.aria": {
@@ -8581,7 +8581,7 @@
       "empreinte": "0042987e1015",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:475"
+        "note-ui/SuggestionsColumn.jsx:485"
       ]
     },
     "suggest.barre.clavier.tooltip": {
@@ -8589,7 +8589,7 @@
       "empreinte": "23cead48c604",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:495"
+        "note-ui/SuggestionsColumn.jsx:505"
       ]
     },
     "suggest.barre.tab.text": {
@@ -8597,7 +8597,7 @@
       "empreinte": "fe06eb6459c8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:495"
+        "note-ui/SuggestionsColumn.jsx:505"
       ]
     },
     "suggest.colonne.aria": {
@@ -8605,8 +8605,8 @@
       "empreinte": "3d0c180f2eff",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:214",
-        "note-ui/SuggestionsColumn.jsx:224"
+        "note-ui/SuggestionsColumn.jsx:224",
+        "note-ui/SuggestionsColumn.jsx:234"
       ]
     },
     "suggest.colonne.title": {
@@ -8614,7 +8614,7 @@
       "empreinte": "861edba00547",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:227"
+        "note-ui/SuggestionsColumn.jsx:237"
       ]
     },
     "suggest.dejaAjoute.tooltip": {
@@ -8630,7 +8630,7 @@
       "empreinte": "ea1c977e2136",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:216"
+        "note-ui/SuggestionsColumn.jsx:226"
       ]
     },
     "suggest.derniereConclusion.text": {
@@ -8654,7 +8654,7 @@
       "empreinte": "2d264a7e8acd",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:200"
+        "note-ui/SuggestionsColumn.jsx:210"
       ]
     },
     "suggest.diagnostics.title": {
@@ -8662,23 +8662,23 @@
       "empreinte": "6265895adc4c",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:196"
+        "note-ui/SuggestionsColumn.jsx:206"
       ]
     },
     "suggest.ecrireRaison.text": {
-      "fr": "Écrivez la raison de consultation ou placez le curseur sous un diagnostic pour voir des suggestions.",
-      "empreinte": "ecda1003c255",
+      "fr": "Écrivez la raison de consultation pour des gabarits ciblés, ou placez le curseur sous un diagnostic.",
+      "empreinte": "f70d4e8324a2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:186"
+        "note-ui/SuggestionsColumn.jsx:199"
       ]
     },
     "suggest.ecrireRaisonSeule.text": {
-      "fr": "Entrez la raison de consultation pour voir des gabarits de note.",
-      "empreinte": "775b38b1d469",
+      "fr": "Écrivez la raison de consultation pour des gabarits ciblés.",
+      "empreinte": "ad2f6775732d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:186"
+        "note-ui/SuggestionsColumn.jsx:199"
       ]
     },
     "suggest.gabaritConclusion.title": {
@@ -8713,7 +8713,15 @@
       "empreinte": "77d4954bf343",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:189"
+        "note-ui/SuggestionsColumn.jsx:204"
+      ]
+    },
+    "suggest.gabaritsNote.title": {
+      "fr": "Gabarits de note",
+      "empreinte": "4041f2c746f0",
+      "contexte": "titre",
+      "fichiers": [
+        "note-ui/SuggestionsColumn.jsx:197"
       ]
     },
     "suggest.ignorer.aria": {
@@ -8721,7 +8729,7 @@
       "empreinte": "6a9bfaaa3278",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:497"
+        "note-ui/SuggestionsColumn.jsx:507"
       ]
     },
     "suggest.monGabarit.text": {
@@ -8740,7 +8748,7 @@
       "empreinte": "948156ec41f2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:209"
+        "note-ui/SuggestionsColumn.jsx:219"
       ]
     },
     "suggest.prescriptions.title": {
@@ -8756,7 +8764,7 @@
       "empreinte": "d65f7c01aebc",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:229"
+        "note-ui/SuggestionsColumn.jsx:239"
       ]
     },
     "suggest.requetes.title": {
@@ -8780,7 +8788,7 @@
       "empreinte": "63eea78bcf85",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:493"
+        "note-ui/SuggestionsColumn.jsx:503"
       ]
     },
     "suggest.toutAjouter.tooltip": {
@@ -8788,7 +8796,7 @@
       "empreinte": "9d4f6b04b92f",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:492"
+        "note-ui/SuggestionsColumn.jsx:502"
       ]
     },
     "suggest.vous.text": {
