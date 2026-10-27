@@ -1192,6 +1192,12 @@ const SLASH_ITEMS = [
   // structure + sections + outil clinique associé en un seul geste. Masqués
   // du menu par défaut (hideWhenEmpty) — atteints via l'item « Gabarits de
   // note » ci-dessus (NoteTemplateMenu) ou directement au clavier (/virus…).
+  { key: 'tpl-premiere', section: L('Gabarits de note'), icon: 'how_to_reg', title: L('Première rencontre'), desc: L('Antécédents, habitudes de vie, examen, conclusion'), kbd: 'premiere',
+    hideWhenEmpty: true, noteTemplate: 'premiere' },
+  { key: 'tpl-suivi', section: L('Gabarits de note'), icon: 'update', title: L('Suivi'), desc: L('Évolution, examen ciblé, plan'), kbd: 'suivi',
+    hideWhenEmpty: true, noteTemplate: 'suivi' },
+  { key: 'tpl-aigu', section: L('Gabarits de note'), icon: 'sick', title: L('Problème aigu'), desc: L('Histoire, examen ciblé, conclusion'), kbd: 'aigu',
+    hideWhenEmpty: true, noteTemplate: 'aigu' },
   { key: 'tpl-virus', section: L('Gabarits de note'), icon: 'coronavirus', title: L('Syndrome viral / IVRS'), desc: L('Histoire, examen, conclusion'), kbd: 'virus',
     hideWhenEmpty: true, noteTemplate: 'virus' },
   { key: 'tpl-itu', section: L('Gabarits de note'), icon: 'medical_information', title: L('Infection urinaire'), desc: L('Structure + outil clinique ITU'), kbd: 'itu',
@@ -1257,6 +1263,38 @@ const SLASH_ITEMS = [
 // /periodique). Inspirés des types de notes communs déjà présents dans
 // le picker d'outils cliniques et l'Assistant IA.
 const NOTE_TEMPLATES = [
+  // Gabarits de visite (`general`), proposés tant que la note est vide :
+  // le type de rencontre plutôt qu'une maladie (demande d'Ignacio Calvo,
+  // 2026-10-27). Contenu d'exemple, à valider.
+  {
+    key: 'premiere', name: L('Première rencontre'), general: true,
+    raison: L('Première rencontre — prise en charge'),
+    sections: [
+      { title: L('Antécédents'), content: L('Antécédents personnels : \nAntécédents familiaux : \nAntécédents chirurgicaux : ') },
+      { title: L('Médication et allergies'), content: L('Médication actuelle : \nAllergies : ') },
+      { title: L('Habitudes de vie'), content: L('Tabac : \nAlcool : \nActivité physique : ') },
+      { title: L('Examen physique'), content: L('Signes vitaux : TA _/_, pouls _, poids _ kg, taille _ cm\nExamen général : ') },
+      { title: t('sections.conclusion.heading'), content: L('Impression : \nPlan : ') },
+    ],
+  },
+  {
+    key: 'suivi', name: L('Suivi'), general: true,
+    raison: L('Visite de suivi'),
+    sections: [
+      { title: L('Depuis la dernière visite'), content: L('Évolution : \nObservance du traitement : \nEffets indésirables : ') },
+      { title: L('Examen physique'), content: L('Signes vitaux : \nExamen ciblé : ') },
+      { title: t('sections.conclusion.heading'), content: L('Impression : \nPlan : \nProchain suivi : ') },
+    ],
+  },
+  {
+    key: 'aigu', name: L('Problème aigu'), general: true,
+    raison: L('Consultation pour un problème aigu'),
+    sections: [
+      { title: L('Histoire de la maladie actuelle'), content: L('Depuis : \nSymptômes : \nFacteurs aggravants ou soulageants : ') },
+      { title: L('Examen physique'), content: L('Signes vitaux : \nExamen ciblé : ') },
+      { title: t('sections.conclusion.heading'), content: L('Impression : \nPlan : ') },
+    ],
+  },
   {
     key: 'virus', name: L('Syndrome viral / IVRS'),
     raison: L('Symptômes de rhume / syndrome viral'),
@@ -1294,7 +1332,7 @@ const NOTE_TEMPLATES = [
     ],
   },
   {
-    key: 'periodique', name: L('Examen périodique'),
+    key: 'periodique', name: L('Examen périodique'), general: true,
     raison: L('Examen médical périodique'),
     sections: [
       { title: L('Antécédents et revue des systèmes'),
@@ -1410,6 +1448,8 @@ const TEMPLATE_REASON_WORDS = {
   virus: ['rhume', 'toux', 'fievre', 'gorge', 'congestion', 'ivrs', 'grippe', 'viral', 'cold', 'cough', 'fever', 'throat', 'flu'],
   itu: ['urinaire', 'urinaires', 'urine', 'brulure', 'brulures', 'mictionnelle', 'mictionnelles', 'dysurie', 'cystite', 'urinary', 'burning', 'dysuria', 'cystitis'],
   periodique: ['periodique', 'annuel', 'bilan', 'periodic', 'annual', 'checkup', 'physical'],
+  premiere: ['premiere', 'nouveau', 'nouvelle', 'first', 'new', 'intake'],
+  suivi: ['suivi', 'controle', 'follow', 'followup', 'recheck'],
   otite: ['oreille', 'otalgie', 'otite', 'ear', 'earache', 'otalgia', 'otitis'],
   pneumonie: ['toux', 'fievre', 'dyspnee', 'pneumonie', 'cough', 'fever', 'dyspnea', 'pneumonia'],
 };

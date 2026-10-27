@@ -174,12 +174,15 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
     // Gabarit de début appliqué : ses diagnostics suggérés seulement (il n'y a
     // plus de gabarit à choisir). Sinon les gabarits selon la raison, et les
     // diagnostics du premier dans la place qui reste. Sans rien de ciblé (pas
-    // de raison, ou aucune qui corresponde), les gabarits de note eux-mêmes,
-    // pour partir d'une page blanche (demande d'Ignacio Calvo, 2026-10-27).
+    // de raison, ou aucune qui corresponde), des gabarits de note quand même
+    // (demande d'Ignacio Calvo, 2026-10-27) : tant que rien n'est écrit, les
+    // gabarits de visite (première rencontre, suivi…) ; ensuite, ceux par maladie.
     const all = window.NOTE_DATA.NOTE_TEMPLATES || [];
     const applied = appliedTemplate ? all.find(function (x) { return x.key === appliedTemplate; }) : null;
     const tpls = applied ? [] : window.NOTE_DATA.templatesForReason(raison, 3);
-    const general = (applied || tpls.length) ? [] : all.slice(0, SC_MAX_ROWS);
+    const blank = !(raison || '').trim() && (!editor || window.docIsBlank(editor.state.doc.toJSON()));
+    const general = (applied || tpls.length) ? []
+      : all.filter(function (x) { return !!x.general === blank; }).slice(0, SC_MAX_ROWS);
     const dxFrom = applied || tpls[0] || null;
     const dxs = ((dxFrom && dxFrom.dxSuggestions) || []).slice(0, SC_MAX_ROWS - tpls.length);
     const inNote = editor ? scDiagnosesIn(editor.state.doc) : [];
@@ -194,7 +197,7 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
     body = (tpls.length === 0 && dxs.length === 0)
       ? (
         <React.Fragment>
-          {general.length > 0 && <div style={scS.group}>{t('suggest.gabaritsNote.title')}</div>}
+          {general.length > 0 && <div style={scS.group}>{blank ? t('suggest.gabaritsVisite.title') : t('suggest.gabaritsNote.title')}</div>}
           {general.map(templateRow)}
           <p style={scS.hint}>{(raison || '').trim() ? t('suggest.aucunGabarit.text') : (startOnly ? t('suggest.ecrireRaisonSeule.text') : t('suggest.ecrireRaison.text'))}</p>
         </React.Fragment>
