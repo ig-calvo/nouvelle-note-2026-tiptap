@@ -10,15 +10,15 @@ const w = loadPrototype();
 // Découpage du document par la ligne
 // ---------------------------------------------------------------------------
 test('la ligne découpe la note en détails (au-dessus) et conclusion (en dessous)', () => {
-  const d = doc(H2('Détails de la consultation'), P('Toux depuis 3 jours'), SPLIT, P('Impression : IVRS'));
+  const d = doc(H2(w.TR('Détails de la consultation')), P('Toux depuis 3 jours'), SPLIT, P('Impression : IVRS'));
   const { details, conclusion, hasSplit } = w.splitDoc(d);
   assert.equal(hasSplit, true);
-  assert.deepEqual(textOf(details), ['Détails de la consultation', 'Toux depuis 3 jours']);
+  assert.deepEqual(textOf(details), [w.TR('Détails de la consultation'), 'Toux depuis 3 jours']);
   assert.deepEqual(textOf(conclusion), ['Impression : IVRS']);
 });
 
 test('un document sans ligne met tout dans les détails, sans planter', () => {
-  const d = doc(H2('Détails'), P('Texte'));
+  const d = doc(H2(w.TR('Détails')), P('Texte'));
   const { details, conclusion, hasSplit } = w.splitDoc(d);
   assert.equal(hasSplit, false);
   assert.equal(details.length, 2);
@@ -32,29 +32,29 @@ test('le document par défaut a une ligne et une conclusion vide', () => {
   assert.equal(w.conclusionIsEmpty(d), true);
   assert.equal(d.content.some((n) => n.type === 'heading'), false);
   // Le Titre 2 « Conclusion » d'avant est bien remplacé par la ligne.
-  assert.equal(textOf(d.content).includes('Conclusion'), false);
+  assert.equal(textOf(d.content).includes(w.TR('Conclusion')), false);
 });
 
 test('le titre « Détails de la consultation » est hors de l’éditeur : ensureSplit le retire des anciens documents', () => {
-  const vieux = doc(H2('Détails de la consultation'), P('Toux'), SPLIT, P('Impression'));
+  const vieux = doc(H2(w.TR('Détails de la consultation')), P('Toux'), SPLIT, P('Impression'));
   const d = w.ensureSplit(vieux);
   assert.deepEqual(textOf(d.content), ['Toux', '---', 'Impression']);
   assert.equal(w.splitSlot(d), 1);
   assert.equal(vieux.content.length, 4); // le document reçu n'est pas modifié
   // Sans séparateur (note d'avant la ligne) : le titre part aussi, la ligne est ajoutée à la fin.
-  const sans = w.ensureSplit(doc(H2('Détails de la consultation'), P('Toux')));
+  const sans = w.ensureSplit(doc(H2(w.TR('Détails de la consultation')), P('Toux')));
   assert.equal(textOf(sans.content)[0], 'Toux');
   assert.equal(sans.content.some((n) => n.type === 'heading'), false);
   assert.equal(w.splitSlot(sans), 1);
   // Un autre Titre 2 reste en place ; la casse du titre ne compte pas.
-  assert.equal(textOf(w.ensureSplit(doc(H2('DÉTAILS DE LA CONSULTATION'), P('a'))).content)[0], 'a');
-  assert.deepEqual(textOf(w.ensureSplit(doc(H2('Examen'), P('a'))).content).slice(0, 2), ['Examen', 'a']);
+  assert.equal(textOf(w.ensureSplit(doc(H2(w.DETAILS_LABEL.toUpperCase()), P('a'))).content)[0], 'a');
+  assert.deepEqual(textOf(w.ensureSplit(doc(H2(w.TR('Examen')), P('a'))).content).slice(0, 2), [w.TR('Examen'), 'a']);
 });
 
 test('un Titre 2 de gabarit clôt la première zone, pas le vieux titre « Détails de la consultation »', () => {
   const idx = (d) => w.endOfFirstSectionIndexJSON(d);
-  assert.equal(idx(doc(H2('Détails de la consultation'), P('a'), H2('Examen'), P('b'))), 2);
-  assert.equal(idx(doc(P('a'), H2('Examen'), P('b'))), 1);
+  assert.equal(idx(doc(H2(w.TR('Détails de la consultation')), P('a'), H2(w.TR('Examen')), P('b'))), 2);
+  assert.equal(idx(doc(P('a'), H2(w.TR('Examen')), P('b'))), 1);
   assert.equal(idx(doc(P('a'), SPLIT, P('b'))), 1);
 });
 
@@ -62,24 +62,24 @@ test('un Titre 2 de gabarit clôt la première zone, pas le vieux titre « Déta
 // Déplacement — drag basique
 // ---------------------------------------------------------------------------
 test('déplacer la ligne fait passer une ligne de note des détails à la conclusion', () => {
-  const before = doc(H2('Détails'), P('Ligne A'), P('Ligne B'), SPLIT, P('Plan : repos'));
+  const before = doc(H2(w.TR('Détails')), P('Ligne A'), P('Ligne B'), SPLIT, P('Plan : repos'));
   assert.equal(w.splitSlot(before), 3);
 
   const after = w.withSplitAtSlot(before, 2); // remonter d'un bloc
   assert.equal(w.splitSlot(after), 2);
-  assert.deepEqual(textOf(w.detailsBlocks(after)), ['Détails', 'Ligne A']);
+  assert.deepEqual(textOf(w.detailsBlocks(after)), [w.TR('Détails'), 'Ligne A']);
   assert.deepEqual(textOf(w.conclusionBlocks(after)), ['Ligne B', 'Plan : repos']);
 });
 
 test('withSplitAtSlot ne modifie pas le document reçu', () => {
-  const before = doc(H2('Détails'), P('A'), SPLIT, P('B'));
+  const before = doc(H2(w.TR('Détails')), P('A'), SPLIT, P('B'));
   const snapshot = JSON.stringify(before);
   w.withSplitAtSlot(before, 0);
   assert.equal(JSON.stringify(before), snapshot);
 });
 
 test('le slot demandé est borné aux extrémités du document', () => {
-  const d = doc(H2('Détails'), P('A'), SPLIT, P('B'));
+  const d = doc(H2(w.TR('Détails')), P('A'), SPLIT, P('B'));
   const max = w.splitMaxSlot(d); // 3 blocs de contenu
   assert.equal(max, 3);
 
@@ -90,7 +90,7 @@ test('le slot demandé est borné aux extrémités du document', () => {
 });
 
 test('déplacer puis revenir redonne exactement le document de départ', () => {
-  const d = doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C'));
+  const d = doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C'));
   const moved = w.withSplitAtSlot(d, 1);
   const back = w.withSplitAtSlot(moved, 3);
   assert.deepEqual(back.content, d.content);
@@ -199,7 +199,7 @@ test('une ligne rescapée d’une suppression se repose sur une frontière de bl
 // Accessibilité clavier (WCAG 2.1.1 / OMNI31)
 // ---------------------------------------------------------------------------
 test('les flèches déplacent la ligne d’un bloc et s’arrêtent aux extrémités', () => {
-  let d = doc(H2('Détails'), P('A'), SPLIT, P('B'));
+  let d = doc(H2(w.TR('Détails')), P('A'), SPLIT, P('B'));
   const max = w.splitMaxSlot(d); // 3
 
   const arrowUp = (x) => w.withSplitAtSlot(x, w.splitSlot(x) - 1);
@@ -215,7 +215,7 @@ test('les flèches déplacent la ligne d’un bloc et s’arrêtent aux extrémi
 });
 
 test('Origine et Fin envoient la ligne aux deux extrémités', () => {
-  const d = doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C'));
+  const d = doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C'));
   const home = w.withSplitAtSlot(d, 0);
   const end = w.withSplitAtSlot(d, w.splitMaxSlot(d));
   assert.equal(w.detailsBlocks(home).length, 0);
@@ -223,14 +223,14 @@ test('Origine et Fin envoient la ligne aux deux extrémités', () => {
 });
 
 test('aria-valuetext décrit la conclusion en toutes lettres', () => {
-  const d = doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C'));
-  assert.equal(w.splitAriaValueText(d), '1 ligne sur 4 dans la conclusion');
-  assert.equal(w.splitAriaValueText(w.withSplitAtSlot(d, 2)), '2 lignes sur 4 dans la conclusion');
-  assert.equal(w.splitAriaValueText(w.withSplitAtSlot(d, 4)), 'Conclusion vide');
+  const d = doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C'));
+  assert.equal(w.splitAriaValueText(d), w.tn('sections.split.lines.aria', 1, { total: 4 }));
+  assert.equal(w.splitAriaValueText(w.withSplitAtSlot(d, 2)), w.tn('sections.split.lines.aria', 2, { total: 4 }));
+  assert.equal(w.splitAriaValueText(w.withSplitAtSlot(d, 4)), w.TR('Conclusion vide'));
 });
 
 test('aria-valuenow reste dans [aria-valuemin, aria-valuemax]', () => {
-  const d = doc(H2('Détails'), P('A'), SPLIT, P('B'));
+  const d = doc(H2(w.TR('Détails')), P('A'), SPLIT, P('B'));
   for (let slot = -2; slot <= 6; slot++) {
     const moved = w.withSplitAtSlot(d, slot);
     assert.ok(w.splitSlot(moved) >= 0);
@@ -242,14 +242,14 @@ test('aria-valuenow reste dans [aria-valuemin, aria-valuemax]', () => {
 // Cas limites
 // ---------------------------------------------------------------------------
 test('note sans aucune ligne assignée à la conclusion → conclusion vide explicite', () => {
-  const d = doc(H2('Détails'), P('Toux'), SPLIT);
+  const d = doc(H2(w.TR('Détails')), P('Toux'), SPLIT);
   assert.deepEqual(w.conclusionBlocks(d), []);
   assert.equal(w.conclusionIsEmpty(d), true);
   assert.equal(w.conclusionLineCount(d), 0);
 });
 
 test('un paragraphe vide sous la ligne ne compte pas comme une conclusion', () => {
-  const d = doc(H2('Détails'), P('Toux'), SPLIT, P(), P());
+  const d = doc(H2(w.TR('Détails')), P('Toux'), SPLIT, P(), P());
   assert.equal(w.conclusionIsEmpty(d), true);
 });
 
@@ -285,7 +285,7 @@ test('note entièrement vide : la ligne existe, les deux zones sont vides', () =
 
 test('les nouvelles lignes vont dans les détails, au-dessus de la ligne déplacée', () => {
   // La ligne a été remontée à la main : la conclusion contient déjà 2 blocs.
-  const d = w.withSplitAtSlot(doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C')), 2);
+  const d = w.withSplitAtSlot(doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C')), 2);
   assert.equal(w.splitSlot(d), 2);
 
   // Point d'insertion utilisé par l'Assistant IA, la référence de passage et
@@ -300,7 +300,7 @@ test('les nouvelles lignes vont dans les détails, au-dessus de la ligne déplac
 });
 
 test('la ligne borne l’insertion même quand la note a plusieurs Titres 2', () => {
-  const d = doc(H2('Détails'), P('A'), H2('Examen physique'), P('B'), SPLIT, P('C'));
+  const d = doc(H2(w.TR('Détails')), P('A'), H2(w.TR('Examen physique')), P('B'), SPLIT, P('C'));
   const idx = w.endOfFirstSectionIndexJSON(d);
   assert.ok(idx <= w.splitSlot(d));
 });
@@ -309,14 +309,14 @@ test('la ligne borne l’insertion même quand la note a plusieurs Titres 2', ()
 // Persistance par note
 // ---------------------------------------------------------------------------
 test('la position de la ligne survit à un aller-retour JSON (sauvegarde / relecture)', () => {
-  const d = w.withSplitAtSlot(doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C')), 1);
+  const d = w.withSplitAtSlot(doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C')), 1);
   const relu = JSON.parse(JSON.stringify(d));
   assert.equal(w.splitSlot(relu), 1);
   assert.deepEqual(textOf(w.conclusionBlocks(relu)), ['A', 'B', 'C']);
 });
 
 test('deux notes gardent chacune sa propre position de ligne', () => {
-  const base = doc(H2('Détails'), P('A'), P('B'), SPLIT, P('C'));
+  const base = doc(H2(w.TR('Détails')), P('A'), P('B'), SPLIT, P('C'));
   const note1 = w.withSplitAtSlot(base, 1);
   const note2 = w.withSplitAtSlot(base, 3);
   assert.equal(w.splitSlot(note1), 1);
@@ -337,10 +337,10 @@ test('un brouillon non complété conserve sa ligne à la reprise', () => {
 // ensureSplit — reprise des documents venus d'ailleurs
 // ---------------------------------------------------------------------------
 test('un Titre 2 « Conclusion » devient la ligne, à sa place exacte', () => {
-  const ancien = doc(H2('Détails'), P('A'), H2('Conclusion'), P('Impression : ...'));
+  const ancien = doc(H2(w.TR('Détails')), P('A'), H2(w.TR('Conclusion')), P('Impression : ...'));
   const migre = w.ensureSplit(ancien);
   assert.equal(w.splitSlot(migre), 2);
-  assert.deepEqual(textOf(w.detailsBlocks(migre)), ['Détails', 'A']);
+  assert.deepEqual(textOf(w.detailsBlocks(migre)), [w.TR('Détails'), 'A']);
   assert.deepEqual(textOf(w.conclusionBlocks(migre)), ['Impression : ...']);
   assert.equal(migre.content.length, ancien.content.length, 'aucun bloc ajouté ni perdu');
 });
@@ -348,17 +348,17 @@ test('un Titre 2 « Conclusion » devient la ligne, à sa place exacte', () => {
 test('un gabarit de note garde sa structure, sa conclusion devient la ligne', () => {
   // Structure produite par plainToBlocks pour le gabarit « Syndrome viral ».
   const gabarit = doc(
-    H2('Histoire de la maladie actuelle'), P('Depuis : '),
-    H2('Examen physique'), P('Auscultation : '),
-    H2('Conclusion'), P('Impression : '), P('Plan : ')
+    H2(w.TR('Histoire de la maladie actuelle')), P('Depuis : '),
+    H2(w.TR('Examen physique')), P('Auscultation : '),
+    H2(w.TR('Conclusion')), P('Impression : '), P('Plan : ')
   );
   const migre = w.ensureSplit(gabarit);
   assert.deepEqual(textOf(w.conclusionBlocks(migre)), ['Impression : ', 'Plan : ']);
-  assert.ok(textOf(w.detailsBlocks(migre)).includes('Examen physique'));
+  assert.ok(textOf(w.detailsBlocks(migre)).includes(w.TR('Examen physique')));
 });
 
 test('un document sans conclusion reçoit la ligne à la fin, avec de quoi écrire', () => {
-  const d = doc(H2('Détails'), P('A'));
+  const d = doc(H2(w.TR('Détails')), P('A'));
   const migre = w.ensureSplit(d);
   assert.equal(w.splitSlot(migre), 2);
   assert.equal(w.conclusionIsEmpty(migre), true);
@@ -366,12 +366,12 @@ test('un document sans conclusion reçoit la ligne à la fin, avec de quoi écri
 });
 
 test('ensureSplit est idempotent', () => {
-  const une = w.ensureSplit(doc(H2('Détails'), P('A')));
+  const une = w.ensureSplit(doc(H2(w.TR('Détails')), P('A')));
   assert.deepEqual(w.ensureSplit(une).content, une.content);
 });
 
 test('un copier-coller qui duplique la ligne n’en laisse qu’une', () => {
-  const d = doc(H2('Détails'), SPLIT, P('A'), SPLIT, P('B'));
+  const d = doc(H2(w.TR('Détails')), SPLIT, P('A'), SPLIT, P('B'));
   const clean = w.ensureSplit(d);
   assert.equal(clean.content.filter((n) => n.type === 'sectionSplit').length, 1);
   assert.equal(w.splitSlot(clean), 1);

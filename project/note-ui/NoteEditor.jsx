@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true }) {
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false }) {
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
@@ -145,17 +145,30 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const [quickSendCid, setQuickSendCid] = React.useState(null);
   const [noteDate, setNoteDate] = React.useState(function() { return localIsoDate(new Date()); });
   const [noteTime, setNoteTime] = React.useState(function() { return new Date().toTimeString().slice(0, 5); });
-  const [visitType, setVisitType] = React.useState('Visite en clinique');
+  const [visitType, setVisitType] = React.useState('clinic');
   const [showTags, setShowTags] = React.useState(false);
   const [tags, setTags] = React.useState([]);
 
   const [raison, setRaison] = React.useState('');
+  // Colonne de suggestions : vrai quand le dernier point actif est la raison
+  // de consultation (le curseur de la note reprend la main dès qu'elle a le focus).
+  const [raisonActive, setRaisonActive] = React.useState(false);
+  // Gabarit de début appliqué : ses diagnostics suggérés suivent dans les
+  // suggestions (flux de Sacha, SuggestionsColumn.jsx).
+  const [appliedTemplate, setAppliedTemplate] = React.useState(null);
+  const suggestionsColumn = suggestionsPlacement === 'colonne';
   const noteCardRef = React.useRef(null);
 
   function handleEditorReady(editor) {
     editorRef.current = editor;
     setEditorInstance(editor);
   }
+  React.useEffect(function() {
+    if (!editorInstance) return undefined;
+    function onFocus() { setRaisonActive(false); }
+    editorInstance.on('focus', onFocus);
+    return function() { editorInstance.off('focus', onFocus); };
+  }, [editorInstance]);
 
   function handleDocChange(docJson) {
     const stats = window.scanDoc(docJson);
@@ -279,8 +292,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var key = e.detail && e.detail.key;
       var tpl = (window.NOTE_DATA.NOTE_TEMPLATES || []).find(function(t) { return t.key === key; });
       if (!tpl) return;
+      // Sans outils cliniques, le gabarit propose ses requêtes à la place.
+      if (window.__SHOW_CLINICAL_TOOLS === false) tpl = window.NOTE_DATA.templateWithoutTool(tpl);
       var blocks = window.buildTemplateBlocks(tpl, { proposeText: templateTextProposedRef.current });
-      if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', "Feuille de route - Symptômes urinaires"));
+      if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', t('noteEditor.ituRoadmap.text')));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
         // Note vierge : ensureSplit transforme le Titre 2 « Conclusion » du
@@ -295,10 +310,48 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
       setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
+      setAppliedTemplate(tpl.key);
       if (onOpen) onOpen();
     }
     window.addEventListener('note:apply-template', onApplyTemplate);
-    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); };
+    // Gabarit de conclusion d'un diagnostic (colonne de suggestions) : ses
+    // lignes et ses ajouts, en attente, à la fin de la région du diagnostic —
+    // à la place de son dernier paragraphe s'il est vide. `optionId` : une
+    // option de dxConclusionOptions (dernière conclusion, mon gabarit, Omnimed).
+    function onApplyDxTemplate(e) {
+      var editor = editorRef.current, id = e.detail && e.detail.regionId, optionId = e.detail && e.detail.optionId;
+      if (!editor || !id) return;
+      var found = null;
+      editor.state.doc.forEach(function(node, offset) { if (!found && node.type.name === 'diagnosticRegion' && node.attrs.id === id) found = { pos: offset, node: node }; });
+      if (!found) return;
+      var opt = window.NOTE_DATA.dxConclusionOptions(found.node.attrs, window.dxConclusionContext()).find(function(o) { return o.id === optionId; });
+      var blocks = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
+      if (!blocks.length) return;
+      var end = found.pos + found.node.nodeSize - 1;
+      var last = found.node.lastChild;
+      var range = last && last.content.size === 0 ? { from: end - last.nodeSize, to: end } : end;
+      editor.chain().focus().insertContentAt(range, blocks).run();
+    }
+    window.addEventListener('note:apply-dx-template', onApplyDxTemplate);
+    // Diagnostic suggéré par le gabarit de début (flux de Sacha) : la région
+    // à la fin de la conclusion, déjà remplie de son gabarit de conclusion en
+    // attente — mon gabarit s'il existe, sinon celui d'Omnimed.
+    function onAddSuggestedDx(e) {
+      var editor = editorRef.current, d = e.detail;
+      if (!editor || !d) return;
+      var attrs = window.makeDiagRegionAttrs({ action: 'nouveau', pick: { source: 'cim10', name: d.name, code: d.code } },
+        { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+      var opts = window.NOTE_DATA.dxConclusionOptions(attrs, window.dxConclusionContext());
+      var opt = opts.find(function(o) { return o.id === 'mine'; }) || opts.find(function(o) { return o.id === 'omnimed'; });
+      var body = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
+      var end = editor.state.doc.content.size;
+      editor.chain().focus().insertContentAt(end, { type: 'diagnosticRegion', attrs: attrs, content: body.length ? body : [{ type: 'paragraph' }] }).run();
+      var regionPos = null;
+      editor.state.doc.forEach(function(node, offset) { if (node.type.name === 'diagnosticRegion' && node.attrs.id === attrs.id) regionPos = offset; });
+      if (regionPos != null) editor.chain().setTextSelection(regionPos + 2).run();
+    }
+    window.addEventListener('note:add-suggested-dx', onAddSuggestedDx);
+    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); window.removeEventListener('note:add-suggested-dx', onAddSuggestedDx); };
   }, []);
 
   // « + » Problèmes / Antécédents / Médications du Sommaire (tweak, piste de
@@ -352,11 +405,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var d = entity.details || {};
     if (entity.type === 'prescription') {
       var head = [d.molecule, d.dose ? d.dose + ' ' + d.unit : ''].filter(Boolean).join(' ');
-      var _n = (d.qtyDose && /^\d/.test(String(d.qtyDose))) ? String(d.qtyDose) : (d.form === 'aérosol-doseur' ? '2' : '1');
-      var _ab = d.form === 'comprimé' ? 'comp.' : d.form === 'aérosol-doseur' ? 'inh' : d.form === 'gélule' ? 'gél' : d.form === 'capsule' ? 'caps.' : 'dose';
-      var qty = _n + ' ' + _ab;
+      var qty = window.RX_TEXT.qtyLabel(d);
       var _rf = (d.refills === undefined || d.refills === null || String(d.refills) === '') ? '0' : d.refills;
-      var tail = [qty, d.route, d.frequency + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : ''), d.duration ? '× ' + d.duration + ' ' + (d.durationUnit || 'jours') : '', 'R' + _rf].filter(Boolean).join(' ');
+      var tail = [qty, d.route, d.frequency + (d.prn && !/prn/i.test(d.frequency || '') ? ' PRN' : ''), d.duration ? '× ' + window.RX_TEXT.durationLong(d) : '', 'R' + _rf].filter(Boolean).join(' ');
       return [head, tail].filter(Boolean).join(' — ') || entity.label;
     }
     if (entity.type === 'lab') return d.tests && d.tests[0] ? d.tests.join(', ').slice(0, 40) : entity.label;
@@ -445,15 +496,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       } else if (field === 'route') {
         details.route = val;
       } else if (field === 'duration_refills') {
-        var drm = /^(\d+)\s*(jours?|semaines?|mois)(?:\s+R(\d+))?$/i.exec(val.trim());
-        if (drm) { details.duration = drm[1]; details.durationUnit = drm[2]; if (drm[3] !== undefined) details.refills = drm[3]; }
-        else if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
+        var drm = window.RX_TEXT.parseDurationRefills(val);
+        if (drm) { details.duration = drm.duration; details.durationUnit = drm.unit; if (drm.refills !== '') details.refills = drm.refills; }
+        else if (window.RX_TEXT.isLongTerm(val)) { details.duration = ''; details.durationUnit = ''; var rm = val.match(/R(\d+)/i); if (rm) details.refills = rm[1]; }
         else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
       } else if (field === 'duration') {
-        if (/^long terme/i.test(val)) { details.duration = ''; details.durationUnit = ''; }
+        if (window.RX_TEXT.isLongTerm(val)) { details.duration = ''; details.durationUnit = ''; }
         else {
-          var dm2 = /^(\d+)\s*(jours?|semaines?|mois|an|ans|année?s?)?/i.exec(val.trim());
-          if (dm2) { details.duration = dm2[1]; if (dm2[2]) details.durationUnit = /an|ann/i.test(dm2[2]) ? 'mois' : dm2[2].replace(/s$/, '') + (/jour|semaine/i.test(dm2[2]) ? 's' : ''); }
+          var dm2 = window.RX_TEXT.parseDuration(val);
+          if (dm2) { details.duration = dm2.duration; if (dm2.unit) details.durationUnit = dm2.unit; }
           else if (val.trim()) { details.duration = val.trim(); details.durationUnit = ''; }
         }
       } else if (field === 'refills') {
@@ -561,7 +612,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     var blocks = [];
     if (label) blocks.push({ type: 'paragraph', content: [{ type: 'text', text: label }] });
     if (items.length === 0) {
-      blocks.push({ type: 'paragraph', content: [{ type: 'text', text: '• (aucun élément au dossier)' }] });
+      blocks.push({ type: 'paragraph', content: [{ type: 'text', text: t('noteEditor.aucunElementDossier.text') }] });
     } else {
       items.forEach(function(item) {
         var txt = summaryItemText(sectionId, item);
@@ -640,14 +691,14 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // d'édition — « Sauvegarder » ne doit pas la fermer ni en effacer le contenu.
   function saveDraft() {
     var id = 'draft-' + Date.now();
-    var savedLabel = 'Sauvegardé à ' + new Date().toTimeString().slice(0, 5);
+    var savedLabel = t('noteEditor.savedAt.text', { time: new Date().toTimeString().slice(0, 5) });
     var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
     setDrafts(function(prev) {
       return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
         date: noteDate, time: noteTime, visitType: visitType, tags: tags,
         confidential: confidentialContent || null, actionEvents: actionEvents }].concat(prev);
     });
-    if (window.toast) window.toast('Brouillon sauvegardé', { icon: 'check_circle' });
+    if (window.toast) window.toast(t('noteEditor.brouillonSauvegarde.toast'), { icon: 'check_circle' });
   }
 
   function continueDraft(id) {
@@ -660,6 +711,16 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     if (draft.visitType) setVisitType(draft.visitType);
     if (draft.confidential) { setConfidentialContent(draft.confidential); setConfidentialAdded(true); }
     setActionEvents(draft.actionEvents || []);
+    if (onOpen) onOpen();
+  }
+
+  // Points de départ de la visite (VisitStartPanel.jsx) : la note de départ
+  // construite d'après les choix, puis ouverte.
+  function handleVisitStart(choice) {
+    initialDocRef.current = window.buildVisitStartDoc(choice.points, choice.tplKey,
+      { showTools: showClinicalTools, proposeText: templateTextProposed });
+    setRaison(window.NOTE_DATA.visitReason(choice.points));
+    setAppliedTemplate(choice.tplKey || null);
     if (onOpen) onOpen();
   }
 
@@ -697,9 +758,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       // du document portent l'échec (icône sur la puce, ligne au checkout) et
       // le document reste « Non transmise ».
       if (simulateTxFailure) {
-        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: 'envoi non reçu par le destinataire (simulé)' });
+        if (sentDoc && editorRef.current) window.stampChips(editorRef.current, sentDoc.items.map(function(it) { return it.id; }), { transmitError: t('noteEditor.txSimulatedFailure.text') });
         patch = Object.assign({}, patch, { transmitted: false });
-        if (window.toast) window.toast('Échec de transmission (simulé)', { icon: 'sync_problem' });
+        if (window.toast) window.toast(t('noteEditor.echecTransmissionSimule.toast'), { icon: 'sync_problem' });
       } else if (sentDoc && !sentDoc.transmitted) {
         recordChipEvents(sentDoc.items.map(function(it) { return it.id; }).filter(function(cid) {
           var a = editorRef.current && window.chipAttrs(editorRef.current, cid);
@@ -738,7 +799,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       var cid = e.detail && e.detail.cid;
       if (!cid) return;
       recordChipEvents([cid], 'annule');
-      if (window.toast) window.toast('Annulation envoyée', { icon: 'block' });
+      if (window.toast) window.toast(t('noteEditor.annulationEnvoyee.toast'), { icon: 'block' });
     }
     window.addEventListener('note:chip-cancel', onCancel);
     return function() { window.removeEventListener('note:chip-cancel', onCancel); };
@@ -895,8 +956,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <div>
           <div style={neStyles.overline}>{(institution || 'Clinique du Centre-ville').toUpperCase()}</div>
           <div style={neStyles.titleRow}>
-            <span style={neStyles.title}>Note Clinique</span>
-            {smartActive && <span style={neStyles.statusBadge}>En cours</span>}
+            <span style={neStyles.title}>{t('noteEditor.noteClinique.text')}</span>
+            {smartActive && <span style={neStyles.statusBadge}>{t('noteEditor.cours.text')}</span>}
           </div>
         </div>
         <div style={{ flex: 1 }} />
@@ -912,7 +973,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             <div style={neStyles.assistRow}>
               <span style={neStyles.assistChip}>
                 <span className="material-icons" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
-                Rédaction assistée
+                {t('noteEditor.redactionAssistee.text')}
               </span>
             </div>
           )
@@ -921,7 +982,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       </div>
 
       {/* Points de départ — tweak "Points de départ", masqués une fois la note ouverte */}
-      {startPoints && !isOpen &&
+      {visitStart && !isOpen &&
+        <div style={{ marginBottom: 20 }}>
+          <window.VisitStartPanel onStart={handleVisitStart} showTools={showClinicalTools} />
+        </div>}
+      {startPoints && !visitStart && !isOpen &&
         <div style={{ marginBottom: 20 }}>
           <NoteStartCards
             onPick={handleStartPick}
@@ -929,21 +994,25 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             drafts={drafts} />
         </div>}
 
+      {/* Réglage « Colonne de suggestions » : la zone d'écriture aux deux
+          tiers, la colonne (SuggestionsColumn.jsx) au tiers droit. */}
+      <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
+      <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
       {/* Fields */}
       <div style={neStyles.fieldsRow}>
-        <FloatField label="Raison de consultation" flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { if (onOpen) onOpen(); }} />
+        <FloatField label={t('noteEditor.raisonConsultation.label')} flex input value={raison} onValueChange={function(v) { setRaison(v); if (onOpen) onOpen(); }} onFocus={function() { setRaisonActive(true); if (onOpen) onOpen(); }} />
         {/* Date, heure et type restent groupés : quand la carte est trop étroite
             (≈ 760 px dans l'app), le groupe passe sous la raison de consultation
             au lieu d'écraser le sélecteur de type. */}
         <div style={neStyles.fieldsGroup}>
-          <DsDateField label="Date" width={190} value={noteDate} onChange={setNoteDate} />
-          <DsTimeField label="Heure" width={140} value={noteTime} onChange={setNoteTime} />
-          <FloatField label="Type de visite" width={230} grow select value={visitType} onValueChange={setVisitType} options={['Visite en clinique', 'Appel téléphonique', 'Mise à jour']} />
+          <DsDateField label={t('noteEditor.date.label')} width={190} value={noteDate} onChange={setNoteDate} />
+          <DsTimeField label={t('noteEditor.heure.label')} width={140} value={noteTime} onChange={setNoteTime} />
+          <FloatField label={t('noteEditor.typeVisite.label')} width={230} grow select value={visitType} onValueChange={setVisitType} options={VISIT_TYPES} />
         </div>
         <button
           type="button"
-          title={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
-          aria-label={showTags ? "Masquer les étiquettes" : "Ajouter des étiquettes"}
+          title={showTags ? t('noteEditor.masquerEtiquettes.tooltip') : t('noteEditor.ajouterEtiquettes.tooltip')}
+          aria-label={showTags ? t('noteEditor.masquerEtiquettes.aria') : t('noteEditor.ajouterEtiquettes.aria')}
           aria-pressed={showTags}
           onClick={function() { setShowTags(function(v) { return !v; }); }}
           style={Object.assign({}, neStyles.tagToggle, showTags ? neStyles.tagToggleOn : {})}>
@@ -971,7 +1040,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         // l'assistant propose aussi des puces, en attente comme celles d'un
         // gabarit — rien n'est créé avant d'être accepté.
         if (aiProposals) {
-          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, 'Assistant IA'); }).filter(Boolean);
+          var chips = window.NOTE_DATA.AI_SAMPLE_PROPOSALS.map(function(p) { return window.buildPendingChipNode(p, t('ai.assistant.name')); }).filter(Boolean);
           // Pas de libellé en texte : il resterait seul si tout est refusé ; la
           // puce dit elle-même qui la propose (infobulle, style « IA »).
           var inline = [];
@@ -1001,7 +1070,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
               onReview={reviewFirstPending} />}
 
           <NoteBody
-            placeholder="Appuyer sur « / » pour afficher les commandes"
+            placeholder={t('noteEditor.appuyerAfficherCommandes.placeholder')}
             initialDoc={initialDocRef.current}
             onReady={handleEditorReady}
             onDocChange={handleDocChange}
@@ -1018,7 +1087,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                 {showClinicalTools
                   ? <button
                       className="ct-toolsbtn"
-                      title="Outils cliniques"
+                      title={t('noteEditor.outilsCliniques.tooltip')}
                       style={pickerOpen ? { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)' } : undefined}
                       onClick={function(e) {
                         var r = e.currentTarget.getBoundingClientRect();
@@ -1027,11 +1096,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
                       <span className="material-icons-outlined">handyman</span>
                     </button>
                   : null}
-                {[
-                  { label: 'Assurance privée' },
-                  { label: 'Cardiologie' },
+                {showClinicalTools && [
+                  { label: t('noteEditor.assurancePrivee.label') },
+                  { label: t('noteEditor.cardiologie.label') },
                   { label: 'CNESST' },
-                  { label: 'Examen physique - Version courte', toolId: 'exam-court' }
+                  { label: t('noteEditor.examenPhysiqueVersionCourte.label'), toolId: 'exam-court' }
                 ].map(function(chip) {
                   return (
                     <button key={chip.label} className="ct-chip"
@@ -1055,9 +1124,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             <div className="confidential-field">
               <div className="confidential-field__head">
                 <span className="material-icons-outlined">lock</span>
-                <span className="confidential-field__label">Champs confidentiel</span>
+                <span className="confidential-field__label">{t('noteEditor.champsConfidentiel.text')}</span>
                 <button type="button" className="confidential-field__delete-btn"
-                  title="Supprimer le champ confidentiel"
+                  title={t('noteEditor.supprimerChampConfidentiel.tooltip')}
                   onClick={function () { setConfidentialDeleteOpen(true); }}>
                   <span className="material-icons-outlined">delete</span>
                 </button>
@@ -1065,7 +1134,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
               <textarea
                 className="confidential-field__input"
                 autoFocus
-                placeholder="Documenter le champ confidentiel"
+                placeholder={t('noteEditor.documenterChampConfidentiel.placeholder')}
                 value={confidentialContent}
                 onChange={function (e) { setConfidentialContent(e.target.value); }} />
             </div>
@@ -1074,6 +1143,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <ActionLog docJson={docJson} events={actionEvents} editor={editorInstance} />
         </div>
       }
+      </div>
+      {suggestionsColumn &&
+        <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate} />}
+      {suggestionsPlacement === 'curseur' &&
+        <window.SuggestionsColumn placement="curseur" editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
+          raisonAnchor={function() { return noteCardRef.current && noteCardRef.current.querySelector('input'); }} />}
+      </div>
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,
           jamais réaffiché ensuite (il n'y en a qu'un par note). */}
@@ -1082,21 +1158,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
             <div className="confidential-modal__title">
               <span className="material-icons-outlined">lock</span>
-              <span className="confidential-modal__title-text">Note confidentielle</span>
+              <span className="confidential-modal__title-text">{t('noteEditor.noteConfidentielle.text')}</span>
               <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialWarningOpen(false); }}>
                 <span className="material-icons-outlined">close</span>
               </button>
             </div>
             <div className="confidential-modal__body">
-              <p className="confidential-modal__headline">Voulez-vraiment écrire une note confidentielle?</p>
-              <p>Le contenu du champs de note confidentielle sera uniquement visible par son auteur. Les informations ajoutées ne devraient pas entraver une décision clinique ou un diagnostique par un.e autre praticien.ne concernant ce patient.</p>
+              <p className="confidential-modal__headline">{t('noteEditor.voulezVraimentEcrireNote.text')}</p>
+              <p>{t('noteEditor.contenuChampsNoteConfidentielle.text')}</p>
             </div>
             <div className="confidential-modal__actions">
-              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialWarningOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialWarningOpen(false); }}>{t('noteEditor.annuler.button')}</button>
               <button type="button" className="confidential-modal__btn-primary" onClick={function () {
                 setConfidentialAdded(true);
                 setConfidentialWarningOpen(false);
-              }}>Écrire</button>
+              }}>{t('noteEditor.ecrire.button')}</button>
             </div>
           </div>
         </div>
@@ -1109,21 +1185,21 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div className="confidential-modal" onMouseDown={function (e) { e.stopPropagation(); }}>
             <div className="confidential-modal__title">
               <span className="material-icons-outlined">lock</span>
-              <span className="confidential-modal__title-text">Supprimer le champ confidentiel?</span>
+              <span className="confidential-modal__title-text">{t('noteEditor.supprimerChampConfidentiel.text')}</span>
               <button type="button" className="confidential-modal__close" onClick={function () { setConfidentialDeleteOpen(false); }}>
                 <span className="material-icons-outlined">close</span>
               </button>
             </div>
             <div className="confidential-modal__body">
-              <p>Le contenu rédigé sera définitivement perdu.</p>
+              <p>{t('noteEditor.contenuRedigeSeraDefinitivement.text')}</p>
             </div>
             <div className="confidential-modal__actions">
-              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialDeleteOpen(false); }}>Annuler</button>
+              <button type="button" className="confidential-modal__btn-text" onClick={function () { setConfidentialDeleteOpen(false); }}>{t('noteEditor.annuler.button')}</button>
               <button type="button" className="confidential-modal__btn-danger" onClick={function () {
                 setConfidentialContent('');
                 setConfidentialAdded(false);
                 setConfidentialDeleteOpen(false);
-              }}>Supprimer</button>
+              }}>{t('noteEditor.supprimer.button')}</button>
             </div>
           </div>
         </div>
@@ -1152,7 +1228,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           institution={institution}
           initialSelectedId={transmissionOnlyId}
           showSuggestions={checkoutSuggestions}
-          noteInfo={{ title: (raison && raison.trim()) || 'Note clinique', date: noteDate, time: noteTime, visitType: visitType }}
+          noteInfo={{ title: (raison && raison.trim()) || t('noteEditor.noteClinique.tooltip'), date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
           onFinalizeNote={function() { finalizeComplete(); }}
           onPatchArchivedNote={onPatchArchivedTx}
           onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
@@ -1253,11 +1329,11 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     initialVal = details.route || '';
   } else if (field === 'duration_refills') {
     var dp0 = [];
-    if (details.duration) dp0.push(details.duration + ' ' + (details.durationUnit || 'jours'));
+    if (details.duration) dp0.push(window.RX_TEXT.durationLong(details));
     if (details.refills) dp0.push('R' + details.refills);
     initialVal = dp0.join(' ');
   } else if (field === 'duration') {
-    initialVal = details.duration ? (details.duration + ' ' + (details.durationUnit || 'jours')) : '';
+    initialVal = details.duration ? window.RX_TEXT.durationLong(details) : '';
   } else if (field === 'refills') {
     initialVal = 'R' + (details.refills != null ? details.refills : '0');
   } else if (field === 'priority') {
@@ -1294,37 +1370,37 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     ],
     route: window.NOTE_DATA.FIELD_OPTIONS.route,
     duration_refills: [
-      '3 jours R0', '5 jours R0', '7 jours R0', '10 jours R0', '14 jours R0',
-      '21 jours R0', '28 jours R0',
-      '30 jours R0', '30 jours R1', '30 jours R2', '30 jours R3',
-      '30 jours R5', '30 jours R11',
-      '60 jours R0', '60 jours R5',
-      '90 jours R0', '90 jours R3', '90 jours R11',
-      '6 mois R1', '1 an R0',
-      'Long terme R0', 'Long terme R3', 'Long terme R11'
+      L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),
+      L('21 jours R0'), L('28 jours R0'),
+      L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),
+      L('30 jours R5'), L('30 jours R11'),
+      L('60 jours R0'), L('60 jours R5'),
+      L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),
+      L('6 mois R1'), L('1 an R0'),
+      L('Long terme R0'), L('Long terme R3'), L('Long terme R11')
     ],
     duration: [
-      '3 jours', '5 jours', '7 jours', '10 jours', '14 jours', '21 jours', '28 jours',
-      '30 jours', '60 jours', '90 jours', '6 mois', '1 an', 'Long terme'
+      L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),
+      L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')
     ],
     refills: window.NOTE_DATA.FIELD_OPTIONS.refills.map(function(r) { return 'R' + r; }),
     priority: window.NOTE_DATA.FIELD_OPTIONS.priority,
     exam: [
-      'Radiographie Thorax', 'Radiographie Genou', 'Radiographie Hanche',
-      'Radiographie Cheville', 'Radiographie Poignet', 'Radiographie Colonne',
-      'Échographie Abdomen', 'Échographie Pelvis', 'Échographie Thyroïde',
-      'Échographie Sein', 'Échographie Carotides', 'Échographie Membres inférieurs',
-      'TDM Cerveau', 'TDM Thorax', 'TDM Abdomen-Pelvis', 'TDM Sinus',
-      'IRM Cerveau', 'IRM Rachis cervical', 'IRM Rachis lombaire',
-      'IRM Genou', 'IRM Épaule', 'IRM Cheville',
-      'Mammographie Bilatérale'
+      L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),
+      L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),
+      L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),
+      L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),
+      L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),
+      L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),
+      L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),
+      L('Mammographie Bilatérale')
     ],
     specialty: window.NOTE_DATA.FIELD_OPTIONS.specialty
   };
   var FIELD_LABELS = {
-    dose: 'Dose', frequency: 'Fréquence', form: 'Forme', route: 'Voie', duration_refills: 'Durée / Renouvellements',
-    duration: 'Durée', refills: 'Renouvellement',
-    priority: 'Priorité', exam: 'Examen', specialty: 'Spécialité'
+    dose: t('noteEditor.fieldDose.label'), frequency: t('noteEditor.fieldFrequency.label'), form: t('noteEditor.fieldForm.label'), route: t('noteEditor.fieldRoute.label'), duration_refills: t('noteEditor.fieldDurationRefills.label'),
+    duration: t('noteEditor.fieldDuration.label'), refills: t('noteEditor.fieldRefills.label'),
+    priority: t('noteEditor.fieldPriority.label'), exam: t('noteEditor.fieldExam.label'), specialty: t('noteEditor.fieldSpecialty.label')
   };
 
   var _q = React.useState(initialVal); var query = _q[0]; var setQuery = _q[1];
@@ -1379,13 +1455,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
           else if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx(function(i) { return Math.max(0, i - 1); }); }
           else if (e.key === 'Enter') { e.preventDefault(); if (suggestions[activeIdx]) handleSelect(suggestions[activeIdx]); else if (query.trim()) handleSelect(query.trim()); }
         },
-        placeholder: 'Rechercher…',
+        placeholder: t('noteEditor.rechercher.placeholder'),
         style: { flex: 1, border: 'none', outline: 'none', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface)', background: 'transparent' }
       })
     ),
     React.createElement('div', { style: { maxHeight: 224, overflowY: 'auto', padding: '4px 0' } },
       suggestions.length === 0
-        ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, 'Aucune suggestion')
+        ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, t('noteEditor.noSuggestion.empty'))
         : suggestions.map(function(s, i) {
             var isActive = i === activeIdx;
             return React.createElement('div', {
@@ -1406,6 +1482,13 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     )
   );
 }
+
+// Type de visite : le code est ce qu'on garde et compare ('phone' → mode « appel »
+// dans la liste des notes) ; le libellé suit la langue.
+const VISIT_TYPE_LABEL = {
+  clinic: t('visit.type.clinic'), phone: t('visit.type.phone'), update: t('visit.type.update')
+};
+const VISIT_TYPES = Object.keys(VISIT_TYPE_LABEL).map(function(code) { return { value: code, label: VISIT_TYPE_LABEL[code] }; });
 
 function FloatField({ label, children, width, flex, grow, error, input, type, select, options, value: controlledValue, onValueChange, onFocus: onFocusProp }) {
   const [focused, setFocused] = React.useState(false);
@@ -1443,7 +1526,7 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
               onChange={handleChange}
               onFocus={function() { setFocused(true); }}
               onBlur={function() { setFocused(false); }}>
-              {(options || []).map(function(o) { return <option key={o} value={o}>{o}</option>; })}
+              {(options || []).map(function(o) { var v = typeof o === 'string' ? o : o.value; return <option key={v} value={v}>{typeof o === 'string' ? o : o.label}</option>; })}
             </select>
             <span className="material-icons-outlined" style={neStyles.fieldIcon}>arrow_drop_down</span>
           </React.Fragment>
@@ -1463,8 +1546,8 @@ function FloatField({ label, children, width, flex, grow, error, input, type, se
 // ─── Sélecteurs date / heure DS3 ────────────────────────────────────────────
 // Équivalents prototype de MatDatepicker / MatTimepicker : champ texte (saisie
 // clavier) + bouton d'ouverture + panneau (container-low, élévation 5). Format
-// FR — « 28 sept. 2026 », « 15:35 » (24 h) — indépendant de la locale du
-// navigateur. Les valeurs restent 'AAAA-MM-JJ' et 'HH:MM' pour le reste de l'app.
+// de la langue du prototype (« 28 sept. 2026 », « 15:35 » en français) — jamais
+// de celle du navigateur. Les valeurs restent 'AAAA-MM-JJ' et 'HH:MM' pour le reste de l'app.
 function pad2(n) { return String(n).padStart(2, '0'); }
 function isoOf(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
 function localIsoDate(dt) { return isoOf(dt.getFullYear(), dt.getMonth(), dt.getDate()); }
@@ -1478,7 +1561,7 @@ function isRealDate(y, m, d) {
 }
 function fmtDateFr(iso) {
   const p = parseIso(iso);
-  return p ? new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(p.y, p.m, p.d)) : '';
+  return p ? new Intl.DateTimeFormat(window.I18N.locale, { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(p.y, p.m, p.d)) : '';
 }
 // Accepte 2026-09-28, 28/09/2026, 28-9-2026 ; null si invalide.
 function parseDateInput(text) {
@@ -1575,14 +1658,14 @@ function PickerField({ label, width, value, format, parse, onCommit, icon, toggl
 
 function DsDateField({ label, width, value, onChange }) {
   return (
-    <PickerField label={label} width={width} value={value} format={fmtDateFr} parse={parseDateInput} onCommit={onChange} icon="calendar_today" toggleLabel="Ouvrir le calendrier">
+    <PickerField label={label} width={width} value={value} format={fmtDateFr} parse={parseDateInput} onCommit={onChange} icon="calendar_today" toggleLabel={t('noteEditor.ouvrirCalendrier.label')}>
       {function(api) { return <DsCalendar value={value} onSelect={api.choose} />; }}
     </PickerField>);
 }
 
 function DsTimeField({ label, width, value, onChange }) {
   return (
-    <PickerField label={label} width={width} value={value} format={function(v) { return v || ''; }} parse={parseTimeInput} onCommit={onChange} icon="schedule" toggleLabel="Choisir l’heure">
+    <PickerField label={label} width={width} value={value} format={function(v) { return v || ''; }} parse={parseTimeInput} onCommit={onChange} icon="schedule" toggleLabel={t('noteEditor.choisirHeure.label')}>
       {function(api) { return <DsTimeList value={value} onSelect={api.choose} />; }}
     </PickerField>);
 }
@@ -1602,10 +1685,10 @@ function DsCalendar({ value, onSelect }) {
     moveFocus.current = false;
   }, [cursor]);
 
-  const monthFmt = new Intl.DateTimeFormat('fr-CA', { month: 'long', year: 'numeric' });
-  const wdShort = new Intl.DateTimeFormat('fr-CA', { weekday: 'narrow' });
-  const wdLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long' });
-  const dayLong = new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const monthFmt = new Intl.DateTimeFormat(window.I18N.locale, { month: 'long', year: 'numeric' });
+  const wdShort = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'narrow' });
+  const wdLong = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'long' });
+  const dayLong = new Intl.DateTimeFormat(window.I18N.locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const first = new Date(cursor.y, cursor.m, 1);
   const daysInMonth = new Date(cursor.y, cursor.m + 1, 0).getDate();
   const cells = [];
@@ -1630,11 +1713,11 @@ function DsCalendar({ value, onSelect }) {
   return (
     <div style={{ width: 296 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--ds-spacing-xs)' }}>
-        <button type="button" className="ds-icon-btn" aria-label="Mois précédent" onClick={function() { shiftMonth(-1, false); }}>
+        <button type="button" className="ds-icon-btn" aria-label={t('noteEditor.moisPrecedent.aria')} onClick={function() { shiftMonth(-1, false); }}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_left</span>
         </button>
         <div aria-live="polite" style={{ font: 'var(--mat-sys-title-medium-bold, 600 16px/20px var(--font-mat-sys-brand-family))', color: 'var(--mat-sys-on-surface)', textTransform: 'capitalize' }}>{monthFmt.format(first)}</div>
-        <button type="button" className="ds-icon-btn" aria-label="Mois suivant" onClick={function() { shiftMonth(1, false); }}>
+        <button type="button" className="ds-icon-btn" aria-label={t('noteEditor.moisSuivant.aria')} onClick={function() { shiftMonth(1, false); }}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>chevron_right</span>
         </button>
       </div>
@@ -1676,7 +1759,7 @@ function DsCalendar({ value, onSelect }) {
         })}
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 'var(--ds-spacing-xs)' }}>
-        <button type="button" className="ds-btn" style={{ height: 40, padding: '0 var(--ds-spacing-s)', background: 'transparent', color: 'var(--mat-sys-primary)' }} onClick={function() { onSelect(todayIso); }}>Aujourd’hui</button>
+        <button type="button" className="ds-btn" style={{ height: 40, padding: '0 var(--ds-spacing-s)', background: 'transparent', color: 'var(--mat-sys-primary)' }} onClick={function() { onSelect(todayIso); }}>{t('noteEditor.aujourdHui.button')}</button>
       </div>
     </div>);
 }
@@ -1711,7 +1794,7 @@ function DsTimeList({ value, onSelect }) {
   }
 
   return (
-    <div ref={listRef} role="listbox" aria-label="Heures" onKeyDown={onKey} style={{ width: 146, maxHeight: 264, overflowY: 'auto', position: 'relative' }}>
+    <div ref={listRef} role="listbox" aria-label={t('noteEditor.heures.aria')} onKeyDown={onKey} style={{ width: 146, maxHeight: 264, overflowY: 'auto', position: 'relative' }}>
       {TIME_OPTIONS.map(function(t, i) {
         const isSel = t === value;
         return (
@@ -1756,6 +1839,8 @@ const neStyles = {
   // Cadre le corps éditable de la note (NoteBody) — un trait au-dessus, un en
   // dessous — repris de la maquette Figma (« redaction » y démarre par cette
   // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
+  withSuggestions: { display: 'flex', gap: 'var(--ds-spacing-m)', alignItems: 'flex-start' },
+  writingZone: { flex: '2 1 0', minWidth: 0 },
   noteDiv: { height: 1, background: 'var(--mat-sys-outline-variant)', margin: 'var(--ds-spacing-12) 0' },
   topRow: { display: 'flex', alignItems: 'flex-start', gap: 'var(--ds-spacing-12)', marginBottom: 'var(--ds-spacing-s)' },
   titleRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xxs)' },
@@ -1793,7 +1878,7 @@ window.NoteEditor = NoteEditor;
 // ---------------------------------------------------------
 // TagInput — « Étiquettes » chips field
 // ---------------------------------------------------------
-const TAG_SUGGESTIONS = ['Visite en clinique', 'Appel téléphonique', 'Assurance privée', 'CNESST', 'Cardiologie', 'Suivi', 'Sans rendez-vous', 'Urgent', 'Télémédecine'];
+const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous'), L('Urgent'), L('Télémédecine')];
 
 function TagInput({ tags, onChange }) {
   const [input, setInput] = React.useState('');
@@ -1824,14 +1909,14 @@ function TagInput({ tags, onChange }) {
       <div
         style={{ ...tagStyles.wrap, ...(focused ? tagStyles.wrapFocused : {}) }}
         onMouseDown={function(e) { if (e.target === e.currentTarget || e.target.dataset.tagshell) { inputRef.current && inputRef.current.focus(); } }}>
-        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: 'var(--mat-sys-primary)' } : {}) }}>Étiquettes</span>
+        <span style={{ ...neFieldStyles.label, ...neFieldStyles.labelFloating, ...(focused ? { color: 'var(--mat-sys-primary)' } : {}) }}>{t('noteEditor.etiquettes.text')}</span>
         <div style={tagStyles.inner} data-tagshell="1">
           <span className="material-icons-outlined" style={tagStyles.icon}>sell</span>
           {tags.map(function(t, i) {
             return (
               <span key={t + i} style={tagStyles.chip}>
                 {t}
-                <button type="button" className="ds-tb-btn" style={tagStyles.chipX} title={"Retirer l’étiquette " + t} aria-label={"Retirer l’étiquette " + t} onClick={function() { removeTag(i); }}>
+                <button type="button" className="ds-tb-btn" style={tagStyles.chipX} title={window.t('noteEditor.removeTag.aria', { tag: t })} aria-label={window.t('noteEditor.removeTag.aria', { tag: t })} onClick={function() { removeTag(i); }}>
                   <span className="material-icons" style={{ fontSize: 16 }}>close</span>
                 </button>
               </span>);
@@ -1840,7 +1925,7 @@ function TagInput({ tags, onChange }) {
             ref={inputRef}
             style={tagStyles.input}
             value={input}
-            placeholder={tags.length ? 'Ajouter…' : 'Ajouter une étiquette…'}
+            placeholder={tags.length ? t('noteEditor.ajouter.placeholder') : t('noteEditor.ajouterEtiquette.placeholder')}
             onChange={function(e) { setInput(e.target.value); }}
             onKeyDown={onKeyDown}
             onFocus={function() { setFocused(true); }}

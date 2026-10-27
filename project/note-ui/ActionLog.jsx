@@ -14,8 +14,8 @@ function formatLogTimestamp(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  const date = d.toLocaleDateString('fr-CA', { day: '2-digit', month: 'short', year: 'numeric' });
-  const time = d.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' });
+  const date = d.toLocaleDateString(window.I18N.locale, { day: '2-digit', month: 'short', year: 'numeric' });
+  const time = d.toLocaleTimeString(window.I18N.locale, { hour: '2-digit', minute: '2-digit' });
   return date + ' ' + time;
 }
 
@@ -51,9 +51,9 @@ function scrollToLogSource(editor, entry) {
 // qui n'est plus dans la note (sans que rien soit annulé pour autant).
 function ActionLogTags({ entry }) {
   const tags = [];
-  if (entry.transmittedAt) tags.push({ key: 'transmis', label: 'Transmis le ' + formatLogTimestamp(entry.transmittedAt) });
-  if (entry.cancelledAt) tags.push({ key: 'annule', label: 'Annulé le ' + formatLogTimestamp(entry.cancelledAt) });
-  if (entry.removed) tags.push({ key: 'retire', label: 'Retiré de la note' });
+  if (entry.transmittedAt) tags.push({ key: 'transmis', label: t('actionLog.transmittedOn.label', { when: formatLogTimestamp(entry.transmittedAt) }) });
+  if (entry.cancelledAt) tags.push({ key: 'annule', label: t('actionLog.cancelledOn.label', { when: formatLogTimestamp(entry.cancelledAt) }) });
+  if (entry.removed) tags.push({ key: 'retire', label: t('actionLog.retireNote.label') });
   if (!tags.length) return null;
   return (
     <span className="action-log__tags">
@@ -74,16 +74,16 @@ function ActionLog({ docJson, events, editor }) {
       <button type="button" className="action-log__header"
         aria-expanded={!collapsed}
         onClick={function () { setCollapsed(function (v) { return !v; }); }}>
-        <span className="action-log__title">Activités de la note ({entries.length})</span>
+        <span className="action-log__title">{t('actionLog.title.title', { n: entries.length })}</span>
         <span className="material-icons-outlined action-log__chevron">{collapsed ? 'chevron_right' : 'expand_more'}</span>
       </button>
       {!collapsed && entries.map(function (entry) {
         // Un diagnostic porte son propre verbe (Documenté/Cessé/Modifié —
         // voir buildActionLog) ; les autres activités restent « Ajouté ».
-        const verb = entry.verb || 'Ajouté';
+        const verb = entry.verb || t('actionLog.verbAdded.text');
         const meta = entry.author
-          ? (entry.savedAt ? verb + ' par ' + entry.author + ' le ' + formatLogTimestamp(entry.savedAt) : verb + ' par ' + entry.author)
-          : (entry.savedAt ? verb + ' le ' + formatLogTimestamp(entry.savedAt) : '');
+          ? (entry.savedAt ? t('actionLog.verbByOn.text', { verb: verb, author: entry.author, when: formatLogTimestamp(entry.savedAt) }) : t('actionLog.verbBy.text', { verb: verb, author: entry.author }))
+          : (entry.savedAt ? t('actionLog.verbOn.text', { verb: verb, when: formatLogTimestamp(entry.savedAt) }) : '');
         const body = (
           <React.Fragment>
             <ActionLogIcon entry={entry} />

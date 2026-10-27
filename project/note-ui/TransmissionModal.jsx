@@ -19,86 +19,86 @@
 // QuickSendModal.jsx puisse résoudre les mêmes suggestions.
 const TX_META = {
   prescription: {
-    icon: 'medication', accent: 'var(--mat-sys-primary)', nounPhrase: "l'ordonnance",
-    attachments: ['Liste de médicaments active', 'Note clinique'],
-    attachmentsOn: ['Liste de médicaments active'],
-    noteLabel: 'Note pour le pharmacien',
+    icon: 'medication', accent: 'var(--mat-sys-primary)', nounPhrase: t('transmission.txNounPrescription.text'),
+    attachments: [L('Liste de médicaments active'), L('Note clinique')],
+    attachmentsOn: [L('Liste de médicaments active')],
+    noteLabel: t('transmission.txNotePharmacist.label'),
     suggestions: [
-      { name: 'PJC Jean-Coutu — Centre-ville', address: '1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2', phone: '819 565-9595', fax: '819 565-9673', favorite: true },
-      { name: 'Pharmacie Brunet — Wellington Sud', address: '560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3', phone: '819 566-2223', fax: '819 566-0363', favorite: true },
-      { name: 'Uniprix — King Ouest', address: '2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8', phone: '819 823-2222', fax: '819 823-7204', favorite: false },
+      { name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673', favorite: true },
+      { name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', favorite: true },
+      { name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false },
     ],
   },
   lab: {
-    icon: 'science', accent: '#2e9b7a', nounPhrase: 'la requête de laboratoire',
-    attachments: ['Note clinique', 'Résultats antérieurs'],
+    icon: 'science', accent: '#2e9b7a', nounPhrase: t('transmission.txNounLab.text'),
+    attachments: [L('Note clinique'), L('Résultats antérieurs')],
     attachmentsOn: [],
-    noteLabel: 'Note pour le laboratoire',
+    noteLabel: t('transmission.txNoteLab.label'),
     suggestions: [
-      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
-      { name: 'Biron Groupe Santé', address: '1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1', phone: '819 562-8000', fax: '819 562-8001', favorite: false },
-      { name: 'Dynacare', address: '375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1', phone: '819 566-3000', fax: '819 566-3001', favorite: false },
+      { name: L('CIUSSS de l’Estrie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: L('Biron Groupe Santé'), address: L('1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1'), phone: '819 562-8000', fax: '819 562-8001', favorite: false },
+      { name: L('Dynacare'), address: L('375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1'), phone: '819 566-3000', fax: '819 566-3001', favorite: false },
     ],
   },
   imaging: {
-    icon: 'radiology', accent: '#7a5cc0', nounPhrase: "la requête d'imagerie",
-    attachments: ['Note clinique', 'Résultats antérieurs'],
+    icon: 'radiology', accent: '#7a5cc0', nounPhrase: t('transmission.txNounImaging.text'),
+    attachments: [L('Note clinique'), L('Résultats antérieurs')],
     attachmentsOn: [],
-    noteLabel: 'Note pour le service d’imagerie',
+    noteLabel: t('transmission.txNoteImaging.label'),
     suggestions: [
-      { name: 'Radiologie CHUS — Hôpital Fleurimont', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1112', favorite: true },
-      { name: 'Clinique de radiologie de Sherbrooke', address: '1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1', phone: '819 562-3131', fax: '819 562-3132', favorite: false },
+      { name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1112', favorite: true },
+      { name: L('Clinique de radiologie de Sherbrooke'), address: L('1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1'), phone: '819 562-3131', fax: '819 562-3132', favorite: false },
     ],
   },
   referral: {
-    icon: 'person_add', accent: '#c0693c', nounPhrase: 'la référence',
-    attachments: ['Note clinique', 'Liste de médicaments active'],
-    attachmentsOn: ['Note clinique'],
-    noteLabel: 'Note pour le spécialiste',
+    icon: 'person_add', accent: '#c0693c', nounPhrase: t('transmission.txNounReferral.text'),
+    attachments: [L('Note clinique'), L('Liste de médicaments active')],
+    attachmentsOn: [L('Note clinique')],
+    noteLabel: t('transmission.txNoteSpecialist.label'),
     suggestions: [
-      { name: 'CRDS Estrie — Centre de répartition des demandes de service', address: '300 rue King Est, Sherbrooke (Québec) J1G 1B1', phone: '819 780-2220', fax: '819 780-2221', favorite: true },
-      { name: 'Cardiologie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1113', favorite: false },
+      { name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fax: '819 780-2221', favorite: true },
+      { name: L('Cardiologie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1113', favorite: false },
     ],
   },
   clinicalTool: {
-    icon: 'handyman', accent: '#5b54b8', nounPhrase: 'le formulaire',
-    titlePrefix: 'Outil clinique',
-    attachments: ['Note clinique'],
+    icon: 'handyman', accent: '#5b54b8', nounPhrase: t('transmission.txNounForm.text'),
+    titlePrefix: t('transmission.txTitlePrefixTool.text'),
+    attachments: [L('Note clinique')],
     attachmentsOn: [],
-    noteLabel: 'Note pour le destinataire',
+    noteLabel: t('transmission.txNoteRecipient.label'),
     suggestions: [
-      { name: 'CIUSSS de l’Estrie — CHUS', address: '3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4', phone: '819 346-1110', fax: '819 346-1111', favorite: true },
-      { name: 'GMF Sherbrooke-Est', address: '1200 rue King Est, Sherbrooke (Québec) J1G 1E5', phone: '819 565-1200', fax: '819 565-1201', favorite: false },
+      { name: L('CIUSSS de l’Estrie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1111', favorite: true },
+      { name: L('GMF Sherbrooke-Est'), address: L('1200 rue King Est, Sherbrooke (Québec) J1G 1E5'), phone: '819 565-1200', fax: '819 565-1201', favorite: false },
     ],
   },
   instructions: {
-    icon: 'menu_book', accent: 'var(--mat-sys-primary)', nounPhrase: 'le document',
-    attachments: ['Note clinique'],
+    icon: 'menu_book', accent: 'var(--mat-sys-primary)', nounPhrase: t('transmission.txNounDocument.text'),
+    attachments: [L('Note clinique')],
     attachmentsOn: [],
-    noteLabel: 'Note pour le patient',
+    noteLabel: t('transmission.txNotePatient.label'),
     suggestions: [
-      { name: 'Portail patient sécurisé', address: '', phone: '', fax: '', favorite: true },
+      { name: L('Portail patient sécurisé'), address: '', phone: '', fax: '', favorite: true },
     ],
   },
 };
 
 // Groupes de la sidebar, dans l'ordre d'affichage : un par famille de document.
 const TX_SIDE_GROUPS = [
-  { title: 'ORDONNANCE', kinds: ['prescription'] },
-  { title: 'REQUÊTES', kinds: ['lab', 'imaging', 'referral'] },
-  { title: 'OUTILS CLINIQUES', kinds: ['clinicalTool'] },
-  { title: 'CONSIGNES', kinds: ['instructions'] },
+  { title: t('transmission.ordonnance.tooltip'), kinds: ['prescription'] },
+  { title: t('transmission.requetes.tooltip'), kinds: ['lab', 'imaging', 'referral'] },
+  { title: t('transmission.outilsCliniques.tooltip'), kinds: ['clinicalTool'] },
+  { title: t('transmission.consignes.tooltip'), kinds: ['instructions'] },
 ];
 
 const TX_FORWARD_OPTS = [
-  'Ne pas faire suivre',
-  'Médecin de famille',
-  'Médecin référent',
-  'Patient (portail sécurisé)',
-  'Autre professionnel de la santé',
+  L('Ne pas faire suivre'),
+  L('Médecin de famille'),
+  L('Médecin référent'),
+  L('Patient (portail sécurisé)'),
+  L('Autre professionnel de la santé'),
 ];
-const TX_OTHER_DOCTORS = ['Dr Marc Lefebvre', 'Dre Sophie Bouchard', 'Dr Julien Gagnon'];
-const TX_OTHER_INSTITUTIONS = ['Hôpital Fleurimont — CHUS', 'GMF Sherbrooke-Est', 'Clinique médicale King Ouest'];
+const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];
+const TX_OTHER_INSTITUTIONS = [L('Hôpital Fleurimont — CHUS'), L('GMF Sherbrooke-Est'), L('Clinique médicale King Ouest')];
 
 const NOTE_ITEM_ID = '__note__';
 
@@ -107,7 +107,7 @@ function txStatus(doc) {
   if (!doc.transmitted) return 'ready';
   return 'done';
 }
-const TX_STATUS_LABEL = { todo: 'À compléter', ready: 'Prêt', done: 'Finalisé' };
+const TX_STATUS_LABEL = { todo: t('transmission.statusTodo.text'), ready: t('transmission.statusReady.text'), done: t('transmission.statusDone.text') };
 const TX_STATUS_ICON = { todo: 'warning_amber', ready: 'check_circle', done: 'done_all' };
 const TX_STATUS_COLOR = { todo: '#a15c00', ready: 'var(--mat-sys-primary)', done: '#2e9b7a' };
 
@@ -119,8 +119,8 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
   const [forwardIdx, setForwardIdx] = React.useState(0);
   const [doctorIdx, setDoctorIdx] = React.useState(0);
   const [instIdx, setInstIdx] = React.useState(0);
-  const docName = doctorName || 'Médecin actuel';
-  const instName = institution || 'Établissement actuel';
+  const docName = doctorName || t('documentPreview.medecinActuel.text');
+  const instName = institution || t('fax.etablissementActuel.text');
   const doctorOpts = [docName].concat(TX_OTHER_DOCTORS.filter(function (d) { return d !== docName; }));
   const instOpts = [instName].concat(TX_OTHER_INSTITUTIONS.filter(function (i) { return i !== instName; }));
 
@@ -168,7 +168,7 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
           <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>description</span>
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={nap.noteTileTitle}>{(noteInfo && noteInfo.title) || 'Note clinique'}</div>
+          <div style={nap.noteTileTitle}>{(noteInfo && noteInfo.title) || t('transmission.noteClinique.text')}</div>
           <div style={nap.noteTileMeta}>{[fmtNoteDate(), docName, instName].filter(Boolean).join(' · ')}</div>
         </div>
         {noteInfo && noteInfo.visitType ? <span style={nap.noteTileBadge}>{noteInfo.visitType}</span> : null}
@@ -178,33 +178,32 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
         <div style={nap.warnBanner}>
           <span className="material-icons-outlined" style={{ fontSize: 19, color: 'light-dark(#a15c00, #e9cca5)', flexShrink: 0, marginTop: 1 }}>warning</span>
           <div style={nap.warnText}>
-            Cette note contient {pendingDocs.length} document{pendingDocs.length > 1 ? 's' : ''} non transmis
-            {' '}({pendingDocs.map(function (d) { return d.title; }).join(', ')}) — sélectionnez-les dans la liste à gauche pour les compléter.
+            {tn('transmission.pending.hint', pendingDocs.length, { titles: pendingDocs.map(function (d) { return d.title; }).join(', ') })}
           </div>
         </div>
       }
 
       <div style={nap.fieldBlock}>
-        <div style={nap.fieldLabel}>Faire suivre la note</div>
+        <div style={nap.fieldLabel}>{t('transmission.faireSuivreNote.text')}</div>
         {dropdown('forward', TX_FORWARD_OPTS[forwardIdx], TX_FORWARD_OPTS, setForwardIdx, 'send')}
       </div>
 
       <div style={nap.fieldBlock}>
-        <div style={nap.fieldLabel}>Signature</div>
+        <div style={nap.fieldLabel}>{t('transmission.signature.text')}</div>
         <div style={nap.sigRow}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={nap.subLabel}>Médecin</div>
+            <div style={nap.subLabel}>{t('transmission.medecin.text')}</div>
             {dropdown('doctor', doctorOpts[doctorIdx], doctorOpts, setDoctorIdx, 'badge')}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={nap.subLabel}>Établissement</div>
+            <div style={nap.subLabel}>{t('transmission.etablissement.text')}</div>
             {dropdown('inst', instOpts[instIdx], instOpts, setInstIdx, 'business')}
           </div>
         </div>
       </div>
 
       <button style={nap.completeBtn} onClick={function () { onFinalize({ forwardIdx: forwardIdx, doctorIdx: doctorIdx, instIdx: instIdx }); }}>
-        Compléter la note
+        {t('transmission.completerNote.button')}
       </button>
     </React.Fragment>
   );
@@ -251,7 +250,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   const otherDocs = effectiveDocs.filter(function (d) {
     return !TX_SIDE_GROUPS.some(function (g) { return g.kinds.indexOf(d.kind) !== -1; });
   });
-  if (otherDocs.length) sideGroups.push({ title: 'AUTRES DOCUMENTS', docs: otherDocs });
+  if (otherDocs.length) sideGroups.push({ title: t('transmission.autresDocuments.tooltip'), docs: otherDocs });
   const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
 
   // Identité patient — même source unique que PatientBanner (window.NOTE_DATA.PATIENT) :
@@ -259,7 +258,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // d'une autre note, il faut donc rappeler de qui il s'agit.
   const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
   const patientName = P.name || 'Geneviève Tremblay';
-  const patientSub = (P.sex === 'M' ? 'Homme né le' : 'Femme née le') + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
+  const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 1987')) + ' (' + (P.age || L('38 ans')) + ')';
   const patientRamq = P.ramq || 'TREG 8705 0301';
 
   // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
@@ -315,7 +314,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function quickSend(doc) {
     patch(doc.id, { transmitted: true });
     // Échec simulé (tweak) : NoteEditor annonce l'échec, pas de succès ici.
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Document transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(t('transmission.documentTransmis.toast'), { icon: 'check_circle' });
     afterTransmit(doc.id);
   }
 
@@ -326,7 +325,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function transmitAll() {
     var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(ids.length + ' document' + (ids.length > 1 ? 's' : '') + ' transmis', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(tn('transmission.sent.toast', ids.length), { icon: 'check_circle' });
     setScreen('review');
     onClose();
   }
@@ -336,7 +335,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // le premier document restant (ex. l'ordonnance) plutôt que de fermer.
   function finalizeNote(meta) {
     if (onFinalizeNote) onFinalizeNote(meta);
-    if (window.toast) window.toast('Note complétée', { icon: 'check_circle' });
+    if (window.toast) window.toast(t('transmission.noteCompletee.toast'), { icon: 'check_circle' });
     if (pendingDocs.length === 0) { onClose(); return; }
     // onFinalizeNote archive la note et réinitialise l'éditeur : figer les
     // documents restants MAINTENANT (avant que la prop `docs` ne s'effondre
@@ -348,7 +347,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   function onFaxSent(recipient) {
     if (recipient && selected) addRecipient(selected, recipient);
     if (selected) patch(selected.id, { transmitted: true });
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast('Fax envoyé', { icon: 'check_circle' });
+    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(t('transmission.faxEnvoye.toast'), { icon: 'check_circle' });
     if (selected) afterTransmit(selected.id);
   }
   function onPrintDone() {
@@ -383,16 +382,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
         <div style={tx.dragHandle} />
         <div style={tx.head}>
           <div style={tx.headTitle}>
-            {readOnly ? 'Documents de la note' : 'Transmission des documents'}
+            {readOnly ? t('transmission.documentsNote.text') : t('transmission.transmissionDocuments.text')}
             {readOnly && noteInfo && noteInfo.title
               ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
           </div>
           <div style={tx.headCounts}>
-            {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: 'light-dark(#fdf1de, #4c3d24)' })}>{counts.todo} À compléter</span>}
-            {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))' })}>{counts.ready} Prêt</span>}
-            {counts.done > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' })}>{counts.done} Finalisé</span>}
+            {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: 'light-dark(#fdf1de, #4c3d24)' })}>{counts.todo} {TX_STATUS_LABEL.todo}</span>}
+            {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))' })}>{counts.ready} {TX_STATUS_LABEL.ready}</span>}
+            {counts.done > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' })}>{counts.done} {TX_STATUS_LABEL.done}</span>}
           </div>
-          <button style={tx.closeBtn} onClick={onClose} aria-label="Fermer">
+          <button style={tx.closeBtn} onClick={onClose} aria-label={t('transmission.fermer.aria')}>
             <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>close</span>
           </button>
         </div>
@@ -414,8 +413,8 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 onClick={function () { setSelectedId(NOTE_ITEM_ID); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 18, color: 'var(--mat-sys-on-surface)', flexShrink: 0, marginTop: 1 }}>description</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={tx.sideRowTitle}>{(noteInfo && noteInfo.title) || 'Note clinique'}</div>
-                  <div style={tx.sideRowSub}>Faire suivre et signer</div>
+                  <div style={tx.sideRowTitle}>{(noteInfo && noteInfo.title) || t('transmission.noteClinique.text')}</div>
+                  <div style={tx.sideRowSub}>{t('transmission.faireSuivreSigner.text')}</div>
                 </div>
               </button>
             </div>}
@@ -431,10 +430,10 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
             })}
             {!readOnly &&
               <button style={tx.addDocBtn} onClick={function () {
-                if (window.toast) window.toast('Ajout de document — à venir', { icon: 'info' });
+                if (window.toast) window.toast(t('transmission.ajoutDocumentVenir.toast'), { icon: 'info' });
               }}>
                 <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
-                Ajouter un document
+                {t('transmission.ajouterDocument.button')}
               </button>}
           </div>
 
@@ -454,7 +453,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                     onCompleteAndFax={function (prefill) { doCompleteAndFax(selected, prefill); }}
                     onQuickPrint={quickPrint}
                     onQuickSend={function () { quickSend(selected); }} />
-                : <div style={tx.panelEmpty}>Sélectionnez un document dans la liste.</div>
+                : <div style={tx.panelEmpty}>{t('transmission.selectionnezDocumentListe.text')}</div>
             }
           </div>
         </div>
@@ -465,7 +464,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               {readyCount > 0 &&
                 <React.Fragment>
                   <span className="material-icons-outlined" style={{ fontSize: 18, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>outbox</span>
-                  {readyCount} document{readyCount > 1 ? 's' : ''} prêt{readyCount > 1 ? 's' : ''} à transmettre
+                  {tn('transmission.ready.label', readyCount)}
                 </React.Fragment>
               }
             </div>
@@ -473,13 +472,13 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               style={Object.assign({}, tx.secondaryBtn, (!selected || !selected.complete || selected.transmitted) ? tx.btnDisabled : {})}
               disabled={!selected || !selected.complete || selected.transmitted}
               onClick={transmitReady}>
-              Transmettre le document prêt
+              {t('transmission.transmettreDocumentPret.button')}
             </button>
             <button
               style={Object.assign({}, tx.primaryBtn, readyCount === 0 ? tx.btnDisabled : {})}
               disabled={readyCount === 0}
               onClick={transmitAll}>
-              Tout transmettre ({readyCount})
+              {t('transmission.transmitAll.button', { n: readyCount })}
             </button>
           </div>
         }
@@ -497,7 +496,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     const m = TX_META[d.kind];
     const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
-      ? d.items.length + ' prescription' + (d.items.length > 1 ? 's' : '')
+      ? tn('transmission.prescriptions.label', d.items.length)
       : (d.subtitle || (d.items[0] && d.items[0].sub) || '');
     const dest = d.recipients.length
       ? d.recipients.map(function (r) { return r.name; }).join(', ')
@@ -510,7 +509,7 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
-          <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || 'Aucun destinataire'}</div>
+          <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || t('transmission.aucunDestinataire.text')}</div>
         </div>
         <span className="material-icons" style={{ fontSize: 17, color: TX_STATUS_COLOR[st], flexShrink: 0 }} title={TX_STATUS_LABEL[st]}>
           {TX_STATUS_ICON[st]}

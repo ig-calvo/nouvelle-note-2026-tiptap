@@ -11,15 +11,15 @@ import { loadPrototype, doc, H2 } from './harness.mjs';
 const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx']);
 const D = w.NOTE_DATA;
 const med = (key) => D.PATIENT_MEDS.find((m) => m.key === key);
-const chipDoc = (...attrs) => doc(H2('Conclusion'), { type: 'paragraph', content: attrs.map((a) => ({ type: 'chip', attrs: a })) });
+const chipDoc = (...attrs) => doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: attrs.map((a) => ({ type: 'chip', attrs: a })) });
 
 test('documenter : une puce « medication » en mode document, avec le statut du profil', () => {
   const a = w.medicationChipAttrs(med('med-nitrofurantoine'), 'document');
   assert.equal(a.type, 'medication');
   assert.deepEqual([a.rx.kind, a.rx.mode, a.rx.medStatus, a.rx.medDate], ['med', 'document', 'cessée', '12/2025']);
-  assert.equal(a.label, 'Nitrofurantoïne 100 mg');
-  assert.equal(a.text, 'Nitrofurantoïne 100 mg — 1 co PO BID');
-  assert.equal(a.details.molecule, 'Nitrofurantoïne');
+  assert.equal(a.label, w.L('Nitrofurantoïne') + ' 100 mg');
+  assert.equal(a.text, w.L('Nitrofurantoïne') + ' 100 mg — ' + w.L('1 co PO BID'));
+  assert.equal(a.details.molecule, w.TR('Nitrofurantoïne'));
 });
 
 test('mentionner : même puce, en mode mention ; un item du catalogue n’a pas de statut', () => {
@@ -32,9 +32,9 @@ test('mentionner : même puce, en mode mention ; un item du catalogue n’a pas 
 
 test('statut au profil en texte : actif = rien ; échu et cessé portent leur date', () => {
   assert.equal(D.medStatusText(med('med-tylenol-100')), '');
-  assert.equal(D.medStatusText(med('med-tylenol-500')), 'Échu 02/2026');
-  assert.equal(D.medStatusText(med('med-nitrofurantoine')), 'Cessé 12/2025');
-  assert.equal(D.medStatusText(w.medicationChipAttrs(med('med-nitrofurantoine'), 'mention').rx), 'Cessé 12/2025');
+  assert.equal(D.medStatusText(med('med-tylenol-500')), w.TR('Échu') + ' 02/2026');
+  assert.equal(D.medStatusText(med('med-nitrofurantoine')), w.TR('Cessé') + ' 12/2025');
+  assert.equal(D.medStatusText(w.medicationChipAttrs(med('med-nitrofurantoine'), 'mention').rx), w.TR('Cessé') + ' 12/2025');
 });
 
 test('une puce documentaire n’a ni état ni badge : rien à compléter, rien à envoyer', () => {
@@ -58,7 +58,7 @@ test('Sommaire : documentée = ligne « en attente » ; mentionnée = rien (le p
   const doc1 = w.medicationChipAttrs(med('med-tylenol-100'), 'document');
   const men = w.medicationChipAttrs(med('med-tylenol-500'), 'mention');
   const items = w.scanDoc(chipDoc(doc1, men)).items;
-  assert.deepEqual(items.map((it) => [it.type, it.label]), [['medication', 'Tylenol 100 mg']]);
+  assert.deepEqual(items.map((it) => [it.type, it.label]), [['medication', w.TR('Tylenol 100 mg')]]);
 });
 
 test('Journal : documentée = entrée « Inscription de médication » ; mentionnée = aucune', () => {
@@ -67,14 +67,14 @@ test('Journal : documentée = entrée « Inscription de médication » ; mention
   const log = w.buildActionLog(chipDoc(Object.assign({ author: 'Dr Lefebvre', savedAt: '2026-10-15T14:00:00Z' }, documented), mention), []);
   assert.equal(log.length, 1);
   assert.equal(log[0].logType, 'inscriptionMedication');
-  assert.equal(log[0].label, 'Inscription de médication');
-  assert.equal(log[0].verb, 'Documentée');
+  assert.equal(log[0].label, w.TR('Inscription de médication'));
+  assert.equal(log[0].verb, w.TR('Documentée'));
   assert.equal(log[0].icon, 'medication');
 });
 
 test('texte hors éditeur : nom, dose, posologie et statut au profil, sans icône', () => {
-  assert.equal(w.chipPrintText(w.medicationChipAttrs(med('med-tylenol-100'), 'mention')), 'Tylenol 100 mg — 1 co PO PRN');
-  assert.equal(w.chipPrintText(w.medicationChipAttrs(med('med-nitrofurantoine'), 'document')), 'Nitrofurantoïne 100 mg — 1 co PO BID, Cessé 12/2025');
+  assert.equal(w.chipPrintText(w.medicationChipAttrs(med('med-tylenol-100'), 'mention')), w.TR('Tylenol 100 mg') + ' — ' + w.L('1 co PO PRN'));
+  assert.equal(w.chipPrintText(w.medicationChipAttrs(med('med-nitrofurantoine'), 'document')), w.L('Nitrofurantoïne') + ' 100 mg — ' + w.L('1 co PO BID') + ', ' + w.TR('Cessé') + ' 12/2025');
 });
 
 test('Documenter : toujours offert, sans tweak, mais seulement pour un produit hors du dossier', () => {

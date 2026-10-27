@@ -164,11 +164,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // checkout les affiche avec une icône différente (plan V7 §G). Un
     // ajustement de dose est un renouvellement à une autre dose (`adjust`).
     const rx = isCeasing
-      ? { name: src.name, dose: src.dose || '', sig: 'Cessé', kind: kind, ceased: true }
+      ? { name: src.name, dose: src.dose || '', sig: t('field.ceased.text'), kind: kind, ceased: true }
       : { name: src.name, dose: src.dose || '', sig: src.chipSig || src.sig, kind: kind,
           renewal: action === 'renouveler' || !!adjust,
           adjust: adjust ? adjust.dir : undefined, adjustFrom: adjust ? (item.dose || '') : undefined };
-    const text = isCeasing ? label + ' — Cessé' : label + ' — ' + (src.chipSig || src.sig);
+    const text = isCeasing ? t('field.labelCeased.text', { label: label }) : t('field.labelSig.text', { label: label, sig: src.chipSig || src.sig });
     editor.chain().focus().insertContentAt(range, [
       { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
       { type: 'text', text: ' ' }
@@ -390,7 +390,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const parsed = parseSlashQuery(query);
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode === 'order') {
-        const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim());
+        // Ouverte sous un diagnostic, sans rien de tapé : la liste en contexte
+        // de ce diagnostic (searchOrder) ; le rail de filtres se cache alors.
+        const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim(), window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
+        const inContext = !!(results.contexte && results.contexte.length);
         // La liste navigable est la liste affichée (le filtre du rail la change sans
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
@@ -398,7 +401,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         setSlash({ mode: 'order', kind: parsed.kind,
           filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
           railFocus: parsed.kind === 'rx' && railFocus,
-          counts: parsed.kind === 'rx' ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -590,14 +593,14 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     '<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1200">' +
     '<rect width="900" height="1200" fill="#eef0f6"/>' +
     '<rect x="60" y="60" width="780" height="1080" fill="#fff" stroke="var(--mat-sys-outline-variant)" stroke-width="2"/>' +
-    '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">Photo reçue</text>' +
+    '<text x="450" y="600" font-family="Inter,sans-serif" font-size="32" fill="#6b6f76" text-anchor="middle">' + t('field.photoReceived.text') + '</text>' +
     '</svg>'
   );
   function requestMobileFile(source) {
-    const label = source === 'patient' ? 'le téléphone du patient' : 'votre cellulaire';
-    if (window.toast) window.toast('En attente d’une photo depuis ' + label + '…', { icon: 'smartphone', duration: 2200 });
+    const waiting = source === 'patient' ? t('field.waitingPhotoPatient.toast') : t('field.waitingPhotoMine.toast');
+    if (window.toast) window.toast(waiting, { icon: 'smartphone', duration: 2200 });
     setTimeout(function () {
-      insertFileChip((source === 'patient' ? 'Photo — patient' : 'Photo — cellulaire') + '.jpg', MOCK_PHOTO_URL);
+      insertFileChip((source === 'patient' ? t('field.photoPatient.text') : t('field.photoMine.text')) + '.jpg', MOCK_PHOTO_URL);
     }, 1800);
   }
 
@@ -969,7 +972,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       <div className="note-field-shell">
         <button
           ref={addBtnRef}
-          type="button" className="nf-add" title="Insérer une fonction"
+          type="button" className="nf-add" title={t('field.insererFonction.tooltip')}
           style={lineBtnOffset !== null ? { marginTop: lineBtnOffset + 'px' } : undefined}
           onMouseDown={(e) => e.preventDefault()}
           onClick={openSlashMenu}>
@@ -977,7 +980,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         </button>
         <div ref={hostRef} className="note-field" style={{ minHeight: "96px" }} />
         <button
-          type="button" className="nf-tt" title="Afficher la barre de mise en forme"
+          type="button" className="nf-tt" title={t('field.afficherBarreMiseForme.tooltip')}
           style={lineBtnOffset !== null ? { marginTop: lineBtnOffset + 'px' } : undefined}
           onMouseDown={(e) => {
             e.preventDefault();
@@ -1015,7 +1018,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
                 onChipClickRef.current(cid, rect, { action: 'modal' });
               }}>
               <span className="material-icons-outlined" style={{ fontSize: 20 }}>{_isSent ? 'visibility' : 'edit'}</span>
-              {_isSent ? 'Voir' : 'Modifier'}
+              {_isSent ? t('field.voir.text') : t('field.modifier.text')}
             </button>
             {!_isCeased && !_isSent &&
             <button
@@ -1029,11 +1032,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               {_isRx
                 ? <span style={{ fontFamily: 'Georgia, "Times New Roman", serif', fontWeight: 700, fontSize: 18, lineHeight: 1 }}>℞</span>
                 : <span className="material-icons-outlined" style={{ fontSize: 20 }}>send</span>}
-              {_isRx ? 'Prescrire' : 'Transmettre'}
+              {_isRx ? t('field.prescrire.text') : t('field.transmettre.text')}
             </button>}
             <button
               style={cmS.segEnd}
-              title="Plus d'options"
+              title={t('field.plusOptions.tooltip')}
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => { cancelChipMenuClose(); setChipMore({ cid: chipMenu.cid, rect: chipMenu.rect }); setChipMenu(null); }}>
               <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>more_vert</span>
@@ -1057,23 +1060,21 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
-            <div role="dialog" aria-label="Supprimer la sélection" style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+            <div role="dialog" aria-label={t('field.supprimerSelection.aria')} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
-                <span style={cmS.confirmTitle}>Supprimer la sélection&nbsp;?</span>
-                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
+                <span style={cmS.confirmTitle}>{t('field.supprimerSelection.text')}</span>
+                <button style={cmS.confirmClose} title={t('field.annuler.tooltip')} onClick={closeChipDelete}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
               <p style={cmS.confirmBody}>
-                {n > 1 ? 'La sélection contient ' + n + ' éléments' : 'La sélection contient un élément'} ({names}), qui {n > 1 ? 'seront retirés' : 'sera retiré'} de la note.
-                {anySent ? ' Ce qui a été transmis n’est pas annulé et reste dans les activités de la note.' : ''}
+                {tn('field.removeSelection.hint', n, { names: names })}
+                {anySent ? ' ' + t('field.eteTransmisPasAnnule.text') : ''}
               </p>
               <div style={cmS.confirmActions}>
-                <button style={cmS.btnKeep} autoFocus onClick={closeChipDelete}>Annuler</button>
+                <button style={cmS.btnKeep} autoFocus onClick={closeChipDelete}>{t('field.annuler.button')}</button>
                 <button style={cmS.btnDelete}
-                  onClick={() => { const range = chipDelete.range; setChipDelete(null); if (editor) editor.chain().focus().deleteRange(range).run(); }}>
-                  Supprimer la sélection
-                </button>
+                  onClick={() => { const range = chipDelete.range; setChipDelete(null); if (editor) editor.chain().focus().deleteRange(range).run(); }}>{t('field.supprimerSelection.button')}</button>
               </div>
             </div>
           </React.Fragment>
@@ -1084,36 +1085,32 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const r = chipDelete.rect;
         const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipDelete.cid) : null;
         const isRx = ent && ent.type === 'prescription';
-        const noun = isRx ? 'cette prescription' : 'cet élément';
         // Chip transmis (D-05) : le retirer de la note n'annule rien.
         const sent = !!(ent && ent.transmittedAt);
         const W = sent ? 360 : 304; // « Retirer de la note » tient sur une ligne
         const top = r.bottom + 8;
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
-        const sentWhat = isRx ? 'l’ordonnance transmise' : 'la requête transmise';
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={closeChipDelete} />
-            <div role="dialog" aria-label={sent ? 'Retirer de la note' : 'Supprimer'} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+            <div role="dialog" aria-label={sent ? t('field.retirerNote.aria') : t('field.supprimer.aria')} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
-                <span style={cmS.confirmTitle}>{sent ? 'Retirer ' + noun + ' de la note' : 'Supprimer ' + noun}&nbsp;?</span>
-                <button style={cmS.confirmClose} title="Annuler" onClick={closeChipDelete}>
+                <span style={cmS.confirmTitle}>{sent ? (isRx ? t('field.removeRxSent.title') : t('field.removeItemSent.title')) : (isRx ? t('field.deleteRx.title') : t('field.deleteItem.title'))}</span>
+                <button style={cmS.confirmClose} title={t('field.annuler.tooltip')} onClick={closeChipDelete}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
               <p style={cmS.confirmBody}>
                 {sent
-                  ? <>Retirer {noun} de la note n’annule pas {sentWhat}. Elle reste dans les activités de la note. Pour l’annuler, utilisez le menu ⋮.</>
-                  : <>Retirer complètement {noun} de la note, ou la conserver sous forme de texte simple&nbsp;?</>}
+                  ? (isRx ? t('field.removeRxSent.hint') : t('field.removeItemSent.hint'))
+                  : (isRx ? t('field.removeRx.hint') : t('field.removeItem.hint'))}
               </p>
               <div style={cmS.confirmActions}>
                 <button style={cmS.btnKeep} autoFocus
-                  onClick={() => { keepChipAsText(chipDelete.cid); setChipDelete(null); }}>
-                  Garder en texte
-                </button>
+                  onClick={() => { keepChipAsText(chipDelete.cid); setChipDelete(null); }}>{t('field.garderTexte.button')}</button>
                 <button style={cmS.btnDelete}
                   onClick={() => { deleteChipFromMenu(chipDelete.cid); setChipDelete(null); }}>
-                  {sent ? 'Retirer de la note' : 'Supprimer'}
+                  {sent ? t('field.retirerNote.text') : t('field.supprimer.text')}
                 </button>
               </div>
             </div>
@@ -1141,19 +1138,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
               <button style={item} onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4fb'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { keepChipAsText(chipMore.cid); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>notes</span>
-                Convertir en texte
+                {t('field.convertirTexte.button')}
               </button>
               <button style={Object.assign({}, item, { color: 'light-dark(#ba1a1a, #e9a5a5)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#fdecec'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { setChipDelete({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: 'light-dark(#ba1a1a, #e9a5a5)' }}>delete</span>
-                {sent ? 'Retirer de la note' : 'Supprimer'}
+                {sent ? t('field.retirerNote.text') : t('field.supprimer.text')}
               </button>
               {canCancel && <div role="separator" style={{ height: 1, margin: '6px 4px', background: 'var(--mat-sys-outline-variant)' }} />}
               {canCancel &&
               <button style={Object.assign({}, item, { font: "400 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' })} onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4fb'} onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 onClick={() => { setChipCancel({ cid: chipMore.cid, rect: chipMore.rect }); setChipMore(null); }}>
                 <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>block</span>
-                {isRx ? 'Annuler l’ordonnance…' : 'Annuler la requête…'}
+                {isRx ? t('field.annulerOrdonnance.text') : t('field.annulerRequete.text')}
               </button>}
             </div>
           </React.Fragment>
@@ -1169,26 +1166,21 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
         const ent = editorRef.current ? window.getChipEntity(editorRef.current, chipCancel.cid) : null;
         const isRx = ent && ent.type === 'prescription';
-        const what = isRx ? 'l’ordonnance' : 'la requête';
         return (
           <React.Fragment>
             <div style={{ position: 'fixed', inset: 0, zIndex: 209 }} onMouseDown={() => setChipCancel(null)} />
-            <div role="dialog" aria-label={'Annuler ' + what} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
+            <div role="dialog" aria-label={isRx ? t('field.cancelRx.aria') : t('field.cancelRequest.aria')} style={Object.assign({ position: 'fixed', top: top, left: left, width: W, zIndex: 210 }, cmS.confirm)}>
               <div style={cmS.confirmHead}>
-                <span style={cmS.confirmTitle}>Annuler {what}&nbsp;?</span>
-                <button style={cmS.confirmClose} title="Fermer" onClick={() => setChipCancel(null)}>
+                <span style={cmS.confirmTitle}>{isRx ? t('field.cancelRx.title') : t('field.cancelRequest.title')}</span>
+                <button style={cmS.confirmClose} title={t('field.fermer.tooltip')} onClick={() => setChipCancel(null)}>
                   <span className="material-icons" style={{ fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>close</span>
                 </button>
               </div>
-              <p style={cmS.confirmBody}>
-                Une annulation sera envoyée au destinataire. Les activités de la note garderont la transmission, puis l’annulation.
-              </p>
+              <p style={cmS.confirmBody}>{t('field.annulationSeraEnvoyeeDestinataire.text')}</p>
               <div style={cmS.confirmActions}>
-                <button style={cmS.btnKeep} autoFocus onClick={() => setChipCancel(null)}>Retour</button>
+                <button style={cmS.btnKeep} autoFocus onClick={() => setChipCancel(null)}>{t('field.retour.button')}</button>
                 <button style={cmS.btnDelete}
-                  onClick={() => { const cid = chipCancel.cid; setChipCancel(null); window.dispatchEvent(new CustomEvent('note:chip-cancel', { detail: { cid: cid } })); }}>
-                  Envoyer l’annulation
-                </button>
+                  onClick={() => { const cid = chipCancel.cid; setChipCancel(null); window.dispatchEvent(new CustomEvent('note:chip-cancel', { detail: { cid: cid } })); }}>{t('field.envoyerAnnulation.button')}</button>
               </div>
             </div>
           </React.Fragment>
@@ -1400,9 +1392,9 @@ const cmS = {
 // générique (onBack), pas seulement ce sous-menu.
 // ---------------------------------------------------------
 const ADD_FILE_SOURCES = [
-  { key: 'computer', icon: 'computer', label: 'Votre ordinateur' },
-  { key: 'mobile', icon: 'smartphone', label: 'Votre cellulaire' },
-  { key: 'patient', icon: 'person', label: 'Le patient' }
+  { key: 'computer', icon: 'computer', label: t('field.ordinateur.label') },
+  { key: 'mobile', icon: 'smartphone', label: t('field.cellulaire.label') },
+  { key: 'patient', icon: 'person', label: t('field.patient.label') }
 ];
 
 function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
@@ -1434,11 +1426,11 @@ function AddFileSourceMenu({ anchorRect, onBack, onClose, onSelect }) {
   return (
     <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
       <div style={afmS.header}>
-        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title={t('field.retour.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        <span style={afmS.title}>Ajouter des fichiers</span>
-        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+        <span style={afmS.title}>{t('field.ajouterFichiers.text')}</span>
+        <button style={afmS.iconBtn} onClick={onClose} title={t('field.fermer.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
         </button>
       </div>
@@ -1496,11 +1488,11 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
   return (
     <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
       <div style={afmS.header}>
-        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title={t('field.retour.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        <span style={afmS.title}>Gabarits de note</span>
-        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+        <span style={afmS.title}>{t('field.gabaritsNote.text')}</span>
+        <button style={afmS.iconBtn} onClick={onClose} title={t('field.fermer.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
         </button>
       </div>
@@ -1559,17 +1551,17 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
   return (
     <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
       <div style={afmS.header}>
-        <button style={afmS.iconBtn} onClick={onBack || onClose} title="Retour">
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title={t('field.retour.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
         </button>
-        <span style={afmS.title}>Renvoi à un diagnostic</span>
-        <button style={afmS.iconBtn} onClick={onClose} title="Fermer">
+        <span style={afmS.title}>{t('field.renvoiDiagnostic.text')}</span>
+        <button style={afmS.iconBtn} onClick={onClose} title={t('field.fermer.tooltip')}>
           <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
         </button>
       </div>
       <div style={afmS.list}>
         {(diagnostics || []).length === 0
-          ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', textAlign: 'center' }}>Aucun diagnostic dans cette note.</div>
+          ? <div style={{ padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', textAlign: 'center' }}>{t('field.aucunDiagnosticNote.text')}</div>
           : diagnostics.map(function (d) {
             return (
               <div key={d.dxKey} style={afmS.item}
@@ -1578,7 +1570,7 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
                 onClick={function () { onSelect(d); }}>
                 <span style={afmS.dxrefBadge}>{d.number}</span>
                 <span style={afmS.itemLabel}>{d.name}</span>
-                {d.status === 'cesse' && <span style={afmS.ceasedTag}>Cessé</span>}
+                {d.status === 'cesse' && <span style={afmS.ceasedTag}>{t('field.cesse.text')}</span>}
               </div>
             );
           })}
@@ -1638,9 +1630,9 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
   }
 
   return (
-    <div ref={panelRef} tabIndex={-1} role="menu" aria-label="Documenter comme" onKeyDown={onKeyDown}
+    <div ref={panelRef} tabIndex={-1} role="menu" aria-label={t('field.documenterComme.aria')} onKeyDown={onKeyDown}
       style={Object.assign({}, ddmS.panel, { left: left, top: top, width: panelW })}>
-      <div style={ddmS.heading}>Documenter comme</div>
+      <div style={ddmS.heading}>{t('field.documenterComme.text')}</div>
       {items.map(function (it, i) {
         return (
           <div key={it.value || 'aucun'} role="menuitemradio" aria-checked={it.selected} aria-disabled={it.disabled || undefined}
@@ -1657,7 +1649,7 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
           </div>
         );
       })}
-      <div style={ddmS.foot}>S'applique au diagnostic n° {number} partout dans la note.</div>
+      <div style={ddmS.foot}>{t('field.diagScope.hint', { number: number })}</div>
     </div>
   );
 }

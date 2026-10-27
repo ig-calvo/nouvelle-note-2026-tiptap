@@ -176,9 +176,9 @@ test("children('fav') affiche les 7 génériques d'abord (ordre du fichier), ave
 // Recherche
 // ---------------------------------------------------------------------------
 test('search : requêtes courtes', () => {
-  assert.equal(ix.search('j').tooShort, true);
+  assert.equal(ix.search(w.TR('j')).tooShort, true);
   assert.equal(ix.search('').tooShort, true);
-  assert.deepEqual(ix.search('j').rows, []);
+  assert.deepEqual(ix.search(w.TR('j')).rows, []);
 });
 
 test("search('j45') : la catégorie d'abord (code exact), puis les sous-codes", () => {
@@ -253,10 +253,10 @@ test('normCim10 replie les accents, ligatures et la casse', () => {
 });
 
 test('cim10CountLabel accorde le singulier et le pluriel', () => {
-  assert.equal(w.cim10CountLabel(1, 'code'), '1 code précis');
-  assert.equal(w.cim10CountLabel(12, 'code'), '12 codes précis');
-  assert.equal(w.cim10CountLabel(1, 'category'), '1 catégorie');
-  assert.equal(w.cim10CountLabel(3, 'category'), '3 catégories');
+  assert.equal(w.cim10CountLabel(1, 'code'), w.tn('cim10.count.code', 1));
+  assert.equal(w.cim10CountLabel(12, 'code'), w.tn('cim10.count.code', 12));
+  assert.equal(w.cim10CountLabel(1, 'category'), w.tn('cim10.count.category', 1));
+  assert.equal(w.cim10CountLabel(3, 'category'), w.tn('cim10.count.category', 3));
 });
 
 // ---------------------------------------------------------------------------

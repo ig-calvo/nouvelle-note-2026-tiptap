@@ -234,16 +234,16 @@ test('diagCanRefine retombe sur `level` tant que la CIM-10 n’est pas chargée'
 test('diagDocMenuItems : « Impression de diagnostic » (valeur null) en tête ; Problème désactivé si cessé ; explique le sommaire selon le lien', () => {
   const unlinked = w.diagDocMenuItems({ documentAs: null, linked: false });
   assert.equal(unlinked[0].value, null);
-  assert.equal(unlinked[0].label, 'Impression de diagnostic');
-  assert.equal(unlinked.find((i) => i.value === null).desc, 'Ne pas ajouter au sommaire');
+  assert.equal(unlinked[0].label, w.TR('Impression de diagnostic'));
+  assert.equal(unlinked.find((i) => i.value === null).desc, w.TR('Ne pas ajouter au sommaire'));
 
   const linkedUndoc = w.diagDocMenuItems({ documentAs: null, linked: true });
-  assert.equal(linkedUndoc.find((i) => i.value === null).desc, 'Laisser le sommaire tel quel');
+  assert.equal(linkedUndoc.find((i) => i.value === null).desc, w.TR('Laisser le sommaire tel quel'));
 
   const ceased = w.diagDocMenuItems({ documentAs: 'probleme', ceased: true, linked: true, baseKind: 'problems' });
   assert.equal(ceased.find((i) => i.value === 'probleme').disabled, true);
   assert.equal(ceased.find((i) => i.value === 'antecedent').selected, true);
-  assert.equal(ceased.find((i) => i.value === 'antecedent').label, 'Antécédent · résolu');
+  assert.equal(ceased.find((i) => i.value === 'antecedent').label, w.TR('Antécédent · résolu'));
 });
 
 // ---------------------------------------------------------------------------
@@ -262,13 +262,13 @@ test('diagRelabelPatches propage à toutes les occurrences de la même version, 
     DX({ id: 'd4', dxKey: 'n:d1', name: 'Grippe', replaces: { name: 'Otite', code: 'H66' } })
   );
   const allOcc = occDoc.content.map((n) => ({ id: n.attrs.id, pos: null, attrs: n.attrs }));
-  const patches = w.diagRelabelPatches(allOcc, 'd1', { name: 'Otite moyenne aiguë', code: 'H66.0', level: 'code', source: 'cim10' }, { now: 'T1', author: 'A' });
+  const patches = w.diagRelabelPatches(allOcc, 'd1', { name: w.TR('Otite moyenne aiguë'), code: 'H66.0', level: 'code', source: 'cim10' }, { now: 'T1', author: 'A' });
   assert.deepEqual(patches.map((p) => p.id), ['d1', 'd2', 'd4']);
-  assert.equal(patches[0].patch.name, 'Otite moyenne aiguë');
+  assert.equal(patches[0].patch.name, w.TR('Otite moyenne aiguë'));
   assert.equal(patches[0].patch.code, 'H66.0');
   assert.equal(patches[0].patch.documentedAt, 'T1'); // d1 était documenté
   assert.equal('documentedAt' in patches[1].patch, true); // même fil : le stamp de l'occurrence éditée s'applique à tout le fil
-  assert.deepEqual(patches[2].patch, { replaces: { name: 'Otite moyenne aiguë', code: 'H66.0' } });
+  assert.deepEqual(patches[2].patch, { replaces: { name: w.TR('Otite moyenne aiguë'), code: 'H66.0' } });
 });
 
 test('un renommage libre (sans nouveau code) garde le code existant', () => {
@@ -309,7 +309,7 @@ test('getSommaireDiagnostics convertit chaque ligne en cible (dxKey som:, status
   assert.equal(cystite.sommaireStatus, 'resolu');
 });
 
-function base() { return { problems: [{ id: 'som-asthme', name: 'Asthme léger', code: 'J45.9', since: '2018' }, { id: 'som-rhinite', name: 'Rhinite allergique', code: 'J30.4', since: '2019' }], history: [] }; }
+function base() { return { problems: [{ id: 'som-asthme', name: w.TR('Asthme léger'), code: 'J45.9', since: '2018' }, { id: 'som-rhinite', name: w.TR('Rhinite allergique'), code: 'J30.4', since: '2019' }], history: [] }; }
 
 test('mergeSommaireDx (a) : nouveau fil documenté comme problème -> ligne ajoutée, en attente', () => {
   const e = { dxKey: 'n:d4', number: 3, name: 'Grippe', code: 'J11.1', documentAs: 'probleme', status: 'actif', documentedAt: '2026-09-28T00:00:00Z', sommaireId: null, replaces: null };
@@ -335,7 +335,7 @@ test('mergeSommaireDx (c) : documentAs null -> résultat identique à la base (E
 });
 
 test('mergeSommaireDx (d) : cesser une ligne du sommaire -> retirée des problèmes, résolue dans les antécédents à la date de la note', () => {
-  const e = { dxKey: 'som:som-rhinite', number: 5, name: 'Rhinite allergique', code: 'J30.4', sommaireId: 'som-rhinite', documentAs: 'probleme', status: 'cesse', documentedAt: '2026-09-28T12:00:00Z', replaces: null };
+  const e = { dxKey: 'som:som-rhinite', number: 5, name: w.TR('Rhinite allergique'), code: 'J30.4', sommaireId: 'som-rhinite', documentAs: 'probleme', status: 'cesse', documentedAt: '2026-09-28T12:00:00Z', replaces: null };
   const out = w.mergeSommaireDx(base(), [e], { today: '28/09/2026' });
   assert.equal(out.problems.some((r) => r.id === 'som-rhinite'), false);
   const moved = out.history.find((r) => r.id === 'som-rhinite');
@@ -346,12 +346,12 @@ test('mergeSommaireDx (d) : cesser une ligne du sommaire -> retirée des problè
 });
 
 test('mergeSommaireDx (e) : remplacer une ligne du sommaire -> même id, nouveau nom/code, note mentionne l’ancien nom', () => {
-  const e = { dxKey: 'som:som-asthme', number: 1, name: 'Asthme, sans précision', code: 'J45.0', sommaireId: 'som-asthme', documentAs: 'probleme', status: 'actif', documentedAt: '2026-09-28T00:00:00Z', replaces: { name: 'Asthme léger', code: 'J45.9' } };
+  const e = { dxKey: 'som:som-asthme', number: 1, name: 'Asthme, sans précision', code: 'J45.0', sommaireId: 'som-asthme', documentAs: 'probleme', status: 'actif', documentedAt: '2026-09-28T00:00:00Z', replaces: { name: w.TR('Asthme léger'), code: 'J45.9' } };
   const out = w.mergeSommaireDx(base(), [e], { today: '28/09/2026' });
   assert.equal(out.problems[0].id, 'som-asthme'); // même position
   assert.equal(out.problems[0].name, 'Asthme, sans précision');
   assert.equal(out.problems[0].change, 'remplace');
-  assert.match(out.problems[0].pendingNote, /Asthme léger/);
+  assert.match(out.problems[0].pendingNote, new RegExp(w.L('Asthme léger')));
 });
 
 test('mergeSommaireDx : un pick par CODE qui correspond déjà à une ligne du dossier ne crée pas de doublon (I2)', () => {
@@ -364,13 +364,13 @@ test('mergeSommaireDx (f) : renommage libre lié, même code -> ligne inchangée
   const e = { dxKey: 'som:som-asthme', number: 1, name: 'Asthme (léger)', code: 'J45.9', sommaireId: 'som-asthme', documentAs: 'probleme', status: 'actif', documentedAt: null, replaces: null };
   const out = w.mergeSommaireDx(base(), [e], {});
   assert.equal(out.problems[0].pending, undefined);
-  assert.equal(out.problems[0].name, 'Asthme léger'); // le nom du dossier n'a pas bougé
+  assert.equal(out.problems[0].name, w.TR('Asthme léger')); // le nom du dossier n'a pas bougé
 });
 
 test('mergeSommaireDx (g) : ne mute jamais la base reçue', () => {
   const b = base();
   const copy = JSON.parse(JSON.stringify(b));
-  w.mergeSommaireDx(b, [{ dxKey: 'som:som-asthme', number: 1, name: 'X', code: 'X1', sommaireId: 'som-asthme', documentAs: 'probleme', status: 'actif', documentedAt: 't', replaces: { name: 'Asthme léger', code: 'J45.9' } }], { today: '28/09/2026' });
+  w.mergeSommaireDx(b, [{ dxKey: 'som:som-asthme', number: 1, name: 'X', code: 'X1', sommaireId: 'som-asthme', documentAs: 'probleme', status: 'actif', documentedAt: 't', replaces: { name: w.TR('Asthme léger'), code: 'J45.9' } }], { today: '28/09/2026' });
   assert.deepEqual(b, copy);
 });
 
@@ -383,16 +383,16 @@ test('commitSommaireDx retire les marqueurs « en attente » ; refusionner avec 
 });
 
 test('sommaireDxRowView met en forme left/mid/right/title pour l’affichage du Sommaire', () => {
-  const v = w.sommaireDxRowView({ name: 'Asthme léger', code: 'J45.9', since: '2018' });
-  assert.equal(v.left, 'Asthme léger');
-  assert.equal(v.right, 'depuis 2018');
-  assert.equal(v.title, 'Asthme léger (J45.9)');
+  const v = w.sommaireDxRowView({ name: w.TR('Asthme léger'), code: 'J45.9', since: '2018' });
+  assert.equal(v.left, w.TR('Asthme léger'));
+  assert.equal(v.right, w.t('diagnostics.depuis.text', { date: '2018' }));
+  assert.equal(v.title, w.L('Asthme léger') + ' (J45.9)');
   const resolved = w.sommaireDxRowView({ name: 'Cystite', code: 'N30.0', status: 'resolu', resolvedOn: '08/12/2025' });
-  assert.equal(resolved.mid, 'résolu');
+  assert.equal(resolved.mid, w.TR('résolu'));
   assert.equal(resolved.right, '08/12/2025');
   // Un problème du dossier cessé (D2) garde son `since` d'origine (mergeSommaireDx
   // ne l'efface pas) : c'est resolvedOn, la date la plus récente, qui doit
   // s'afficher, pas l'ancien « depuis ».
-  const ceasedFromProblem = w.sommaireDxRowView({ name: 'Rhinite allergique', code: 'J30.4', since: '2019', status: 'resolu', resolvedOn: '28/09/2026' });
+  const ceasedFromProblem = w.sommaireDxRowView({ name: w.TR('Rhinite allergique'), code: 'J30.4', since: '2019', status: 'resolu', resolvedOn: '28/09/2026' });
   assert.equal(ceasedFromProblem.right, '28/09/2026');
 });

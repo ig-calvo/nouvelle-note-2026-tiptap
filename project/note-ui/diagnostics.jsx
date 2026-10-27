@@ -81,7 +81,7 @@ function normalizeDiagAttrs(attrs) {
   return {
     id: a.id || null,
     dxKey: a.dxKey || null,
-    name: a.name || 'Diagnostic',
+    name: a.name || t('diagnostics.defaultName.text'),
     code: a.code || null,
     level: a.level || null,
     source: a.source || null,
@@ -226,7 +226,7 @@ function makeDiagRegionAttrs(payload, opts) {
 
   if (action === 'nouveau') {
     const pick = p.pick || { source: 'libre', name: p.name };
-    const name = (pick.name || '').trim() || 'Diagnostic';
+    const name = (pick.name || '').trim() || t('diagnostics.defaultName.text');
     return Object.assign({}, base, {
       dxKey: 'n:' + opts.id, name: name, code: pick.code || null, level: pick.level || null,
       source: pick.source || 'libre', sommaireId: null, documentAs: null, status: 'actif',
@@ -252,7 +252,7 @@ function makeDiagRegionAttrs(payload, opts) {
   }
   if (action === 'remplacer') {
     const pick = p.pick || {};
-    const name = (pick.name || '').trim() || 'Diagnostic';
+    const name = (pick.name || '').trim() || t('diagnostics.defaultName.text');
     return Object.assign({}, base, identity, {
       name: name, code: pick.code || null, level: pick.level || null, source: pick.source || 'libre',
       status: 'actif', replaces: { name: target.name, code: target.code || null },
@@ -371,11 +371,11 @@ function dxRegionCimId(region) {
   if ((r.level !== 'chapter' && r.level !== 'block') || !window.CIM10 || !window.CIM10.ready()) return null;
   const chapters = window.CIM10.children('root').filter(function (n) { return n.kind === 'chapter'; });
   if (r.level === 'chapter') {
-    const ch = chapters.filter(function (n) { return n.libelle === r.name; })[0];
+    const ch = chapters.filter(function (n) { return n.libelle === r.name || n.altLibelle === r.name; })[0];
     return ch ? ch.id : null;
   }
   for (let i = 0; i < chapters.length; i++) {
-    const bl = window.CIM10.children(chapters[i].id).filter(function (n) { return n.kind === 'block' && n.libelle === r.name; })[0];
+    const bl = window.CIM10.children(chapters[i].id).filter(function (n) { return n.kind === 'block' && (n.libelle === r.name || n.altLibelle === r.name); })[0];
     if (bl) return bl.id;
   }
   return null;
@@ -394,11 +394,11 @@ function diagCodeLabel(attrs) {
 // Bouton et menu « Documenter comme » (D1) — état dérivé, jamais stocké.
 // ---------------------------------------------------------
 const DX_DOC_BUTTON = {
-  none_unlinked: { mod: 'none', icon: 'add_task', label: 'Documenter', title: 'Documenter ce diagnostic au sommaire' },
-  none_linked: { mod: 'none', icon: 'add_task', label: 'Impression de diagnostic', title: 'Le sommaire reste tel quel — modifier' },
-  probleme: { mod: 'probleme', icon: 'healing', label: 'Problème', title: 'Documenté comme problème — modifier' },
-  antecedent: { mod: 'antecedent', icon: 'assignment', label: 'Antécédent', title: 'Documenté comme antécédent — modifier' },
-  'antecedent-resolu': { mod: 'antecedent', icon: 'assignment', label: 'Antécédent · résolu', title: 'Cessé : classé aux antécédents — modifier' },
+  none_unlinked: { mod: 'none', icon: 'add_task', label: t('dx.doc.noneUnlinked.label'), title: t('dx.doc.noneUnlinked.title') },
+  none_linked: { mod: 'none', icon: 'add_task', label: t('dx.doc.noneLinked.label'), title: t('dx.doc.noneLinked.title') },
+  probleme: { mod: 'probleme', icon: 'healing', label: t('dx.doc.probleme.label'), title: t('dx.doc.probleme.title') },
+  antecedent: { mod: 'antecedent', icon: 'assignment', label: t('dx.doc.antecedent.label'), title: t('dx.doc.antecedent.title') },
+  'antecedent-resolu': { mod: 'antecedent', icon: 'assignment', label: t('dx.doc.antecedentResolu.label'), title: t('dx.doc.antecedentResolu.title') },
 };
 function diagDocButton(placement, linked) {
   const key = placement || (linked ? 'none_linked' : 'none_unlinked');
@@ -409,21 +409,22 @@ function diagDocMenuItems(ctx) {
   const c = ctx || {};
   const documentAs = c.documentAs || null, ceased = !!c.ceased, linked = !!c.linked, baseKind = c.baseKind || null;
   function desc(kind, already) {
-    if (documentAs === kind) return already ? ('Déjà ' + (kind === 'probleme' ? 'aux problèmes' : 'aux antécédents') + ' du sommaire')
-      : ('Ajouté aux ' + (kind === 'probleme' ? 'problèmes' : 'antécédents') + ' du sommaire');
-    return documentAs ? ('Déplacer vers les ' + (kind === 'probleme' ? 'problèmes' : 'antécédents'))
-      : ('Ajouter aux ' + (kind === 'probleme' ? 'problèmes' : 'antécédents') + ' du sommaire');
+    const pb = kind === 'probleme';
+    if (documentAs === kind) return already ? (pb ? t('dx.menu.dejaProbleme.text') : t('dx.menu.dejaAntecedent.text'))
+      : (pb ? t('dx.menu.ajouteProbleme.text') : t('dx.menu.ajouteAntecedent.text'));
+    return documentAs ? (pb ? t('dx.menu.deplacerProbleme.text') : t('dx.menu.deplacerAntecedent.text'))
+      : (pb ? t('dx.menu.ajouterProbleme.text') : t('dx.menu.ajouterAntecedent.text'));
   }
   return [
     // Remplace provisoirement « Non documenté » (même valeur null : le sommaire
     // n'est pas touché) ; en tête de liste.
-    { value: null, icon: 'print', label: 'Impression de diagnostic', selected: !documentAs, disabled: false,
-      desc: linked ? 'Laisser le sommaire tel quel' : (documentAs ? 'Retirer du sommaire' : 'Ne pas ajouter au sommaire') },
-    { value: 'probleme', icon: 'healing', label: 'Problème', selected: documentAs === 'probleme' && !ceased,
-      disabled: ceased, desc: ceased ? 'Diagnostic cessé dans cette note' : desc('probleme', baseKind === 'problems') },
-    { value: 'antecedent', icon: 'assignment', label: ceased ? 'Antécédent · résolu' : 'Antécédent',
+    { value: null, icon: 'print', label: t('dx.doc.noneLinked.label'), selected: !documentAs, disabled: false,
+      desc: linked ? t('dx.menu.laisserSommaire.text') : (documentAs ? t('dx.menu.retirerSommaire.text') : t('dx.menu.nePasAjouter.text')) },
+    { value: 'probleme', icon: 'healing', label: t('dx.doc.probleme.label'), selected: documentAs === 'probleme' && !ceased,
+      disabled: ceased, desc: ceased ? t('dx.menu.ceaseDansNote.text') : desc('probleme', baseKind === 'problems') },
+    { value: 'antecedent', icon: 'assignment', label: ceased ? t('dx.doc.antecedentResolu.label') : t('dx.doc.antecedent.label'),
       selected: documentAs === 'antecedent' || ceased, disabled: false,
-      desc: ceased ? 'Classé aux antécédents, résolu' : desc('antecedent', baseKind === 'history') },
+      desc: ceased ? t('dx.menu.classeResolu.text') : desc('antecedent', baseKind === 'history') },
   ];
 }
 
@@ -434,12 +435,12 @@ function diagDocMenuItems(ctx) {
 // ---------------------------------------------------------
 const DX_SOMMAIRE_SEED = {
   problems: [
-    { id: 'som-asthme', name: 'Asthme léger', code: 'J45.9', since: '2018' },
-    { id: 'som-rhinite', name: 'Rhinite allergique', code: 'J30.4', since: '2019' },
+    { id: 'som-asthme', name: L('Asthme léger'), code: 'J45.9', since: '2018' },
+    { id: 'som-rhinite', name: L('Rhinite allergique'), code: 'J30.4', since: '2019' },
   ],
   history: [
-    { id: 'som-colique', name: 'Colique néphrétique', code: 'N23', status: 'resolu', resolvedOn: '02/07/2026' },
-    { id: 'som-cystite', name: 'Cystite aiguë non compliquée', code: 'N30.0', status: 'resolu', resolvedOn: '08/12/2025' },
+    { id: 'som-colique', name: L('Colique néphrétique'), code: 'N23', status: 'resolu', resolvedOn: '02/07/2026' },
+    { id: 'som-cystite', name: L('Cystite aiguë non compliquée'), code: 'N30.0', status: 'resolu', resolvedOn: '08/12/2025' },
   ],
 };
 function sommaireDxSeed() { return JSON.parse(JSON.stringify(DX_SOMMAIRE_SEED)); }
@@ -474,7 +475,7 @@ function dxSommaireRowToTarget(r, kind) {
     kind: 'sommaire', dxKey: 'som:' + r.id, sommaireId: r.id, name: r.name, code: r.code || null, level: null,
     source: 'sommaire', documentAs: kind, status: 'actif', replaces: null, documentedAt: null, documentedBy: null,
     sommaireKind: kind, sommaireStatus: r.status || null,
-    meta: r.since ? ('Depuis ' + r.since) : (r.resolvedOn ? ('Résolu le ' + r.resolvedOn) : null),
+    meta: r.since ? t('diagnostics.sinceMeta.text', { since: r.since }) : (r.resolvedOn ? t('diagnostics.resolvedOn.text', { date: r.resolvedOn }) : null),
   };
 }
 // Base du dossier (sans la superposition de la note en cours), lue depuis le
@@ -493,16 +494,16 @@ function fmtSommaireDate(v) {
   const d = (v instanceof Date) ? v : new Date(v);
   if (isNaN(d.getTime())) return '';
   const pad = function (n) { return n < 10 ? '0' + n : '' + n; };
-  return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear();
+  return t('date.numeric', { day: pad(d.getDate()), month: pad(d.getMonth() + 1), year: d.getFullYear() });
 }
 
 function dxPendingNote(change, prev) {
   switch (change) {
-    case 'ajout': return 'Ajouté par la note en cours';
-    case 'deplace': return 'Déplacé par la note en cours';
-    case 'resolu': return 'Cessé dans la note en cours';
-    case 'remplace': return prev ? ('Remplace « ' + prev.name + ' » (note en cours)') : 'Remplacé (note en cours)';
-    case 'modifie': return 'Code modifié par la note en cours';
+    case 'ajout': return t('dx.pending.added.text');
+    case 'deplace': return t('dx.pending.moved.text');
+    case 'resolu': return t('dx.pending.ceased.text');
+    case 'remplace': return prev ? t('dx.pending.replaces.text', { name: prev.name }) : t('dx.pending.replaced.text');
+    case 'modifie': return t('dx.pending.codeChanged.text');
     default: return null;
   }
 }
@@ -580,13 +581,13 @@ function commitSommaireDx(base, threads, opts) {
 function sommaireDxRowView(r) {
   return Object.assign({}, r, {
     left: r.name,
-    mid: r.status === 'resolu' ? 'résolu' : '',
+    mid: r.status === 'resolu' ? t('diagnostics.resolu.text') : '',
     // resolvedOn l'emporte quand les deux sont présents : un problème
     // Cessé (D2) garde son `since` d'origine (mergeSommaireDx ne le touche
     // pas), mais c'est la date de résolution, la plus récente, qui doit
     // s'afficher — sinon la ligne semble ignorer le Cesser qui vient de
     // l'y amener.
-    right: r.resolvedOn || (r.since ? ('depuis ' + r.since) : ''),
+    right: r.resolvedOn || (r.since ? t('diagnostics.depuis.text', { date: r.since }) : ''),
     title: r.name + (r.code ? (' (' + r.code + ')') : ''),
   });
 }

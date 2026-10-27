@@ -80,9 +80,9 @@ function SearchBox({ value, onChange, placeholder, suggestions, onSelect, noneBt
         <input style={smS.searchInner} value={value}
           onChange={function(e){ onChange(e.target.value); setOpen(true); }}
           onBlur={function(){ setTimeout(function(){ setOpen(false); }, 160); }}
-          placeholder={placeholder||'Rechercher…'} />
+          placeholder={placeholder||t('summaryModal.rechercher.placeholder')} />
         {noneBtn && (
-          <button style={smS.noneBtn} title="Ajouter la mention Aucun" onClick={function(){ noneBtn(); }}>
+          <button style={smS.noneBtn} title={t('summaryModal.ajouterMentionAucun.tooltip')} onClick={function(){ noneBtn(); }}>
             <span className="material-icons-outlined" style={{ fontSize:18, color:'var(--mat-sys-primary)' }}>block</span>
           </button>
         )}
@@ -99,7 +99,7 @@ function SearchBox({ value, onChange, placeholder, suggestions, onSelect, noneBt
 }
 
 // ── Allergies ─────────────────────────────────────────────────────────────────
-var ALLERGY_SUGG = ['Pénicilline','Amoxicilline','Aspirine','Ibuprofène','Codéine','Latex','Arachides','Noix','Fruits de mer','Sulfamides'];
+var ALLERGY_SUGG = [L('Pénicilline'),L('Amoxicilline'),L('Aspirine'),L('Ibuprofène'),L('Codéine'),L('Latex'),L('Arachides'),L('Noix'),L('Fruits de mer'),L('Sulfamides')];
 
 function AllergiesAddModal({ onClose, onAdd }) {
   var [query, setQuery] = React.useState('');
@@ -107,14 +107,14 @@ function AllergiesAddModal({ onClose, onAdd }) {
   var [date, setDate] = React.useState('');
   var [notes, setNotes] = React.useState('');
   return (
-    <ModalShell title="Ajouter une allergie ou intolérance" onClose={onClose}>
-      <MField label="Rechercher un terme…">
-        <SearchBox value={query} onChange={setQuery} placeholder="Rechercher un terme…" suggestions={ALLERGY_SUGG} onSelect={setQuery}
-          noneBtn={function(){ onAdd({ name:'Aucune allergie connue', type:'none', muted:true }); onClose(); }} />
-        <div style={smS.helpText}>Source : Vigilance Santé — pas de saisie texte libre</div>
+    <ModalShell title={t('summaryModal.ajouterAllergieIntolerance.tooltip')} onClose={onClose}>
+      <MField label={t('summaryModal.rechercherTerme.label')}>
+        <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherTerme.placeholder')} suggestions={ALLERGY_SUGG} onSelect={setQuery}
+          noneBtn={function(){ onAdd({ name:t('summaryModal.noKnownAllergy.text'), type:'none', muted:true }); onClose(); }} />
+        <div style={smS.helpText}>{t('summaryModal.sourceVigilanceSantePas.text')}</div>
       </MField>
       <div style={smS.row2}>
-        <MField label="Type">
+        <MField label={t('summaryModal.type.label')}>
           <div style={smS.radioGroup}>
             {['allergie','intolérance'].map(function(v){
               return (
@@ -126,14 +126,12 @@ function AllergiesAddModal({ onClose, onAdd }) {
             })}
           </div>
         </MField>
-        <MField label="Date de début"><MDate value={date} onChange={setDate} /></MField>
+        <MField label={t('summaryModal.dateDebut.label')}><MDate value={date} onChange={setDate} /></MField>
       </div>
-      <MField label="Informations additionnelles"><MTextarea value={notes} onChange={setNotes} rows={2} /></MField>
+      <MField label={t('summaryModal.informationsAdditionnelles.label')}><MTextarea value={notes} onChange={setNotes} rows={2} /></MField>
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ name:query, type, date, notes }); onClose(); }}>
-          Ajouter cette allergie
-        </PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ name:query, type, date, notes }); onClose(); }}>{t('summaryModal.ajouterAllergie.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
@@ -147,14 +145,14 @@ function AllergiesListModal({ items, onClose, onDelete }) {
       <div style={{ marginBottom:16 }}>
         <div style={smS.listSection}>{sTitle}</div>
         {rows.length === 0
-          ? <EmptyMsg>Aucun élément</EmptyMsg>
+          ? <EmptyMsg>{t('summaryModal.aucunElement.text')}</EmptyMsg>
           : rows.map(function(r,i){
               return (
                 <div key={i} style={smS.listRow}>
                   <div style={{ flex:1 }}>
                     <div style={smS.listName}>{r.name}</div>
                     {r.notes && <div style={smS.listSub}>{r.notes}</div>}
-                    {r.date && <div style={smS.listMeta}>Depuis {r.date}</div>}
+                    {r.date && <div style={smS.listMeta}>{t('summaryModal.since.text', { date: r.date })}</div>}
                   </div>
                   <button style={smS.iconActionBtn} onClick={function(){ onDelete(r); }}>
                     <span className="material-icons-outlined" style={{ fontSize:18 }}>delete</span>
@@ -166,25 +164,25 @@ function AllergiesListModal({ items, onClose, onDelete }) {
     );
   }
   return (
-    <ModalShell title="Allergies et intolérances" onClose={onClose} width={520}>
-      <ListSection sTitle="Allergies" rows={allergies} />
-      <ListSection sTitle="Intolérances" rows={intol} />
-      <MFooter><GhostBtn onClick={onClose}>Fermer</GhostBtn></MFooter>
+    <ModalShell title={t('summaryModal.allergiesIntolerances.tooltip')} onClose={onClose} width={520}>
+      <ListSection sTitle={t('summaryModal.allergies.title')} rows={allergies} />
+      <ListSection sTitle={t('summaryModal.intolerances.title')} rows={intol} />
+      <MFooter><GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn></MFooter>
     </ModalShell>
   );
 }
 
 // ── Signes vitaux ─────────────────────────────────────────────────────────────
 function VitalsAddModal({ onClose, onAdd }) {
-  var [unit, setUnit] = React.useState('Métrique');
+  var [unit, setUnit] = React.useState(L('Métrique'));
   var [obsDate, setObsDate] = React.useState('2026/06/08');
   var [obsTime, setObsTime] = React.useState('');
   var [temp, setTemp] = React.useState('');
-  var [tempSite, setTempSite] = React.useState('Oral');
+  var [tempSite, setTempSite] = React.useState(L('Oral'));
   var [pressure, setPressure] = React.useState('');
-  var [pressureSite, setPressureSite] = React.useState('Assis / bras droit');
+  var [pressureSite, setPressureSite] = React.useState(L('Assis / bras droit'));
   var [hr, setHr] = React.useState('');
-  var [hrType, setHrType] = React.useState('Régulier');
+  var [hrType, setHrType] = React.useState(L('Régulier'));
   var [rr, setRr] = React.useState('');
   var [spo2, setSpo2] = React.useState('');
   var [o2flow, setO2flow] = React.useState('');
@@ -207,7 +205,7 @@ function VitalsAddModal({ onClose, onAdd }) {
     );
   }
   function VInput({ value, onChange }) {
-    return <input style={vStyles.vInput} value={value} onChange={function(e){ onChange(e.target.value); }} placeholder="Sans mesure" />;
+    return <input style={vStyles.vInput} value={value} onChange={function(e){ onChange(e.target.value); }} placeholder={t('summaryModal.sansMesure.placeholder')} />;
   }
   function VUnit({ children }) { return <span style={vStyles.vUnit}>{children}</span>; }
   function VSelect({ value, onChange, options }) {
@@ -219,67 +217,67 @@ function VitalsAddModal({ onClose, onAdd }) {
   }
 
   return (
-    <ModalShell title="Ajouter une observation de signes vitaux" onClose={onClose} width={640}>
+    <ModalShell title={t('summaryModal.ajouterObservationSignesVitaux.tooltip')} onClose={onClose} width={640}>
       {/* System + date */}
-      <VRow label="Système de mesure :">
-        <VSelect value={unit} onChange={setUnit} options={['Métrique','Impérial']} />
+      <VRow label={t('summaryModal.systemeMesure.label')}>
+        <VSelect value={unit} onChange={setUnit} options={[L('Métrique'),L('Impérial')]} />
       </VRow>
-      <VRow label="Date d'observation :">
+      <VRow label={t('summaryModal.dateObservation.label')}>
         <div style={{ ...smS.searchBox, width:160, gap:6 }}>
           <input style={smS.searchInner} value={obsDate} onChange={function(e){ setObsDate(e.target.value); }} />
           <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
-        <input style={{ ...vStyles.vInput, width:80, marginLeft:8 }} value={obsTime} onChange={function(e){ setObsTime(e.target.value); }} placeholder="hh:mm" />
+        <input style={{ ...vStyles.vInput, width:80, marginLeft:8 }} value={obsTime} onChange={function(e){ setObsTime(e.target.value); }} placeholder={t('summaryModal.hhMm.placeholder')} />
       </VRow>
 
       {/* Measured indicators */}
-      <div style={vStyles.sectionHead}>Indicateurs mesurés</div>
+      <div style={vStyles.sectionHead}>{t('summaryModal.indicateursMesures.text')}</div>
       <div style={vStyles.sectionBody}>
-        <VRow label="Température :">
+        <VRow label={t('summaryModal.temperature.label')}>
           <VInput value={temp} onChange={setTemp} /><VUnit>°C</VUnit>
-          <VSelect value={tempSite} onChange={setTempSite} options={['Oral','Axillaire','Rectal','Tympanique']} />
+          <VSelect value={tempSite} onChange={setTempSite} options={[L('Oral'),L('Axillaire'),L('Rectal'),L('Tympanique')]} />
         </VRow>
-        <VRow label="Pression :">
-          <VInput value={pressure} onChange={setPressure} /><VUnit>mmHg</VUnit>
-          <VSelect value={pressureSite} onChange={setPressureSite} options={['Assis / bras droit','Assis / bras gauche','Couché / bras droit','Debout']} />
+        <VRow label={t('summaryModal.pression.label')}>
+          <VInput value={pressure} onChange={setPressure} /><VUnit>{t('summaryModal.mmhg.text')}</VUnit>
+          <VSelect value={pressureSite} onChange={setPressureSite} options={[L('Assis / bras droit'),L('Assis / bras gauche'),L('Couché / bras droit'),L('Debout')]} />
         </VRow>
-        <VRow label="Fréq. cardiaque :">
+        <VRow label={t('summaryModal.freqCardiaque.label')}>
           <VInput value={hr} onChange={setHr} /><VUnit>bpm</VUnit>
-          <VSelect value={hrType} onChange={setHrType} options={['Régulier','Irrégulier']} />
+          <VSelect value={hrType} onChange={setHrType} options={[L('Régulier'),L('Irrégulier')]} />
         </VRow>
-        <VRow label="Fréq. respiratoire :">
+        <VRow label={t('summaryModal.freqRespiratoire.label')}>
           <VInput value={rr} onChange={setRr} /><VUnit>cpm</VUnit>
         </VRow>
-        <VRow label="SpO₂ / Débit O₂ :">
+        <VRow label={t('summaryModal.spoDebitO.label')}>
           <VInput value={spo2} onChange={setSpo2} /><VUnit>%</VUnit>
           <input style={{ ...vStyles.vInput, width:80, marginLeft:8 }} value={o2flow} onChange={function(e){ setO2flow(e.target.value); }} placeholder="" />
-          <VUnit>L/min</VUnit>
+          <VUnit>{t('summaryModal.min.text')}</VUnit>
         </VRow>
-        <VRow label="Taille :">
+        <VRow label={t('summaryModal.taille.label')}>
           <VInput value={height} onChange={setHeight} /><VUnit>m</VUnit>
         </VRow>
-        <VRow label="Poids :">
+        <VRow label={t('summaryModal.poids.label')}>
           <VInput value={weight} onChange={setWeight} /><VUnit>kg</VUnit>
         </VRow>
-        <VRow label="Tour de taille :">
+        <VRow label={t('summaryModal.tourTaille.label')}>
           <VInput value={waist} onChange={setWaist} /><VUnit>cm</VUnit>
         </VRow>
-        <VRow label="Périmètre crânien :">
+        <VRow label={t('summaryModal.perimetreCranien.label')}>
           <VInput value={head} onChange={setHead} /><VUnit>cm</VUnit>
         </VRow>
-        <VRow label="Glycémie :">
-          <VInput value={glycemia} onChange={setGlycemia} /><VUnit>mmol/L</VUnit>
+        <VRow label={t('summaryModal.glycemie.label')}>
+          <VInput value={glycemia} onChange={setGlycemia} /><VUnit>{t('summaryModal.mmol.text')}</VUnit>
         </VRow>
       </div>
 
       {/* Calculated indicators */}
-      <div style={vStyles.sectionHead}>Indicateurs calculés</div>
+      <div style={vStyles.sectionHead}>{t('summaryModal.indicateursCalcules.text')}</div>
       <div style={vStyles.sectionBody}>
-        <VRow label="IMC :">
+        <VRow label={t('summaryModal.imc.label')}>
           <span className="material-icons" style={{ fontSize:20, color:'var(--mat-sys-primary)', marginRight:8 }}>info</span>
           {bmi && <span style={{ fontSize:14, fontWeight:700, color:'var(--mat-sys-on-surface)' }}>{bmi}</span>}
         </VRow>
-        <VRow label="Surface corporelle :">
+        <VRow label={t('summaryModal.surfaceCorporelle.label')}>
           <span className="material-icons" style={{ fontSize:20, color:'var(--mat-sys-primary)', marginRight:8 }}>info</span>
           {bsa && <span style={{ fontSize:14, fontWeight:700, color:'var(--mat-sys-on-surface)', marginRight:6 }}>{bsa}</span>}
           <VUnit>m²</VUnit>
@@ -287,10 +285,8 @@ function VitalsAddModal({ onClose, onAdd }) {
       </div>
 
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn onClick={function(){ onAdd({ height, weight, pressure, hr, temp, bmi, bsa }); onClose(); }}>
-          AJOUTER CETTE OBSERVATION
-        </PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn onClick={function(){ onAdd({ height, weight, pressure, hr, temp, bmi, bsa }); onClose(); }}>{t('summaryModal.ajouterObservation.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
@@ -309,7 +305,7 @@ var vStyles = {
 
 // ── Médications ───────────────────────────────────────────────────────────────
 var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', texte:'var(--mat-sys-primary)' };
-var MEDS_TABS = [{ id:'profil',label:'Profil' },{ id:'renouvelables',label:'Renouvelables' },{ id:'ordonnance',label:'Ordonnance' },{ id:'archive',label:'Archive' }];
+var MEDS_TABS = [{ id:'profil',label:t('summaryModal.profil.label') },{ id:'renouvelables',label:t('summaryModal.renouvelables.label') },{ id:'ordonnance',label:t('summaryModal.ordonnance.label') },{ id:'archive',label:t('summaryModal.archive.label') }];
 
 function MedsModal({ items, onClose }) {
   var [tab, setTab] = React.useState('profil');
@@ -318,7 +314,7 @@ function MedsModal({ items, onClose }) {
   var [mode, setMode] = React.useState('prescrire');
   if (showPrefs) return <MedsPrefsModal onClose={function(){ setShowPrefs(false); }} />;
   return (
-    <ModalShell title="Médications" onClose={onClose} width={620}>
+    <ModalShell title={t('summaryModal.medications.tooltip')} onClose={onClose} width={620}>
       <div style={{ display:'flex', alignItems:'center', marginBottom:2 }}>
         <MTabs tabs={MEDS_TABS} active={tab} onChange={setTab} />
         <button style={smS.dotsBtn} onClick={function(){ setShowPrefs(true); }}>
@@ -328,11 +324,11 @@ function MedsModal({ items, onClose }) {
       {tab === 'profil' && (
         <>
           <div style={smS.vitalsBar}>
-            <span>Créatinine : <b>72 µmol/L</b></span>
-            <span>DFGe : <b>89 mL/min</b></span>
-            <span>Poids : <b>62 kg</b></span>
+            <span>{t('summaryModal.creatinine.label')} <b>72 µmol/L</b></span>
+            <span>{t('summaryModal.egfr.label')} <b>89 mL/min</b></span>
+            <span>{t('summaryModal.weight.label')} <b>62 kg</b></span>
           </div>
-          {items.length === 0 && <EmptyMsg>Aucune médication</EmptyMsg>}
+          {items.length === 0 && <EmptyMsg>{t('summaryModal.aucuneMedication.text')}</EmptyMsg>}
           {items.map(function(m,i){
             return (
               <div key={i} style={smS.medsRow}>
@@ -349,15 +345,15 @@ function MedsModal({ items, onClose }) {
           <div style={{ marginTop:16, borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14 }}>
             <div style={{ display:'flex', marginBottom:10, border:'1px solid var(--mat-sys-outline-variant)', borderRadius:7, overflow:'hidden', width:'fit-content' }}>
               {['prescrire','inscrire'].map(function(m){
-                return <button key={m} style={{ ...smS.modeBtn, ...(mode===m?smS.modeBtnOn:{}) }} onClick={function(){ setMode(m); }}>{m==='prescrire'?'Prescrire':'Inscrire une médication'}</button>;
+                return <button key={m} style={{ ...smS.modeBtn, ...(mode===m?smS.modeBtnOn:{}) }} onClick={function(){ setMode(m); }}>{m==='prescrire'?t('summaryModal.prescrire.text'):t('summaryModal.inscrireMedication.text')}</button>;
               })}
             </div>
-            <SearchBox value={query} onChange={setQuery} placeholder="Rechercher un médicament…" suggestions={['Metformine','Ramipril','Atorvastatine','Lévothyroxine','Pantoprazole']} onSelect={setQuery} />
+            <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherMedicament.placeholder')} suggestions={[L('Metformine'),L('Ramipril'),L('Atorvastatine'),L('Lévothyroxine'),L('Pantoprazole')]} onSelect={setQuery} />
           </div>
         </>
       )}
-      {tab !== 'profil' && <EmptyMsg>Aucun élément dans cet onglet</EmptyMsg>}
-      <MFooter><GhostBtn onClick={onClose}>Fermer</GhostBtn></MFooter>
+      {tab !== 'profil' && <EmptyMsg>{t('summaryModal.aucunElementCetOnglet.text')}</EmptyMsg>}
+      <MFooter><GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn></MFooter>
     </ModalShell>
   );
 }
@@ -374,17 +370,17 @@ function MedsPrefsModal({ onClose }) {
   var [renCount, setRenCount] = React.useState('3');
   var [renDuree, setRenDuree] = React.useState('30');
   return (
-    <ModalShell title="Préférences — Médications" onClose={onClose} width={520}>
-      <div style={smS.prefSection}>Préférences de prescription</div>
-      <PrefToggle label="Affichage en dose visée" value={doseVisee} onChange={setDoseVisee} />
-      <PrefToggle label="Envoi des ordonnances au DSQ" value={dsq} onChange={setDsq} />
-      <PrefToggle label="Modification du poids dans le calculateur de dose" value={modifPoids} onChange={setModifPoids} />
+    <ModalShell title={t('summaryModal.preferencesMedications.tooltip')} onClose={onClose} width={520}>
+      <div style={smS.prefSection}>{t('summaryModal.preferencesPrescription.text')}</div>
+      <PrefToggle label={t('summaryModal.affichageDoseVisee.label')} value={doseVisee} onChange={setDoseVisee} />
+      <PrefToggle label={t('summaryModal.envoiOrdonnancesDsq.label')} value={dsq} onChange={setDsq} />
+      <PrefToggle label={t('summaryModal.modificationPoidsCalculateurDose.label')} value={modifPoids} onChange={setModifPoids} />
       <div style={smS.row2}>
-        <MField label="Renouvellements par défaut"><MInput value={renCount} onChange={setRenCount} /></MField>
-        <MField label="Durée (jours)"><MInput value={renDuree} onChange={setRenDuree} /></MField>
+        <MField label={t('summaryModal.renouvellementsDefaut.label')}><MInput value={renCount} onChange={setRenCount} /></MField>
+        <MField label={t('summaryModal.dureeJours.label')}><MInput value={renDuree} onChange={setRenDuree} /></MField>
       </div>
-      <div style={smS.prefSection}>Préférences d'impression</div>
-      <MField label="Format">
+      <div style={smS.prefSection}>{t('summaryModal.preferencesImpression.text')}</div>
+      <MField label={t('summaryModal.format.label')}>
         <div style={smS.radioGroup}>
           {[['8.5x11','8½" × 11"'],['4x7','4" × 7"']].map(function(p){
             return (
@@ -395,57 +391,57 @@ function MedsPrefsModal({ onClose }) {
           })}
         </div>
       </MField>
-      <PrefToggle label="Pharmacie" value={pharma} onChange={setPharma} />
-      <PrefToggle label="Mensurations du patient" value={mensur} onChange={setMensur} />
-      <PrefToggle label="Raison de cessation" value={cessation} onChange={setCessation} />
-      <PrefToggle label="Signature électronique" value={sig} onChange={setSig} />
+      <PrefToggle label={t('summaryModal.pharmacie.label')} value={pharma} onChange={setPharma} />
+      <PrefToggle label={t('summaryModal.mensurationsPatient.label')} value={mensur} onChange={setMensur} />
+      <PrefToggle label={t('summaryModal.raisonCessation.label')} value={cessation} onChange={setCessation} />
+      <PrefToggle label={t('summaryModal.signatureElectronique.label')} value={sig} onChange={setSig} />
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn onClick={onClose}>Sauvegarder</PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn onClick={onClose}>{t('summaryModal.sauvegarder.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
 }
 
 // ── Habitudes de vie ──────────────────────────────────────────────────────────
-var HABITS_CATS = ['Alcool','Tabac','Drogue','Alimentation','Activité physique','Sommeil','Emploi','Autre'];
-var HABITS_FREQS = ['Aucun','Régulier','Occasionnel','Abus','Cessé'];
+var HABITS_CATS = [L('Alcool'),L('Tabac'),L('Drogue'),L('Alimentation'),L('Activité physique'),L('Sommeil'),L('Emploi'),L('Autre')];
+var HABITS_FREQS = [L('Aucun'),L('Régulier'),L('Occasionnel'),L('Abus'),L('Cessé')];
 
 function HabitsModal({ items, onClose, onAdd }) {
   var [view, setView] = React.useState('list');
   var [cat, setCat] = React.useState('');
-  var [freq, setFreq] = React.useState('Régulier');
+  var [freq, setFreq] = React.useState(L('Régulier'));
   var [desc, setDesc] = React.useState('');
   var [debut, setDebut] = React.useState('');
   var [fin, setFin] = React.useState('');
   var CAT_ICON = { Tabac:'smoking_rooms', Alcool:'local_bar', Drogue:'medication', Alimentation:'restaurant', 'Activité physique':'fitness_center', Sommeil:'bedtime', Emploi:'work', Autre:'more_horiz' };
   if (view === 'add') return (
-    <ModalShell title="Ajouter une habitude de vie" onClose={onClose} width={500}>
-      <MField label="Catégorie *">
+    <ModalShell title={t('summaryModal.ajouterHabitudeVie.tooltip')} onClose={onClose} width={500}>
+      <MField label={t('summaryModal.categorie.label')}>
         <select style={smS.input} value={cat} onChange={function(e){ setCat(e.target.value); }}>
-          <option value="">Sélectionner…</option>
+          <option value="">{t('summaryModal.selectionner.label')}</option>
           {HABITS_CATS.map(function(c){ return <option key={c} value={c}>{c}</option>; })}
         </select>
       </MField>
-      <MField label="Fréquence">
+      <MField label={t('summaryModal.frequence.label')}>
         <select style={smS.input} value={freq} onChange={function(e){ setFreq(e.target.value); }}>
           {HABITS_FREQS.map(function(f){ return <option key={f} value={f}>{f}</option>; })}
         </select>
       </MField>
-      <MField label="Description (optionnel)"><MTextarea value={desc} onChange={setDesc} rows={2} /></MField>
+      <MField label={t('summaryModal.descriptionOptionnel.label')}><MTextarea value={desc} onChange={setDesc} rows={2} /></MField>
       <div style={smS.row2}>
-        <MField label="Début (optionnel)"><MDate value={debut} onChange={setDebut} /></MField>
-        <MField label="Fin (optionnel)"><MDate value={fin} onChange={setFin} /></MField>
+        <MField label={t('summaryModal.debutOptionnel.label')}><MDate value={debut} onChange={setDebut} /></MField>
+        <MField label={t('summaryModal.finOptionnel.label')}><MDate value={fin} onChange={setFin} /></MField>
       </div>
       <MFooter>
-        <GhostBtn onClick={function(){ setView('list'); }}>Retour</GhostBtn>
-        <PrimaryBtn disabled={!cat} onClick={function(){ onAdd({ name:cat, detail:freq+(desc?' — '+desc:'') }); setView('list'); }}>Sauvegarder</PrimaryBtn>
+        <GhostBtn onClick={function(){ setView('list'); }}>{t('summaryModal.retour.text')}</GhostBtn>
+        <PrimaryBtn disabled={!cat} onClick={function(){ onAdd({ name:cat, detail:freq+(desc?' — '+desc:'') }); setView('list'); }}>{t('summaryModal.sauvegarder.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
   return (
-    <ModalShell title="Habitudes de vie et contexte social" onClose={onClose} width={520}>
-      {items.length === 0 && <EmptyMsg>Aucune saisie d'habitude de vie ou de contexte social</EmptyMsg>}
+    <ModalShell title={t('summaryModal.habitudesVieContexteSocial.tooltip')} onClose={onClose} width={520}>
+      {items.length === 0 && <EmptyMsg>{t('summaryModal.aucuneSaisieHabitudeVie.text')}</EmptyMsg>}
       {items.map(function(it,i){
         return (
           <div key={i} style={smS.listRow}>
@@ -459,9 +455,9 @@ function HabitsModal({ items, onClose, onAdd }) {
         );
       })}
       <MFooter>
-        <GhostBtn onClick={onClose}>Fermer</GhostBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn>
         <PrimaryBtn onClick={function(){ setView('add'); }}>
-          <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>add</span>Ajout par catégorie
+          <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>add</span>{t('summaryModal.ajoutCategorie.text')}
         </PrimaryBtn>
       </MFooter>
     </ModalShell>
@@ -486,11 +482,11 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
       <div style={{ display:'flex', alignItems:'center', marginBottom:12 }}>
         <button style={{ ...smS.ghostBtn, fontSize:13 }} onClick={function(){ setSortMode(!sortMode); }}>
           <span className="material-icons-outlined" style={{ fontSize:16, marginRight:5 }}>sort</span>
-          Trier la liste des {title.toLowerCase()}
+          {t('summaryModal.sortList.button', { title: title.toLowerCase() })}
         </button>
-        {sortMode && <span style={{ fontSize:12, color:'var(--mat-sys-primary)', marginLeft:10 }}>Mode tri actif</span>}
+        {sortMode && <span style={{ fontSize:12, color:'var(--mat-sys-primary)', marginLeft:10 }}>{t('summaryModal.modeTriActif.text')}</span>}
       </div>
-      {list.length === 0 && <EmptyMsg>Aucun élément</EmptyMsg>}
+      {list.length === 0 && <EmptyMsg>{t('summaryModal.aucunElement.text')}</EmptyMsg>}
       {list.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
@@ -516,28 +512,28 @@ function ProblemsModal({ title, items, onClose, onAdd, convertLabel }) {
       })}
       <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:12 }}>
         <div style={smS.row2}>
-          <MField label="Ajouter"><MInput value={query} onChange={setQuery} placeholder="Rechercher…" /></MField>
-          <MField label="Date"><MDate value={date} onChange={setDate} /></MField>
+          <MField label={t('summaryModal.ajouter.label')}><MInput value={query} onChange={setQuery} placeholder={t('summaryModal.rechercher.placeholder')} /></MField>
+          <MField label={t('summaryModal.date.label')}><MDate value={date} onChange={setDate} /></MField>
         </div>
       </div>
       <MFooter>
-        <GhostBtn onClick={onClose}>Fermer</GhostBtn>
-        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ left:query, name:query, right:date }); setQuery(''); setDate(''); }}>Ajouter</PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn>
+        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ left:query, name:query, right:date }); setQuery(''); setDate(''); }}>{t('summaryModal.ajouter.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
 }
 
 // ── Antécédents familiaux ─────────────────────────────────────────────────────
-var FAM_RELATIONS = ['Père','Mère','Frère','Sœur','Grand-père paternel','Grand-mère paternelle','Grand-père maternel','Grand-mère maternelle'];
+var FAM_RELATIONS = [L('Père'),L('Mère'),L('Frère'),L('Sœur'),L('Grand-père paternel'),L('Grand-mère paternelle'),L('Grand-père maternel'),L('Grand-mère maternelle')];
 
 function FamilyModal({ items, onClose, onAdd }) {
   var [showAdd, setShowAdd] = React.useState(false);
   var [relation, setRelation] = React.useState('');
   var [condition, setCondition] = React.useState('');
   return (
-    <ModalShell title="Antécédents familiaux" onClose={onClose} width={520}>
-      {items.length === 0 && !showAdd && <EmptyMsg>Aucun antécédent familial</EmptyMsg>}
+    <ModalShell title={t('summaryModal.antecedentsFamiliaux.tooltip')} onClose={onClose} width={520}>
+      {items.length === 0 && !showAdd && <EmptyMsg>{t('summaryModal.aucunAntecedentFamilial.text')}</EmptyMsg>}
       {items.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
@@ -551,24 +547,24 @@ function FamilyModal({ items, onClose, onAdd }) {
       })}
       {showAdd && (
         <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:8 }}>
-          <MField label="Type de relation *">
+          <MField label={t('summaryModal.typeRelation.label')}>
             <select style={smS.input} value={relation} onChange={function(e){ setRelation(e.target.value); }}>
-              <option value="">Sélectionner…</option>
+              <option value="">{t('summaryModal.selectionner.label')}</option>
               {FAM_RELATIONS.map(function(r){ return <option key={r} value={r}>{r}</option>; })}
             </select>
           </MField>
-          <MField label="Condition médicale *"><MInput value={condition} onChange={setCondition} placeholder="Ex : Diabète de type 2" /></MField>
+          <MField label={t('summaryModal.conditionMedicale.label')}><MInput value={condition} onChange={setCondition} placeholder={t('summaryModal.exDiabeteType2.placeholder')} /></MField>
           <MFooter>
-            <GhostBtn onClick={function(){ setShowAdd(false); }}>Annuler</GhostBtn>
-            <PrimaryBtn disabled={!relation||!condition} onClick={function(){ onAdd({ left:condition, name:condition, mid:relation }); setShowAdd(false); }}>Ajouter</PrimaryBtn>
+            <GhostBtn onClick={function(){ setShowAdd(false); }}>{t('summaryModal.annuler.text')}</GhostBtn>
+            <PrimaryBtn disabled={!relation||!condition} onClick={function(){ onAdd({ left:condition, name:condition, mid:relation }); setShowAdd(false); }}>{t('summaryModal.ajouter.text')}</PrimaryBtn>
           </MFooter>
         </div>
       )}
       {!showAdd && (
         <MFooter>
-          <GhostBtn onClick={onClose}>Fermer</GhostBtn>
+          <GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn>
           <PrimaryBtn onClick={function(){ setShowAdd(true); }}>
-            <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>add</span>Ajouter
+            <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>add</span>{t('summaryModal.ajouter2.text')}
           </PrimaryBtn>
         </MFooter>
       )}
@@ -577,14 +573,14 @@ function FamilyModal({ items, onClose, onAdd }) {
 }
 
 // ── Immunisations ─────────────────────────────────────────────────────────────
-var VACCINE_SUGG = ['HPV (Gardasil)','dCaT (Tétanos-diphtérie)','Influenza','COVID-19','RRO','Varicelle','Hépatite B','Méningocoque'];
+var VACCINE_SUGG = [L('HPV (Gardasil)'),L('dCaT (Tétanos-diphtérie)'),L('Influenza'),L('COVID-19'),L('RRO'),L('Varicelle'),L('Hépatite B'),L('Méningocoque')];
 
 function ImmunModal({ items, onClose, onAdd }) {
   var [query, setQuery] = React.useState('');
   var [date, setDate] = React.useState('');
   var [lot, setLot] = React.useState('');
   return (
-    <ModalShell title="Immunisation et vaccins" onClose={onClose} width={520}>
+    <ModalShell title={t('summaryModal.immunisationVaccins.tooltip')} onClose={onClose} width={520}>
       {items.map(function(r,i){
         return (
           <div key={i} style={smS.listRow}>
@@ -598,18 +594,18 @@ function ImmunModal({ items, onClose, onAdd }) {
         );
       })}
       <div style={{ borderTop:'1px solid var(--mat-sys-outline-variant)', paddingTop:14, marginTop:8 }}>
-        <MField label="Rechercher un vaccin">
-          <SearchBox value={query} onChange={setQuery} placeholder="Rechercher un vaccin…" suggestions={VACCINE_SUGG} onSelect={setQuery}
-            noneBtn={function(){ onAdd({ left:'Aucun vaccin connu', right:'' }); }} />
+        <MField label={t('summaryModal.rechercherVaccin.label')}>
+          <SearchBox value={query} onChange={setQuery} placeholder={t('summaryModal.rechercherVaccin.placeholder')} suggestions={VACCINE_SUGG} onSelect={setQuery}
+            noneBtn={function(){ onAdd({ left:L('Aucun vaccin connu'), right:'' }); }} />
         </MField>
         <div style={smS.row2}>
-          <MField label="Date de vaccination"><MDate value={date} onChange={setDate} /></MField>
-          <MField label="Numéro de lot (optionnel)"><MInput value={lot} onChange={setLot} /></MField>
+          <MField label={t('summaryModal.dateVaccination.label')}><MDate value={date} onChange={setDate} /></MField>
+          <MField label={t('summaryModal.numeroLotOptionnel.label')}><MInput value={lot} onChange={setLot} /></MField>
         </div>
       </div>
       <MFooter>
-        <GhostBtn onClick={onClose}>Fermer</GhostBtn>
-        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ left:query, right:date||''+new Date().getFullYear() }); setQuery(''); setDate(''); }}>Ajouter ce vaccin</PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.fermer.text')}</GhostBtn>
+        <PrimaryBtn disabled={!query} onClick={function(){ onAdd({ left:query, right:date||''+new Date().getFullYear() }); setQuery(''); setDate(''); }}>{t('summaryModal.ajouterVaccin.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
@@ -627,11 +623,9 @@ function TasksModal({ items, onClose, onAdd }) {
   var [priority, setPriority] = React.useState('Normal');
 
   return (
-    <ModalShell title="Ajouter une tâche" onClose={onClose} width={620}>
+    <ModalShell title={t('summaryModal.ajouterTache.tooltip')} onClose={onClose} width={620}>
       <div style={{ marginBottom:14 }}>
-        <button style={{ background:'none', border:0, padding:0, cursor:'pointer', color:'var(--mat-sys-primary)', fontSize:14, fontWeight:600 }}>
-          Sélectionner une tâche rapide…
-        </button>
+        <button style={{ background:'none', border:0, padding:0, cursor:'pointer', color:'var(--mat-sys-primary)', fontSize:14, fontWeight:600 }}>{t('summaryModal.selectionnerTacheRapide.button')}</button>
       </div>
 
       {/* Title + Date row */}
@@ -640,14 +634,14 @@ function TasksModal({ items, onClose, onAdd }) {
           style={{ ...smS.input, flex:1 }}
           value={title}
           onChange={function(e){ setTitle(e.target.value); }}
-          placeholder="Titre"
+          placeholder={t('summaryModal.titre.placeholder')}
         />
         <div style={{ ...smS.searchBox, width:180, gap:6 }}>
           <input
             style={{ ...smS.searchInner, width:'100%' }}
             value={date}
             onChange={function(e){ setDate(e.target.value); }}
-            placeholder="AAAA/MM/JJ"
+            placeholder={t('summaryModal.aaaaMmJj.placeholder')}
           />
           <span className="material-icons-outlined" style={{ fontSize:20, color:'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', cursor:'pointer' }}>calendar_today</span>
         </div>
@@ -658,16 +652,16 @@ function TasksModal({ items, onClose, onAdd }) {
         style={{ ...smS.input, resize:'vertical', height:110, marginBottom:16 }}
         value={desc}
         onChange={function(e){ setDesc(e.target.value); }}
-        placeholder="Description"
+        placeholder={t('summaryModal.description.placeholder')}
       />
 
       {/* Meta fields */}
       {[
-        { label:'Institution :', ctrl: <select style={smS.input} value={institution} onChange={function(e){ setInstitution(e.target.value); }}><option>CLINIQUE DU CENTRE-VILLE</option><option>CENTRE DE SANTÉ INTÉGRALE</option></select> },
-        { label:'Assigner à :', ctrl: <input style={smS.input} value={assignTo} onChange={function(e){ setAssignTo(e.target.value); }} placeholder="Prénom, nom, identifiant…" /> },
-        { label:'File de tâches :', ctrl: <input style={smS.input} value={queue} onChange={function(e){ setQueue(e.target.value); }} placeholder="Titre de la file de tâches…" /> },
-        { label:'État :', ctrl: <select style={{ ...smS.input, width:'auto' }} value={state} onChange={function(e){ setState(e.target.value); }}><option>Nouveau</option><option>En cours</option><option>Terminé</option></select> },
-        { label:'Priorité :', ctrl: <select style={{ ...smS.input, width:'auto' }} value={priority} onChange={function(e){ setPriority(e.target.value); }}><option>Normal</option><option>Urgent</option><option>Faible</option></select> },
+        { label:t('summaryModal.institution.label'), ctrl: <select style={smS.input} value={institution} onChange={function(e){ setInstitution(e.target.value); }}><option value="CLINIQUE DU CENTRE-VILLE">{t('summaryModal.cliniqueCentreVille.label')}</option><option value="CENTRE DE SANTÉ INTÉGRALE">{t('summaryModal.centreSanteIntegrale.label')}</option></select> },
+        { label:t('summaryModal.assigner.label'), ctrl: <input style={smS.input} value={assignTo} onChange={function(e){ setAssignTo(e.target.value); }} placeholder={t('summaryModal.prenomNomIdentifiant.placeholder')} /> },
+        { label:t('summaryModal.fileTaches.label'), ctrl: <input style={smS.input} value={queue} onChange={function(e){ setQueue(e.target.value); }} placeholder={t('summaryModal.titreFileTaches.placeholder')} /> },
+        { label:t('summaryModal.etat.label'), ctrl: <select style={{ ...smS.input, width:'auto' }} value={state} onChange={function(e){ setState(e.target.value); }}><option value="Nouveau">{t('summaryModal.nouveau.label')}</option><option value="En cours">{t('summaryModal.cours.label')}</option><option value="Terminé">{t('summaryModal.termine.label')}</option></select> },
+        { label:t('summaryModal.priorite.label'), ctrl: <select style={{ ...smS.input, width:'auto' }} value={priority} onChange={function(e){ setPriority(e.target.value); }}><option value="Normal">{t('summaryModal.normal.label')}</option><option value="Urgent">{t('summaryModal.urgent.label')}</option><option value="Faible">{t('summaryModal.faible.label')}</option></select> },
       ].map(function(row) {
         return (
           <div key={row.label} style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
@@ -678,24 +672,22 @@ function TasksModal({ items, onClose, onAdd }) {
       })}
 
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn disabled={!title} onClick={function(){ onAdd({ name:title, left:title, right:date, desc, state, priority }); setTitle(''); onClose(); }}>
-          AJOUTER LA TÂCHE
-        </PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn disabled={!title} onClick={function(){ onAdd({ name:title, left:title, right:date, desc, state, priority }); setTitle(''); onClose(); }}>{t('summaryModal.ajouterTache.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
 }
 
 // ── Programmes ───────────────────────────────────────────────────────────────
-var PROGRAMS_LIST = ['Diabète','Hypertension','Grossesse','Insuffisance cardiaque','MPOC','Santé mentale','Anticoagulothérapie','Maladies rénales chroniques'];
+var PROGRAMS_LIST = [L('Diabète'),L('Hypertension'),L('Grossesse'),L('Insuffisance cardiaque'),L('MPOC'),L('Santé mentale'),L('Anticoagulothérapie'),L('Maladies rénales chroniques')];
 
 function ProgramsModal({ items, onClose, onAdd }) {
   var [date, setDate] = React.useState('2026/06/08');
   var [program, setProgram] = React.useState('');
 
   return (
-    <ModalShell title="Inscription à un suivi" onClose={onClose} width={520}>
+    <ModalShell title={t('summaryModal.inscriptionSuivi.tooltip')} onClose={onClose} width={520}>
       {items.length > 0 && (
         <div style={{ marginBottom:16 }}>
           {items.map(function(it, i) {
@@ -716,24 +708,22 @@ function ProgramsModal({ items, onClose, onAdd }) {
       )}
 
       <div style={{ borderTop: items.length > 0 ? '1px solid var(--mat-sys-outline-variant)' : 'none', paddingTop: items.length > 0 ? 16 : 0 }}>
-        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>Quelle est la date d'inscription ?</div>
+        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>{t('summaryModal.quelleDateInscription.text')}</div>
         <div style={{ ...smS.searchBox, width:200, marginBottom:16 }}>
           <input style={{ ...smS.searchInner }} value={date} onChange={function(e){ setDate(e.target.value); }} />
           <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
 
-        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>Créer l'inscription dans quel programme ?</div>
+        <div style={{ fontSize:14, color:'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', marginBottom:8 }}>{t('summaryModal.creerInscriptionQuelProgramme.text')}</div>
         <select style={{ ...smS.input, width:'auto', minWidth:240 }} value={program} onChange={function(e){ setProgram(e.target.value); }}>
-          <option value="">Choisir un programme…</option>
+          <option value="">{t('summaryModal.choisirProgramme.label')}</option>
           {PROGRAMS_LIST.map(function(p){ return <option key={p} value={p}>{p}</option>; })}
         </select>
       </div>
 
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn disabled={!program} onClick={function(){ onAdd({ name:program, left:program, right:date }); onClose(); }}>
-          INSCRIRE LE PATIENT
-        </PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn disabled={!program} onClick={function(){ onAdd({ name:program, left:program, right:date }); onClose(); }}>{t('summaryModal.inscrirePatient.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
@@ -744,27 +734,36 @@ window.ProgramsModal = ProgramsModal;
 // ── Résultats ─────────────────────────────────────────────────────────────────
 var RESULT_SUGG = [
   // Hématologie
-  'FSC — hémoglobine','FSC — hématocrite','FSC — leucocytes','FSC — plaquettes',
-  'VGM','INR / RNI','TCA','Ferritine','Fer sérique','Saturation de la transferrine',
-  'Vitamine B12','Folates (acide folique)',
+  L('FSC — hémoglobine'),L('FSC — hématocrite'),L('FSC — leucocytes'),L('FSC — plaquettes'),
+  L('VGM'),L('INR / RNI'),L('TCA'),L('Ferritine'),L('Fer sérique'),L('Saturation de la transferrine'),
+  L('Vitamine B12'),L('Folates (acide folique)'),
   // Biochimie / ions
-  'Sodium','Potassium','Chlore','Bicarbonates','Glucose à jeun','Créatinine',
-  'DFGe (eGFR)','Urée','Calcium','Phosphore','Magnésium','Albumine','Protéines totales',
+  L('Sodium'),L('Potassium'),L('Chlore'),L('Bicarbonates'),L('Glucose à jeun'),L('Créatinine'),
+  L('DFGe (eGFR)'),L('Urée'),L('Calcium'),L('Phosphore'),L('Magnésium'),L('Albumine'),L('Protéines totales'),
   // Profil lipidique
-  'Cholestérol total','LDL','HDL','Triglycérides','Rapport cholestérol/HDL','Non-HDL',
+  L('Cholestérol total'),L('LDL'),L('HDL'),L('Triglycérides'),L('Rapport cholestérol/HDL'),L('Non-HDL'),
   // Glycémie / diabète
-  'HbA1c (hémoglobine glyquée)','Glycémie à jeun','Glycémie aléatoire',
+  L('HbA1c (hémoglobine glyquée)'),L('Glycémie à jeun'),L('Glycémie aléatoire'),
   // Fonction hépatique
-  'ALT','AST','GGT','Phosphatase alcaline','Bilirubine totale','Bilirubine conjuguée',
+  L('ALT'),L('AST'),L('GGT'),L('Phosphatase alcaline'),L('Bilirubine totale'),L('Bilirubine conjuguée'),
   // Thyroïde
-  'TSH','T4 libre','T3 libre',
+  L('TSH'),L('T4 libre'),L('T3 libre'),
   // Rénal / urinaire
-  'Analyse d\'urine (SMU)','Microalbuminurie','Rapport albumine/créatinine urinaire','Culture d\'urine',
+  L('Analyse d\'urine (SMU)'),L('Microalbuminurie'),L('Rapport albumine/créatinine urinaire'),L('Culture d\'urine'),
   // Vitamines / endocrinien
-  'Vitamine D (25-OH)','PTH','Cortisol','Testostérone',
+  L('Vitamine D (25-OH)'),L('PTH'),L('Cortisol'),L('Testostérone'),
   // Marqueurs / dépistage
-  'APS (PSA)','CRP','CRP haute sensibilité','hCG','HBsAg','Sérologie VIH','Sérologie hépatite B','Sérologie hépatite C',
+  L('APS (PSA)'),L('CRP'),L('CRP haute sensibilité'),L('hCG'),L('HBsAg'),L('Sérologie VIH'),L('Sérologie hépatite B'),L('Sérologie hépatite C'),
 ];
+
+// Normalité d'un résultat : le code est ce qu'on garde et compare (couleur du
+// libellé) ; le libellé suit la langue.
+var NORMALITY_LABEL = {
+  normal: t('result.normality.normal'), abnormal: t('result.normality.abnormal'), borderline: t('result.normality.borderline')
+};
+var NORMALITY_COLOR = {
+  normal: 'light-dark(#1b8a3f, #a5e9bb)', abnormal: 'light-dark(#c62828, #e9a5a5)', borderline: 'light-dark(#c07a00, #e9d0a5)'
+};
 
 function ResultsModal({ items, onClose, onAdd }) {
   var [test, setTest] = React.useState('');
@@ -774,7 +773,7 @@ function ResultsModal({ items, onClose, onAdd }) {
   var [showDrop, setShowDrop] = React.useState(false);
   var filtered = RESULT_SUGG.filter(function(s){ return s.toLowerCase().includes(test.toLowerCase()) && test.length > 0; });
   return (
-    <ModalShell title="Insérer un nouveau résultat" onClose={onClose} width={640}>
+    <ModalShell title={t('summaryModal.insererNouveauResultat.tooltip')} onClose={onClose} width={640}>
       {items.length > 0 && (
         <div style={{ marginBottom:16 }}>
           {items.map(function(it,i){
@@ -783,7 +782,7 @@ function ResultsModal({ items, onClose, onAdd }) {
                 <div style={{ flex:1 }}>
                   <span style={smS.listName}>{it.name||it.left}</span>
                   {it.result && <span style={{ ...smS.listSub, marginLeft:8 }}>{it.result}</span>}
-                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: it.normality==='Normal'?'light-dark(#1b8a3f, #a5e9bb)':it.normality==='Anormal'?'light-dark(#c62828, #e9a5a5)':'light-dark(#c07a00, #e9d0a5)' }}>{it.normality}</span>}
+                  {it.normality && <span style={{ marginLeft:8, fontSize:12, fontWeight:600, color: NORMALITY_COLOR[it.normality] || NORMALITY_COLOR.borderline }}>{NORMALITY_LABEL[it.normality] || it.normality}</span>}
                 </div>
                 {it.right && <span style={smS.listMeta}>{it.right}</span>}
               </div>
@@ -798,7 +797,7 @@ function ResultsModal({ items, onClose, onAdd }) {
             value={test}
             onChange={function(e){ setTest(e.target.value); setShowDrop(true); }}
             onBlur={function(){ setTimeout(function(){ setShowDrop(false); }, 160); }}
-            placeholder="Nom du test…"
+            placeholder={t('summaryModal.nomTest.placeholder')}
           />
           {showDrop && filtered.length > 0 && (
             <div style={smS.dropList}>
@@ -808,23 +807,19 @@ function ResultsModal({ items, onClose, onAdd }) {
             </div>
           )}
         </div>
-        <input style={{ ...smS.input, flex:1, minWidth:90 }} value={result} onChange={function(e){ setResult(e.target.value); }} placeholder="Résultat" />
+        <input style={{ ...smS.input, flex:1, minWidth:90 }} value={result} onChange={function(e){ setResult(e.target.value); }} placeholder={t('summaryModal.resultat.placeholder')} />
         <select style={{ ...smS.input, flex:1, minWidth:110 }} value={normality} onChange={function(e){ setNormality(e.target.value); }}>
-          <option value="">Normalité</option>
-          <option>Normal</option>
-          <option>Anormal</option>
-          <option>Limite</option>
+          <option value="">{t('summaryModal.normalite.label')}</option>
+          {Object.keys(NORMALITY_LABEL).map(function(code){ return <option key={code} value={code}>{NORMALITY_LABEL[code]}</option>; })}
         </select>
         <div style={{ ...smS.searchBox, flex:1, minWidth:150 }}>
-          <input style={smS.searchInner} value={sampDate} onChange={function(e){ setSampDate(e.target.value); }} placeholder="Date de prélèvement" />
+          <input style={smS.searchInner} value={sampDate} onChange={function(e){ setSampDate(e.target.value); }} placeholder={t('summaryModal.datePrelevement.placeholder')} />
           <span className="material-icons-outlined" style={{ fontSize:18, color:'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>calendar_today</span>
         </div>
       </div>
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
-        <PrimaryBtn disabled={!test} onClick={function(){ onAdd({ name:test, left:test, result, normality, right:sampDate }); onClose(); }}>
-          AJOUTER LE RÉSULTAT
-        </PrimaryBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
+        <PrimaryBtn disabled={!test} onClick={function(){ onAdd({ name:test, left:test, result, normality, right:sampDate }); onClose(); }}>{t('summaryModal.ajouterResultat.text')}</PrimaryBtn>
       </MFooter>
     </ModalShell>
   );
@@ -838,9 +833,9 @@ function PrintModal({ sections, onClose }) {
     setChecked(function(prev){ return prev.includes(id) ? prev.filter(function(x){ return x!==id; }) : [...prev,id]; });
   }
   return (
-    <ModalShell title="Imprimer le sommaire" onClose={onClose} width={400}>
+    <ModalShell title={t('summaryModal.imprimerSommaire.tooltip')} onClose={onClose} width={400}>
       <div style={{ marginBottom:12 }}>
-        <button style={smS.ghostBtn} onClick={function(){ setChecked([]); }}>Désélectionner tout</button>
+        <button style={smS.ghostBtn} onClick={function(){ setChecked([]); }}>{t('summaryModal.deselectionnerTout.button')}</button>
       </div>
       {sections.map(function(s){
         return (
@@ -851,9 +846,9 @@ function PrintModal({ sections, onClose }) {
         );
       })}
       <MFooter>
-        <GhostBtn onClick={onClose}>Annuler</GhostBtn>
+        <GhostBtn onClick={onClose}>{t('summaryModal.annuler.text')}</GhostBtn>
         <PrimaryBtn onClick={onClose}>
-          <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>print</span>Imprimer
+          <span className="material-icons" style={{ fontSize:16, marginRight:5 }}>print</span>{t('summaryModal.imprimer.text')}
         </PrimaryBtn>
       </MFooter>
     </ModalShell>

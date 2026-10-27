@@ -147,6 +147,30 @@
 </template>
 <div id="root"></div>
 
+<!-- Langue (PLAN-bilingue-fr-en.md) : i18n.js choisit la langue (?lang=fr|en,
+     mémorisée), fixe <html lang> et publie t / tn / L. Le français est toujours
+     chargé (c'est le repli de tout texte sans traduction) ; l'anglais seulement
+     s'il est demandé, et son absence est silencieuse (repli sur le français).
+     document.write dans des blocs classiques, pendant le parsing : même règle
+     que le chargeur JSX plus bas (un bloc qui lirait I18N doit suivre celui qui
+     l'écrit, jamais l'inverse). -->
+<script>
+(function () {
+  var bust = '?v=' + Date.now();
+  document.write('<script src="note-ui/i18n.js' + bust + '"><\/script>');
+  document.write('<script src="note-ui/i18n/fr.js' + bust + '"><\/script>');
+})();
+</script>
+<script>
+(function () {
+  if (window.I18N.lang !== 'en') return;
+  var bust = '?v=' + Date.now();
+  var absent = 'onerror="(window.I18N.absent = window.I18N.absent || []).push(this.getAttribute(\'src\'))"';
+  document.write('<script src="note-ui/i18n/en.js' + bust + '" ' + absent + '><\/script>');
+  document.write('<script src="note-ui/i18n/data-en.js' + bust + '" ' + absent + '><\/script>');
+})();
+</script>
+
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
@@ -207,35 +231,59 @@
   // avant d'émettre cim10:ready une seule fois. Sans ça, l'ordre d'arrivée
   // réseau des deux fichiers pourrait déclencher l'événement avant que
   // CIM10_DATA (le plus gros des deux) soit posé.
-  function get(url, onOk) {
-    return fetch(url + v).then(function (r) {
-      if (!r.ok) throw new Error(url + ' : HTTP ' + r.status);
-      return r.json();
-    }).then(onOk).catch(function (err) {
-      window.CIM10_ERROR = (err && err.message) || String(err);
-      console.error('CIM-10 : ' + url + ' non chargé :', window.CIM10_ERROR);
+  // Fichiers selon la langue (PLAN-bilingue-fr-en.md, lot A5). Le fichier de la
+  // langue d'affichage passe en premier ; l'autre langue est chargée aussi, pour
+  // que la recherche trouve un diagnostic avec un terme français comme avec un
+  // terme anglais. Si le fichier de la langue ne charge pas, on retombe sur le
+  // français : le /dx ne se bloque jamais.
+  var lang = (window.I18N && window.I18N.lang) || 'fr';
+  var other = lang === 'en' ? 'fr' : 'en';
+  var CIM10_FILES = {
+    fr: { rows: 'note-ui/cim10-fr-clinique.json', hier: 'note-ui/cim10-hierarchy.json' },
+    en: { rows: 'note-ui/cim10-en-clinique.json', hier: 'note-ui/cim10-hierarchy-en.json' }
+  };
+  var SNOMED_FILES = { fr: 'note-ui/snomed-diagnostics-fr.json', en: 'note-ui/snomed-diagnostics.json' };
+  // Essaie les adresses dans l'ordre ; rejette seulement si aucune ne répond.
+  function fetchFirst(urls) {
+    return urls.reduce(function (before, url) {
+      return before.catch(function () {
+        return fetch(url + v).then(function (r) {
+          if (!r.ok) throw new Error(url + ' : HTTP ' + r.status);
+          return r.json();
+        });
+      });
+    }, Promise.reject(new Error('aucune adresse')));
+  }
+  // Chaque chargement attrape sa propre erreur (jamais de rejet qui remonte),
+  // donc Promise.all attend toujours toutes les tentatives avant l'événement.
+  // `required` : une erreur est affichée par CIM10.status() / SNOMED.ready().
+  function get(urls, onOk, required) {
+    return fetchFirst(urls).then(onOk).catch(function (err) {
+      var msg = (err && err.message) || String(err);
+      if (required) window.CIM10_ERROR = msg;
+      console.error('Diagnostics : ' + msg + (required ? '' : ' (langue secondaire, ignorée)'));
     });
   }
+  var own = CIM10_FILES[lang], fr = CIM10_FILES.fr, alt = CIM10_FILES[other];
   Promise.all([
-    get('note-ui/cim10-fr-clinique.json', function (d) { window.CIM10_DATA = d; }),
-    get('note-ui/cim10-hierarchy.json', function (d) { window.CIM10_HIERARCHY = d; })
+    get([own.rows, fr.rows], function (d) { window.CIM10_DATA = d; }, true),
+    get([own.hier, fr.hier], function (d) { window.CIM10_HIERARCHY = d; }, true),
+    get([alt.rows], function (d) { window.CIM10_DATA_ALT = d; }, false),
+    get([alt.hier], function (d) { window.CIM10_HIERARCHY_ALT = d; }, false)
   ]).then(function () {
-    // Émis même si l'un des deux a échoué : CIM10.status() distingue
+    // Émis même si un fichier a échoué : CIM10.status() distingue
     // 'ready'/'error' via window.CIM10_ERROR — voir cim10-index.jsx. Une
     // hiérarchie manquante n'empêche pas l'ancien /dx (searchCIM10, qui ne
     // lit que CIM10_DATA) de continuer à fonctionner.
     window.dispatchEvent(new Event('cim10:ready'));
   });
-  // Dictionnaire SNOMED CT (note-ui/snomed-index.jsx) : un seul fichier, source
-  // de suggestions en plus de la CIM-10 — un échec ne bloque rien (le /dx
-  // fonctionne sans, SNOMED.ready() reste faux).
-  fetch('note-ui/snomed-diagnostics.json' + v).then(function (r) {
-    if (!r.ok) throw new Error('note-ui/snomed-diagnostics.json : HTTP ' + r.status);
-    return r.json();
-  }).then(function (d) { window.SNOMED_DATA = d; }).catch(function (err) {
-    window.SNOMED_ERROR = (err && err.message) || String(err);
-    console.error('SNOMED CT non chargé :', window.SNOMED_ERROR);
-  }).then(function () { window.dispatchEvent(new Event('snomed:ready')); });
+  // Dictionnaire SNOMED CT (note-ui/snomed-index.jsx) : source de suggestions
+  // en plus de la CIM-10 — un échec ne bloque rien (SNOMED.ready() reste faux).
+  // Le fichier français porte aussi le terme anglais ; en anglais, il ne sert
+  // qu'à la recherche par terme français.
+  var snomedLoads = [get([SNOMED_FILES[lang], SNOMED_FILES.en], function (d) { window.SNOMED_DATA = d; }, true)];
+  if (lang === 'en') snomedLoads.push(get([SNOMED_FILES.fr], function (d) { window.SNOMED_ALT = d; }, false));
+  Promise.all(snomedLoads).then(function () { window.dispatchEvent(new Event('snomed:ready')); });
 })();
 </script>
 <!-- Chargeur JSX avec anti-cache : ajoute un horodatage à chaque rechargement
@@ -256,6 +304,8 @@
     'note-ui/TopBar.jsx',
     'note-ui/SideNav.jsx',
     'note-ui/PatientBanner.jsx',
+    'note-ui/rx-text.jsx',
+    'note-ui/i18n-rich.jsx',
     'note-ui/editor-data.jsx',
     'note-ui/popover-placement.jsx',
     'note-ui/editor-popover.jsx',
@@ -279,6 +329,8 @@
     'note-ui/QuickSendModal.jsx',
     'note-ui/rich-text-controls.jsx',
     'note-ui/ActionLog.jsx',
+    'note-ui/SuggestionsColumn.jsx',
+    'note-ui/VisitStartPanel.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NoteStartCards.jsx',
     'note-ui/SmartNoteModal.jsx',
@@ -304,13 +356,13 @@
     var div = document.createElement('div');
     div.style.cssText = 'position:fixed;inset:0;z-index:99999;background:var(--mat-sys-surface-container-lowest);display:flex;align-items:center;justify-content:center;padding:32px;font-family:sans-serif;text-align:center;';
     div.innerHTML =
-      '<div style="max-width:480px;"><h2 style="color:light-dark(#b3261e, #e9a9a5);margin-bottom:8px;">Le prototype n’a pas pu charger Tiptap</h2>' +
+      '<div style="max-width:480px;"><h2 style="color:light-dark(#b3261e, #e9a9a5);margin-bottom:8px;">' + t('app.tiptap.title') + '</h2>' +
       '<p style="color:var(--mat-sys-on-surface);margin-bottom:6px;">' + String(message).replace(/</g, '&lt;') + '</p>' +
-      '<p style="color:var(--mat-sys-on-surface-variant);font-size:13px;">Vérifiez votre connexion internet (esm.sh) et rechargez la page.</p></div>';
+      '<p style="color:var(--mat-sys-on-surface-variant);font-size:13px;">' + t('app.tiptap.hint') + '</p></div>';
     (document.body || document.documentElement).appendChild(div);
   }
   window.addEventListener('tiptap:error', function (e) {
-    showBanner((e.detail && e.detail.message) || 'Erreur de chargement de Tiptap.');
+    showBanner((e.detail && e.detail.message) || t('app.tiptap.text'));
   });
 })();
 </script>
@@ -323,7 +375,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
   "clinicName": "Clinique du Centre-ville",
   "diagStyle": "actuel",
-  "showClinicalTools": true,
+  "showClinicalTools": false,
   "portalActive": true,
   "startPoints": false,
   "ftBarStyle": "flottant",
@@ -340,6 +392,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "inlineFieldEdit": true,
   "aiProposals": false,
   "summaryAddToNote": false,
+  "suggestionsPlacement": "aucune",
+  "visitStart": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
 
@@ -355,9 +409,9 @@ class AppErrorBoundary extends React.Component {
       return (
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: 'var(--mat-sys-surface-container-lowest)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, fontFamily: 'sans-serif', textAlign: 'center' }}>
           <div style={{ maxWidth: 480 }}>
-            <h2 style={{ color: 'light-dark(#b3261e, #e9a9a5)', marginBottom: 8 }}>Le prototype a rencontré une erreur</h2>
+            <h2 style={{ color: 'light-dark(#b3261e, #e9a9a5)', marginBottom: 8 }}>{t('app.error.title')}</h2>
             <p style={{ color: 'var(--mat-sys-on-surface)', marginBottom: 6 }}>{String(this.state.error && this.state.error.message || this.state.error)}</p>
-            <p style={{ color: 'var(--mat-sys-on-surface-variant)', fontSize: 13 }}>Rechargez la page. Si le problème persiste, ouvrez la console (F12) et signalez le message ci-dessus.</p>
+            <p style={{ color: 'var(--mat-sys-on-surface-variant)', fontSize: 13 }}>{t('app.error.hint')}</p>
           </div>
         </div>
       );
@@ -369,14 +423,15 @@ class AppErrorBoundary extends React.Component {
 // Libellés (tooltip) + style des pastilles du pied de note — voir le
 // `note-footer` dans App, PLAN-checkout-v7.md §M.
 const DOC_KIND_LABEL = {
-  prescription: 'Ordonnance', clinicalTool: 'Outils cliniques', lab: 'Laboratoire',
-  imaging: 'Imagerie', referral: 'Référence', instructions: 'Consignes au patient',
+  prescription: t('document.kind.prescription'), clinicalTool: t('document.kind.clinicalTool'),
+  lab: t('document.kind.lab'), imaging: t('document.kind.imaging'),
+  referral: t('document.kind.referral'), instructions: t('document.kind.instructions'),
 };
 // Nom accessible d'une pastille : `title` seul n'est ni lu de façon fiable par
 // les lecteurs d'écran ni atteignable au clavier — chaque pastille porte donc
 // aussi role="img" + aria-label, qui disent ce que compte le chiffre.
 function docPillLabel(kind, done, total) {
-  return (DOC_KIND_LABEL[kind] || kind) + ' : ' + done + ' sur ' + total + ' complété' + (done > 1 ? 's' : '');
+  return tn('document.pill.aria', done, { kind: DOC_KIND_LABEL[kind] || kind, total: total });
 }
 // Éléments partageables au patient par le portail : consignes au patient,
 // imagerie, laboratoire et références à un spécialiste. Le compteur monte dès
@@ -387,7 +442,7 @@ function portalSharedCount(summary) {
   return summary.reduce(function (n, s) { return PORTAL_KINDS.indexOf(s.kind) >= 0 ? n + s.total : n; }, 0);
 }
 function portalPillLabel(shared) {
-  return 'Portail patient : ' + shared + (shared > 1 ? ' éléments partagés' : ' élément partagé');
+  return tn('portal.pill.label', shared);
 }
 // Glyphe des pastilles : police Material Symbols (les noms comme « radiology »
 // n'existent pas dans Material Icons Outlined, où le texte s'affichait en
@@ -462,7 +517,7 @@ function App() {
   // dans le PatientBanner (contenu temporisé seul = problème d'accessibilité).
   React.useEffect(() => {
     if (t.portalActive) {
-      toast('Portail patient actif', { icon: 'verified_user', duration: 5000 });
+      toast(window.t('app.portailPatientActif.toast'), { icon: 'verified_user', duration: 5000 });
     }
   }, [t.portalActive]);
 
@@ -497,16 +552,16 @@ function App() {
     });
   }
   function handleNoteComplete(data) {
-    const months = ['JANVIER','FÉVRIER','MARS','AVRIL','MAI','JUIN','JUILLET','AOÛT','SEPTEMBRE','OCTOBRE','NOVEMBRE','DÉCEMBRE'];
     const d = new Date(data.date + 'T' + (data.time || '00:00'));
-    const dateLabel = d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear() + ' ' + (data.time || '');
+    const monthName = d.toLocaleDateString(window.I18N.locale, { month: 'long' }).toLocaleUpperCase(window.I18N.locale);
+    const dateLabel = d.getDate() + ' ' + monthName + ' ' + d.getFullYear() + ' ' + (data.time || '');
     const newNote = {
       date: dateLabel.trim(),
       author: t.doctorName,
       clinic: t.clinicName,
       role: 'Médecin de famille',
-      mode: data.visitType === 'Appel téléphonique' ? 'APPEL' : 'PRÉSENTIEL',
-      title: data.raison || 'Note clinique',
+      mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),
+      title: data.raison || window.t('app.noteClinique.tooltip'),
       icons: [],
       diagnostics: data.diagnostics || [],
       details: '',
@@ -563,7 +618,9 @@ function App() {
               groupRequests={t.groupRequests === true}
               inlineFieldEdit={t.inlineFieldEdit !== false}
               pendingBadge={t.pendingBadge !== false}
-              aiProposals={t.aiProposals === true} />
+              aiProposals={t.aiProposals === true}
+              suggestionsPlacement={t.suggestionsPlacement || 'aucune'}
+              visitStart={t.visitStart === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
             <div className="note-footer" style={{ gap: "8px", borderRadius: "16px 16px 16px 1px", padding: "16px" }}>
@@ -591,9 +648,9 @@ function App() {
               </div>}
               <div style={{ flex: 1 }} />
               <button className="ds-btn ds-btn--tonal"
-                onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>Sauvegarder</button>
+                onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>{window.t('app.sauvegarder.button')}</button>
               <button className="ds-btn ds-btn--filled"
-                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>Finaliser</button>
+                onClick={() => { if (noteCompleteRef.current) noteCompleteRef.current(); }}>{window.t('app.finaliser.button')}</button>
             </div>
             }
           </div>
@@ -616,6 +673,16 @@ function App() {
         <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
         <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général" />
+        {/* Langue : la page se recharge dans l'autre langue (voir i18n.js, urlFor) ;
+            les réglages ci-dessus survivent au rechargement. Les noms des langues
+            ne se traduisent jamais. */}
+        <TweakRadio label="Langue"
+                    value={window.I18N.lang}
+                    options={[
+                      { value: 'fr', label: 'Français' },
+                      { value: 'en', label: 'English' },
+                    ]}
+                    onChange={(v) => { if (v !== window.I18N.lang) window.location.assign(window.I18N.urlFor(v, window.location.href)); }} />
         <TweakRadio label="Mode"
                     value={t.themeMode || 'clair'}
                     options={[
@@ -647,7 +714,7 @@ function App() {
                     ]}
                     onChange={(v) => setTweak('ftBarPosition', v)} />
         <TweakSection label="Checkout" />
-        <TweakToggle label="Suggestions (✨)" value={t.checkoutSuggestions === true}
+        <TweakToggle label="Suggestions de destinataires (✨)" value={t.checkoutSuggestions === true}
                      onChange={(v) => setTweak('checkoutSuggestions', v)} />
         <TweakRadio label="Checkout des requêtes"
                     value={t.groupRequests === true ? 'type' : 'puce'}
@@ -672,6 +739,16 @@ function App() {
         <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
                      onChange={(v) => setTweak('pendingBadge', v)} />
         <TweakSection label="Pistes (vision)" />
+        <TweakRadio label="Suggestions"
+                    value={t.suggestionsPlacement || 'aucune'}
+                    options={[
+                      { value: 'aucune', label: 'Aucune' },
+                      { value: 'colonne', label: 'Colonne' },
+                      { value: 'curseur', label: 'Près du curseur' },
+                    ]}
+                    onChange={(v) => setTweak('suggestionsPlacement', v)} />
+        <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
+                     onChange={(v) => setTweak('visitStart', v)} />
         <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
                      onChange={(v) => setTweak('aiProposals', v)} />
         <TweakToggle label="Le « + » du sommaire ajoute dans la note" value={t.summaryAddToNote === true}

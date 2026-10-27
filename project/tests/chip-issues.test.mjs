@@ -10,6 +10,9 @@ const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx',
 const item = (kind, test) => w.NOTE_DATA.ORDER_DEFS[kind].items().find(test);
 const attrsFor = (kind, it) => w.orderChipAttrs(kind, it);
 const kinds = (issues) => issues.map((i) => i.kind);
+// Ce que la puce écrit pour « 1 comprimé » et « 7 jours » dans la langue de la suite.
+const tablet = w.RX_TEXT.qtyLabel({ form: 'comprimé' });
+const days7 = w.RX_TEXT.durationShort({ duration: '7', durationUnit: 'jours' });
 
 test('une prescription complète n’a aucun état', () => {
   const a = attrsFor('rx', item('rx', (it) => it.key === 'amox500'));
@@ -17,26 +20,26 @@ test('une prescription complète n’a aucun état', () => {
 });
 
 test('sans fréquence : incomplète, bloquante, et le message nomme le champ', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine')));
   const issues = w.chipIssues(a);
   assert.deepEqual(kinds(issues), ['incomplete']);
   assert.equal(issues[0].blocking, true);
   assert.equal(issues[0].level, 'error');
-  assert.match(issues[0].message, /fréquence/);
+  assert.match(issues[0].message, new RegExp(w.t('schema.frequency.word')));
 });
 
 test('un renouvellement vide vaut R0 : pas « incomplète »', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Atorvastatine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Atorvastatine')));
   assert.equal(a.details.refills, '');
   assert.deepEqual(w.chipIssues(a), []);
 });
 
 test('interaction simulée : erreur non bloquante', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Ciprofloxacine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Ciprofloxacine')));
   const issues = w.chipIssues(a);
   assert.deepEqual(kinds(issues), ['interaction']);
   assert.equal(issues[0].blocking, undefined);
-  assert.match(issues[0].message, /simulé/);
+  assert.equal(issues[0].message, a.details.alert.message);
 });
 
 test('référence sans question clinique : avertissement', () => {
@@ -47,14 +50,14 @@ test('référence sans question clinique : avertissement', () => {
 });
 
 test('transmise : ne garde que l’échec de transmission ; annulée : rien', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine')));
   assert.deepEqual(w.chipIssues(Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z' })), []);
   assert.deepEqual(kinds(w.chipIssues(Object.assign({}, a, { transmitError: 'envoi non reçu' }))), ['transmission', 'incomplete']);
   assert.deepEqual(w.chipIssues(Object.assign({}, a, { transmittedAt: '2026-09-29T14:00:00Z', cancelledAt: '2026-09-29T15:00:00Z' })), []);
 });
 
 test('une prescription cessée n’est jamais « incomplète »', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine')));
   a.rx = Object.assign({}, a.rx, { ceased: true });
   a.details = {};
   assert.deepEqual(w.chipIssues(a), []);
@@ -62,40 +65,40 @@ test('une prescription cessée n’est jamais « incomplète »', () => {
 
 test('checkout : l’ordonnance porte le message bloquant de son item incomplet, les items leurs états', () => {
   const ok = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.key === 'amox500')) };
-  const incomplete = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')) };
-  const d = doc(H2('Conclusion'), { type: 'paragraph', content: [ok, incomplete] });
+  const incomplete = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine'))) };
+  const d = doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [ok, incomplete] });
   const rx = w.buildTransmissionDocs(w.scanDoc(d), {}).find((x) => x.id === 'rx');
   assert.equal(rx.blocking.length, 1);
-  assert.match(rx.blocking[0], /Warfarine.*fréquence/);
+  assert.match(rx.blocking[0], new RegExp(w.L('Warfarine') + '.*' + w.t('schema.frequency.word')));
   assert.deepEqual(rx.items.map((it) => kinds(it.issues)), [[], ['incomplete']]);
-  const alone = w.buildTransmissionDocs(w.scanDoc(doc(H2('Conclusion'), { type: 'paragraph', content: [ok] })), {}).find((x) => x.id === 'rx');
+  const alone = w.buildTransmissionDocs(w.scanDoc(doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [ok] })), {}).find((x) => x.id === 'rx');
   assert.deepEqual(alone.blocking, []);
 });
 
 // --- Lot 1 « Prescription inline » : valeurs manquantes dans la puce ---
 
 test('incomplète : chipIssues liste les champs vides, dans l’ordre de la puce', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine'));
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine')));
   const incomplete = w.chipIssues(a).find((i) => i.kind === 'incomplete');
-  assert.deepEqual(incomplete.missing, [{ field: 'frequency', word: 'fréquence', label: 'Fréquence' }]);
+  assert.deepEqual(incomplete.missing, [{ field: 'frequency', word: w.TR('fréquence'), label: w.TR('Fréquence') }]);
   const none = Object.assign({}, a, { details: Object.assign({}, a.details, { dose: '', route: '', frequency: '' }) });
   assert.deepEqual(w.chipIssues(none).find((i) => i.kind === 'incomplete').missing.map((m) => m.field), ['dose', 'route', 'frequency']);
-  assert.match(w.chipIssues(none)[0].message, /dose, voie, fréquence/);
+  assert.match(w.chipIssues(none)[0].message, new RegExp(['dose', 'route', 'frequency'].map((k) => w.t('schema.' + k + '.word')).join(', ')));
 });
 
 test('segments : un champ requis vide est un espace réservé à sa place, pas un trou', () => {
   const d = { form: 'comprimé', route: 'PO', frequency: '', quantity: '21', duration: '7', durationUnit: 'jours', refills: '' };
-  const missing = [{ field: 'frequency', word: 'fréquence', label: 'Fréquence' }];
-  assert.deepEqual(w.rxChipSegments(d, missing).map((s) => s.text), ['1 comp.', 'PO', 'Fréquence', '#21', '7j', 'R0']);
+  const missing = [{ field: 'frequency', word: w.TR('fréquence'), label: w.TR('Fréquence') }];
+  assert.deepEqual(w.rxChipSegments(d, missing).map((s) => s.text), [tablet, 'PO', w.TR('Fréquence'), '#21', days7, 'R0']);
   assert.deepEqual(w.rxChipSegments(d, missing).filter((s) => s.missing).map((s) => s.field), ['frequency']);
   // Rien de manquant : aucun espace réservé, rendu inchangé.
-  assert.deepEqual(w.rxChipSegments(Object.assign({}, d, { frequency: 'TID' }), []).map((s) => s.text), ['1 comp.', 'PO', 'TID', '#21', '7j', 'R0']);
+  assert.deepEqual(w.rxChipSegments(Object.assign({}, d, { frequency: 'TID' }), []).map((s) => s.text), [tablet, 'PO', 'TID', '#21', days7, 'R0']);
 });
 
 test('segments : route et fréquence vides ensemble, ordre voie puis fréquence', () => {
-  const missing = [{ field: 'route', word: 'voie', label: 'Voie' }, { field: 'frequency', word: 'fréquence', label: 'Fréquence' }];
+  const missing = [{ field: 'route', word: 'voie', label: w.TR('Voie') }, { field: 'frequency', word: w.TR('fréquence'), label: w.TR('Fréquence') }];
   const segs = w.rxChipSegments({ form: 'capsule', refills: '2' }, missing);
-  assert.deepEqual(segs.map((s) => s.text), ['1 caps.', 'Voie', 'Fréquence', 'R2']);
+  assert.deepEqual(segs.map((s) => s.text), [w.RX_TEXT.qtyLabel({ form: 'capsule' }), w.TR('Voie'), w.TR('Fréquence'), 'R2']);
   assert.deepEqual(segs.map((s) => s.field), ['form', 'route', 'frequency', 'refills']);
 });
 
@@ -124,14 +127,14 @@ test('statuts : une nouvelle prescription complète n’a aucun badge', () => {
 test('statuts : cesser (texte) et renouveler (icône seule, nom accessible), jamais les deux', () => {
   const a = attrsFor('rx', item('rx', (it) => it.key === 'amox500'));
   const ceased = w.chipStatusBadges(withRx(a, { ceased: true }));
-  assert.deepEqual(ceased.map((b) => [b.kind, b.text]), [['ceased', 'Cesser']]);
+  assert.deepEqual(ceased.map((b) => [b.kind, b.text]), [['ceased', w.TR('Cesser')]]);
   const renewal = w.chipStatusBadges(withRx(a, { renewal: true }));
-  assert.deepEqual(renewal.map((b) => [b.kind, b.icon, b.text, b.title]), [['renewal', 'autorenew', undefined, 'Renouvellement']]);
+  assert.deepEqual(renewal.map((b) => [b.kind, b.icon, b.text, b.title]), [['renewal', 'autorenew', undefined, w.TR('Renouvellement')]]);
   assert.deepEqual(badgeKinds(withRx(a, { renewal: true, ceased: true })), ['ceased']);
 });
 
 test('statuts : l’ordre est cesser / renouveler, incomplet, en suspens', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')); // sans fréquence : incomplète
+  const a = attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine'))); // sans fréquence : incomplète
   assert.deepEqual(badgeKinds(a), ['incomplete']);
   assert.deepEqual(badgeKinds(withRx(a, { renewal: true })), ['renewal', 'incomplete']);
   assert.deepEqual(badgeKinds(Object.assign({}, withRx(a, { renewal: true }), { pending: true })), ['renewal', 'incomplete', 'pending']);
@@ -140,18 +143,18 @@ test('statuts : l’ordre est cesser / renouveler, incomplet, en suspens', () =>
 test('statuts : en suspens sur une suggestion de n’importe quel type, avec son auteur dans l’infobulle', () => {
   const lab = Object.assign({}, attrsFor('lab', item('lab', (it) => it.key === 'fsc')), { pending: true, proposedBy: 'Gabarit' });
   const badges = w.chipStatusBadges(lab);
-  assert.deepEqual(badges.map((b) => [b.kind, b.text]), [['pending', 'En suspens']]);
-  assert.match(badges[0].title, /Proposé par Gabarit/);
-  assert.match(w.chipStatusBadges(Object.assign({}, lab, { proposedBy: undefined }))[0].title, /Ajout proposé/);
+  assert.deepEqual(badges.map((b) => [b.kind, b.text]), [['pending', w.TR('En suspens')]]);
+  assert.equal(badges[0].title, w.t('schema.proposedBy.tooltip', { who: 'Gabarit' }));
+  assert.equal(w.chipStatusBadges(Object.assign({}, lab, { proposedBy: undefined }))[0].title, w.t('schema.proposed.tooltip'));
 });
 
 test('statuts : une puce annulée n’a pas de badge ici (« Annulée » vient de la puce transmise)', () => {
-  const a = Object.assign({}, withRx(attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')), { renewal: true }), { pending: true, cancelledAt: '2026-10-15T10:00:00Z' });
+  const a = Object.assign({}, withRx(attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine'))), { renewal: true }), { pending: true, cancelledAt: '2026-10-15T10:00:00Z' });
   assert.deepEqual(w.chipStatusBadges(a), []);
 });
 
 test('statuts : une cessée n’est jamais « incomplète » et garde son seul badge « Cesser »', () => {
-  const a = withRx(attrsFor('rx', item('rx', (it) => it.name === 'Warfarine')), { ceased: true });
+  const a = withRx(attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine'))), { ceased: true });
   a.details = {};
   assert.deepEqual(badgeKinds(a), ['ceased']);
 });
