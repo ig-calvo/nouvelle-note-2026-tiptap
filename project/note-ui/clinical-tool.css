@@ -317,7 +317,10 @@
    à plat, sans carte ni fond — à dessein très différent du champ
    confidentiel ci-dessus.
    ============================================================ */
-.action-log { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--divider); }
+.action-log { margin-top: 14px; padding-top: 10px; }
+/* Outils cliniques masqués : la zone par défaut est vide, le journal suit
+   directement la ligne de fin de note — sa marge (12px) suffit. */
+.ct-default-zone:not(:has(button)) + .action-log { margin-top: 0; padding-top: 4px; }
 .action-log__header {
   display: flex; align-items: center; justify-content: space-between; width: 100%;
   border: 0; background: transparent; cursor: pointer; padding: 2px 4px 2px 0;
