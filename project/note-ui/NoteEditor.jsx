@@ -303,14 +303,27 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       if (tpl.tool === 'itu') blocks.push(window.buildClinicalToolNode('itu', t('noteEditor.ituRoadmap.text')));
       if (editorRef.current) {
         var blank = window.docIsBlank(editorRef.current.getJSON());
-        // Note vierge : ensureSplit transforme le Titre 2 « Conclusion » du
-        // gabarit en ligne de séparation, à sa place exacte — le contenu du
-        // gabarit est inchangé, seule sa conclusion devient déplaçable.
-        // Note déjà amorcée : on ajoute AU-DESSUS de la ligne existante (fin
-        // des détails) plutôt qu'à la fin du document, qui serait sous la
-        // ligne, donc dans la conclusion.
+        // La conclusion du gabarit arrive déjà sous forme de ligne de
+        // séparation (buildTemplateBlocks). Note vierge : le gabarit devient
+        // le document. Note déjà amorcée : la note a sa propre ligne — les
+        // détails du gabarit vont AU-DESSUS (fin des détails), sa conclusion
+        // à la fin du document (fin de la conclusion), sans seconde ligne.
         if (blank) editorRef.current.commands.setContent(window.ensureSplit({ type: 'doc', content: blocks }), true);
-        else editorRef.current.chain().insertContentAt(window.splitPosPM(editorRef.current.state.doc), blocks).run();
+        else {
+          var ed = editorRef.current;
+          var cut = blocks.findIndex(function(b) { return b.type === window.SECTION_SPLIT; });
+          var details = cut < 0 ? blocks : blocks.slice(0, cut);
+          var conclusion = cut < 0 ? [] : blocks.slice(cut + 1);
+          // La fin du document d'abord : la position de la ligne, plus haut,
+          // reste valable pour la seconde insertion.
+          var chain = ed.chain();
+          if (conclusion.length) chain = chain.insertContentAt(ed.state.doc.content.size, conclusion);
+          // Une ligne vide sépare le gabarit du texte déjà écrit. Des détails
+          // sans texte (ex. « Infection urinaire ») n'ajoutent rien.
+          var hasDetails = details.some(function(b) { return b.type !== 'paragraph' || (b.content && b.content.length); });
+          if (hasDetails) chain =chain.insertContentAt(window.splitPosPM(ed.state.doc), [{ type: 'paragraph' }].concat(details));
+          chain.run();
+        }
       } else {
         initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
