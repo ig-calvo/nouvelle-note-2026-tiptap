@@ -92,8 +92,8 @@ const NOTE_ITEMS_TEMPLATE = [
     title: L("Examen annuel"),
     icons: ["graphic_eq", "pan_tool", "link", "hub"],
     diagnostics: [],
-    details: L("Subjectif : Patiente sans plainte particulière. Se dit en bonne santé. Pas de symptôme cardiovasculaire, respiratoire ou digestif. Sommeil satisfaisant. Énergie correcte. Stress professionnel modéré lié au travail en milieu scolaire. Contraception orale bien tolérée, pas d'oubli. Objectif : TA 116/72. Pouls 70 bpm. Poids 61 kg. IMC 22,4. Examen physique général sans anomalie. Auscultation cardio-pulmonaire normale. Abdomen souple, indolore. Pas d'adénopathie. Examen gynécologique non effectué (refusé par la patiente, à reprendre). Impression : Bonne santé générale."),
-    conclusion: L("Pas de problème actif identifié. Plan : Renouvellement contraceptif oral pour 1 an. Rappel dépistage col utérin à planifier. Conseils hygiéno-diététiques généraux. Retour au besoin."),
+    details: L("Subjectif : Patiente sans plainte particulière. Se dit en bonne santé. Pas de symptôme cardiovasculaire, respiratoire ou digestif. Sommeil satisfaisant. Énergie correcte. Stress scolaire modéré. Objectif : TA 116/72. Pouls 70 bpm. Poids 61 kg. IMC 22,4. Examen physique général sans anomalie. Auscultation cardio-pulmonaire normale. Abdomen souple, indolore. Pas d'adénopathie. Impression : Bonne santé générale."),
+    conclusion: L("Pas de problème actif identifié. Plan : Conseils hygiéno-diététiques généraux. Retour au besoin."),
     files: [
       { name: L("Exempleimage.jpg"), size: "200KB" },
       { name: L("Exempledocument.pdf"), size: "220KB" },

@@ -11,13 +11,13 @@ const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx',
 const D = w.NOTE_DATA;
 const row = (key) => D.PATIENT_MEDS.find((m) => m.key === key);
 
-test('le profil montre les 4 médications, tous statuts, dans le menu /rx', () => {
+test('le profil montre les 3 médications, tous statuts, dans le menu /rx', () => {
   const r = D.searchRx('');
   assert.deepEqual(r.profil.map((m) => [m.name + ' ' + m.dose, m.medStatus]), [
-    [w.L('Contraceptif oral') + ' ', 'active'], [w.TR('Tylenol 100 mg'), 'active'], [w.TR('Tylenol 500 mg'), 'echue'], [w.L('Nitrofurantoïne') + ' 100 mg', 'cessée']
+    [w.TR('Tylenol 100 mg'), 'active'], [w.TR('Tylenol 500 mg'), 'echue'], [w.L('Nitrofurantoïne') + ' 100 mg', 'cessée']
   ]);
   assert.equal(r.profilCeased, undefined); // plus de bloc replié « Médicaments cessés »
-  assert.deepEqual(r.profil.map((m) => D.MED_STATUS_LABEL[m.medStatus]), [w.TR('Actif'), w.TR('Actif'), w.TR('Échu'), w.TR('Cessé')]);
+  assert.deepEqual(r.profil.map((m) => D.MED_STATUS_LABEL[m.medStatus]), [w.TR('Actif'), w.TR('Échu'), w.TR('Cessé')]);
 });
 
 test('la recherche filtre le profil sans distinction de statut', () => {
@@ -29,7 +29,7 @@ test('la recherche filtre le profil sans distinction de statut', () => {
 test('une médication cessée ou échue se prescrit : elle est dans la liste de navigation au clavier', () => {
   const keys = w.flattenRxResults(D.searchRx('')).map((it) => it.key);
   for (const k of ['med-tylenol-500', 'med-nitrofurantoine']) assert.ok(keys.includes(k), k);
-  assert.deepEqual(keys.slice(0, 4), ['med-contraceptif', 'med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
+  assert.deepEqual(keys.slice(0, 3), ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
 });
 
 test('boutons d’une ligne : actif et échu renouvellent, augmentent, diminuent, cessent ; cessé prescrit ; Documenter seulement hors du dossier', () => {

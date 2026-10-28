@@ -27,27 +27,24 @@ var INIT_DATA = {
     { name:L('Aucune allergie connue'), type:'none', muted:true },
   ],
   family: [
-    { left:L('Nulligeste'),             mid:'' },
     { left:L('Cycles réguliers'),       mid:'' },
-    { left:L('Contraception…'),         mid:L('depuis 5 ans') },
     { left:L('Antécédents…'),           mid:L('Aucun pertinent') },
     { left:L('Antécédents chirurgi…'),  mid:L('Aucun') },
   ],
   meds: [
-    { name:L('Contraceptif…'),      detail:L('1 co DIE — actif'),  status:'active',  pinned:true },
     { name:L('Tylenol 100 mg'),     detail:L('1 co PRN — actif'),  status:'active' },
     { name:L('Tylenol 500 mg'),     detail:L('2 co DIE — échue'),  status:'echue',   date:'02/2026' },
     { name:L('Nitrofurantoïne…'),   detail:L('cessée (ITU)'),       status:'cessée',  date:'12/2025' },
   ],
   immun: [
-    { left:L('HPV (Gardasil…'),             mid:L('série complète'),      right:'2010' },
-    { left:L('dCaT (Tétanos-diphtérie)'),   mid:'',                    right:'2022' },
+    { left:L('HPV (Gardasil…'),             mid:L('série complète'),      right:'2020' },
+    { left:L('dCaT (Tétanos-diphtérie)'),   mid:'',                    right:'2025' },
     { left:L('Influenza'),                   mid:L('à jour'),              right:'2025' },
     { left:L('COVID-19'),                    mid:L('primaire + rappels'),   right:'2023' },
   ],
   habits: [
     { left:L('Tabac'),   name:L('Tabac'),   mid:L('Non-fumeuse'),         detail:L('Non-fumeuse') },
-    { left:L('Alcool'),  name:L('Alcool'),  mid:L('Occasionnel (social)'), detail:L('Occasionnel (social)') },
+    { left:L('Alcool'),  name:L('Alcool'),  mid:L('Aucun'),                detail:L('Aucun') },
     { left:L('Drogues'), name:L('Drogues'), mid:L('Aucune'),               detail:L('Aucune') },
   ],
 };

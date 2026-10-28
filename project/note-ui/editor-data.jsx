@@ -397,15 +397,9 @@ const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 // Figma « Recherche », EX-023). Statuts : 'active' (Actif), 'echue' (Échu),
 // 'cessée' (Cessé) — mêmes clés que le Sommaire (MEDS_STATUS_COLOR). Contenu
 // d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
-// profil garde le contraceptif et la nitrofurantoïne déjà au Sommaire.
+// profil garde le Tylenol et la nitrofurantoïne déjà au Sommaire.
 const MED_STATUS_LABEL = { active: t('data.medStatusActive.text'), echue: t('data.medStatusExpired.text'), 'cessée': t('data.medStatusCeased.text') };
 const PATIENT_MEDS = [
-  { key: 'med-contraceptif', name: L('Contraceptif oral'), dose: '', med: true, medStatus: 'active', medStatusLabel: L('actif'),
-    sig: L('1 co PO DIE'),
-    chipSig: L('1 co PO DIE'),
-    details: { molecule: L('Contraceptif oral'), dose: '', unit: '', form: 'comprimé', route: 'PO',
-      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '11',
-      indication: L('Contraception'), notes: L('Profil actif au dossier.') } },
   { key: 'med-tylenol-100', name: L('Tylenol'), dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
     sig: L('1 co PO PRN'),
@@ -1394,10 +1388,10 @@ const NOTE_TEMPLATES = [
 const PATIENT = {
   initials: 'GT',
   name: 'Geneviève Tremblay',
-  age: L('38 ans'),
+  age: L('15 ans'),
   sex: 'F',
-  dob: L('03 mai 1987'),
-  ramq: 'TREG 8705 0301',
+  dob: L('03 mai 2011'),
+  ramq: 'TREG 1155 0301',
   phone: '514 555 0184',
   reason: L('Otite moyenne aiguë'),
   status: L('En consultation'),

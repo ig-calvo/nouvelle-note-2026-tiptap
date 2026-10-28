@@ -290,7 +290,7 @@ test('diagRelabelPatches ne fait rien si le nom et le code n’ont pas changé',
 // ---------------------------------------------------------------------------
 // Sommaire : seed, getSommaireDiagnostics, mergeSommaireDx, commitSommaireDx
 // ---------------------------------------------------------------------------
-test('la base de démo a 2 problèmes codés et 2 antécédents résolus, cohérents avec le Sommaire (Nulligeste)', () => {
+test('la base de démo a 2 problèmes codés et 2 antécédents résolus, cohérents avec le Sommaire', () => {
   const seed = w.sommaireDxSeed();
   assert.deepEqual(seed.problems.map((r) => r.code).sort(), ['J30.4', 'J45.9']);
   assert.deepEqual(seed.history.map((r) => r.code).sort(), ['N23', 'N30.0']);

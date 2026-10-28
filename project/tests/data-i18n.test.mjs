@@ -43,7 +43,7 @@ test('données : sans traduction, le français est celui d’avant (repli)', () 
   const en = loadPrototype(files, { lang: 'en', english: false }).NOTE_DATA;
   assert.deepEqual(JSON.parse(JSON.stringify(en.MED_CATALOG)), JSON.parse(JSON.stringify(fr.MED_CATALOG)));
   assert.equal(fr.MED_CATALOG[0].label, 'Atorvastatine 20 mg');
-  assert.equal(fr.PATIENT.dob.replace(/\s/g, ' '), '03 mai 1987');
+  assert.equal(fr.PATIENT.dob.replace(/\s/g, ' '), '03 mai 2011');
 });
 
 test('constantes de logique : les titres de section sont lus par t() des deux côtés', () => {
