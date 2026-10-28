@@ -195,8 +195,8 @@ function DocView({ doc, blocks, dxModel }) {
         <div key={'db-' + bi} style={nlStyles.roDiag}>
           <div style={nlStyles.roDiagHeader}>
             {entry && <span style={nlStyles.roDiagNum}>{entry.number}</span>}
+            {window.DX_QUALIFIERS[a.qualifier] && <span style={nlStyles.roDiagQual}>{window.DX_QUALIFIERS[a.qualifier].label}</span>}
             <span style={Object.assign({}, nlStyles.roDiagName, isCesse ? nlStyles.roDiagNameCesse : null)}>{a.name}</span>
-            {a.code && <span style={nlStyles.roDiagCode}>{a.code}</span>}
             {isCesse && <span style={nlStyles.roDiagStatus}>{t('notesList.cesse.text')}</span>}
             {a.replaces && <span style={nlStyles.roDiagSub}>{t('notesList.replaces.text', { name: a.replaces.name })}</span>}
           </div>
@@ -666,7 +666,10 @@ const nlStyles = {
     width: 18, height: 18, borderRadius: '50%',
     background: '#000', color: '#fff', fontSize: 11, fontWeight: 600, lineHeight: 1, flexShrink: 0,
   },
-  roDiagCode: { fontSize: 11, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', fontVariantNumeric: 'tabular-nums' },
+  roDiagQual: {
+    fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
+    color: 'var(--mat-sys-on-secondary-container)', background: 'var(--mat-sys-secondary-container)', borderRadius: 4, padding: '2px 6px',
+  },
   roDiagStatus: {
     fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em',
     color: 'light-dark(#7a1f26, #e8a6ab)', background: 'light-dark(#ecdfe0, #462a2c)', borderRadius: 4, padding: '2px 6px',

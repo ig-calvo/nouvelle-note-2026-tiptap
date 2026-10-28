@@ -8,6 +8,9 @@ import { loadPrototype } from './harness.mjs';
 
 const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx']);
 const D = w.NOTE_DATA;
+// Ces tests portent sur la recherche elle-même : aucune allergie au dossier
+// (le filtre d'allergie a ses propres tests, allergy-filter.test.mjs).
+D.setPatientAllergies([]);
 const names = (r) => ({ favoris: r.favoris.map((it) => it.name), autres: r.autres.map((it) => it.name) });
 
 test('ajouter un favori pendant une recherche ne déplace pas les sections', () => {

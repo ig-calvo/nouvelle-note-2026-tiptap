@@ -23,8 +23,10 @@ var INIT_DATA = {
   // avec ce que la note en cours documente (E2).
   problems: DX_SEED.problems,
   history: DX_SEED.history,
+  // Allergie à la pénicilline (débrief du 2026-10-28) : la recherche /rx masque
+  // les pénicillines (editor-data.jsx, applyAllergyFilter).
   allergies: [
-    { name:L('Aucune allergie connue'), type:'none', muted:true },
+    { name:L('Pénicilline'), mid:L('Éruption cutanée'), type:'allergie' },
   ],
   family: [
     { left:L('Cycles réguliers'),       mid:'' },
@@ -84,6 +86,11 @@ var MEDS_STATUS_COLOR = { active:'#1b8a3f', echue:'#c07a00', cessée:'#c62828', 
 // l'ancienne modale.
 function Summary({ addToNote }) {
   var [data, setData] = React.useState(INIT_DATA);
+  // La recherche /rx filtre selon les allergies au sommaire, ajouts et retraits compris.
+  React.useEffect(function() {
+    if (!window.NOTE_DATA || !window.NOTE_DATA.setPatientAllergies) return;
+    window.NOTE_DATA.setPatientAllergies((data.allergies || []).filter(function(a){ return a.type !== 'none'; }).map(function(a){ return a.name || a.left; }));
+  }, [data.allergies]);
   var [modal, setModal] = React.useState(null);   // { section, type:'add'|'list' }
   var [reorder, setReorder] = React.useState(false);
   var [sectionIds, setSectionIds] = React.useState(SECTION_CFG.map(function(s){ return s.id; }));

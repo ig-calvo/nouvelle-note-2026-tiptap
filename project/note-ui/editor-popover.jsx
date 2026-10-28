@@ -641,14 +641,12 @@ function DxRow({ item, term, active, actionFocus, onEvent }) {
       onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'activate', index: it.idx }); }}>
       <span className="dx-item__lead">
         {it.kind === 'note' ? <span className="dx-num">{it.lead}</span>
-          : (it.kind === 'sommaire' || it.kind === 'snomed') ? <span className="material-icons-outlined">{it.lead}</span>
-          : isNav ? <span className="material-icons-outlined">account_tree</span>
-          : it.lead ? <span className="dx-code">{it.lead}</span> : null}
+          : (it.kind === 'sommaire' || it.kind === 'snomed' || it.kind === 'cim') ? <span className="material-icons-outlined">{it.lead}</span>
+          : isNav ? <span className="material-icons-outlined">account_tree</span> : null}
       </span>
       <div className="dx-item__body">
         <div className="dx-item__name">
           <DxHighlight text={it.label} term={term} />
-          {it.code && it.kind !== 'cim' && it.kind !== 'snomed' && <span className="dx-item__code"> · {it.code}</span>}
         </div>
         {it.sub && <div className="dx-item__sub">{it.sub}</div>}
         {it.tags.map(function (t) { return <span key={t.kind} className={'dx-tag dx-tag--' + t.kind}>{t.text}</span>; })}
@@ -852,7 +850,7 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -893,6 +891,18 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
     <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
       <div className="rx-menu__main">
       <div className="rx-menu__scroll">
+        {/* Produits allergènes masqués (applyAllergyFilter, editor-data.jsx) : la
+            bannière le dit et « Afficher » les remet, marqués sur leur ligne. */}
+        {results.allergy &&
+          <div className="rx-allergy" role="status">
+            <span className="material-icons-outlined" aria-hidden="true">{results.allergy.shown ? 'warning' : 'visibility_off'}</span>
+            <span className="rx-allergy__text">{results.allergy.shown
+              ? tn('popover.allergyShown.text', results.allergy.count, { names: results.allergy.names.join(', ') })
+              : tn('popover.allergyHidden.text', results.allergy.count, { names: results.allergy.names.join(', ') })}</span>
+            <button type="button" className="rx-allergy__btn" onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleAllergens && onToggleAllergens()}>
+              {results.allergy.shown ? t('popover.allergyHide.button') : t('popover.allergyShow.button')}
+            </button>
+          </div>}
         {total === 0 &&
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
@@ -922,6 +932,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
                       {it.med && <span className={'rx-status rx-status--' + (it.medStatus === 'cessée' ? 'ceased' : it.medStatus)} title={it.medStatusLabel || ''}>{window.NOTE_DATA.MED_STATUS_LABEL[it.medStatus]}</span>}
+                      {kind === 'rx' && results.allergy && window.NOTE_DATA.rxAllergyOf(it) &&
+                        <span className="rx-status rx-status--allergy">{t('popover.allergyTag.text', { name: window.NOTE_DATA.rxAllergyOf(it) })}</span>}
                     </div>
                     <div className="rx-item__sig">{it.sig}</div>
                   </div>

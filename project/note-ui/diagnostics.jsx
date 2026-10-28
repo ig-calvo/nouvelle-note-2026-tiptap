@@ -89,6 +89,7 @@ function normalizeDiagAttrs(attrs) {
     documentAs: a.documentAs || legacyDocumented,
     status: a.status === 'cesse' ? 'cesse' : 'actif',
     replaces: a.replaces || null,
+    qualifier: DX_QUALIFIERS[a.qualifier] ? a.qualifier : null,
     documentedAt: a.documentedAt || a.promotedAt || null,
     documentedBy: a.documentedBy || a.promotedBy || null,
     createdAt: a.createdAt || null,
@@ -391,6 +392,15 @@ function diagCodeLabel(attrs) {
 }
 
 // ---------------------------------------------------------
+// Qualificatifs d'un diagnostic (débrief du 2026-10-28) : de petites actions
+// après la recherche, pour ne pas écrire « suspicion de… » ou « à exclure ».
+// ---------------------------------------------------------
+const DX_QUALIFIERS = {
+  suspicion: { label: t('dx.qualifier.suspicion.label'), addTitle: t('dx.qualifier.suspicion.title'), removeTitle: t('dx.qualifier.remove.title', { label: t('dx.qualifier.suspicion.label') }) },
+  exclure: { label: t('dx.qualifier.exclure.label'), addTitle: t('dx.qualifier.exclure.title'), removeTitle: t('dx.qualifier.remove.title', { label: t('dx.qualifier.exclure.label') }) },
+};
+
+// ---------------------------------------------------------
 // Bouton et menu « Documenter comme » (D1) — état dérivé, jamais stocké.
 // ---------------------------------------------------------
 const DX_DOC_BUTTON = {
@@ -623,7 +633,7 @@ Object.assign(window, {
   diagPlacement: diagPlacement, dxSommaireTargetId: dxSommaireTargetId, normalizeDiagAttrs: normalizeDiagAttrs,
   makeDiagRegionAttrs: makeDiagRegionAttrs, prepareDiagDoc: prepareDiagDoc, rebaseDiagDocForNewNote: rebaseDiagDocForNewNote,
   diagRelabelPatches: diagRelabelPatches, diagCanRefine: diagCanRefine, dxRegionCimId: dxRegionCimId, diagCodeLabel: diagCodeLabel,
-  diagDocButton: diagDocButton, diagDocMenuItems: diagDocMenuItems,
+  diagDocButton: diagDocButton, diagDocMenuItems: diagDocMenuItems, DX_QUALIFIERS: DX_QUALIFIERS,
   getSommaireDiagnostics: getSommaireDiagnostics, sommaireDxSeed: sommaireDxSeed, dxFindLinkableRow: dxFindLinkableRow,
   fmtSommaireDate: fmtSommaireDate, mergeSommaireDx: mergeSommaireDx, commitSommaireDx: commitSommaireDx,
   sommaireDxRowView: sommaireDxRowView,
