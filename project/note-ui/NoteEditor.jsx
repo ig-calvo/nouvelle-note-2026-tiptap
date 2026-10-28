@@ -1431,15 +1431,37 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
     priority: t('noteEditor.fieldPriority.label'), exam: t('noteEditor.fieldExam.label'), specialty: t('noteEditor.fieldSpecialty.label')
   };
 
-  var _q = React.useState(initialVal); var query = _q[0]; var setQuery = _q[1];
-  var _ai = React.useState(0); var activeIdx = _ai[0]; var setActiveIdx = _ai[1];
-  var inputRef = React.useRef(null);
+  // La recherche s'ouvre vide, sur la liste complète, la valeur actuelle
+  // cochée et active (débrief du 2026-10-28) : préremplie, elle filtrait la
+  // liste à cette seule valeur (« BID » ne montrait que BID et BID PRN).
+  // Une valeur hors liste (saisie libre) est ajoutée en tête pour rester visible.
+  var norm = function(v) { return String(v || '').toLowerCase().replace(/\s+/g, ''); };
+  var options = ALL_SUGGESTIONS[field] || [];
+  var currentIdx = initialVal ? options.findIndex(function(s) { return norm(s) === norm(initialVal); }) : -1;
+  if (initialVal && currentIdx < 0) { options = [initialVal].concat(options); currentIdx = 0; }
+  var current = currentIdx >= 0 ? options[currentIdx] : null;
 
-  var suggestions = (ALL_SUGGESTIONS[field] || []).filter(function(s) {
+  var _q = React.useState(''); var query = _q[0]; var setQuery = _q[1];
+  var _ai = React.useState(Math.max(0, currentIdx)); var activeIdx = _ai[0]; var setActiveIdx = _ai[1];
+  var inputRef = React.useRef(null);
+  var listRef = React.useRef(null);
+
+  var suggestions = options.filter(function(s) {
     return !query || s.toLowerCase().includes(query.toLowerCase());
   });
 
-  React.useEffect(function() { if (inputRef.current) inputRef.current.select(); }, []);
+  // Le focus revient au champ après le tour où l'éditeur reprend le sien (clic sur la puce).
+  React.useEffect(function() {
+    function focus() { if (inputRef.current) inputRef.current.focus(); }
+    focus();
+    var id = setTimeout(focus, 0);
+    return function() { clearTimeout(id); };
+  }, []);
+  // La ligne active reste visible (à l'ouverture : la valeur actuelle, même loin dans la liste).
+  React.useEffect(function() {
+    var row = listRef.current && listRef.current.children[activeIdx];
+    if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx]);
   // Sous le champ, ou au-dessus s'il n'y a pas la place (placePopover, mode 'flip').
   React.useLayoutEffect(function() {
     var el = document.getElementById('chip-inline-editor');
@@ -1487,13 +1509,14 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
         style: { flex: 1, border: 'none', outline: 'none', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface)', background: 'transparent' }
       })
     ),
-    React.createElement('div', { style: { maxHeight: 224, overflowY: 'auto', padding: '4px 0' } },
+    React.createElement('div', { ref: listRef, role: 'listbox', style: { maxHeight: 224, overflowY: 'auto', padding: '4px 0' } },
       suggestions.length === 0
         ? React.createElement('div', { style: { padding: 'var(--ds-spacing-12)', font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' } }, t('noteEditor.noSuggestion.empty'))
         : suggestions.map(function(s, i) {
             var isActive = i === activeIdx;
+            var isCurrent = s === current;
             return React.createElement('div', {
-              key: s,
+              key: s, role: 'option', 'aria-selected': isCurrent,
               onMouseEnter: function() { setActiveIdx(i); },
               onMouseDown: function(e) { e.preventDefault(); handleSelect(s); },
               style: {
@@ -1503,7 +1526,9 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }
             },
-              s,
+              React.createElement('span', { style: { display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: isCurrent ? 600 : 400 } },
+                React.createElement('span', { className: 'material-icons-outlined', 'aria-hidden': true, style: { fontSize: 16, width: 16, visibility: isCurrent ? 'visible' : 'hidden' } }, 'check'),
+                s),
               isActive ? React.createElement('span', { style: { fontSize: 11, opacity: 0.7 } }, '↵') : null
             );
           })
