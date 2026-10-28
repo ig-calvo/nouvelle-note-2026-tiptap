@@ -62,8 +62,10 @@ test('tout accepter : plus rien en attente, les puces restent ; tout refuser : e
 
 test('texte proposé : les paragraphes sont marqués « Gabarit », pas les titres ; accepter retire la marque, refuser retire le texte', () => {
   const blocks = w.buildTemplateBlocks(tpl('otite'), { proposeText: true });
-  const headings = blocks.filter((b) => b.type === 'heading');
-  assert.ok(headings.length > 0);
+  // Les titres de section sont des lignes de texte normal (pas de Titre 2).
+  const titles = new Set(tpl('otite').sections.map((s) => s.title));
+  const headings = blocks.filter((b) => b.type === 'paragraph' && titles.has(textOf([b])));
+  assert.equal(headings.length, 2, 'Histoire et Examen ; la Conclusion devient la ligne');
   assert.ok(headings.every((h) => (h.content || []).every((t) => !(t.marks || []).length)));
   const d = doc(...blocks);
   const s = w.pendingSummary(d);
@@ -111,4 +113,14 @@ test('lignes à compléter : accepter les garde en texte (rien n’est prescrit 
   terms.forEach((term) => assert.ok(textOf([accepted]).includes(term), term));
   assert.equal(w.pendingSummary(accepted).count, 0);
   assert.equal(chipsIn([w.resolvePendingInDoc(d, false)]).length, 0);
+});
+
+test('aucun gabarit de note ne crée de titre spécial : titres en texte normal, Conclusion en ligne de séparation', () => {
+  w.NOTE_DATA.NOTE_TEMPLATES.forEach((t) => {
+    const blocks = w.buildTemplateBlocks(t);
+    assert.equal(blocks.filter((b) => b.type === 'heading').length, 0, t.key);
+    const splits = blocks.filter((b) => b.type === w.SECTION_SPLIT).length;
+    const hasConclusion = t.sections.some((s) => s.title === w.CONCLUSION_LABEL);
+    assert.equal(splits, hasConclusion ? 1 : 0, t.key + ' : une ligne pour sa conclusion');
+  });
 });

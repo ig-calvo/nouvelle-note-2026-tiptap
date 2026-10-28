@@ -2594,13 +2594,21 @@ function endOfFirstSectionIndexJSON(docJson) {
   return content.length;
 }
 
-// Gabarit {title, content:'ligne1\nligne2'} → [Titre2, paragraphes...] JSON.
-// Titre verrouillé (attrs.locked) : ces sections viennent du gabarit, pas
-// d'une saisie — même traitement que le titre par défaut de DEFAULT_DOC.
-// Si le titre est « Conclusion », ensureSplit le remplacera de toute façon
-// par la ligne de séparation avant tout affichage (voir note-sections.jsx).
+// Gabarit {title, content:'ligne1\nligne2'} → [titre, paragraphes...] JSON.
+// Le titre de section est une ligne de texte normal, jamais un Titre 2 : les
+// anciens titres verrouillés (attrs.locked) ne pouvaient plus être effacés.
+// Deux titres gardent leur rôle de structure : « Conclusion » devient la ligne
+// de séparation, et « Détails de la consultation », déjà affiché hors de
+// l'éditeur, n'est pas repris.
+function templateTitleBlock(title) {
+  const key = (title || '').trim().toLowerCase();
+  if (key === window.CONCLUSION_LABEL.toLowerCase()) return { type: window.SECTION_SPLIT };
+  if (key && key !== window.DETAILS_LABEL.toLowerCase()) return { type: 'paragraph', content: [{ type: 'text', text: title }] };
+  return null;
+}
 function plainToBlocks(title, content) {
-  const blocks = [{ type: 'heading', attrs: { level: 2, locked: true }, content: [{ type: 'text', text: title }] }];
+  const head = templateTitleBlock(title);
+  const blocks = head ? [head] : [];
   (content || '').split('\n').forEach(function (line) {
     blocks.push(line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' });
   });
@@ -2804,7 +2812,11 @@ function buildTemplateBlocks(tpl, opts) {
   (tpl.sections || []).forEach(function (s) {
     let sec = plainToBlocks(s.title, s.content || '');
     if (proposeText) {
-      sec = sec.map(function (b) { return b.type === 'paragraph' ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
+      // Le titre reste hors proposition : refuser le texte du gabarit garde
+      // la structure de la note.
+      const head = templateTitleBlock(s.title);
+      const skip = head && head.type === 'paragraph' ? 1 : 0;
+      sec = sec.map(function (b, i) { return b.type === 'paragraph' && i >= skip ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
     }
     const nodes = (s.proposals || []).map(function (p) { return buildTemplateChipNode(p, source); }).filter(Boolean);
     if (nodes.length) {
@@ -2814,6 +2826,9 @@ function buildTemplateBlocks(tpl, opts) {
       if (last && last.type === 'paragraph') last.content = (last.content || []).concat(inline);
       else sec.push({ type: 'paragraph', content: inline });
     }
+    // Une ligne vide sépare un titre de la section précédente — sauf devant
+    // la ligne de séparation, qui marque déjà la coupure.
+    if (blocks.length && sec.length && sec[0].type !== window.SECTION_SPLIT) blocks.push({ type: 'paragraph' });
     blocks = blocks.concat(sec);
   });
   return blocks;
