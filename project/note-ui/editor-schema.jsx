@@ -879,6 +879,8 @@ function makeReferenceNode() { return window.Tiptap.Node.create({
 //  - status/replaces : Cesser (D2) et Remplacer (D3).
 //  - documentedAt/documentedBy : horodatage du dernier acte qui a touché le
 //    Sommaire — clé du Journal des actions (buildActionLog plus haut).
+//  - qualifier : 'suspicion' ou 'exclure' (rule out), posé par les pastilles de
+//    l'en-tête (débrief du 2026-10-28) ; null = diagnostic retenu.
 // Tous font l'aller-retour par des attributs data-* (round-trip HTML), pour
 // que le copier-coller d'une région garde son identité complète.
 // ---------------------------------------------------------
@@ -896,6 +898,7 @@ function dxDataAttrs(attrs) {
   if (a.documentedAt) out['data-dx-documented-at'] = a.documentedAt;
   if (a.documentedBy) out['data-dx-documented-by'] = a.documentedBy;
   if (a.createdAt) out['data-dx-created-at'] = a.createdAt;
+  if (a.qualifier) out['data-dx-qualifier'] = a.qualifier;
   return out;
 }
 function dxAttrsFromDom(dom) {
@@ -912,6 +915,7 @@ function dxAttrsFromDom(dom) {
     sommaireId: dom.getAttribute('data-dx-sommaire-id') || null,
     documentAs: dom.getAttribute('data-dx-document-as') || null,
     status: dom.getAttribute('data-dx-status') === 'cesse' ? 'cesse' : 'actif',
+    qualifier: dom.getAttribute('data-dx-qualifier') || null,
     replaces: replaces,
     documentedAt: dom.getAttribute('data-dx-documented-at') || null,
     documentedBy: dom.getAttribute('data-dx-documented-by') || null,
@@ -1006,7 +1010,7 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       code: { default: null }, level: { default: null }, source: { default: null },
       sommaireId: { default: null }, documentAs: { default: null }, status: { default: 'actif' },
       replaces: { default: null }, documentedAt: { default: null }, documentedBy: { default: null },
-      createdAt: { default: null }
+      createdAt: { default: null }, qualifier: { default: null }
     };
   },
   parseHTML() {
@@ -1014,10 +1018,11 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
   },
   renderHTML({ node, HTMLAttributes }) {
     const a = node.attrs;
+    const qual = window.DX_QUALIFIERS[a.qualifier];
     const head = ['div', { class: 'dxr-head', contenteditable: 'false' },
-      ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital'],
-      ['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]];
-    if (a.code) head.push(['span', { class: 'dxr-code' }, window.diagCodeLabel(a)]);
+      ['span', { class: 'material-icons-outlined dxr-ic' }, 'local_hospital']];
+    if (qual) head.push(['span', { class: 'dxr-qual-tag dxr-qual-tag--' + a.qualifier }, qual.label]);
+    head.push(['span', { class: 'dxr-name', 'data-diag-id': a.id }, a.name]);
     if (a.status === 'cesse') head.push(['span', { class: 'dxr-status' }, t('schema.cesse.text')]);
     if (a.replaces) head.push(['span', { class: 'dxr-sub' }, t('schema.replaces.text', { name: a.replaces.name })]);
     if (window.diagCanRefine(a)) {
@@ -1044,12 +1049,26 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
       ic.className = 'material-icons-outlined dxr-ic';
       ic.textContent = 'local_hospital';
       head.appendChild(ic);
+      // Qualificatif (débrief du 2026-10-28) : posé, une étiquette devant le nom
+      // (un clic la retire) ; sinon deux petites pastilles après le nom.
+      const qualTag = document.createElement('button');
+      qualTag.type = 'button';
+      qualTag.className = 'dxr-qual-tag';
+      head.appendChild(qualTag);
       const nameEl = document.createElement('span');
       nameEl.className = 'dxr-name';
       head.appendChild(nameEl);
-      const codeEl = document.createElement('span');
-      codeEl.className = 'dxr-code';
-      head.appendChild(codeEl);
+      const qualBtns = Object.keys(window.DX_QUALIFIERS).map(function (k) {
+        const q = window.DX_QUALIFIERS[k];
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'dxr-qual-btn';
+        btn.setAttribute('data-qual', k);
+        btn.title = q.addTitle;
+        btn.textContent = q.label;
+        head.appendChild(btn);
+        return btn;
+      });
       const statusEl = document.createElement('span');
       statusEl.className = 'dxr-status';
       statusEl.textContent = t('schema.cesse.text');
@@ -1097,8 +1116,12 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         nameEl.setAttribute('data-diag-id', a.id || '');
         nameEl.setAttribute('data-dx-code', a.code || '');
         nameEl.textContent = a.name || t('schema.diagnostic.text');
-        codeEl.textContent = window.diagCodeLabel(a);
-        codeEl.hidden = !a.code;
+        const qual = window.DX_QUALIFIERS[a.qualifier];
+        qualTag.hidden = !qual;
+        qualTag.className = 'dxr-qual-tag' + (qual ? ' dxr-qual-tag--' + a.qualifier : '');
+        qualTag.textContent = qual ? qual.label : '';
+        qualTag.title = qual ? qual.removeTitle : '';
+        qualBtns.forEach(function (btn) { btn.hidden = !!qual; });
         statusEl.hidden = a.status !== 'cesse';
         subEl.hidden = !a.replaces;
         subEl.textContent = a.replaces ? t('schema.replaces.text', { name: a.replaces.name }) : '';

@@ -488,10 +488,53 @@ function applyRxFilter(r, f) {
     default: return r;
   }
 }
+// Allergies du patient (débrief du 2026-10-28) : la recherche /rx masque les
+// produits d'une classe à laquelle le patient est allergique et le dit dans une
+// bannière ; « Afficher » les remet, marqués. Les médications au dossier ne sont
+// jamais masquées. Le Sommaire tient la liste à jour (setPatientAllergies) ;
+// classes et correspondances simulées, à valider cliniquement.
+const ALLERGEN_CLASSES = [
+  { key: 'penicilline', allergy: /penicill|amoxicill|ampicill|cloxacill/, product: /penicill|amoxicill|ampicill|cloxacill|piperacill/ },
+];
+let _patientAllergies = [L('Pénicilline')];
+let _showAllergens = false;
+function setPatientAllergies(names) { _patientAllergies = (names || []).filter(Boolean); }
+function getPatientAllergies() { return _patientAllergies.slice(); }
+function setShowAllergens(on) { _showAllergens = !!on; }
+// L'allergie au dossier qui exclut ce produit, ou null.
+function rxAllergyOf(it) {
+  if (!it || it.med) return null;
+  const hay = _hay(it.name) + ' ' + _hay((it.details && it.details.molecule) || '');
+  for (let i = 0; i < _patientAllergies.length; i++) {
+    const a = _hay(_patientAllergies[i]);
+    const cls = ALLERGEN_CLASSES.find(function (c) { return c.allergy.test(a); });
+    if (cls ? cls.product.test(hay) : (a.trim() && hay.includes(_norm(_patientAllergies[i])))) return _patientAllergies[i];
+  }
+  return null;
+}
+// Retire des sections hors dossier les produits allergènes (sauf « Afficher ») ;
+// `allergy` = { count, names, shown } quand la recherche en a trouvé.
+function applyAllergyFilter(r) {
+  const out = Object.assign({}, r);
+  let count = 0; const names = [];
+  ['contexte', 'favoris', 'frequents', 'autres'].forEach(function (k) {
+    if (!r[k]) return;
+    out[k] = r[k].filter(function (it) {
+      const a = rxAllergyOf(it);
+      if (!a) return true;
+      count += 1;
+      if (names.indexOf(a) < 0) names.push(a);
+      return _showAllergens;
+    });
+  });
+  if (count) out.allergy = { count: count, names: names, shown: _showAllergens };
+  return out;
+}
+
 // Compteurs du rail, pour la recherche en cours. Tout = les lignes que « Tout »
 // affiche.
 function rxFilterCounts(q, favs) {
-  const r = searchRx(q, favs);
+  const r = applyAllergyFilter(searchRx(q, favs));
   const tout = r.profil.length + r.favoris.length + r.frequents.length + r.autres.length;
   return { tout: tout, renouvelables: r.profil.filter(isRenewable).length,
     actives: r.profil.filter(function (it) { return it.medStatus === 'active'; }).length,
@@ -1133,13 +1176,16 @@ function searchOrder(kind, q, dx) {
   if (!d) return { favoris: [], frequents: [], autres: [] };
   if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
-    if (ctx.length) return { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
+    if (ctx.length) {
+      const res = { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
+      return kind === 'rx' ? applyAllergyFilter(res) : res;
+    }
   }
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
   const r = d.search(q, _favFreeze[kind]);
-  return kind === 'rx' ? applyRxFilter(r, _rxFilter) : r;
+  return kind === 'rx' ? applyAllergyFilter(applyRxFilter(r, _rxFilter)) : r;
 }
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _showAllergens = false; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
@@ -1497,6 +1543,7 @@ function visitReason(points) {
 window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
+  setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,

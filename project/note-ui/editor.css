@@ -92,7 +92,7 @@
   padding: 6px 10px 4px 12px;
   user-select: none;
 }
-/* [hidden] natif (codeEl/statusEl/subEl — editor-schema.jsx) doit l'emporter
+/* [hidden] natif (statusEl/subEl — editor-schema.jsx) doit l'emporter
    sur le display:inline-flex/flex posé par les règles ci-dessous. */
 .note-field .ql-editor .dxr-head [hidden] {
   display: none !important;
@@ -115,22 +115,6 @@
   transition: background 120ms;
 }
 .note-field .ql-editor .dxr-name:hover {
-  background: rgba(106, 150, 192, 0.1);
-}
-/* Code CIM-10, à côté du nom — masqué (hidden natif) en texte libre. */
-.note-field .ql-editor .dxr-code {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 500;
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent);
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-  cursor: pointer;
-  border-radius: 3px;
-  padding: 1px 4px;
-  transition: background 120ms;
-}
-.note-field .ql-editor .dxr-code:hover {
   background: rgba(106, 150, 192, 0.1);
 }
 /* Étiquette « Cessé » — même palette que .rx-status--ceased (médicaments
@@ -166,6 +150,44 @@
   white-space: nowrap;
   flex-shrink: 1;
 }
+/* Qualificatif (débrief du 2026-10-28) : pastilles discrètes « Suspicion » /
+   « À exclure » après le nom ; posé, une étiquette devant le nom (clic = retirer). */
+.note-field .ql-editor .dxr-qual-btn {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+  background: transparent;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  border-radius: 10px;
+  padding: 1px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.note-field .ql-editor .dxr-qual-btn:hover {
+  color: light-dark(#4a6f94, #b4c7da);
+  border-color: #7fa8d8;
+  border-style: solid;
+  background: rgba(106, 150, 192, 0.1);
+}
+.note-field .ql-editor .dxr-qual-tag {
+  font-family: var(--font-body);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 0;
+  border-radius: 4px;
+  padding: 2px 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.note-field .ql-editor .dxr-qual-tag--suspicion { background: light-dark(#f7ebcf, #43361a); color: light-dark(#7a5200, #e9cca5); }
+.note-field .ql-editor .dxr-qual-tag--exclure { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.note-field .ql-editor .dxr-qual-tag:hover { text-decoration: line-through; }
+.note-field .ql-editor .dxr-qual-btn:focus-visible,
+.note-field .ql-editor .dxr-qual-tag:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
 /* « Préciser » — ouvre DxEditPopover en mode refine (editor-field.jsx). */
 .note-field .ql-editor .dxr-refine {
   font-family: var(--font-body);
@@ -815,6 +837,14 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-status--active { background: light-dark(#e1efe6, #1f3a2b); color: light-dark(#1d5c36, #b9d5c7); }
 .rx-status--echue { background: light-dark(#f7ebcf, #43361a); color: light-dark(#7a5200, #e9cca5); }
 .rx-status--ceased { background: light-dark(#ecdfe0, #462a2c); color: light-dark(#7a1f26, #e8a6ab); }
+.rx-status--allergy { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
+/* Bannière « produits masqués (allergie au dossier) » en tête du menu /rx. */
+.rx-allergy { display: flex; align-items: center; gap: 8px; margin: 8px 12px 4px; padding: 6px 8px 6px 12px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); font: 500 13px/18px var(--font-body); }
+.rx-allergy .material-icons-outlined { font-size: 18px; flex-shrink: 0; }
+.rx-allergy__text { flex: 1; min-width: 0; }
+.rx-allergy__btn { flex-shrink: 0; border: 0; background: transparent; color: inherit; font: 600 13px var(--font-body); text-decoration: underline; padding: 4px 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); cursor: pointer; }
+.rx-allergy__btn:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.rx-allergy__btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
 .rx-active { width: 22px; height: 22px; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .rx-active .material-icons { font-size: 15px; }
 /* Actions sur une médication active au dossier — donne un sens distinct
@@ -865,10 +895,8 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .dx-item__lead { display: inline-flex; align-items: center; justify-content: center; min-width: 22px; flex-shrink: 0; padding-top: 1px; }
 .dx-item__lead .material-icons-outlined { font-size: 17px; color: var(--fg-3); }
 .dx-num { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--brand-primary-container, light-dark(#e3ecfa, #24344c)); color: var(--brand-primary, var(--mat-sys-primary)); font-weight: 700; font-size: 11px; line-height: 1; }
-.dx-code { font-size: 11px; font-weight: 600; color: color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .dx-item__body { flex: 1; min-width: 0; }
 .dx-item__name { font-size: 14px; font-weight: 600; color: var(--fg-1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dx-item__code { font-weight: 500; color: var(--fg-3); }
 .dx-hl { background: none; color: var(--brand-primary, var(--mat-sys-primary)); font-weight: 700; }
 .dx-item__sub { font-size: 12px; color: var(--fg-3); margin-top: 1px; font-style: italic; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dx-tag { display: inline-flex; align-items: center; margin-top: 3px; margin-right: 6px; font: 600 10px/15px var(--font-body); text-transform: uppercase; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; }

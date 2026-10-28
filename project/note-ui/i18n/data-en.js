@@ -210,7 +210,7 @@
   'Aucun pertinent': 'None relevant',
   'Aucun vaccin connu': 'No known vaccines',
   'Aucune': 'None',
-  'Aucune allergie connue': 'No known allergies',
+  'Éruption cutanée': 'Skin rash',
   'Autre': 'Other',
   'Autre professionnel de la santé': 'Other health professional',
   'Avec aérochambre.': 'With spacer.',

@@ -617,6 +617,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       republish() { publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
       setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
+      // Bannière d'allergie du menu /rx : afficher ou masquer les produits allergènes.
+      toggleAllergens(on) { window.NOTE_DATA.setShowAllergens(on); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
       // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
@@ -679,7 +681,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
 
   // Position (avant-nœud) de la région diagnostic la plus proche englobant
   // un nœud DOM donné — utilisé pour retrouver le node depuis un clic sur
-  // son en-tête (.dxr-name/.dxr-code/.dxr-refine/.dxr-doc), non géré par le
+  // son en-tête (.dxr-name/.dxr-refine/.dxr-doc), non géré par le
   // NodeView lui-même.
   function findRegionPosFromDOM(editor, domNode) {
     try {
@@ -841,10 +843,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         return;
       }
-      // Nom OU code : mode 'edit' (DxEditPopover) — un renommage libre ne
+      // Nom : mode 'edit' (DxEditPopover) — un renommage libre ne
       // change que le nom (le code est conservé), choisir un code CIM-10
       // change nom+code+niveau (voir dx-picker.jsx, intent 'edit').
-      const nameOrCodeEl = e.target.closest('.dxr-name, .dxr-code');
+      const nameOrCodeEl = e.target.closest('.dxr-name');
       if (nameOrCodeEl) {
         e.preventDefault();
         const regionPos = findRegionPosFromDOM(editor, nameOrCodeEl);
@@ -861,6 +863,18 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         if (regionPos >= 0) {
           const node = editor.state.doc.nodeAt(regionPos);
           if (node) openDxEdit(regionPos, node.attrs, 'refine', refineEl);
+        }
+        return;
+      }
+      // Qualificatif : une pastille le pose, l'étiquette (un clic) le retire.
+      const qualEl = e.target.closest('.dxr-qual-btn, .dxr-qual-tag');
+      if (qualEl) {
+        e.preventDefault();
+        const regionPos = findRegionPosFromDOM(editor, qualEl);
+        const node = regionPos >= 0 ? editor.state.doc.nodeAt(regionPos) : null;
+        if (node) {
+          const next = qualEl.classList.contains('dxr-qual-btn') ? qualEl.getAttribute('data-qual') : null;
+          editor.view.dispatch(editor.state.tr.setNodeMarkup(regionPos, null, Object.assign({}, node.attrs, { qualifier: next })));
         }
         return;
       }
@@ -1313,6 +1327,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           railFocus={slash.railFocus}
           counts={slash.counts}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
+          onToggleAllergens={() => { if (slashApiRef.current) slashApiRef.current.toggleAllergens(!(slash.results.allergy && slash.results.allergy.shown)); }}
           onClose={() => setSlash(null)} />
       }
 

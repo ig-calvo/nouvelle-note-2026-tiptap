@@ -25,6 +25,8 @@ function dxNorm(s) {
   return (s || '').toLowerCase().replace(/œ/g, 'oe').replace(/æ/g, 'ae').normalize('NFD').replace(DX_STOP_ACCENTS, '');
 }
 function dxCodeKey(s) { return (s || '').toLowerCase().replace(/\./g, ''); }
+// Libellé d'un nœud de la hiérarchie (chapitre, bloc, catégorie), sans code.
+function dxNodeLabel(node) { return (node && (node.libelle || node.label || node.crumb)) || ''; }
 
 const DX_COPY = {
   placeholder: t('dx.copy.placeholder.text'),
@@ -33,15 +35,14 @@ const DX_COPY = {
     somProblemes: t('dx.copy.secSomProblemes.text'),
     somAntecedents: t('dx.copy.secSomAntecedents.text'),
     frequents: t('dx.copy.secFrequents.text'),
-    cim: 'CIM-10',
-    snomed: 'SNOMED CT',
-    browseRoot: 'CIM-10',
-    plusPrecis: function (code) { return t('dx.copy.plusPrecis.text', { code: code }); },
-    memeCategorie: function (code) { return t('dx.copy.memeCategorie.text', { code: code }); },
-    dansGroupe: function (node) {
-      if (node && node.kind === 'block') return t('dx.copy.dansBloc.text', { crumb: node.crumb });
-      return t('dx.copy.dansChapitre.text', { roman: (node && node.roman) || '' });
-    },
+    // Aucun code ni nom de classification à l'écran (débrief du 2026-10-28) :
+    // les sections et le fil d'Ariane se nomment par les libellés.
+    cim: t('dx.copy.secDiagnostics.text'),
+    snomed: t('dx.copy.secSnomed.text'),
+    browseRoot: t('dx.copy.browseRoot.text'),
+    plusPrecis: function (name) { return t('dx.copy.plusPrecis.text', { name: name }); },
+    memeCategorie: function (name) { return t('dx.copy.memeCategorie.text', { name: name }); },
+    dansGroupe: function (node) { return t('dx.copy.dansGroupe.text', { name: dxNodeLabel(node) }); },
     resultats: t('dx.copy.resultats.text')
   },
   browse: t('dx.copy.browse.text'),
@@ -50,12 +51,12 @@ const DX_COPY = {
   freeText: {
     nouveau: function (term) { return { title: t('dx.freeText.new.title', { term: term }), sub: t('dx.copy.freeTextSub.text') }; },
     remplacer: function (term) { return { title: t('dx.freeText.replace.title', { term: term }), sub: null }; },
-    edit: function (term, hadCode) { return { title: t('dx.freeText.rename.title', { term: term }), sub: hadCode ? 'Le code sera retiré' : null }; }
+    edit: function (term) { return { title: t('dx.freeText.rename.title', { term: term }), sub: null }; }
   },
   banner: {
     remplacer: function (target) { return t('dx.banner.replace.text', { number: target.number, name: target.name }); },
     edit: function (region) { return t('dx.banner.edit.text', { name: region.name }); },
-    refine: function (region) { return t('dx.banner.refine.text', { name: region.code || region.name }); }
+    refine: function (region) { return t('dx.banner.refine.text', { name: region.name }); }
   },
   actions: {
     reprendre: { label: t('dx.action.reprendre.label'), title: t('dx.action.reprendre.title') },
@@ -121,7 +122,7 @@ function dxSommaireItem(r) {
 function dxCimItem(n) {
   return {
     key: 'cim:' + n.id, idx: 0, kind: 'cim', label: n.label, code: n.code || null,
-    lead: n.roman || n.range || n.code || '', sub: (n.alias && n.alias !== n.label) ? n.libelle : null,
+    lead: n.hasChildren && !(n.pickable || n.selectable) ? 'folder_open' : 'local_hospital', sub: (n.alias && n.alias !== n.label) ? n.libelle : null,
     tags: [], actions: [], selectable: !!(n.pickable || n.selectable), nav: n.hasChildren ? n.id : null, ref: n
   };
 }
@@ -132,7 +133,7 @@ function dxCimItem(n) {
 function dxSnomedItem(r) {
   return {
     key: 'snomed:' + r.id, idx: 0, kind: 'snomed', label: r.label, code: r.id,
-    lead: 'sell', sub: 'SNOMED CT · ' + r.id,
+    lead: 'sell', sub: null,
     tags: [], actions: [], selectable: true, nav: null, ref: r
   };
 }
@@ -201,7 +202,7 @@ function dxBreadcrumb(cim, nodeId) {
   if (!node) return [{ id: 'root', label: DX_COPY.sec.browseRoot, current: true }];
   const chain = (node.path || []).concat([node]);
   const crumbs = [{ id: 'root', label: DX_COPY.sec.browseRoot, current: false }];
-  chain.forEach(function (n, i) { crumbs.push({ id: n.id, label: n.crumb, current: i === chain.length - 1 }); });
+  chain.forEach(function (n, i) { crumbs.push({ id: n.id, label: dxNodeLabel(n), current: i === chain.length - 1 }); });
   return crumbs;
 }
 
@@ -231,7 +232,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     } else if (!term) {
       const node = (view.nodeId === 'root' || !view.nodeId) ? null : cim.node(view.nodeId);
       const kids = cim.children(view.nodeId);
-      sections.push(dxSec('browse', node ? node.crumb : DX_COPY.sec.browseRoot, kids.map(dxCimItem),
+      sections.push(dxSec('browse', node ? dxNodeLabel(node) : DX_COPY.sec.browseRoot, kids.map(dxCimItem),
         kids.length ? null : DX_COPY.empty.browseLeaf));
     } else {
       const res = cim.search(term, { within: (view.nodeId === 'root' || !view.nodeId) ? null : view.nodeId, maxGroups: 6 });
@@ -263,7 +264,7 @@ function dxBuildModel(state, rawTerm, ctx) {
       const base = t.level === 'category' ? t.code : (function () { const p = cim.parent(t.code); return p ? p.id : null; })();
       if (base) {
         const list = cim.children(base).filter(function (n) { return n.code !== t.code; });
-        sections.push(dxSec('near', t.level === 'category' ? DX_COPY.sec.plusPrecis(t.code) : DX_COPY.sec.memeCategorie(base), list.map(dxCimItem)));
+        sections.push(dxSec('near', t.level === 'category' ? DX_COPY.sec.plusPrecis(t.name) : DX_COPY.sec.memeCategorie(dxNodeLabel(cim.node(base))), list.map(dxCimItem)));
       }
     }
     dxPushCim(sections, cim, term, dxTakenCodes([], [], [t.code]), false, snomed);
@@ -275,7 +276,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     const untouched = intent.kind === 'edit' && term === (r.name || '');
     const rid = window.dxRegionCimId(r);
     if (cim && rid && (intent.kind === 'refine' || untouched)) {
-      sections.push(dxSec('near', r.code ? DX_COPY.sec.plusPrecis(r.code) : DX_COPY.sec.dansGroupe(cim.node(rid)),
+      sections.push(dxSec('near', r.code ? DX_COPY.sec.plusPrecis(r.name) : DX_COPY.sec.dansGroupe(cim.node(rid)),
         cim.children(rid).map(dxCimItem)));
     }
     if (!untouched) {

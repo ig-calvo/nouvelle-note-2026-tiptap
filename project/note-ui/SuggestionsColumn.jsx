@@ -208,7 +208,7 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
           {tpls.map(templateRow)}
           {dxs.length > 0 && <div style={scS.group}>{t('suggest.diagnostics.title', { name: dxFrom.name })}</div>}
           {dxs.map(function (d) {
-            return suggestionRow('dx:' + d.code, 'local_hospital', d.name, d.code, dxTaken(d),
+            return suggestionRow('dx:' + d.code, 'local_hospital', d.name, null, dxTaken(d),
               function () { fire('note:add-suggested-dx', { name: d.name, code: d.code }); },
               t('suggest.diagnosticDejaNote.tooltip'), t('suggest.ajouterDiagnostic.tooltip'));
           })}
