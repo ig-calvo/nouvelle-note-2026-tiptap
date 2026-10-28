@@ -592,7 +592,33 @@ function sommaireDxRowView(r) {
   });
 }
 
+// Édition simple dans la tuile du Sommaire, sans pop-up (rencontre du
+// 2026-10-27, lot 4, D2 — Xavier Boilard : « si tu veux juste changer la
+// date d'un problème »). La date d'une ligne Problèmes ou Antécédents :
+// `resolvedOn` si la ligne en a une (c'est elle qui s'affiche), sinon `since`.
+// Formats admis : AAAA, MM/AAAA, JJ/MM/AAAA ; vide retire la date.
+function sommaireDxDateField(row) { return row && row.resolvedOn ? 'resolvedOn' : 'since'; }
+function sommaireDxValidDate(value) {
+  const s = (value || '').trim();
+  return s === '' || /^(\d{4}|\d{1,2}\/\d{4}|\d{1,2}\/\d{1,2}\/\d{4})$/.test(s);
+}
+// Nouvelle base { problems, history } avec la date de la ligne `id` de
+// `section` remplacée, ou null si la date n'est pas valable. Ne mute rien.
+function sommaireDxPatchDate(base, section, id, value) {
+  if (!sommaireDxValidDate(value)) return null;
+  const v = (value || '').trim() || null;
+  const out = Object.assign({}, base);
+  out[section] = ((base && base[section]) || []).map(function (r) {
+    if (r.id !== id) return r;
+    const patch = {};
+    patch[sommaireDxDateField(r)] = v;
+    return Object.assign({}, r, patch);
+  });
+  return out;
+}
+
 Object.assign(window, {
+  sommaireDxDateField: sommaireDxDateField, sommaireDxValidDate: sommaireDxValidDate, sommaireDxPatchDate: sommaireDxPatchDate,
   newDiagId: newDiagId, diagnosticThreads: diagnosticThreads, listDiagnostics: listDiagnostics,
   diagPlacement: diagPlacement, dxSommaireTargetId: dxSommaireTargetId, normalizeDiagAttrs: normalizeDiagAttrs,
   makeDiagRegionAttrs: makeDiagRegionAttrs, prepareDiagDoc: prepareDiagDoc, rebaseDiagDocForNewNote: rebaseDiagDocForNewNote,

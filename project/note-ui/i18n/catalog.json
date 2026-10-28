@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1308,
+    "interface": 1314,
     "donnees": 827
   },
   "interface": {
@@ -8823,7 +8823,15 @@
       "empreinte": "87c57ed173ea",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:361"
+        "note-ui/Summary.jsx:374"
+      ]
+    },
+    "summary.ajouterDate.text": {
+      "fr": "+ date",
+      "empreinte": "656281db22b9",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:425"
       ]
     },
     "summary.allergies.label": {
@@ -8847,7 +8855,7 @@
       "empreinte": "cc0c5772ef22",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:255"
+        "note-ui/Summary.jsx:267"
       ]
     },
     "summary.antecedentsFamiliaux.label": {
@@ -8863,8 +8871,8 @@
       "empreinte": "5231158f14d4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/Summary.jsx:374",
-        "note-ui/Summary.jsx:415"
+        "note-ui/Summary.jsx:387",
+        "note-ui/Summary.jsx:464"
       ]
     },
     "summary.comingSoon.toast": {
@@ -8872,7 +8880,7 @@
       "empreinte": "ffa3a383a26e",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/Summary.jsx:313"
+        "note-ui/Summary.jsx:326"
       ]
     },
     "summary.convertirAntecedent.label": {
@@ -8880,7 +8888,7 @@
       "empreinte": "b1acb8bbc843",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/Summary.jsx:254"
+        "note-ui/Summary.jsx:266"
       ]
     },
     "summary.convertirProbleme.label": {
@@ -8888,7 +8896,40 @@
       "empreinte": "a164b0669639",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/Summary.jsx:255"
+        "note-ui/Summary.jsx:267"
+      ]
+    },
+    "summary.date.aria": {
+      "fr": "Date de {name}",
+      "empreinte": "f1e85b49d69b",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/Summary.jsx:411",
+        "note-ui/Summary.jsx:424"
+      ]
+    },
+    "summary.dateFormat.placeholder": {
+      "fr": "AAAA ou JJ/MM/AAAA",
+      "empreinte": "6783ec549b78",
+      "contexte": "texte d’invite d’un champ",
+      "fichiers": [
+        "note-ui/Summary.jsx:412"
+      ]
+    },
+    "summary.dateInvalide.text": {
+      "fr": "Format : AAAA, MM/AAAA ou JJ/MM/AAAA",
+      "empreinte": "ebec4846d757",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/Summary.jsx:412"
+      ]
+    },
+    "summary.dateModifiee.toast": {
+      "fr": "Date modifiée : {name}",
+      "empreinte": "3a3ff85015ba",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/Summary.jsx:215"
       ]
     },
     "summary.glisserMedicamentVersNote.tooltip": {
@@ -8896,7 +8937,7 @@
       "empreinte": "d74598b3792c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:389"
+        "note-ui/Summary.jsx:436"
       ]
     },
     "summary.glisserVersNote.tooltip": {
@@ -8904,7 +8945,7 @@
       "empreinte": "09347d776ff7",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:348"
+        "note-ui/Summary.jsx:361"
       ]
     },
     "summary.glissezReorganiser.text": {
@@ -8912,7 +8953,7 @@
       "empreinte": "aa3c8815144a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/Summary.jsx:281"
+        "note-ui/Summary.jsx:293"
       ]
     },
     "summary.habitudesVieContexteSocial.label": {
@@ -8936,7 +8977,7 @@
       "empreinte": "32a9c348c31b",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:270"
+        "note-ui/Summary.jsx:282"
       ]
     },
     "summary.medications.label": {
@@ -8947,12 +8988,20 @@
         "note-ui/Summary.jsx:67"
       ]
     },
+    "summary.modifierDate.tooltip": {
+      "fr": "Modifier la date",
+      "empreinte": "9157e28541ab",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/Summary.jsx:424"
+      ]
+    },
     "summary.more.text": {
       "fr": "+{n} de plus",
       "empreinte": "49eb290474ee",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/Summary.jsx:369"
+        "note-ui/Summary.jsx:382"
       ]
     },
     "summary.outilsCliniques.label": {
@@ -8968,7 +9017,7 @@
       "empreinte": "a14a7c5b84e1",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:356"
+        "note-ui/Summary.jsx:369"
       ]
     },
     "summary.problemes.label": {
@@ -8984,7 +9033,7 @@
       "empreinte": "17507ac25ae7",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:254"
+        "note-ui/Summary.jsx:266"
       ]
     },
     "summary.programmes.label": {
@@ -9000,7 +9049,7 @@
       "empreinte": "7a028a00c371",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/Summary.jsx:273"
+        "note-ui/Summary.jsx:285"
       ]
     },
     "summary.requetes.label": {
@@ -9024,7 +9073,7 @@
       "empreinte": "9ada14395d66",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/Summary.jsx:282"
+        "note-ui/Summary.jsx:294"
       ]
     },
     "summary.signesVitaux.label": {
@@ -9040,7 +9089,7 @@
       "empreinte": "ad2b5814308f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/Summary.jsx:268"
+        "note-ui/Summary.jsx:280"
       ]
     },
     "summary.taches.label": {

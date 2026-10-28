@@ -375,6 +375,12 @@
   'summary.ouvrirMedications.tooltip': 'Ouvrir les médications',
   'summary.ajouter.tooltip': 'Ajouter',
   'summary.attente.text': 'En attente',
+  'summary.modifierDate.tooltip': 'Modifier la date',
+  'summary.ajouterDate.text': '+ date',
+  'summary.date.aria': 'Date de {name}',
+  'summary.dateFormat.placeholder': 'AAAA ou JJ/MM/AAAA',
+  'summary.dateModifiee.toast': 'Date modifiée : {name}',
+  'summary.dateInvalide.text': 'Format : AAAA, MM/AAAA ou JJ/MM/AAAA',
   'summary.glisserMedicamentVersNote.tooltip': 'Glisser ce médicament vers la note',
 
   // SummaryModals.jsx
