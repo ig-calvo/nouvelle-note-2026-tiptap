@@ -280,8 +280,8 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // d'une autre note, il faut donc rappeler de qui il s'agit.
   const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
   const patientName = P.name || 'Geneviève Tremblay';
-  const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 1987')) + ' (' + (P.age || L('38 ans')) + ')';
-  const patientRamq = P.ramq || 'TREG 8705 0301';
+  const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age || L('15 ans')) + ')';
+  const patientRamq = P.ramq || 'TREG 1155 0301';
 
   // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
   // plus remonter au txState vivant de l'éditeur (déjà réinitialisé pour une

@@ -38,7 +38,9 @@ test('statut au profil en texte : actif = rien ; échu et cessé portent leur da
 });
 
 test('une puce documentaire n’a ni état ni badge : rien à compléter, rien à envoyer', () => {
-  const a = w.medicationChipAttrs(med('med-contraceptif'), 'document'); // dose vide : incomplète si c'était une prescription
+  // Dose vide : la puce serait incomplète si c'était une prescription.
+  const t = med('med-tylenol-100');
+  const a = w.medicationChipAttrs(Object.assign({}, t, { dose: '', details: Object.assign({}, t.details, { dose: '', unit: '' }) }), 'document');
   assert.deepEqual(w.chipIssues(a), []);
   assert.deepEqual(w.chipStatusBadges(a), []);
 });
@@ -79,7 +81,7 @@ test('texte hors éditeur : nom, dose, posologie et statut au profil, sans icôn
 
 test('Documenter : toujours offert, sans tweak, mais seulement pour un produit hors du dossier', () => {
   assert.deepEqual(D.medActions(D.RX_ITEMS[0]), ['documenter']);
-  for (const k of ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine', 'med-contraceptif']) {
+  for (const k of ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']) {
     assert.ok(!D.medActions(med(k)).includes('documenter'), k); // déjà au dossier : rien à documenter
     assert.ok(!D.medActions(med(k)).includes('mentionner'), k); // Mentionner n'est plus offert
   }

@@ -19,7 +19,7 @@ test('augmenter / diminuer : palier suivant ou précédent, rien au bout de l’
   const top = Object.assign({}, t, { details: Object.assign({}, t.details, { dose: '650' }) });
   assert.equal(D.medDoseStep(top, 'up'), null);
   assert.deepEqual(D.medDoseStep(top, 'down'), { from: '650', to: '500' });
-  assert.equal(D.medDoseStep(med('med-contraceptif'), 'up'), null); // pas de palier connu
+  assert.equal(D.medDoseStep(med('med-nitrofurantoine'), 'up'), null); // pas de palier connu
 });
 
 test('la médication ajustée : dose, posologie recalculée, détails à jour, l’original intact', () => {
@@ -55,9 +55,9 @@ test('puce ajustée : badge ↑ / ↓ à la place du renouvellement, texte et ch
 });
 
 test('filtres : Tout, Renouvelables, Actives, Cessées', () => {
-  assert.deepEqual(keys(search('tout').profil), ['med-contraceptif', 'med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
+  assert.deepEqual(keys(search('tout').profil), ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
   assert.deepEqual(keys(search('renouvelables').profil), ['med-tylenol-100', 'med-tylenol-500']); // à renouveler bientôt, échue
-  assert.deepEqual(keys(search('actives').profil), ['med-contraceptif', 'med-tylenol-100']);
+  assert.deepEqual(keys(search('actives').profil), ['med-tylenol-100']);
   assert.deepEqual(keys(search('cessees').profil), ['med-nitrofurantoine']);
   for (const f of ['renouvelables', 'actives', 'cessees']) {
     const r = search(f);
@@ -78,7 +78,7 @@ test('filtres : Favoris ; Phrases de prescription = hors du dossier, favoris com
 });
 
 test('la liste navigable suit le filtre (clavier), phrases comprises', () => {
-  assert.deepEqual(keys(w.flattenRxResults(search('actives'))), ['med-contraceptif', 'med-tylenol-100']);
+  assert.deepEqual(keys(w.flattenRxResults(search('actives'))), ['med-tylenol-100']);
   const ph = search('phrases');
   assert.deepEqual(keys(w.flattenRxResults(ph)), keys(ph.favoris.concat(ph.frequents, ph.autres)));
   assert.ok(!keys(w.flattenRxResults(ph)).some((k) => k.startsWith('med-')));
@@ -87,7 +87,7 @@ test('la liste navigable suit le filtre (clavier), phrases comprises', () => {
 test('compteurs du rail : ceux des lignes que chaque filtre affiche', () => {
   D.endOrderSearch();
   const c = D.rxCounts('');
-  assert.deepEqual([c.renouvelables, c.actives, c.cessees], [2, 2, 1]);
+  assert.deepEqual([c.renouvelables, c.actives, c.cessees], [2, 1, 1]);
   const ph = search('phrases');
   assert.equal(c.phrases, ph.favoris.length + ph.frequents.length + ph.autres.length);
   assert.equal(c.favoris, search('favoris').favoris.length);

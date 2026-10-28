@@ -2,9 +2,9 @@
 
 const GABARITS = [L('Canevas'), L('Première visite'), L('Suivi'), L('Consultation SOAP'), L('Note de décharge')];
 
-const SAMPLE_TRANSCRIPT = L(`Patiente de 35 ans, consulte pour brûlures mictionnelles depuis 3 jours. Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Examen : apyrétique, abdomen souple, sensibilité sus-pubienne légère. Bandelette urinaire : leucocytes positifs, nitrites positifs.`);
+const SAMPLE_TRANSCRIPT = L(`Patiente de 15 ans, consulte pour brûlures mictionnelles depuis 3 jours. Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Examen : apyrétique, abdomen souple, sensibilité sus-pubienne légère. Bandelette urinaire : leucocytes positifs, nitrites positifs.`);
 
-const SAMPLE_NOTE = L(`Patiente de 35 ans, consulte pour brûlures mictionnelles depuis 3 jours. Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Examen : apyrétique, abdomen souple, sensibilité sus-pubienne légère. Bandelette urinaire : leucocytes positifs, nitrites positifs.`);
+const SAMPLE_NOTE = L(`Patiente de 15 ans, consulte pour brûlures mictionnelles depuis 3 jours. Dysurie, pollakiurie, urgence mictionnelle. Pas de fièvre, pas de douleur lombaire, pas d'hématurie macroscopique. Premier épisode. Pas d'antécédent gynécologique pertinent. Examen : apyrétique, abdomen souple, sensibilité sus-pubienne légère. Bandelette urinaire : leucocytes positifs, nitrites positifs.`);
 
 function padTimer(n) {return String(n).padStart(2, '0');}
 function fmtTimer(s) {return `${padTimer(Math.floor(s / 3600))}:${padTimer(Math.floor(s % 3600 / 60))}:${padTimer(s % 60)}`;}

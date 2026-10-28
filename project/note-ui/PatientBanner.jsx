@@ -10,8 +10,8 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
   const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
   const patientName = P.name || 'Geneviève Tremblay';
   const sexLabel = P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text');
-  const patientSub = sexLabel + ' ' + (P.dob || '03 mai 1987') + ' (' + (P.age || '38 ans') + ')';
-  const patientRamq = P.ramq || 'TREG 8705 0301';
+  const patientSub = sexLabel + ' ' + (P.dob || '03 mai 2011') + ' (' + (P.age || '15 ans') + ')';
+  const patientRamq = P.ramq || 'TREG 1155 0301';
 
   React.useEffect(() => {
     if (forceCollapsed && phase === 'expanded') setPhase('collapsed');
