@@ -159,6 +159,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Gabarit de début appliqué : ses diagnostics suggérés suivent dans les
   // suggestions (flux de Sacha, SuggestionsColumn.jsx).
   const [appliedTemplate, setAppliedTemplate] = React.useState(null);
+  // Raison posée par un gabarit (pas saisie) : elle suit le gabarit — remplacée
+  // par celle du suivant, retirée avec lui — tant qu'on ne l'a pas modifiée.
+  // Refs : lues depuis des écouteurs montés une seule fois (onApplyTemplate,
+  // onUpdate de l'éditeur), qui ne voient pas l'état à jour.
+  const templateRaisonRef = React.useRef('');
+  const raisonRef = React.useRef(raison);
+  raisonRef.current = raison;
   // Réglage « Suggestions » : colonne, barre en ligne (« curseur »), ou les deux.
   const suggestionsColumn = suggestionsPlacement === 'colonne' || suggestionsPlacement === 'les-deux';
   const suggestionsBar = suggestionsPlacement === 'curseur' || suggestionsPlacement === 'les-deux';
@@ -180,6 +187,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setDocStats(stats);
     setDocJson(docJson);
     window.dispatchEvent(new CustomEvent('note:items-change', { detail: { items: stats.items } }));
+    // Note redevenue vierge (gabarit annulé ou effacé) : plus de gabarit
+    // appliqué, et la raison qu'il avait posée part avec lui.
+    if (window.docIsBlank(docJson)) {
+      setAppliedTemplate(null);
+      if (templateRaisonRef.current && raisonRef.current === templateRaisonRef.current) setRaison('');
+      templateRaisonRef.current = '';
+    }
     // Superposition déclarative au Sommaire (Summary.jsx) : l'état effectif de
     // chaque fil documenté (Problème/Antécédent — D1/D2/D3), affiché « en
     // attente » tant que la note n'est pas complétée (E2). Comparaison JSON
@@ -327,7 +341,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       } else {
         initialDocRef.current = window.ensureSplit({ type: 'doc', content: blocks });
       }
-      setRaison(function(prev) { return prev && prev.trim() ? prev : (tpl.raison || ''); });
+      // Raison vide ou posée par le gabarit précédent : celle de ce gabarit.
+      // Une raison saisie à la main reste.
+      var cur = raisonRef.current;
+      if (!cur.trim() || cur === templateRaisonRef.current) {
+        templateRaisonRef.current = tpl.raison || '';
+        setRaison(tpl.raison || '');
+      }
       setAppliedTemplate(tpl.key);
       if (onOpen) onOpen();
     }
@@ -676,6 +696,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.__NOTE_DX_OVERLAY = [];
     window.dispatchEvent(new CustomEvent('note:diagnostics-change', { detail: { threads: [] } }));
     setRaison('');
+    templateRaisonRef.current = '';
     setTags([]);
     setShowTags(false);
     setInlineEdit(null);
