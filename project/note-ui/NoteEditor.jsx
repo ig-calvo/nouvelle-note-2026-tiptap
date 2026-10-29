@@ -396,7 +396,33 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       if (regionPos != null) editor.chain().setTextSelection(regionPos + 2).run();
     }
     window.addEventListener('note:add-suggested-dx', onAddSuggestedDx);
-    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); window.removeEventListener('note:add-suggested-dx', onAddSuggestedDx); };
+    // Texte rapide choisi dans le menu « / » (QuickTextMenu, editor-field.jsx) :
+    // ses lignes et ses tuiles, en attente, au curseur — à la place de sa
+    // ligne si elle est vide, sinon juste après elle. Dans la région d'un
+    // diagnostic, l'option vient de ses gabarits de conclusion (dernière
+    // conclusion comprise) ; sinon du texte rapide par sa clé.
+    function onInsertQuickText(e) {
+      var editor = editorRef.current, d = e.detail || {};
+      if (!editor || !d.id) return;
+      var opt = null;
+      if (d.regionId) {
+        editor.state.doc.forEach(function(node) {
+          if (!opt && node.type.name === 'diagnosticRegion' && node.attrs.id === d.regionId)
+            opt = window.NOTE_DATA.dxConclusionOptions(node.attrs, window.dxConclusionContext()).find(function(o) { return o.id === d.id; }) || null;
+        });
+      }
+      opt = opt || window.NOTE_DATA.quickTextOptionById(d.id);
+      var blocks = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
+      if (!blocks.length) return;
+      var doc = editor.state.doc;
+      var $pos = doc.resolve(Math.min(Math.max(d.pos || 0, 0), doc.content.size));
+      var para = $pos.parent;
+      var range = para.type.name !== 'paragraph' ? $pos.pos
+        : para.content.size === 0 ? { from: $pos.before(), to: $pos.after() } : $pos.after();
+      editor.chain().focus().insertContentAt(range, blocks).run();
+    }
+    window.addEventListener('note:insert-quick-text', onInsertQuickText);
+    return function() { window.removeEventListener('note:apply-template', onApplyTemplate); window.removeEventListener('note:apply-dx-template', onApplyDxTemplate); window.removeEventListener('note:add-suggested-dx', onAddSuggestedDx); window.removeEventListener('note:insert-quick-text', onInsertQuickText); };
   }, []);
 
   // « + » Problèmes / Antécédents / Médications du Sommaire (tweak, piste de
