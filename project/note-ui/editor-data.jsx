@@ -328,7 +328,7 @@ const MED_CATALOG = [
   { stem: 'amoxicilline', brand: 'Amoxil', klass: L('Antibiotique'), din: '',
     text: L('Amoxicilline 1 g — 2 caps TID x 5 j'),
     label: L('Amoxicilline 1 g'),
-    details: { molecule: L('Amoxicilline'), dose: '1', unit: 'g', form: 'gélule', route: 'PO',
+    details: { molecule: L('Amoxicilline'), dose: '1', unit: 'g', form: 'gélule', route: 'PO', qtyDose: '2',
       frequency: 'TID', duration: '5', durationUnit: 'jours', quantity: '30', refills: '0',
       indication: L('Pneumonie acquise en communauté'), notes: L('Antibiotique') } },
   { stem: 'doxycycline', brand: 'Vibra-Tabs', klass: L('Antibiotique'), din: '',
@@ -1613,6 +1613,38 @@ function optionAllergy(opt) {
   return names.length ? { names: names, items: items } : null;
 }
 
+// Un texte rapide par sa clé, en option de conclusion (allergie comprise), ou null.
+function quickTextOptionById(id) {
+  const q = QUICK_TEXTS.find(function (x) { return x.key === id; });
+  if (!q) return null;
+  const o = quickTextOption(q);
+  o.allergy = optionAllergy(o);
+  return o;
+}
+
+// Sélecteur « Textes rapides » du menu « / » (PLAN-gabarits-conclusion.md,
+// étape 5). `dx` : attributs du diagnostic où est le curseur, ou null.
+// → { context, others } : `context`, les options de ce diagnostic
+// (dxConclusionOptions, même ordre) ; `others`, les autres textes rapides,
+// les miens d'abord, ceux sans conflit d'allergie avant les autres (comme
+// dxConclusionOptions). `q` cherche dans le nom du texte et dans le nom et les
+// mots de ses diagnostics ; tous les mots tapés doivent s'y trouver.
+function searchQuickTexts(q, dx, ctx) {
+  const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
+  const hayOf = function (o) {
+    const ctxs = DX_CONTEXTS.filter(function (c) { return (o.dx || []).indexOf(c.key) >= 0; });
+    return [_hay(o.name)].concat(ctxs.map(function (c) { return _hay(c.label) + ' ' + _norm(c.words.join(' ')); })).join(' ');
+  };
+  const match = function (o) { const h = hayOf(o); return words.every(function (w) { return h.includes(w); }); };
+  const context = dx ? dxConclusionOptions(dx, ctx) : [];
+  const taken = context.map(function (o) { return o.id; });
+  const others = ['mine', 'omnimed'].reduce(function (acc, kind) {
+    return acc.concat(QUICK_TEXTS.filter(function (x) { return x.kind === kind && taken.indexOf(x.key) < 0; }));
+  }, []).map(function (x) { return quickTextOptionById(x.key); });
+  const sorted = others.filter(function (o) { return !o.allergy; }).concat(others.filter(function (o) { return !!o.allergy; }));
+  return { context: context.filter(match), others: sorted.filter(match) };
+}
+
 // Gabarit de note sans son outil clinique (réglage « Outils cliniques »
 // désactivé — rencontre vision 2026-10-27 : « 80 % des outils cliniques, ce
 // sont des requêtes ») : ses requêtes `toolRequests` sont proposées à la fin
@@ -2314,5 +2346,5 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
-  dxConclusionOptions, QUICK_TEXTS, noteDayLabel, templateWithoutTool,
+  dxConclusionOptions, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

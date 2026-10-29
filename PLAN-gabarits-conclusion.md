@@ -149,7 +149,7 @@ Fait sur la branche `feat/textes-rapides-tuiles` :
 
 - Avec la colonne ouverte, une puce longue passe à la ligne après son libellé (« Antibiotique : » puis la puce). Sans la colonne, elle tient sur la ligne.
 - Avec le réglage « Gabarit : lignes à compléter » (allumé par défaut), les tuiles arrivent en lignes à compléter, sans posologie. Éteint, elles arrivent en puces en attente complètes.
-- Reste : étape 5 (menu « / » → Textes rapides), reportée après la fusion de `feat/reference-specialite`, qui remanie `editor-field.jsx`, `editor-popover.jsx` et `editor-schema.jsx`.
+- Étape 5 faite sur `feat/menu-textes-rapides` (voir plus bas).
 
 Fait sur la branche `feat/textes-rapides-maladies` (étape 4) :
 
@@ -158,6 +158,13 @@ Fait sur la branche `feat/textes-rapides-maladies` (étape 4) :
 - **Catalogue** : pénicilline V, oseltamivir, valacyclovir, fluticasone nasale, prednisone 50 mg, avec une clé explicite (`key`). `RX_OTHERS` lit `m.key || 'cat-' + i`, pour que deux ajouts en fin de tableau ne se disputent pas un `cat-N`. Forme « vaporisateur » : « 2 vap. » sur la puce.
 - Pas de tuile de consignes : les consignes (`instr`) n'ont pas de `name` et ne se construisent pas en puce de gabarit. Elles restent du texte.
 - À savoir : la 2e patiente de `feat/reference-specialite` est allergique aux sulfamides, mais `ALLERGEN_CLASSES` ne connaît que la pénicilline. Le TMP-SMX de la pyélonéphrite ne sera signalé qu'une fois une classe « sulfamides » ajoutée.
+
+Fait sur la branche `feat/menu-textes-rapides` (étape 5, règle Q-P11 de SPEC-recherche-menu-action.md) :
+
+- « / » → **Textes rapides ›** ouvre un sous-menu (`QuickTextMenu`, editor-field.jsx), même patron que « Gabarits de note », avec un champ de recherche. La recherche porte sur le nom du texte et sur le nom et les mots de ses diagnostics : « pneumonie » trouve les « PAC… ». Tous les mots tapés doivent s'y trouver, sans tenir compte des accents ni de la casse. Flèches et Entrée au clavier.
+- Dans la région d'un diagnostic : « Pour <diagnostic> » d'abord (mêmes options et même ordre que la colonne, dernière conclusion comprise), puis « Autres textes rapides ». Partout, les textes sans conflit d'allergie passent en premier, et un texte en conflit le dit sous son nom.
+- Le choix s'insère au curseur, en attente, avec ses tuiles (`note:insert-quick-text`, NoteEditor.jsx), à la place de la ligne si elle est vide, sinon juste après.
+- Données : `searchQuickTexts`, `quickTextOptionById` (editor-data.jsx). Amoxicilline 1 g : « 2 gél » par prise.
 
 ## Questions restantes
 
