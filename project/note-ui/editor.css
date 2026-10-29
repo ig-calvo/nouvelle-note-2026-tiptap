@@ -955,3 +955,17 @@ body.nsx-dragging-body * { cursor: grabbing !important; }
   .note-field .ql-editor .nsx-bar,
   .note-field .ql-editor .nsx-nudge { transition: none; }
 }
+
+/* ============================================================
+   Menu /ref : cote de priorité CRDS d'une raison (« Priorité B ») et
+   pièces jointes requises dans le formulaire (RefFields, CrdsDocs).
+   ============================================================ */
+.rx-status--cote { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ref-docs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.ref-docs__item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-low); font: 400 13px/18px var(--font-body); color: var(--mat-sys-on-surface); }
+.ref-docs__item .material-symbols-outlined { font-size: 18px; flex-shrink: 0; color: var(--mat-sys-on-surface-variant); }
+.ref-docs__item.is-auto .material-symbols-outlined { color: light-dark(#2e7d5b, #a8e5d3); }
+.ref-docs__name { flex: 1; min-width: 0; }
+.ref-docs__note { color: var(--mat-sys-on-surface-variant); }
+.ref-docs__state { flex-shrink: 0; font-weight: 600; color: var(--mat-sys-on-surface-variant); }
+.ref-docs__item.is-auto .ref-docs__state { color: light-dark(#2e7d5b, #a8e5d3); }

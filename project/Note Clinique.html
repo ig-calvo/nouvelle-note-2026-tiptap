@@ -342,6 +342,9 @@
     'note-ui/presentation-mode.jsx'
   ];
   var bust = '?v=' + Date.now();
+  // Données CRDS du menu /ref (générées, pas du JSX) : un script normal, lu
+  // avant editor-data.jsx comme tout script classique avant les text/babel.
+  document.write('<script src="note-ui/crds-data.js' + bust + '"><\/script>');
   for (var i = 0; i < srcs.length; i++) {
     document.write('<script type="text/babel" src="' + srcs[i] + bust + '"><\/script>');
   }

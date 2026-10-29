@@ -198,6 +198,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
   const scrim = placed === 'center' ? <div className="popover-scrim" aria-hidden="true" /> : null;
   const meta = window.NOTE_DATA.ENTITY_TYPES[draft.type] || {};
   function up(f, v) { setDraft(d => ({ ...d, details: { ...d.details, [f]: v } })); }
+  function upAll(patch) { setDraft(d => ({ ...d, details: { ...d.details, ...patch } })); }
   // Chip transmis (D-05) : mêmes champs, désactivés par le <fieldset> ; le
   // pied ne propose que Fermer. Annuler passe par le menu ⋮ du chip.
   const sentNote = readOnly
@@ -360,7 +361,7 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
         {draft.type === 'imaging' && <ImgFields d={draft.details} up={up} />}
         {draft.type === 'problem' && <PbFields d={draft.details} up={up} />}
         {draft.type === 'instructions' && <InsFields d={draft.details} up={up} />}
-        {draft.type === 'referral' && <RefFields d={draft.details} up={up} />}
+        {draft.type === 'referral' && <RefFields d={draft.details} up={up} set={upAll} />}
         {draft.type === 'exam' && <ExamFields d={draft.details} up={up} />}
         {draft.type === 'service' && <ServFields d={draft.details} up={up} />}
       </fieldset></div>
@@ -513,21 +514,82 @@ function ServFields({ d, up }) { return (<>
   <div className="field"><label>{t('popover.consignesInfirmiere.label')}</label><textarea rows={2} value={d.instructions || ''} onChange={e=>up('instructions', e.target.value)} /></div>
 </>); }
 
-function RefFields({ d, up }) { return (<>
+// Référence : la spécialité, puis la raison de consultation de son formulaire
+// CRDS (sous ses sections, crds-data.js). La raison donne la priorité — sa
+// cote, A à E — et les pièces jointes que le formulaire demande.
+const NO_CRDS_REASON = { crdsKey: null, reason: '', reasonPath: [], priority: 'Routine' };
+function RefFields({ d, up, set }) {
+  const D = window.NOTE_DATA;
+  const reasons = D.crdsReasonsOf(d.specialty);
+  const reason = d.crdsKey ? D.crdsReason(d.crdsKey) : null;
+  const groups = [];
+  reasons.forEach((r) => {
+    let last = groups[groups.length - 1];
+    if (!last || last.title !== (r.path[0] || '')) groups.push(last = { title: r.path[0] || '', items: [] });
+    last.items.push(r);
+  });
+  const option = (r) => <option key={r.crds} value={r.crds}>{r.path.slice(1).concat(r.name).join(' › ') + (r.cote ? ' (' + r.cote + ')' : '')}</option>;
+  const isCote = /^[A-E]$/.test(d.priority || '');
+  const coteLabel = { A: t('popover.crdsPriorityA.label'), B: t('popover.crdsPriorityB.label'), C: t('popover.crdsPriorityC.label'),
+    D: t('popover.crdsPriorityD.label'), E: t('popover.crdsPriorityE.label') };
+  return (<>
   <div className="field"><label>{t('popover.specialite.label')}</label>
-    <select value={d.specialty||''} onChange={e=>up('specialty', e.target.value)}>
+    <select value={d.specialty||''} onChange={e=>set(Object.assign({ specialty: e.target.value }, NO_CRDS_REASON))}>
       <option value="">{t('popover.choisir.label')}</option>
-      {window.NOTE_DATA.FIELD_OPTIONS.specialty.map((o) => <option key={o}>{o}</option>)}
+      {D.FIELD_OPTIONS.specialty.map((o) => <option key={o} value={o}>{D.valueLabel(o)}</option>)}
     </select></div>
+  {reasons.length > 0 &&
+  <div className="field"><label>{t('popover.crdsReason.label')}</label>
+    <select value={d.crdsKey||''} onChange={e=>{ const r = D.crdsReason(e.target.value); set(r ? D.crdsRefDetails(r, d) : NO_CRDS_REASON); }}>
+      <option value="">{t('popover.crdsNoReason.label')}</option>
+      {groups.map((g, i) => g.title ? <optgroup key={i} label={g.title}>{g.items.map(option)}</optgroup> : g.items.map(option))}
+    </select></div>}
   <div className="field"><label>{t('popover.questionClinique.label')}</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
   <div className="row">
     <div className="field"><label>{t('popover.priorite.label')}</label>
-      <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} /></div>
+      {isCote || reason
+        ? <select value={d.priority} onChange={e=>up('priority', e.target.value)}>
+            {D.FIELD_OPTIONS.crdsPriority.map((c) => <option key={c} value={c}>{coteLabel[c]}</option>)}
+          </select>
+        : <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} />}</div>
   </div>
+  {reason && reason.docs.length > 0 && <CrdsDocs docs={reason.docs} />}
   <div className="field"><label>{t('popover.indication.label')}</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
-  <div className="field"><label>{t('popover.crdsGuichet.label')}</label><input value={d.crds||''} onChange={e=>up('crds', e.target.value)} /></div>
   <div className="field"><label>{t('popover.commentaireSpecialiste.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
+
+// Pièces jointes que demande la raison CRDS. Ce que le dossier ou le DSQ
+// fournit est joint d'office ; le reste est à joindre, à inscrire ou à faire.
+const CRDS_DOC_STATE = {
+  DSQ: { icon: 'check_circle', key: 'dsq', auto: true },
+  Facile: { icon: 'check_circle', key: 'dossier', auto: true },
+  Difficile: { icon: 'attach_file', key: 'joindre' },
+};
+function crdsDocState(doc) {
+  if (CRDS_DOC_STATE[doc.auto]) return CRDS_DOC_STATE[doc.auto];
+  if (doc.type === 'saisie') return { icon: 'edit', key: 'inscrire' };
+  if (doc.type === 'action') return { icon: 'pending_actions', key: 'faire' };
+  return { icon: 'attach_file', key: 'joindre' };
+}
+function CrdsDocs({ docs }) {
+  const stateText = { dsq: t('popover.crdsDocDsq.text'), dossier: t('popover.crdsDocDossier.text'), joindre: t('popover.crdsDocJoindre.text'),
+    inscrire: t('popover.crdsDocInscrire.text'), faire: t('popover.crdsDocFaire.text') };
+  return (
+    <div className="field">
+      <label>{t('popover.crdsDocs.label')}</label>
+      <ul className="ref-docs">
+        {docs.map((doc, i) => {
+          const st = crdsDocState(doc);
+          return (
+            <li key={i} className={'ref-docs__item' + (st.auto ? ' is-auto' : '')}>
+              <span className="material-symbols-outlined" aria-hidden="true">{st.icon}</span>
+              <span className="ref-docs__name">{doc.name}{doc.note && <span className="ref-docs__note"> — {doc.note}</span>}</span>
+              <span className="ref-docs__state">{stateText[st.key]}</span>
+            </li>);
+        })}
+      </ul>
+    </div>);
+}
 
 // Slash menu
 function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
@@ -885,19 +947,21 @@ function LabItemBody({ it, query, inGroup }) {
 // Panneau de droite de /lab : les vues (Tout, Prévention, Suggérés, Favoris,
 // Bilans courants) puis les groupes du catalogue, chacun avec son nombre de
 // résultats et, s'il y en a, ses analyses cochées (RA-10 du prototype).
-function LabRail({ rail, view, checkedKeys, onFilter }) {
+// Pour /ref : Tout, Favoris, puis les spécialités, sans sélection multiple.
+function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
   const items = window.NOTE_DATA.ORDER_DEFS.lab.items();
-  const sel = (key) => checkedKeys.filter((u) => {
+  const isRef = kind === 'ref';
+  const sel = (key) => isRef ? 0 : checkedKeys.filter((u) => {
     const it = items.find((x) => 'lab:' + x.key === u);
     return it && (key === 'bilans' ? it.profile : it.group === key);
   }).length;
   return (
-    <nav className="rx-rail rx-rail--lab" aria-label={t('popover.labRail.aria')}>
+    <nav className="rx-rail rx-rail--lab" aria-label={isRef ? t('popover.refRail.aria') : t('popover.labRail.aria')}>
       {rail.map((r, i) => {
         const n = sel(r.key);
         return (
           <React.Fragment key={r.key}>
-            {r.group && !rail[i - 1].group && <div className="rx-rail__head">{t('popover.labRailGroups.text')}</div>}
+            {r.group && !rail[i - 1].group && <div className="rx-rail__head">{isRef ? t('popover.refRailSpecialties.text') : t('popover.labRailGroups.text')}</div>}
             <button type="button" className={'rx-rail__item' + (r.group ? ' rx-rail__item--group' : '') + (view === r.key ? ' is-on' : '')} aria-pressed={view === r.key}
               onMouseDown={(e) => e.preventDefault()} onClick={() => onFilter && onFilter(r.key)}>
               <span className="material-icons-outlined" aria-hidden="true">{r.icon}</span>
@@ -942,7 +1006,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const total = contexte.length + profil.length + profiles.length + labSections.reduce((n, s) => n + s.items.length, 0) + results.favoris.length + results.frequents.length + results.autres.length;
   // Rail de filtres à droite (Figma « Recherche de prescriptions ») pour /rx ;
   // panneau des vues et des groupes pour /lab (pas en contexte d'un diagnostic).
-  const isLab = kind === 'lab' && !!labRail;
+  // Panneau des vues : groupes de /lab, spécialités de /ref (même composant, LabRail).
+  const isLab = (kind === 'lab' || kind === 'ref') && !!labRail;
   const railOn = (kind === 'rx' && !!counts) || isLab;
   let flat = -1;
   // Sélection multiple (/lab) : case à cocher par résultat ; dès
@@ -950,7 +1015,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const multi = !!d.multi;
   const checkedKeys = checked || [];
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
-  const noFav = (it) => !!it.profile; // un profil n'a pas de favori
+  const noFav = (it) => !!it.profile || !!it.crds; // ni un profil ni une raison CRDS n'ont de favori
   // Tous les résultats de la recherche sont des allergènes masqués : la
   // bannière le dit seule, sans le « Aucun produit trouvé » qui la contredirait.
   const allMasked = total === 0 && !!query && !!results.allergy && !results.allergy.shown;
@@ -1005,6 +1070,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       {it.med && <span className={'rx-status rx-status--' + (it.medStatus === 'cessée' ? 'ceased' : it.medStatus)} title={it.medStatusLabel || ''}>{window.NOTE_DATA.MED_STATUS_LABEL[it.medStatus]}</span>}
                       {kind === 'rx' && results.allergy && window.NOTE_DATA.rxAllergyOf(it) &&
                         <span className="rx-status rx-status--allergy">{t('popover.allergyTag.text', { name: window.NOTE_DATA.rxAllergyOf(it) })}</span>}
+                      {it.crds && it.cote && <span className="rx-status rx-status--cote">{t('data.crdsPriority.text', { cote: it.cote })}</span>}
                     </div>
                     <div className="rx-item__sig">{it.sig}</div>
                   </div>}
@@ -1087,7 +1153,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
         ); })}
       </div>
       </div>
-      {isLab && <LabRail rail={labRail} view={filter} checkedKeys={checkedKeys} onFilter={onFilter} />}
+      {isLab && <LabRail kind={kind} rail={labRail} view={filter} checkedKeys={checkedKeys} onFilter={onFilter} />}
       {railOn && !isLab &&
         <nav className="rx-rail" aria-label={t('popover.filtresMedications.aria')}>
           {window.NOTE_DATA.RX_FILTERS.map((f) => (

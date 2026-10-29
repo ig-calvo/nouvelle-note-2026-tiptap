@@ -909,46 +909,113 @@ const IMG_ITEMS = [
 
 // =========================================================
 // Référence spécialiste — commande « /ref »
+// Spécialités et raisons de consultation des formulaires CRDS (crds-data.js,
+// généré par tools/crds-csv-to-js.py depuis l'inventaire du CRDS — demande de
+// Xavier Boilard, 2026-10-28) : Spécialité > Section > Sous-section > Raison,
+// la cote de priorité (A à E) et les pièces jointes requises. Les libellés des
+// raisons sont ceux des formulaires officiels, en français seulement.
 // =========================================================
+const CRDS_SPECS = (window.CRDS_DATA && window.CRDS_DATA.specialties) || [];
 const REF_FAVS = new Set(['cardio', 'ortho', 'derm']);
-const REF_ITEMS = [
-  { key: 'cardio',  name: L('Cardiologie'),       dose: '',
-    sig: L('Avis cardiologie · Routine'),      chipSig: L('Routine'),
-    details: { specialty: 'Cardiologie',       question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'ortho',   name: L('Orthopédie'),         dose: '', freq: true,
-    sig: L('Avis orthopédie · Routine'),       chipSig: L('Routine'),
-    details: { specialty: 'Orthopédie',         question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'derm',    name: L('Dermatologie'),       dose: '', freq: true,
-    sig: L('Avis dermatologie · Routine'),     chipSig: L('Routine'),
-    details: { specialty: 'Dermatologie',       question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'gastro',  name: L('Gastroentérologie'),  dose: '', freq: true,
-    sig: L('Avis gastroentérologie · Routine'), chipSig: L('Routine'),
-    details: { specialty: 'Gastroentérologie',  question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'neuro',   name: L('Neurologie'),         dose: '', freq: true,
-    sig: L('Avis neurologie · Routine'),       chipSig: L('Routine'),
-    details: { specialty: 'Neurologie',         question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'pneumo',  name: L('Pneumologie'),        dose: '',
-    sig: L('Avis pneumologie · Routine'),      chipSig: L('Routine'),
-    details: { specialty: 'Pneumologie',        question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'rhuma',   name: L('Rhumatologie'),       dose: '',
-    sig: L('Avis rhumatologie · Routine'),     chipSig: L('Routine'),
-    details: { specialty: 'Rhumatologie',       question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'endo',    name: L('Endocrinologie'),     dose: '',
-    sig: L('Avis endocrinologie · Routine'),   chipSig: L('Routine'),
-    details: { specialty: 'Endocrinologie',     question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'nephro',  name: L('Néphrologie'),        dose: '',
-    sig: L('Avis néphrologie · Routine'),      chipSig: L('Routine'),
-    details: { specialty: 'Néphrologie',        question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'uro',     name: L('Urologie'),           dose: '',
-    sig: L('Avis urologie · Routine'),         chipSig: L('Routine'),
-    details: { specialty: 'Urologie',           question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'gyn',     name: L('Gynécologie'),        dose: '',
-    sig: L('Avis gynécologie · Routine'),      chipSig: L('Routine'),
-    details: { specialty: 'Gynécologie',        question: '', indication: '', priority: 'Routine', crds: '' } },
-  { key: 'ophthal', name: L('Ophtalmologie'),      dose: '',
-    sig: L('Avis ophtalmologie · Routine'),    chipSig: L('Routine'),
-    details: { specialty: 'Ophtalmologie',      question: '', indication: '', priority: 'Routine', crds: '' } },
-];
+const REF_FREQ = ['ortho', 'derm', 'gastro', 'neuro'];
+const REF_ITEMS = CRDS_SPECS.map(function (s) {
+  return { key: s.key, name: L(s.name), dose: '', freq: REF_FREQ.indexOf(s.key) >= 0,
+    sig: tn('data.refReasons.text', s.reasons.length), chipSig: L('Routine'),
+    details: { specialty: s.name, question: '', indication: '', priority: 'Routine' } };
+});
+// Une raison de consultation : un item du menu /ref, sous sa spécialité.
+// `path` : ses sections (« Otologie », « Surdité »), `cote` : sa priorité.
+const CRDS_REASONS = [];
+CRDS_SPECS.forEach(function (s) {
+  s.reasons.forEach(function (r) {
+    CRDS_REASONS.push({ key: 'crds:' + r.id, crds: r.id, name: r.label, dose: '', spec: s.key, specName: s.name,
+      path: r.path, cote: r.cote || null, docs: r.docs || [], sig: r.path.join(' › ') });
+  });
+});
+function crdsReason(id) { return CRDS_REASONS.find(function (r) { return r.crds === id; }) || null; }
+function crdsReasonsOf(specialty) {
+  const s = CRDS_SPECS.find(function (x) { return x.name === specialty; });
+  return s ? CRDS_REASONS.filter(function (r) { return r.spec === s.key; }) : [];
+}
+// Détails d'une puce de référence pour une raison CRDS : la spécialité, la
+// raison et sa cote comme priorité (Routine si le formulaire n'en donne pas).
+function crdsRefDetails(r, base) {
+  return Object.assign({ question: '', indication: '' }, base || {}, { specialty: r.specName, crdsKey: r.crds,
+    reason: r.name, reasonPath: r.path.slice(), priority: r.cote || 'Routine' });
+}
+// Item à insérer pour une raison choisie dans le menu : la puce porte le nom
+// de la spécialité, la raison et la priorité vont dans sa 2e ligne.
+function crdsRefItem(r) {
+  const details = crdsRefDetails(r);
+  return { key: r.key, name: L(r.specName), dose: '', chipSig: deriveRefRx(details).sig, details: details };
+}
+
+// Menu /ref : un panneau de droite comme celui de /lab — Tout, Favoris, puis
+// une vue par spécialité, qui liste ses raisons sous leurs sections. Une vue
+// revient à « Tout » à chaque nouvelle recherche (endOrderSearch).
+let _refView = 'tout';
+function refViewKeys() { return ['tout', 'favoris'].concat(CRDS_SPECS.map(function (s) { return s.key; })); }
+function setRefView(v) { _refView = refViewKeys().indexOf(v) >= 0 ? v : 'tout'; }
+function getRefView() { return _refView; }
+const REF_PER_SPEC = 6; // raisons trouvées montrées par spécialité dans « Tout »
+// Toutes les vues pour la recherche `q` : { vue: [sections] }. Une spécialité
+// se trouve par son nom ; une raison par son libellé et ses sections.
+function refViews(q, favSet) {
+  const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
+  const match = function (hay) { return words.every(function (w) { return hay.includes(w); }); };
+  const specs = REF_ITEMS.filter(function (it) { return match(_hay(it.name) + ' ' + _norm(it.details.specialty)); });
+  const reasons = CRDS_REASONS.filter(function (r) { return match(_hay(r.name) + ' ' + r.path.map(_hay).join(' ')); });
+  const sec = function (key, title, items) { return { key: key, title: title, items: items }; };
+  const v = {};
+  if (words.length) {
+    v.tout = [sec('specs', t('data.sectionRefSpecialties.title'), specs)].concat(REF_ITEMS.map(function (it) {
+      return sec('r:' + it.key, it.name, reasons.filter(function (r) { return r.spec === it.key; }).slice(0, REF_PER_SPEC));
+    }));
+  } else {
+    v.tout = [
+      sec('favoris', t('data.sectionFavorites.title'), REF_ITEMS.filter(function (it) { return favSet.has(it.key); })),
+      sec('freq', t('data.sectionRefFrequent.title'), REF_ITEMS.filter(function (it) { return it.freq && !favSet.has(it.key); })),
+      sec('autres', t('data.sectionRefOther.title'), REF_ITEMS.filter(function (it) { return !it.freq && !favSet.has(it.key); }))
+    ];
+  }
+  v.favoris = [sec('favoris', t('data.sectionFavorites.title'), specs.filter(function (it) { return favSet.has(it.key); }))];
+  // Vue d'une spécialité : la spécialité seule (sans raison précise), puis ses
+  // raisons sous leur 1re section ; la 2e ligne d'une raison dit le reste.
+  REF_ITEMS.forEach(function (it) {
+    const own = [];
+    if (!words.length || specs.indexOf(it) >= 0) own.push(sec(it.key + ':spec', t('data.sectionRefNoReason.title'), [it]));
+    reasons.filter(function (r) { return r.spec === it.key; }).forEach(function (r) {
+      const title = r.path[0] || t('data.sectionRefOtherReasons.title');
+      let last = own[own.length - 1];
+      if (!last || last.title !== title || last.key.indexOf(':spec') >= 0) { last = sec(it.key + ':' + own.length, title, []); own.push(last); }
+      last.items.push(Object.assign({}, r, { sig: r.path.slice(1).join(' › ') }));
+    });
+    v[it.key] = own;
+  });
+  Object.keys(v).forEach(function (k) { v[k] = v[k].filter(function (s) { return s.items.length; }); });
+  return v;
+}
+function searchRef(q, favSet) {
+  const v = refViews(q, favSet);
+  return { labSections: v[_refView] || [], favoris: [], frequents: [], autres: [] };
+}
+// Le panneau de droite : chaque vue avec son nombre de résultats — pour une
+// spécialité, ses raisons (toutes, pas seulement celles montrées dans « Tout »).
+function refRail(q, favSet) {
+  const v = refViews(q, favSet || _favFreeze.ref || REF_FAVS);
+  const count = function (k) { return (v[k] || []).reduce(function (n, s) { return n + s.items.filter(function (it) { return it.crds; }).length; }, 0); };
+  const all = (v.tout || []).reduce(function (n, s) { return n + s.items.length; }, 0);
+  return [
+    { key: 'tout', label: t('data.labViewAll.label'), icon: 'folder_copy', count: all },
+    { key: 'favoris', label: t('data.sectionFavorites.title'), icon: 'favorite_border', count: (v.favoris[0] || { items: [] }).items.length }
+  ].concat(REF_ITEMS.map(function (it) { return { key: it.key, label: it.name, icon: 'folder', group: true, count: count(it.key) }; }));
+}
+
+// Panneaux de droite des menus /lab et /ref, pour l'éditeur (editor-field.jsx).
+function orderViewKeys(kind) { return kind === 'lab' ? labViewKeys() : kind === 'ref' ? refViewKeys() : null; }
+function getOrderView(kind) { return kind === 'lab' ? getLabView() : kind === 'ref' ? getRefView() : null; }
+function setOrderView(kind, v) { if (kind === 'lab') setLabView(v); else if (kind === 'ref') setRefView(v); }
+function orderRail(kind, q) { return kind === 'lab' ? labRail(q) : kind === 'ref' ? refRail(q) : null; }
 
 // =========================================================
 // Examen diagnostique — commande « /exam » ; services — commande « /serv »
@@ -1027,7 +1094,7 @@ const ORDER_DEFS = {
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
   ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
-         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return _searchList(REF_ITEMS, favs || REF_FAVS, q); } },
+         favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return searchRef(q, favs || REF_FAVS); } },
   exam: { kbd: 'exam', type: 'exam',       icon: 'monitor_heart', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.examNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionExamFrequent.title'), t('data.sectionExamOther.title')],
          favs: EXAM_FAVS, items: function () { return EXAM_ITEMS; }, search: function (q, favs) { return _searchList(EXAM_ITEMS, favs || EXAM_FAVS, q); } },
@@ -1285,9 +1352,10 @@ const FIELD_OPTIONS = {
   refills: ['0', '1', '2', '3', '4', '5', '6', '11', '12'],
   durationUnit: ['jours', 'semaines', 'mois'],
   priority: ['Routine', 'Prioritaire', 'Semi-urgent', 'Urgent', 'STAT'],
-  specialty: ['Cardiologie', 'Orthopédie', 'Dermatologie', 'Gastroentérologie', 'Neurologie', 'Pneumologie',
-    'Rhumatologie', 'Endocrinologie', 'Néphrologie', 'Urologie', 'Gynécologie', 'Ophtalmologie', 'ORL',
-    'Chirurgie générale', 'Chirurgie vasculaire', 'Hématologie', 'Oncologie', 'Psychiatrie', 'Gériatrie', 'Médecine interne'],
+  // Les spécialités des formulaires CRDS (crds-data.js), par ordre alphabétique.
+  specialty: CRDS_SPECS.map(function (s) { return s.name; }),
+  // Cotes de priorité CRDS (formulaire d'une référence à une raison CRDS).
+  crdsPriority: ['A', 'B', 'C', 'D', 'E'],
 };
 
 // Libellé affiché d'une valeur de champ (priorité, spécialité, modalité, région, vues,
@@ -1341,7 +1409,13 @@ const VALUE_LABEL = {
   'Oncologie': L('Oncologie'),
   'Psychiatrie': L('Psychiatrie'),
   'Gériatrie': L('Gériatrie'),
-  'Médecine interne': L('Médecine interne')
+  'Médecine interne': L('Médecine interne'),
+  'Chirurgie plastique': L('Chirurgie plastique'),
+  'Immuno-allergie': L('Immuno-allergie'),
+  'Infectiologie': L('Infectiologie'),
+  'Neurochirurgie': L('Neurochirurgie'),
+  'Physiatrie': L('Physiatrie'),
+  'Pédiatrie': L('Pédiatrie')
 };
 function valueLabel(v) { return Object.prototype.hasOwnProperty.call(VALUE_LABEL, v) ? VALUE_LABEL[v] : v; }
 
@@ -1391,7 +1465,7 @@ function searchOrder(kind, q, dx) {
   const r = d.search(q, _favFreeze[kind]);
   return kind === 'rx' ? applyAllergyFilter(applyRxFilter(r, _rxFilter)) : r;
 }
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _showAllergens = false; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _refView = 'tout'; _showAllergens = false; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
@@ -1413,10 +1487,12 @@ function deriveImgRx(d) {
   const sig = [d.contrast && d.contrast !== 'Sans' ? t('data.withContrast.text') : '', valueLabel(d.views), valueLabel(d.priority)].filter(Boolean).join(' · ');
   return { name: name, dose: '', sig: sig, kind: 'img' };
 }
+// Priorité affichée : une cote CRDS (A à E) se lit « Priorité B ».
+function priorityLabel(p) { return /^[A-E]$/.test(p || '') ? t('data.crdsPriority.text', { cote: p }) : valueLabel(p); }
+// La raison CRDS précède la priorité.
 function deriveRefRx(d) {
   const name = valueLabel(d.specialty) || t('data.referralSpecialist.text');
-  const sig = valueLabel(d.priority || 'Routine');
-  return { name: name, dose: '', sig: sig, kind: 'ref' };
+  return { name: name, dose: '', sig: [d.reason, priorityLabel(d.priority || 'Routine')].filter(Boolean).join(' · '), kind: 'ref' };
 }
 function deriveExamRx(d) {
   return { name: d.exam || t('data.examRequest.text'), dose: '', sig: valueLabel(d.priority || 'Routine'), kind: 'exam' };
@@ -1713,6 +1789,8 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
+  LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
+  CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, searchRef, refRail, refViewKeys, setRefView, getRefView,
+  orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };
