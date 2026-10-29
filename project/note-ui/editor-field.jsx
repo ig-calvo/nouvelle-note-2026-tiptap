@@ -57,6 +57,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const [dxEdit, setDxEdit] = useStateE(null); // { id, region, mode, rect, otherMentionsCount } — DxEditPopover (edit/refine)
   const [addFileMenu, setAddFileMenu] = useStateE(null); // { rect } — choix de la source (ordinateur/cellulaire/patient)
   const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
+  const [quickMenu, setQuickMenu] = useStateE(null); // { rect, region, pos } — sous-menu « Textes rapides »
   const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
   const [diagDocMenu, setDiagDocMenu] = useStateE(null); // { dxKey, number, rect, ctx } — menu « Documenter comme »
 
@@ -361,7 +362,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       return;
     }
     if (it.textRapides) {
+      const coords = editor.view.coordsAtPos(range.from);
+      const rect = { left: coords.left, right: coords.left, top: coords.top, bottom: coords.bottom, width: 0, height: coords.bottom - coords.top, x: coords.left, y: coords.top };
       editor.chain().focus().deleteRange(range).run();
+      // Le diagnostic et la position du curseur, capturés à l'ouverture : le
+      // texte choisi s'y insère (note:insert-quick-text, NoteEditor.jsx).
+      setQuickMenu({ rect, region: window.dxRegionAtSelection(editor.state), pos: editor.state.selection.from });
       return;
     }
     if (it.ctPicker) {
@@ -1477,6 +1483,21 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }} />
       }
 
+      {/* Choix du texte rapide — sous-menu de « Textes rapides » (slash/+),
+          même patron que NoteTemplateMenu, avec une recherche par nom. */}
+      {quickMenu &&
+        <QuickTextMenu
+          anchorRect={quickMenu.rect}
+          region={quickMenu.region}
+          onClose={() => setQuickMenu(null)}
+          onBack={() => { setQuickMenu(null); openSlashMenu(); }}
+          onSelect={function (opt) {
+            const m = quickMenu;
+            setQuickMenu(null);
+            window.dispatchEvent(new CustomEvent('note:insert-quick-text', { detail: { id: opt.id, regionId: m.region && m.region.id, pos: m.pos } }));
+          }} />
+      }
+
       {/* Choix du diagnostic visé — sous-menu de « Renvoi à un diagnostic »
           (slash/+), même patron que NoteTemplateMenu : en-tête avec retour
           vers le menu d'ajout + liste d'options. */}
@@ -1697,6 +1718,103 @@ function NoteTemplateMenu({ anchorRect, onBack, onClose, onSelect }) {
 }
 
 // ---------------------------------------------------------
+// QuickTextMenu — sous-menu de « Textes rapides » (PLAN-gabarits-conclusion.md,
+// étape 5). Même patron que NoteTemplateMenu, plus un champ de recherche :
+// les textes du diagnostic où est le curseur d'abord (searchQuickTexts,
+// editor-data.jsx), puis les autres. Flèches et Entrée dans le champ ; une
+// option en conflit avec une allergie au dossier le dit sous son nom.
+// ---------------------------------------------------------
+const QT_ICON = { last: 'history', mine: 'person', omnimed: 'library_add' };
+function QuickTextMenu({ anchorRect, region, onBack, onClose, onSelect }) {
+  const panelRef = useRefE(null);
+  const inputRef = useRefE(null);
+  const [query, setQuery] = useStateE('');
+  const [active, setActive] = useStateE(0);
+  const res = window.NOTE_DATA.searchQuickTexts(query, region, window.dxConclusionContext ? window.dxConclusionContext() : null);
+  const flat = res.context.concat(res.others);
+
+  useEffectE(function () {
+    function onKey(e) { if (e.key === 'Escape') onClose(); }
+    function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
+    window.addEventListener('keydown', onKey);
+    const timer = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
+    if (inputRef.current) inputRef.current.focus();
+    return function () {
+      clearTimeout(timer);
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDoc);
+    };
+  }, [onClose]);
+
+  function onInputKey(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(Math.min(active + 1, flat.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(Math.max(active - 1, 0)); }
+    else if (e.key === 'Enter' && flat[active]) { e.preventDefault(); onSelect(flat[active]); }
+  }
+
+  function desc(opt) {
+    if (opt.kind === 'last') return opt.date;
+    const n = (opt.proposals || []).length;
+    return opt.kind === 'mine' ? tn('suggest.monGabarit.text', n) : tn('suggest.gabaritOmnimed.text', n);
+  }
+
+  function row(opt) {
+    const idx = flat.indexOf(opt);
+    const a = opt.allergy;
+    return (
+      <div key={opt.id} style={Object.assign({}, afmS.item, idx === active ? { background: 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)' } : null)}
+        onMouseEnter={function () { setActive(idx); }}
+        onMouseDown={function (e) { e.preventDefault(); }}
+        onClick={function () { onSelect(opt); }}>
+        <span className="material-symbols-outlined" style={afmS.itemIcon}>{QT_ICON[opt.kind] || 'bolt'}</span>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={afmS.itemLabel}>{opt.name}</div>
+          <div style={afmS.itemDesc}>{desc(opt)}</div>
+          {a && <div style={afmS.itemWarn}>
+            <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 14 }}>warning</span>
+            {t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') })}
+          </div>}
+        </div>
+      </div>
+    );
+  }
+
+  const panelW = 340;
+  const MARGIN = 16;
+  let left = MARGIN, top = 80;
+  if (anchorRect) {
+    left = Math.max(MARGIN, Math.min(anchorRect.left, window.innerWidth - panelW - MARGIN));
+    top = anchorRect.bottom + 6;
+  }
+
+  return (
+    <div ref={panelRef} style={Object.assign({}, afmS.panel, { left: left, top: top, width: panelW })}>
+      <div style={afmS.header}>
+        <button style={afmS.iconBtn} onClick={onBack || onClose} title={t('field.retour.tooltip')}>
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>arrow_back</span>
+        </button>
+        <span style={afmS.title}>{t('field.textesRapides.text')}</span>
+        <button style={afmS.iconBtn} onClick={onClose} title={t('field.fermer.tooltip')}>
+          <span className="material-icons-outlined" style={{ fontSize: 20 }}>close</span>
+        </button>
+      </div>
+      <div style={afmS.searchWrap}>
+        <input ref={inputRef} style={afmS.search} value={query} placeholder={t('field.chercherTexteRapide.placeholder')}
+          aria-label={t('field.chercherTexteRapide.placeholder')}
+          onChange={function (e) { setQuery(e.target.value); setActive(0); }} onKeyDown={onInputKey} />
+      </div>
+      <div style={Object.assign({}, afmS.list, { maxHeight: 360, overflowY: 'auto' })}>
+        {flat.length === 0 && <div style={afmS.empty}>{t('field.aucunTexteRapide.text')}</div>}
+        {res.context.length > 0 && <div style={afmS.group}>{t('field.pourDiagnostic.text', { name: region.name })}</div>}
+        {res.context.map(row)}
+        {res.context.length > 0 && res.others.length > 0 && <div style={afmS.group}>{t('field.autresTextesRapides.text')}</div>}
+        {res.others.map(row)}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------
 // DiagnosticRefMenu — sous-menu de « Renvoi à un diagnostic » : liste les
 // diagnostics déjà présents dans la note (capturée à l'ouverture, voir
 // runSlashCommand), un par FIL (listDiagnostics dédoublonne par dxKey — une
@@ -1866,6 +1984,13 @@ const afmS = {
   itemIcon: { fontSize: 20, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', flexShrink: 0 },
   itemLabel: { fontSize: 14, color: 'var(--fg-1, color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent))', flex: 1 },
   itemDesc: { fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', marginTop: 1 },
+  itemWarn: { display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 2, fontSize: 12, color: 'var(--mat-sys-error)' },
+  searchWrap: { padding: 'var(--ds-spacing-xs) var(--ds-spacing-12) 0' },
+  search: { width: '100%', boxSizing: 'border-box', height: 36, padding: '0 var(--ds-spacing-12)', border: '1px solid var(--mat-sys-outline-variant)',
+    borderRadius: 'var(--mat-sys-corner-extra-small, 4px)', background: 'var(--mat-sys-surface)', color: 'var(--mat-sys-on-surface)', font: 'var(--mat-sys-body-medium)' },
+  group: { padding: 'var(--ds-spacing-xs) var(--ds-spacing-12) 2px', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
+  empty: { padding: '14px 16px', fontSize: 12, color: 'var(--fg-3, color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent))', textAlign: 'center' },
   dxrefBadge: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     width: 18, height: 18, borderRadius: '50%', background: '#000', color: '#fff',

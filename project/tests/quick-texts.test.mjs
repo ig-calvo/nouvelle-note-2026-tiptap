@@ -119,3 +119,29 @@ test('variantes selon l’allergie : MPOC, otite, pharyngite et sinusite', () =>
   assert.equal(first('J01.9'), 'sinusite-allergie');
   assert.equal(first('L03.1'), 'cellulite', 'céphalexine : hors de la classe pénicilline');
 }));
+
+test('menu « / » : hors diagnostic, tous les textes, les miens d’abord ; la recherche trouve aussi par diagnostic', () => withAllergies([], () => {
+  const all = D.searchQuickTexts('', null, NO_CTX);
+  assert.deepEqual(all.context, []);
+  assert.equal(all.others.length, D.QUICK_TEXTS.length);
+  assert.deepEqual([...new Set(all.others.map((o) => o.kind))], ['mine', 'omnimed']);
+  const ids = (r) => r.others.map((o) => o.id);
+  assert.deepEqual(ids(D.searchQuickTexts('pneumonie', null, NO_CTX)), ['pac-ambu', 'pac-comorb', 'pac-allergie'], 'par le diagnostic, pas seulement le nom « PAC »');
+  assert.deepEqual(ids(D.searchQuickTexts('pac allergie', null, NO_CTX)), ['pac-allergie'], 'tous les mots requis');
+  assert.ok(ids(D.searchQuickTexts('PYELO', null, NO_CTX)).includes('pyelo'), 'sans accents ni casse');
+  assert.deepEqual(ids(D.searchQuickTexts('zzz', null, NO_CTX)), []);
+}));
+
+test('menu « / » dans un diagnostic : ses textes d’abord, dans l’ordre des suggestions, puis les autres sans doublon', () => withAllergies([w.L('Pénicilline')], () => {
+  const r = D.searchQuickTexts('', PNEUMONIE, NO_CTX);
+  assert.deepEqual(r.context.map((o) => o.id), D.dxConclusionOptions(PNEUMONIE, NO_CTX).map((o) => o.id));
+  assert.equal(r.context[0].id, 'pac-allergie');
+  assert.ok(!r.others.some((o) => o.id.startsWith('pac-')));
+  assert.equal(r.context.length + r.others.length, D.QUICK_TEXTS.length);
+  const sinus = D.quickTextOptionById('sinusite');
+  assert.equal(sinus.source, w.t('template.source.label', { name: sinus.name }));
+  assert.deepEqual(sinus.allergy.items, [w.TR('Amoxicilline')]);
+  assert.equal(D.quickTextOptionById('inconnu'), null);
+  // Hors diagnostic aussi : la variante sans conflit d'abord.
+  assert.deepEqual(D.searchQuickTexts('sinus', null, NO_CTX).others.map((o) => o.id), ['sinusite-allergie', 'sinusite']);
+}));
