@@ -56,10 +56,13 @@ test('interaction simulée : erreur non bloquante', () => {
   assert.equal(issues[0].message, a.details.alert.message);
 });
 
-test('référence sans question clinique : avertissement', () => {
-  const a = attrsFor('ref', item('ref', (it) => it.key === 'cardio'));
-  assert.deepEqual(w.chipIssues(a).map((i) => [i.kind, i.level]), [['missing-info', 'warning']]);
-  a.details = Object.assign({}, a.details, { question: 'Souffle systolique à évaluer' });
+test('référence : « à faire » tant qu’un prérequis CRDS requis manque', () => {
+  // Une spécialité sans raison n'a pas de prérequis.
+  assert.deepEqual(w.chipIssues(attrsFor('ref', item('ref', (it) => it.key === 'cardio'))), []);
+  const D = w.NOTE_DATA;
+  const a = attrsFor('ref', D.crdsRefItem(D.crdsReason('neuro-24')));
+  assert.deepEqual(w.chipIssues(a).map((i) => [i.kind, i.level]), [['prereq', 'warning']]);
+  a.details = Object.assign({}, a.details, { prereqs: { triptan: ['sumatriptan'], prophylaxie: ['candesartan', 'topiramate'] } });
   assert.deepEqual(w.chipIssues(a), []);
 });
 

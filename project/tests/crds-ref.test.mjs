@@ -63,13 +63,15 @@ test('panneau : Tout, Favoris, puis une spécialité par ligne avec son nombre d
   assert.ok(D.refRail('urinaire').find((r) => r.key === 'uro').count < 19);
 });
 
-test('puce : la spécialité, la raison et sa cote comme priorité', () => {
+test('puce : « Section · raison » ; la spécialité et la cote restent dans les détails', () => {
   const r = reasonOf('uro', 'Infection urinaire chez l\'homme');
   const item = D.crdsRefItem(r);
   assert.equal(item.details.specialty, 'Urologie');
   assert.equal(item.details.crdsKey, r.crds);
   assert.equal(item.details.priority, 'D');
-  assert.equal(item.chipSig, 'Infection urinaire chez l\'homme · Priorité D');
+  // D2 de PLAN-reference-specialite.md : la puce montre la section (sinon la spécialité) et la raison.
+  assert.equal(item.name, D.crdsSection(r));
+  assert.equal(item.chipSig, 'Infection urinaire chez l\'homme');
   // Sans cote (formulaire sans priorité) : Routine.
   const sansCote = D.CRDS_REASONS.find((x) => !x.cote);
   assert.equal(D.crdsRefDetails(sansCote).priority, 'Routine');

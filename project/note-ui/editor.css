@@ -474,6 +474,8 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
    erreur = bordure error + icône ; interaction de haut risque = bordure 2 px
    et fond teinté ; avertissement = icône seulement. Commentaire = bulle. */
 .chip--rx.chip--error { border-color: var(--mat-sys-error); }
+/* Référence dont un prérequis CRDS manque (chipIssues, kind 'prereq') : contour en tirets, comme le Figma. */
+.chip--rx.chip--todo { border-style: dashed; border-color: var(--mat-sys-outline); }
 .chip--rx.chip--interaction { border-width: 2px; padding: 1px 7px; background: color-mix(in srgb, var(--mat-sys-error-container) 55%, var(--mat-sys-surface-container-lowest)); }
 .chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
 .chip-issue-icon--error { color: var(--mat-sys-error); }
@@ -537,6 +539,8 @@ html:not([data-pending-badge="on"]) .chip-status--pending { display: none; }
 .chip--rx .chip-rx-poso,
 .chip--rx .chip-rx-sig { font-weight: 500; font-size: 12px; color: var(--fg-3); }
 .chip--rx .chip-rx-sig:empty { display: none; }
+/* Raison CRDS d'une référence (« Céphalée · Migraine ») : tronquée, complète en info-bulle. */
+.chip--rx .chip-rx-reason { display: inline-block; max-width: 36ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 .chip--rx .chip-rx-poso > span { border-radius: 4px; padding: 1px 4px; }
 .chip--rx .chip-rx-poso > span[data-field] { cursor: pointer; transition: background 0.12s, color 0.12s, box-shadow 0.12s; }
 /* Indice « éditable » : surbrillance claire au survol des segments cliquables */

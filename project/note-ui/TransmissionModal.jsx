@@ -49,7 +49,7 @@ const TX_META = {
     ],
   },
   referral: {
-    icon: 'person_add', accent: '#c0693c', nounPhrase: t('transmission.txNounReferral.text'),
+    icon: 'assignment', accent: '#c0693c', nounPhrase: t('transmission.txNounReferral.text'),
     attachments: [L('Note clinique'), L('Liste de médicaments active')],
     attachmentsOn: [L('Note clinique')],
     noteLabel: t('transmission.txNoteSpecialist.label'),

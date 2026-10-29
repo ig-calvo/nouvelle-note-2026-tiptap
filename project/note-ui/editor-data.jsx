@@ -11,7 +11,7 @@ const ENTITY_TYPES = {
   instructions: { key: 'instructions', label: L('Consignes'),    icon: 'menu_book', summaryGroup: L('Consignes') },
   diagnostic:   { key: 'diagnostic',   label: L('Diagnostic'),   icon: 'local_hospital', summaryGroup: L('Diagnostics') },
   file:         { key: 'file',         label: L('Fichier'),       icon: 'attach_file',    summaryGroup: L('Fichiers') },
-  referral:     { key: 'referral',     label: L('Référence'),     icon: 'person_add',     summaryGroup: L('Références') },
+  referral:     { key: 'referral',     label: L('Référence'),     icon: 'assignment',     summaryGroup: L('Références') },
   // Requêtes ajoutées à la rencontre du 2026-10-27 (C2) : examen diagnostique et service.
   exam:         { key: 'exam',         label: L('Examen diagnostique'), icon: 'monitor_heart', summaryGroup: L('Résultats') },
   service:      { key: 'service',      label: L('Service'),       icon: 'medical_services', summaryGroup: L('Services') },
@@ -1048,7 +1048,7 @@ function crdsReasonsOf(specialty) {
 // raison et sa cote comme priorité (Routine si le formulaire n'en donne pas).
 function crdsRefDetails(r, base) {
   return Object.assign({ question: '', indication: '' }, base || {}, { specialty: r.specName, crdsKey: r.crds,
-    reason: r.name, reasonPath: r.path.slice(), priority: r.cote || 'Routine', prereqs: crdsPrereqInit(r.crds) });
+    reason: r.name, reasonPath: r.path.slice(), section: crdsSection(r), priority: r.cote || 'Routine', prereqs: crdsPrereqInit(r.crds) });
 }
 // Section d'une raison, ou sa spécialité quand le CRDS ne la range pas (D2) :
 // « Céphalée », « Cardiologie ».
@@ -1145,7 +1145,7 @@ function crdsPrereqMissing(id, vals) {
 // de la spécialité, la raison et la priorité vont dans sa 2e ligne.
 function crdsRefItem(r) {
   const details = crdsRefDetails(r);
-  return { key: r.key, name: L(r.specName), dose: '', chipSig: deriveRefRx(details).sig, details: details };
+  return { key: r.key, name: L(crdsSection(r)), dose: '', chipSig: deriveRefRx(details).sig, details: details };
 }
 
 // Menu /ref : un panneau de droite comme celui de /lab — Tout, Favoris, puis
@@ -1335,7 +1335,7 @@ const ORDER_DEFS = {
   img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionImgFrequent.title'), t('data.sectionImgOther.title')],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
-  ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
+  ref: { kbd: 'ref', type: 'referral',     icon: 'assignment', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return searchRef(q, favs || REF_FAVS); } },
   exam: { kbd: 'exam', type: 'exam',       icon: 'monitor_heart', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.examNoun.text'),
@@ -1958,10 +1958,13 @@ function deriveImgRx(d) {
 }
 // Priorité affichée : une cote CRDS (A à E) se lit « Priorité B ».
 function priorityLabel(p) { return /^[A-E]$/.test(p || '') ? t('data.crdsPriority.text', { cote: p }) : valueLabel(p); }
-// La raison CRDS précède la priorité.
+// Puce d'une raison CRDS : « Section · raison » (D2 de PLAN-reference-specialite.md),
+// sans spécialité ni cote — le texte copié et imprimé les garde (chipPrintText).
+// Sans raison : la spécialité et la priorité.
 function deriveRefRx(d) {
+  if (d.reason) return { name: valueLabel(d.section) || valueLabel(d.specialty) || t('data.referralSpecialist.text'), dose: '', sig: d.reason, kind: 'ref' };
   const name = valueLabel(d.specialty) || t('data.referralSpecialist.text');
-  return { name: name, dose: '', sig: [d.reason, priorityLabel(d.priority || 'Routine')].filter(Boolean).join(' · '), kind: 'ref' };
+  return { name: name, dose: '', sig: priorityLabel(d.priority || 'Routine'), kind: 'ref' };
 }
 function deriveExamRx(d) {
   return { name: d.exam || t('data.examRequest.text'), dose: '', sig: valueLabel(d.priority || 'Routine'), kind: 'exam' };
@@ -2024,9 +2027,9 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'imaging', label: L("Demande d'imagerie"), text: L("Demande d'imagerie"),
       details: { modality: 'Radiographie', region: '', views: '', priority: 'Routine', context: '', contrast: 'Sans' } } },
-  { key: 'referral', section: L('Fonctions'), icon: 'person_add', title: L('Référence spécialiste'), desc: L('Cardio, ortho, derm…'), kbd: 'ref',
+  { key: 'referral', section: L('Fonctions'), icon: 'assignment', title: L('Référence en spécialité'), desc: L('Demande de consultation'), kbd: 'ref',
     orderSearch: true,
-    template: { type: 'referral', label: L('Référence spécialiste'), text: L('Référence spécialiste'),
+    template: { type: 'referral', label: L('Référence en spécialité'), text: L('Référence en spécialité'),
       details: { specialty: '', question: '', indication: '', priority: 'Routine', crds: '' } } },
   { key: 'exam', section: L('Fonctions'), icon: 'monitor_heart', title: L('Examen diagnostique'), desc: L('ECG, Holter, MAPA…'), kbd: 'exam',
     orderSearch: true,
