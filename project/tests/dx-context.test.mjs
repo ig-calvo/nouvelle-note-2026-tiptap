@@ -109,7 +109,8 @@ const chipsOf = (blocks) => blocks.flatMap((b) => (b.content || []).filter((n) =
 
 test('options de conclusion sous une ITU : dernière conclusion, mon gabarit, gabarit Omnimed', () => {
   const o = opts({ name: 'Cystite', code: 'N30.0' }, CTX);
-  assert.deepEqual(o.map((x) => x.id), ['last', 'mine', 'omnimed']);
+  assert.deepEqual(o.map((x) => x.kind), ['last', 'mine', 'omnimed']);
+  assert.deepEqual(o.map((x) => x.id), ['last', 'itu-mine', 'itu']);
   assert.equal(o[0].author, 'Dr Marc Lefebvre');
   assert.equal(o[0].date, w.I18N.lang === 'fr' ? '8 décembre 2025' : 'December 8, 2025');
   assert.equal(o[0].source, w.t('template.lastConclusion.label', { date: o[0].date }));
@@ -117,9 +118,9 @@ test('options de conclusion sous une ITU : dernière conclusion, mon gabarit, ga
 });
 
 test('dernière conclusion : seulement si le problème est au dossier ET qu’une note le conclut', () => {
-  assert.deepEqual(opts({ code: 'N30.0' }, { notes: CTX.notes, sommaire: [] }).map((x) => x.id), ['mine', 'omnimed']);
-  assert.deepEqual(opts({ code: 'N30.0' }, { notes: [], sommaire: CTX.sommaire }).map((x) => x.id), ['mine', 'omnimed']);
-  assert.deepEqual(opts({ code: 'H66.9' }, CTX).map((x) => x.id), ['omnimed'], 'otite : ni dossier ni gabarit à moi');
+  assert.deepEqual(opts({ code: 'N30.0' }, { notes: CTX.notes, sommaire: [] }).map((x) => x.kind), ['mine', 'omnimed']);
+  assert.deepEqual(opts({ code: 'N30.0' }, { notes: [], sommaire: CTX.sommaire }).map((x) => x.kind), ['mine', 'omnimed']);
+  assert.deepEqual(opts({ code: 'H66.9' }, CTX).map((x) => x.kind), ['omnimed'], 'otite : ni dossier ni gabarit à moi');
   assert.deepEqual(opts({ name: 'Hypertension artérielle', code: 'I10' }, CTX), []);
 });
 
@@ -133,7 +134,7 @@ test('gabarit de conclusion : texte en paragraphes, ajouts en attente signés pa
       assert.ok(chips.every((ch) => ch.attrs.pending && ch.attrs.proposedBy === o.source));
     });
   });
-  const itu = opts({ code: 'N30.0' }, CTX).find((x) => x.id === 'omnimed');
+  const itu = opts({ code: 'N30.0' }, CTX).find((x) => x.kind === 'omnimed');
   assert.equal(chipsOf(w.buildConclusionBlocks(itu))[0].attrs.details.duration, '5');
   assert.deepEqual(w.buildConclusionBlocks(null), []);
 });

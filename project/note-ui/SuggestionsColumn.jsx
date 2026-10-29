@@ -47,6 +47,13 @@ function scOptionDesc(opt) {
   return opt.kind === 'mine' ? tn('suggest.monGabarit.text', n) : tn('suggest.gabaritOmnimed.text', n);
 }
 
+// Avertissement d'une option de conclusion en conflit avec une allergie au
+// dossier (dxConclusionOptions, `allergy`), ou null.
+function scOptionWarn(opt) {
+  const a = opt.allergy;
+  return a ? t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') }) : null;
+}
+
 // Libellé qu'aurait la puce d'un item : sert à savoir s'il est déjà sous le
 // diagnostic (même constructeur que l'insertion, donc même libellé).
 function scChipAttrs(kind, item) {
@@ -120,7 +127,8 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
   // point actif (et donc les suggestions) resterait sinon perdu.
   function keepFocus(e) { e.preventDefault(); }
 
-  function suggestionRow(key, icon, title, desc, done, onClick, doneTitle, actionTitle) {
+  // `warn` : un avertissement sous la description (allergie au dossier).
+  function suggestionRow(key, icon, title, desc, done, onClick, doneTitle, actionTitle, warn) {
     return (
       <button key={key} type="button" style={Object.assign({}, scS.row, done ? scS.rowAdded : null)}
         disabled={done} onMouseDown={keepFocus} onClick={onClick} title={done ? doneTitle : actionTitle}>
@@ -128,6 +136,12 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
         <span style={scS.rowText}>
           <span style={scS.rowTitle}>{title}</span>
           {desc && <span style={scS.rowDesc}>{desc}</span>}
+          {warn && (
+            <span style={scS.rowWarn}>
+              <span className="material-symbols-outlined" aria-hidden="true" style={scS.rowWarnIcon}>warning</span>
+              {warn}
+            </span>
+          )}
         </span>
         <span className="material-icons-outlined" aria-hidden="true" style={scS.rowAction}>{done ? 'check' : 'add'}</span>
       </button>
@@ -141,7 +155,8 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
     const options = window.NOTE_DATA.dxConclusionOptions(region, dxConclusionContext());
     // Déjà proposé : une puce de cette option (acceptée ou en attente) est sous le diagnostic.
     const sources = found ? scSourcesIn(found.node) : [];
-    const rxAll = window.NOTE_DATA.contextResultsFor(region, 'rx');
+    // Pas de produit allergène pour ce patient (comme la recherche /rx, qui les masque).
+    const rxAll = window.NOTE_DATA.contextResultsFor(region, 'rx').filter(function (it) { return !window.NOTE_DATA.rxAllergyOf(it); });
     const reqAll = window.NOTE_DATA.contextResultsFor(region, 'req');
     const room = SC_MAX_ROWS - options.length;
     const reqN = Math.max(0, Math.min(reqAll.length, SC_MAX_REQ, room - (rxAll.length ? 1 : 0)));
@@ -162,7 +177,7 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
         {options.map(function (opt) {
           return suggestionRow(opt.id, SC_OPTION_ICON[opt.kind], opt.name, scOptionDesc(opt), sources.indexOf(opt.source) >= 0,
             function () { fire('note:apply-dx-template', { regionId: region.id, optionId: opt.id }); },
-            t('suggest.gabaritDejaPropose.tooltip'), t('suggest.appliquerGabarit.tooltip'));
+            t('suggest.gabaritDejaPropose.tooltip'), t('suggest.appliquerGabarit.tooltip'), scOptionWarn(opt));
         })}
         {rx.length > 0 && <div style={scS.group}>{t('suggest.prescriptions.title')}</div>}
         {rx.map(function (it) { return orderRow('rx', it); })}
@@ -277,6 +292,8 @@ const scS = {
   rowText: { display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 },
   rowTitle: { font: 'var(--mat-sys-body-medium)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   rowDesc: { font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  rowWarn: { display: 'flex', alignItems: 'flex-start', gap: 4, marginTop: 2, font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-error)' },
+  rowWarnIcon: { fontSize: 16, lineHeight: '16px', flexShrink: 0 },
   rowAction: { fontSize: 20, color: 'var(--mat-sys-on-surface-variant)', flexShrink: 0 },
   // Barre en ligne (SuggestionBar) : capsule sous la ligne du curseur.
   bar: {
