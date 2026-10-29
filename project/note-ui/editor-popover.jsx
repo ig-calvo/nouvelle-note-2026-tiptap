@@ -942,6 +942,34 @@ function LabItemBody({ it, query }) {
     </div>);
 }
 
+// Le lot d'un ajout par virgules, en tête du menu de recherche : un terme par
+// ligne, l'élément retenu ou « Introuvable » ; un texte libre (/instr, /ant)
+// le dit. Entrée ou « Ajouter la liste » ajoute le lot.
+function BatchList({ batch, query, onAdd }) {
+  const found = batch.filter((p) => p.item).length;
+  return (
+    <div className="rx-batch" role="status">
+      <div className="rx-batch__head">
+        <span className="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+        <span className="rx-batch__title">{tn('popover.batch.title', found)}</span>
+        {found > 0 &&
+          <button type="button" className="rx-batch__add" onMouseDown={(e) => e.preventDefault()} onClick={() => onAdd && onAdd()}>
+            {t('popover.batchAdd.button')}
+          </button>}
+      </div>
+      <ul className="rx-batch__list">
+        {batch.map((p, i) => (
+          <li key={i} className={'rx-batch__item' + (p.item ? '' : ' is-missing')}>
+            <span className="material-symbols-outlined" aria-hidden="true">{p.item ? (p.item.free ? 'edit_note' : 'check') : 'error'}</span>
+            <span className="rx-batch__name">{p.item ? [p.item.name, p.item.dose].filter(Boolean).join(' ')
+              : p.masked ? t('popover.batchMasked.text', { term: p.term }) : t('popover.batchMissing.text', { term: p.term })}</span>
+            {p.item && p.item.free && <span className="rx-batch__free">{t('data.freeText.text')}</span>}
+          </li>))}
+      </ul>
+      <div className="rx-batch__hint">{query ? t('popover.batchHintActive.text') : t('popover.batchHintAll.text')}</div>
+    </div>);
+}
+
 // Panneau de droite de /lab : les vues (Tout, Prévention, Suggérés, Favoris,
 // Bilans courants) puis les groupes du catalogue, chacun avec son nombre de
 // résultats et, s'il y en a, ses analyses cochées (RA-10 du prototype).
@@ -972,7 +1000,7 @@ function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
     </nav>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens, labRail }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens, labRail, batch }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -1022,6 +1050,9 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
     <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (isLab ? ' rx-menu--lab' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
       <div className="rx-menu__main">
       <div className="rx-menu__scroll">
+        {/* Ajout en lot (« /lab fsc, tsh, … ») : les termes suivis d'une virgule,
+            chacun avec le résultat retenu (orderBatch, editor-data.jsx). */}
+        {batch && batch.length > 0 && <BatchList batch={batch} query={query} onAdd={onAddChecked} />}
         {/* Produits allergènes masqués (applyAllergyFilter, editor-data.jsx) : la
             bannière le dit et « Afficher » les remet, marqués sur leur ligne. */}
         {results.allergy &&

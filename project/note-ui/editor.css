@@ -968,3 +968,18 @@ body.nsx-dragging-body * { cursor: grabbing !important; }
 .ref-docs__note { color: var(--mat-sys-on-surface-variant); }
 .ref-docs__state { flex-shrink: 0; font-weight: 600; color: var(--mat-sys-on-surface-variant); }
 .ref-docs__item.is-auto .ref-docs__state { color: light-dark(#2e7d5b, #a8e5d3); }
+
+/* Ajout en lot par virgules (BatchList, menu de recherche « / »). */
+.rx-batch { margin: 8px 12px 4px; padding: 8px 10px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-low); border: 1px solid var(--mat-sys-outline-variant); }
+.rx-batch__head { display: flex; align-items: center; gap: 8px; font: 600 13px/20px var(--font-body); color: var(--mat-sys-on-surface); }
+.rx-batch__head .material-symbols-outlined { font-size: 18px; color: var(--mat-sys-primary); }
+.rx-batch__title { flex: 1; min-width: 0; }
+.rx-batch__add { border: 0; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 12px/16px var(--font-body); padding: 4px 10px; border-radius: var(--mat-sys-corner-small); cursor: pointer; }
+.rx-batch__add:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.rx-batch__list { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.rx-batch__item { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 4px; border-radius: 999px; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline-variant); font: 500 12px/18px var(--font-body); color: var(--mat-sys-on-surface); }
+.rx-batch__item .material-symbols-outlined { font-size: 16px; color: light-dark(#2e7d5b, #a8e5d3); }
+.rx-batch__item.is-missing { background: var(--mat-sys-error-container); border-color: transparent; color: var(--mat-sys-on-error-container); }
+.rx-batch__item.is-missing .material-symbols-outlined { color: inherit; }
+.rx-batch__free { color: var(--mat-sys-on-surface-variant); font-weight: 400; }
+.rx-batch__hint { margin-top: 6px; font: 400 12px/16px var(--font-body); color: var(--mat-sys-on-surface-variant); }

@@ -1055,6 +1055,35 @@ const SERV_ITEMS = [
 ];
 
 // =========================================================
+// Instructions au patient — commande « /instr » : des consignes courantes,
+// une puce « Consignes » chacune (titre et texte, modifiables). Un terme qui
+// ne correspond à aucune se garde en texte libre (instrFreeItem). Contenu
+// SIMULÉ, à valider cliniquement.
+// =========================================================
+const INSTR_DELIVERY = 'Imprimer + portail';
+const INSTR_FAVS = new Set(['hydratation', 'retour']);
+const INSTR_ITEMS = [
+  { key: 'hydratation', title: L('Hydratation'), body: L('Boire 1,5 à 2 litres d’eau par jour.'), freq: true },
+  { key: 'repos', title: L('Repos'), body: L('Se reposer et reprendre les activités selon la tolérance.'), freq: true },
+  { key: 'retour', title: L('Consulter si aggravation'), body: L('Revenir consulter si fièvre de plus de 38,5 °C, si les symptômes s’aggravent ou durent plus de 7 jours.'), freq: true },
+  { key: 'antibio', title: L('Antibiotique jusqu’au bout'), body: L('Prendre l’antibiotique jusqu’à la fin, même si les symptômes disparaissent avant.'), freq: true },
+  { key: 'analgesie', title: L('Analgésie au besoin'), body: L('Acétaminophène ou ibuprofène au besoin, selon la posologie remise.') },
+  { key: 'glace', title: L('Glace et élévation'), body: L('Glace 15 minutes, 3 à 4 fois par jour, et membre surélevé.') },
+  { key: 'nasal', title: L('Lavage nasal salin'), body: L('Rinçage nasal à l’eau salée 2 à 3 fois par jour.') },
+  { key: 'alerte-itu', title: L('Signes d’alerte — infection urinaire'), body: L('Consulter rapidement si fièvre, frissons, douleur au dos ou vomissements.') },
+  { key: 'alimentation', title: L('Alimentation légère'), body: L('Repas légers et fractionnés tant que les symptômes digestifs durent.') },
+  { key: 'tabac', title: L('Arrêt tabagique'), body: L('Ressources d’aide à l’arrêt : J’ARRÊTE, 1 866 527-7383.') },
+].map(function (it) {
+  return Object.assign({ name: it.title, dose: '', sig: it.body, details: { title: it.title, body: it.body, delivery: INSTR_DELIVERY } }, it);
+});
+// Un terme sans consigne au catalogue : une consigne à ce titre, texte à écrire.
+function instrFreeItem(term) {
+  const title = (term || '').trim();
+  return { key: 'free:' + _norm(title), name: title, dose: '', free: true, sig: t('data.freeText.text'),
+    details: { title: title, body: '', delivery: INSTR_DELIVERY } };
+}
+
+// =========================================================
 // Antécédents — commande « /ant » (rencontre du 2026-10-27, C5) : les
 // antécédents les plus fréquents, à cocher. Chacun devient un diagnostic
 // documenté comme antécédent (même approche que le « + » Antécédents du
@@ -1062,19 +1091,33 @@ const SERV_ITEMS = [
 // =========================================================
 const ANT_FAVS = new Set();
 const ANT_ITEMS = [
-  { key: 'hta', name: L('Hypertension artérielle'), code: 'I10', freq: true },
-  { key: 'db2', name: L('Diabète de type 2'), code: 'E11.9', freq: true },
+  { key: 'hta', name: L('Hypertension artérielle'), short: 'HTA', code: 'I10', freq: true },
+  { key: 'db2', name: L('Diabète de type 2'), short: 'DB2', code: 'E11.9', freq: true },
   { key: 'dlp', name: L('Dyslipidémie'), code: 'E78.5', freq: true },
   { key: 'asthme', name: L('Asthme'), code: 'J45.9', freq: true },
   { key: 'mpoc', name: L('MPOC'), code: 'J44.9', freq: true },
   { key: 'hypothyr', name: L('Hypothyroïdie'), code: 'E03.9', freq: true },
   { key: 'depression', name: L('Dépression'), code: 'F32.9', freq: true },
   { key: 'anxiete', name: L('Trouble anxieux'), code: 'F41.9', freq: true },
-  { key: 'rgo', name: L('Reflux gastro-œsophagien'), code: 'K21.9' },
+  { key: 'rgo', name: L('Reflux gastro-œsophagien'), short: 'RGO', code: 'K21.9' },
   { key: 'arthrose', name: L('Arthrose'), code: 'M19.9' },
-  { key: 'fa', name: L('Fibrillation auriculaire'), code: 'I48.9' },
-  { key: 'mci', name: L('Cardiopathie ischémique'), code: 'I25.9' },
+  { key: 'fa', name: L('Fibrillation auriculaire'), short: 'FA', code: 'I48.9' },
+  { key: 'mci', name: L('Cardiopathie ischémique'), short: 'MCAS', code: 'I25.9' },
 ].map(function (it) { return Object.assign({ dose: '', sig: it.code }, it); });
+// Un terme sans antécédent au catalogue : un antécédent à ce nom, sans code.
+function antFreeItem(term) {
+  const name = (term || '').trim();
+  return { key: 'free:' + _norm(name), name: name, code: null, dose: '', free: true, sig: t('data.freeText.text') };
+}
+// /instr et /ant : une recherche sans résultat exact propose aussi le terme
+// tel quel, en texte libre, à la fin de la liste.
+function withFreeItem(r, q, make) {
+  const term = (q || '').trim();
+  if (!term) return r;
+  const all = [].concat(r.favoris, r.frequents, r.autres);
+  const exact = all.some(function (it) { return _norm(it.name) === _norm(term); });
+  return exact ? r : Object.assign({}, r, { autres: r.autres.concat([make(term)]) });
+}
 
 // Unified order registry (rx / lab / img / ref / exam / serv / ant) — shared search + favorites
 const ORDER_DEFS = {
@@ -1101,10 +1144,13 @@ const ORDER_DEFS = {
   serv: { kbd: 'serv', type: 'service',    icon: 'medical_services', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.serviceNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionServFrequent.title'), t('data.sectionServOther.title')],
          favs: SERV_FAVS, items: function () { return SERV_ITEMS; }, search: function (q, favs) { return _searchList(SERV_ITEMS, favs || SERV_FAVS, q); } },
+  instr: { kbd: 'instr', type: 'instructions', icon: 'menu_book', glyph: null, verb: t('data.instrVerb.text'), emptyNoun: t('data.instrNoun.text'),
+         sections: [t('data.sectionFavorites.title'), t('data.sectionInstrFrequent.title'), t('data.sectionInstrOther.title')],
+         favs: INSTR_FAVS, items: function () { return INSTR_ITEMS; }, search: function (q, favs) { return withFreeItem(_searchList(INSTR_ITEMS, favs || INSTR_FAVS, q), q, instrFreeItem); } },
   // Pas une puce : des diagnostics documentés comme antécédents (runOrderCommand).
   ant:  { kbd: 'ant', type: 'antecedent',  icon: 'history', glyph: null, verb: t('data.antVerb.text'), emptyNoun: t('data.antNoun.text'), multi: true,
          sections: [t('data.sectionFavorites.title'), t('data.sectionAntFrequent.title'), t('data.sectionAntOther.title')],
-         favs: ANT_FAVS, items: function () { return ANT_ITEMS; }, search: function (q, favs) { return _searchList(ANT_ITEMS, favs || ANT_FAVS, q); } },
+         favs: ANT_FAVS, items: function () { return ANT_ITEMS; }, search: function (q, favs) { return withFreeItem(_searchList(ANT_ITEMS, favs || ANT_FAVS, q), q, antFreeItem); } },
 };
 
 // Table d'intention thérapeutique (rencontre vision 2026-10-27) : ce qu'une
@@ -1465,6 +1511,66 @@ function searchOrder(kind, q, dx) {
   const r = d.search(q, _favFreeze[kind]);
   return kind === 'rx' ? applyAllergyFilter(applyRxFilter(r, _rxFilter)) : r;
 }
+// ---------------------------------------------------------
+// Ajout en lot par virgules (« /lab fsc, tsh, ferritine ») : chaque terme
+// suivi d'une virgule est déjà résolu — son meilleur résultat, ou rien —, le
+// dernier terme reste la recherche en cours. Entrée ajoute le lot et le
+// résultat choisi pour ce dernier terme. Pour /instr et /ant, un terme sans
+// résultat se garde en texte libre.
+// ---------------------------------------------------------
+// Les résultats d'une recherche, à plat, dans l'ordre de la vue « Tout » (sans
+// filtre du rail ni contexte de diagnostic). Les allergènes masqués de /rx
+// n'y sont pas.
+function _orderResults(kind, q) {
+  const d = ORDER_DEFS[kind];
+  const favs = (_favFreeze[kind]) || d.favs;
+  if (kind === 'lab') return labViews(q, favs).tout.reduce(function (a, s) { return a.concat(s.items); }, []);
+  if (kind === 'ref') return refViews(q, favs).tout.reduce(function (a, s) { return a.concat(s.items); }, []);
+  let r = d.search(q, favs);
+  if (kind === 'rx') r = applyAllergyFilter(applyRxFilter(r, 'tout'));
+  return [].concat(r.profil || [], r.favoris || [], r.frequents || [], r.autres || []);
+}
+// Le meilleur résultat d'un terme : le nom (ou l'acronyme) exact, puis un nom
+// qui commence par le terme, puis le premier de la liste ; un texte libre
+// (/instr, /ant) seulement s'il n'y a rien d'autre.
+function bestOrderMatch(kind, term) {
+  const q = (term || '').trim();
+  if (!q) return null;
+  const nq = _norm(q);
+  const list = _orderResults(kind, q);
+  let real = list.filter(function (it) { return !it.free; });
+  // Rien pour le terme entier : chaque mot, n'importe où dans le nom ou le
+  // sigle (« echo abdo » → Échographie abdominale, « hta »).
+  if (!real.length) {
+    const words = nq.split(/\s+/).filter(Boolean);
+    real = ORDER_DEFS[kind].items().filter(function (it) {
+      const h = _hay(it.name) + ' ' + _norm(it.short || '');
+      return words.every(function (w) { return h.includes(w); }) && !(kind === 'rx' && rxAllergyOf(it));
+    });
+  }
+  const score = function (it) {
+    const names = [it.name, it.short].filter(Boolean).map(_norm);
+    return names.indexOf(nq) >= 0 ? 2 : names.some(function (n) { return n.startsWith(nq); }) ? 1 : 0;
+  };
+  let best = null, top = -1;
+  real.forEach(function (it) { const s = score(it); if (s > top) { best = it; top = s; } });
+  return best || list.find(function (it) { return it.free; }) || null;
+}
+// « fsc, tsh, fer » → { picks: [{ term, item|null }], current: 'fer' }, ou
+// null sans virgule. Les termes vides (« fsc,, tsh ») sont ignorés.
+function orderBatch(kind, term) {
+  const parts = String(term || '').split(',');
+  if (parts.length < 2 || !ORDER_DEFS[kind]) return null;
+  const picks = parts.slice(0, -1).map(function (p) { return p.trim(); }).filter(Boolean)
+    .map(function (p) {
+      const item = bestOrderMatch(kind, p);
+      // /rx : un terme qui ne trouve qu'un allergène masqué le dit (bannière d'allergie).
+      const masked = !item && kind === 'rx' && RX_ALL.some(function (it) { return rxAllergyOf(it) && _hay(it.name).includes(_norm(p)); });
+      return { term: p, item: item, masked: masked };
+    });
+  return { picks: picks, current: parts[parts.length - 1].trim() };
+}
+
 function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _refView = 'tout'; _showAllergens = false; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
@@ -1534,6 +1640,7 @@ const SLASH_ITEMS = [
   { key: 'add-file', section: L('Fonctions'), icon: 'upload_file', title: L('Ajouter des fichiers'), desc: L('PDF, image depuis ordinateur…'), kbd: '',
     noKbd: true, fileAction: true },
   { key: 'instructions', section: L('Fonctions'), icon: 'menu_book', title: L('Instructions patient'), desc: L('Consignes au patient'), kbd: 'instr',
+    orderSearch: true,
     template: { type: 'instructions', label: L('Consignes'), text: L('Consignes au patient'),
       details: { title: '', body: '', delivery: 'Imprimer + portail' } } },
   { key: 'textes-rapides', section: L('Fonctions'), icon: 'bolt', title: L('Textes rapides'), desc: L('Insérer un modèle de texte'), kbd: '',
@@ -1791,6 +1898,6 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, searchRef, refRail, refViewKeys, setRefView, getRefView,
-  orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
+  orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

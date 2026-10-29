@@ -162,7 +162,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // (sélection normale), ou 'renouveler'/'ajuster'/'cesser' (médication au
   // dossier) — voir runOrderCommand.
   function chooseOrderItem(it, action) {
-    if (slashCommandRef.current && slash) slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
+    if (!slashCommandRef.current || !slash) return;
+    // Ajout en lot (« /lab fsc, tsh, … ») : le lot, puis l'item cliqué.
+    const lot = batchItems(slash.batch);
+    if (lot.length && !action) { slashCommandRef.current({ __order: true, items: lot.concat([it]), kind: slash.kind }); return; }
+    slashCommandRef.current({ __order: true, item: it, action: action, kind: slash.kind });
+  }
+  // Les items résolus d'un ajout en lot (les termes introuvables n'en sont pas).
+  function batchItems(batch) {
+    return (batch || []).filter(function (p) { return p.item; }).map(function (p) { return p.item; });
   }
 
   // Insère le chip d'ordonnance riche (posologie complète) à la position de
@@ -170,8 +178,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // Quill : « cesser » construit un chip barré sans posologie ; « ajuster »
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
-    const kind = props.kind, action = props.action;
-    let item = props.item;
+    const kind = props.kind, item = props.item, action = props.action;
     // /ant : des antécédents, pas des puces — une région de diagnostic
     // documentée comme antécédent par choix.
     if (kind === 'ant') { runAntecedentsCommand(editor, range, props.items || (item ? [item] : [])); return; }
@@ -184,6 +191,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const text = t('field.labResultText.text', { name: item.name, date: res.date, value: res.value,
         status: res.status === 'anormal' ? t('popover.labAbnormal.text') : t('popover.labNormal.text') });
       editor.chain().focus().insertContentAt(range, text + ' ').run();
+      return;
+    }
+    // Plusieurs items (ajout en lot par virgules) hors labo et imagerie : une
+    // puce chacun, dans l'ordre, sans regroupement.
+    if (props.items && kind !== 'lab' && kind !== 'img') {
+      const nodes = [];
+      props.items.forEach(function (it) {
+        const attrs = orderChipAttrsFor(kind, it);
+        if (attrs) nodes.push({ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' });
+      });
+      if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
       return;
     }
     // Plusieurs résultats cochés, un bilan ou une analyse : des puces labo
@@ -205,8 +223,24 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
       return;
     }
+    const attrs = orderChipAttrsFor(kind, item, action);
+    if (!attrs) return;
+    editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
+  }
+
+  // Attributs de la puce d'un item choisi dans une recherche de fonction
+  // (un seul, ou chacun d'un ajout en lot), ou null.
+  function orderChipAttrsFor(kind, item, action) {
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
-    if (!def || !item) return;
+    if (!def || !item) return null;
+    const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+    // Instructions au patient (/instr) : une puce « Consignes » à son titre,
+    // comme celle du menu d'avant — titre et texte dans le formulaire.
+    if (kind === 'instr') {
+      const title = (item.details && item.details.title) || item.name;
+      return Object.assign({ cid: window.newChipId(), type: def.type, label: title, icon: def.icon, text: title, rx: null,
+        details: Object.assign({}, item.details) }, stamp);
+    }
     // Raison de consultation CRDS (menu /ref) : une puce au nom de la
     // spécialité, avec la raison et sa cote de priorité (crdsRefItem).
     if (kind === 'ref' && item.crds) item = window.NOTE_DATA.crdsRefItem(item);
@@ -216,10 +250,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     let src = item, adjust = null;
     if (kind === 'rx' && (action === 'augmenter' || action === 'diminuer')) {
       adjust = window.NOTE_DATA.adjustMedDose(item, action === 'augmenter' ? 'up' : 'down');
-      if (!adjust) return;
+      if (!adjust) return null;
       src = adjust.item;
     }
-    const chipId = window.newChipId();
     const label = (src.name + ' ' + (src.dose || '')).trim();
     const isCeasing = action === 'cesser' && kind === 'rx';
     const itemDetails = isCeasing ? {} : (src.details || {});
@@ -233,10 +266,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           renewal: action === 'renouveler' || !!adjust,
           adjust: adjust ? adjust.dir : undefined, adjustFrom: adjust ? (item.dose || '') : undefined };
     const text = isCeasing ? t('field.labelCeased.text', { label: label }) : t('field.labelSig.text', { label: label, sig: src.chipSig || src.sig });
-    editor.chain().focus().insertContentAt(range, [
-      { type: 'chip', attrs: { cid: chipId, type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null } },
-      { type: 'text', text: ' ' }
-    ]).run();
+    return Object.assign({ cid: window.newChipId(), type: def.type, label: label, icon: def.icon, text: text, rx: rx, details: itemDetails }, stamp);
   }
 
   // « /ant … » → les antécédents choisis, en régions de diagnostic, à la place
@@ -393,6 +423,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // le state React (setSlash) uniquement pour le rendu de <SlashMenu>.
   function makeSlashRender() {
     let selectedIndex = 0, currentItems = [], currentClientRect = null, currentRange = null, lastQuery = '';
+    // Ajout en lot par virgules de la recherche en cours (orderBatch) : les
+    // termes déjà résolus, et le dernier terme, seul cherché dans la liste.
+    let currentBatch = null;
+    // La requête vient de changer : en lot, le résultat actif du dernier terme
+    // est son meilleur résultat, même règle que les termes du lot.
+    let queryChanged = false;
     // État du picker /dx (dx-picker.jsx) — vit dans cette fermeture comme
     // selectedIndex pour les autres modes ; reconstruit à chaque appel de
     // publish() via dxBuildModel, jamais recalculé séparément pour le
@@ -478,15 +514,26 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     function publish(query) {
       const parsed = parseSlashQuery(query);
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
+      if (parsed.mode !== 'order') currentBatch = null;
       if (parsed.mode === 'order') {
+        // « fsc, tsh, fer » : les termes avant la dernière virgule forment le
+        // lot ; la liste et le panneau cherchent le dernier terme seulement.
+        currentBatch = window.NOTE_DATA.orderBatch(parsed.kind, parsed.term);
+        const term = currentBatch ? currentBatch.current : (parsed.term || '').trim();
         // Ouverte sous un diagnostic, sans rien de tapé : la liste en contexte
         // de ce diagnostic (searchOrder) ; le rail de filtres se cache alors.
-        const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim(), window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
+        const results = window.NOTE_DATA.searchOrder(parsed.kind, term, window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
         const inContext = !!(results.contexte && results.contexte.length);
         orderInContext = inContext;
         // La liste navigable est la liste affichée (le filtre du rail la change sans
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
+        if (queryChanged && currentBatch && currentBatch.current) {
+          const best = window.NOTE_DATA.bestOrderMatch(parsed.kind, currentBatch.current);
+          const at = best ? currentItems.findIndex(function (it) { return it.key === best.key; }) : -1;
+          if (at >= 0) selectedIndex = at;
+        }
+        queryChanged = false;
         selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
         // Panneau de droite : les filtres de /rx, les vues de /lab et de /ref.
         const viewRail = (parsed.kind === 'lab' || parsed.kind === 'ref') && !inContext;
@@ -494,8 +541,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         setSlash({ mode: 'order', kind: parsed.kind,
           filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : window.NOTE_DATA.getOrderView(parsed.kind),
           railFocus: railKind && railFocus,
-          labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, (parsed.term || '').trim()) : null,
-          counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, term) : null,
+          batch: currentBatch ? currentBatch.picks : null,
+          counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts(term) : null, query: term, results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -534,6 +582,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           dxState = Object.assign({}, dxState, { activeIndex: null, actionFocus: 0 });
         } else if (props.query !== lastQuery) {
           selectedIndex = initialIndex();
+          queryChanged = true;
         }
         lastQuery = props.query; currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range;
         slashDoneRef.current = false; // un item de bascule (/rx, /dx) réécrit la requête sans terminer la recherche
@@ -602,9 +651,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         if (props.event.key === 'Enter' || (props.event.key === 'Tab' && parsed.mode !== 'order')) {
           if (!slashCommandRef.current) return true;
-          if (parsed.mode === 'order' && checked.length) {
-            const items = checked.slice(); checked = [];
-            slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
+          // Ajout en lot : le lot, les items cochés, puis le résultat actif du
+          // dernier terme s'il y en a un (« fsc, tsh, » ajoute FSC et TSH).
+          const lot = parsed.mode === 'order' && currentBatch ? batchItems(currentBatch.picks) : [];
+          if (parsed.mode === 'order' && (checked.length || lot.length)) {
+            const active = currentBatch && currentBatch.current && currentItems[selectedIndex];
+            const items = lot.concat(checked, active ? [active] : []); checked = [];
+            if (items.length) slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
             return true;
           }
           if (parsed.mode === 'order') {
@@ -626,7 +679,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // générique garde son texte (« Échap pour écrire en texte libre »).
         const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
         const range = currentRange, query = lastQuery;
-        checked = []; window.__DX_DOCUMENT_AS = null;
+        checked = []; currentBatch = null; window.__DX_DOCUMENT_AS = null;
         window.NOTE_DATA.endOrderSearch();
         setSlash(null);
         if (abandoned) abandonSearch(range, query);
@@ -637,8 +690,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       toggleCheck(it) { const parsed = parseSlashQuery(lastQuery); toggleChecked(it, parsed.kind); publish(lastQuery); },
       addChecked() {
         const parsed = parseSlashQuery(lastQuery);
-        if (!checked.length || !slashCommandRef.current) return;
-        const items = checked.slice(); checked = [];
+        const lot = currentBatch ? batchItems(currentBatch.picks) : [];
+        if (!(checked.length || lot.length) || !slashCommandRef.current) return;
+        const items = lot.concat(checked); checked = [];
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
@@ -1354,6 +1408,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           checked={slash.checked || []}
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
+          batch={slash.batch}
           filter={slash.filter}
           railFocus={slash.railFocus}
           counts={slash.counts}
