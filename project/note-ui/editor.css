@@ -629,10 +629,11 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
    la vue (RA-11 du prototype), la liste et le panneau défilent à l'intérieur. */
 .rx-menu--lab { width: 760px; grid-template-columns: minmax(0, 1fr) 240px; grid-template-rows: 380px auto; }
 .rx-menu--lab .rx-menu__scroll { height: 380px; max-height: none; }
+/* Le rail défile : ses éléments ne doivent pas rétrécir pour tenir dans la hauteur. */
 .rx-rail--lab { min-height: 0; overflow-y: auto; }
+.rx-rail--lab > * { flex-shrink: 0; }
 .rx-rail__head { padding: 10px 12px 4px; margin-top: 4px; border-top: 1px solid var(--border-subtle); font: 600 11px var(--font-body); color: var(--fg-3); }
-.rx-rail__item--group { height: 34px; font-weight: 400; }
-.rx-rail__item--group .material-icons-outlined { font-size: 18px; }
+.rx-rail__item--group { font-weight: 400; }
 .rx-rail__sel { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 11px var(--font-body); }
 .rx-lab__name { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rx-lab__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

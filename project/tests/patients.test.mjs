@@ -7,8 +7,8 @@ import { loadPrototype } from './harness.mjs';
 
 const files = ['note-ui/editor-data.jsx', 'note-ui/diagnostics.jsx'];
 
-test('par défaut, la patiente pédiatrique (Geneviève Tremblay, 15 ans)', () => {
-  const w = loadPrototype(files);
+test('la patiente pédiatrique (Geneviève Tremblay, 15 ans) sur demande', () => {
+  const w = loadPrototype(files, { patient: 'pediatrique' });
   assert.equal(w.PATIENT_KEY, 'pediatrique');
   assert.equal(w.NOTE_DATA.PATIENT.name, 'Geneviève Tremblay');
   assert.deepEqual(w.NOTE_DATA.getPatientAllergies(), [w.TR('Pénicilline')]);
@@ -44,8 +44,9 @@ test('patiente adulte : l’allergie aux sulfamides masque le TMP-SMX dans /rx, 
   assert.ok(!amox.allergy, 'l’amoxicilline n’est pas masquée pour cette patiente');
 });
 
-test('une patiente inconnue retombe sur le dossier pédiatrique', () => {
-  const w = loadPrototype(files, { patient: 'inconnue' });
-  assert.equal(w.PATIENT_KEY, 'pediatrique');
-  assert.equal(w.NOTE_DATA.PATIENT.name, 'Geneviève Tremblay');
+test('par défaut, et pour une patiente inconnue, la patiente adulte (Micheline Lamontagne)', () => {
+  for (const w of [loadPrototype(files, { patient: 'defaut' }), loadPrototype(files, { patient: 'inconnue' })]) {
+    assert.equal(w.PATIENT_KEY, 'adulte');
+    assert.equal(w.NOTE_DATA.PATIENT.name, 'Micheline Lamontagne');
+  }
 });
