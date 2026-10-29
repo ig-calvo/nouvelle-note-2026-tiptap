@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1387,
+    "interface": 1386,
     "donnees": 1081
   },
   "interface": {
@@ -2096,8 +2096,8 @@
       ]
     },
     "data.refHint.placeholder": {
-      "fr": "Rechercher une demande de consultation en spécialité",
-      "empreinte": "3cc7452c16f0",
+      "fr": "Rechercher une demande de référence en spécialité",
+      "empreinte": "981844dcd329",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
         "note-ui/editor-data.jsx:1338"
@@ -2592,7 +2592,7 @@
       "empreinte": "fd3cf9a6aec5",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:391"
+        "note-ui/TransmissionModal.jsx:403"
       ]
     },
     "documentAction.alreadyTransmitted.tooltip": {
@@ -2601,7 +2601,8 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/QuickSendModal.jsx:64",
-        "note-ui/TransmissionModal.jsx:395"
+        "note-ui/TransmissionModal.jsx:399",
+        "note-ui/TransmissionModal.jsx:407"
       ]
     },
     "documentAction.aucunDestinataireEteChoisi.text": {
@@ -2658,14 +2659,6 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/DocumentActionPanel.jsx:387"
-      ]
-    },
-    "documentAction.complete.button": {
-      "fr": "Compléter {noun}",
-      "empreinte": "a54ead538c35",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:516"
       ]
     },
     "documentAction.completee.text": {
@@ -2748,8 +2741,9 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/QuickSendModal.jsx:66",
-        "note-ui/TransmissionModal.jsx:393",
-        "note-ui/TransmissionModal.jsx:396"
+        "note-ui/TransmissionModal.jsx:401",
+        "note-ui/TransmissionModal.jsx:405",
+        "note-ui/TransmissionModal.jsx:408"
       ]
     },
     "documentAction.notCompleted.tooltip": {
@@ -2757,7 +2751,7 @@
       "empreinte": "e59b76a3e31d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:396"
+        "note-ui/TransmissionModal.jsx:408"
       ]
     },
     "documentAction.pharmacieDossier.tooltip": {
@@ -2818,8 +2812,8 @@
       ]
     },
     "documentAction.refDocTitle.title": {
-      "fr": "Demande de consultation en médecine spécialisée",
-      "empreinte": "849a47259f44",
+      "fr": "Demande de référence en médecine spécialisée",
+      "empreinte": "7d967b91eb82",
       "contexte": "titre",
       "fichiers": [
         "note-ui/TransmissionModal.jsx:60"
@@ -2860,6 +2854,14 @@
         "note-ui/DocumentActionPanel.jsx:195"
       ]
     },
+    "documentAction.signTransmit.button": {
+      "fr": "Signer et transmettre",
+      "empreinte": "7681cab7cb4a",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:545"
+      ]
+    },
     "documentAction.suggestions.label": {
       "fr": "SUGGESTION {n}",
       "empreinte": "f9fe3b4fd405",
@@ -2891,15 +2893,7 @@
       "fichiers": [
         "note-ui/DocumentActionPanel.jsx:442",
         "note-ui/DocumentActionPanel.jsx:512",
-        "note-ui/TransmissionModal.jsx:573"
-      ]
-    },
-    "documentAction.transmit.button": {
-      "fr": "Transmettre {noun}",
-      "empreinte": "1834175109ba",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:522"
+        "note-ui/TransmissionModal.jsx:577"
       ]
     },
     "documentPreview.apercuDocumentNonComplete.text": {
@@ -10780,7 +10774,7 @@
       "contexte": "notification",
       "fichiers": [
         "note-ui/DocumentActionPanel.jsx:343",
-        "note-ui/TransmissionModal.jsx:409"
+        "note-ui/TransmissionModal.jsx:421"
       ]
     },
     "transmission.ajoutDocumentVenir.toast": {
@@ -10788,7 +10782,7 @@
       "empreinte": "25c2d8a26161",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:470"
+        "note-ui/TransmissionModal.jsx:482"
       ]
     },
     "transmission.ajouterDocument.button": {
@@ -10796,7 +10790,7 @@
       "empreinte": "166900369afc",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:469"
+        "note-ui/TransmissionModal.jsx:481"
       ]
     },
     "transmission.annuler.button": {
@@ -10812,7 +10806,7 @@
       "empreinte": "72efbe9121c3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:570"
+        "note-ui/TransmissionModal.jsx:574"
       ]
     },
     "transmission.autresDocuments.tooltip": {
@@ -10832,8 +10826,8 @@
       ]
     },
     "transmission.catConsultation.text": {
-      "fr": "Consultation",
-      "empreinte": "54b87b923306",
+      "fr": "Référence",
+      "empreinte": "f8130bb03a28",
       "contexte": "texte",
       "fichiers": [
         "note-ui/TransmissionModal.jsx:119"
@@ -10910,7 +10904,7 @@
       "empreinte": "62872681f41f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:529"
+        "note-ui/TransmissionModal.jsx:523"
       ]
     },
     "transmission.documentSuivant.button": {
@@ -10918,7 +10912,7 @@
       "empreinte": "dc5e93e187d0",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:534"
+        "note-ui/TransmissionModal.jsx:528"
       ]
     },
     "transmission.documentTransmis.toast": {
@@ -10934,7 +10928,7 @@
       "empreinte": "55257adc1172",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:466"
+        "note-ui/TransmissionModal.jsx:478"
       ]
     },
     "transmission.documentsNote.text": {
@@ -10942,7 +10936,7 @@
       "empreinte": "cd5c4dd1dd15",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:430"
+        "note-ui/TransmissionModal.jsx:442"
       ]
     },
     "transmission.elementsPartages.label": {
@@ -10953,7 +10947,7 @@
       "empreinte": "d7c118ee87f6",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:450"
+        "note-ui/TransmissionModal.jsx:462"
       ]
     },
     "transmission.etablissement.text": {
@@ -10978,7 +10972,7 @@
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
         "note-ui/TransmissionModal.jsx:213",
-        "note-ui/TransmissionModal.jsx:458"
+        "note-ui/TransmissionModal.jsx:470"
       ]
     },
     "transmission.medecin.text": {
@@ -11021,7 +11015,7 @@
       "empreinte": "cc316ac5b713",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:449"
+        "note-ui/TransmissionModal.jsx:461"
       ]
     },
     "transmission.preFacturation.text": {
@@ -11029,7 +11023,7 @@
       "empreinte": "0810877dbac6",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:454"
+        "note-ui/TransmissionModal.jsx:466"
       ]
     },
     "transmission.preFacturationMontant.text": {
@@ -11037,7 +11031,7 @@
       "empreinte": "e61d91f2fc8d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:455"
+        "note-ui/TransmissionModal.jsx:467"
       ]
     },
     "transmission.prescriptions.label": {
@@ -11048,7 +11042,7 @@
       "empreinte": "de94c1473a68",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:557"
+        "note-ui/TransmissionModal.jsx:561"
       ]
     },
     "transmission.selectionnezDocumentListe.text": {
@@ -11056,7 +11050,7 @@
       "empreinte": "42b85210c46e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:501"
+        "note-ui/TransmissionModal.jsx:513"
       ]
     },
     "transmission.sent.toast": {
@@ -11067,7 +11061,7 @@
       "empreinte": "5f529d873568",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:371"
+        "note-ui/TransmissionModal.jsx:378"
       ]
     },
     "transmission.signature.text": {
@@ -11107,7 +11101,7 @@
       "empreinte": "b2dd47025606",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:430"
+        "note-ui/TransmissionModal.jsx:442"
       ]
     },
     "transmission.transmitAll.button": {
@@ -11115,8 +11109,8 @@
       "empreinte": "e9f25e7d87c6",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:538",
-        "note-ui/TransmissionModal.jsx:539"
+        "note-ui/TransmissionModal.jsx:535",
+        "note-ui/TransmissionModal.jsx:536"
       ]
     },
     "transmission.txNoteExam.label": {
