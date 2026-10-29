@@ -5,10 +5,42 @@
 // propose, pas une liste à part comme l'ancienne PROBLEMS d'editor-data.jsx.
 var DX_SEED = window.sommaireDxSeed();
 
-var INIT_DATA = {
-  results: [],
-  programs: [],
-  tasks: [],
+// Ce qui change d'une patiente à l'autre (patients.js) : vitaux, allergies,
+// médications, vaccins, habitudes, antécédents familiaux.
+var PATIENT_SUMMARY = window.forPatient({ adulte: {
+  vitals: [
+    { left:L('Poids'),        mid:'68 kg',           right:'14/05/2026' },
+    { left:L('Pression'),     mid:'124/78 mmHg',     right:'14/05/2026' },
+    { left:L('Fréq. cardiaque'), mid:'70 bpm',        right:'14/05/2026' },
+    { left:L('Taille'),       mid:'163 cm',           right:'14/05/2026' },
+    { left:L('IMC'),          mid:'25,6',             right:'14/05/2026' },
+  ],
+  allergies: [
+    { name:L('Sulfamides'), mid:L('Urticaire'), type:'allergie' },
+  ],
+  family: [
+    { left:L('Mère'),                   mid:L('Migraine') },
+    { left:L('Père'),                   mid:L('HTA, infarctus à 68 ans') },
+    { left:L('Antécédents chirurgi…'),  mid:L('Cholécystectomie (2019)') },
+  ],
+  // Le profil médicamenteux que reprend la référence en neurologie (Figma).
+  meds: [
+    { name:L('Almotriptan 12,5 mg'),  detail:L('1 co PRN, max. 2/24 h — actif'), status:'active' },
+    { name:L('Candesartan 8 mg'),     detail:L('1 co DIE — actif'),             status:'active' },
+    { name:L('Lévothyroxine 75 mcg'), detail:L('1 co DIE — actif'),             status:'active' },
+    { name:L('Naproxène 500 mg'),     detail:L('cessé (inefficace)'),           status:'cessée',  date:'11/2025' },
+  ],
+  immun: [
+    { left:L('dCaT (Tétanos-diphtérie)'),   mid:'',                    right:'2019' },
+    { left:L('Influenza'),                   mid:L('à jour'),              right:'2025' },
+    { left:L('COVID-19'),                    mid:L('primaire + rappels'),   right:'2023' },
+  ],
+  habits: [
+    { left:L('Tabac'),   name:L('Tabac'),   mid:L('Non-fumeuse'),         detail:L('Non-fumeuse') },
+    { left:L('Alcool'),  name:L('Alcool'),  mid:L('Occasionnel'),         detail:L('Occasionnel') },
+    { left:L('Drogues'), name:L('Drogues'), mid:L('Aucune'),               detail:L('Aucune') },
+  ],
+}, pediatrique: {
   vitals: [
     { left:L('Poids'),        mid:'62 kg',           right:'08/12/2025' },
     { left:L('Pression'),     mid:'118/74 mmHg',     right:'08/12/2025' },
@@ -16,13 +48,6 @@ var INIT_DATA = {
     { left:L('Taille'),       mid:'165 cm',           right:'08/12/2025' },
     { left:L('IMC'),          mid:'22,8',             right:'08/12/2025' },
   ],
-  // Lignes {id, name, code, since} / {id, name, code, status, resolvedOn} —
-  // voir diagnostics.jsx (sommaireDxSeed, mergeSommaireDx). La mise en forme
-  // {left, mid, right, title} est calculée à l'affichage par
-  // sommaireDxRowView, jamais stockée : dxView plus bas fusionne cette base
-  // avec ce que la note en cours documente (E2).
-  problems: DX_SEED.problems,
-  history: DX_SEED.history,
   // Allergie à la pénicilline (débrief du 2026-10-28) : la recherche /rx masque
   // les pénicillines (editor-data.jsx, applyAllergyFilter).
   allergies: [
@@ -49,7 +74,20 @@ var INIT_DATA = {
     { left:L('Alcool'),  name:L('Alcool'),  mid:L('Aucun'),                detail:L('Aucun') },
     { left:L('Drogues'), name:L('Drogues'), mid:L('Aucune'),               detail:L('Aucune') },
   ],
-};
+} });
+
+var INIT_DATA = Object.assign({
+  results: [],
+  programs: [],
+  tasks: [],
+  // Lignes {id, name, code, since} / {id, name, code, status, resolvedOn} —
+  // voir diagnostics.jsx (sommaireDxSeed, mergeSommaireDx). La mise en forme
+  // {left, mid, right, title} est calculée à l'affichage par
+  // sommaireDxRowView, jamais stockée : dxView plus bas fusionne cette base
+  // avec ce que la note en cours documente (E2).
+  problems: DX_SEED.problems,
+  history: DX_SEED.history,
+}, PATIENT_SUMMARY);
 
 // Boîtes et ordre par défaut du sommaire du DME (PatientDashboardController,
 // setupSummaryBoxIdList). Absentes volontairement : DSQ (bascule de

@@ -342,6 +342,8 @@
     'note-ui/presentation-mode.jsx'
   ];
   var bust = '?v=' + Date.now();
+  // Patiente active (tweak « Patiente ») : lue avant toutes les données.
+  document.write('<script src="note-ui/patients.js' + bust + '"><\/script>');
   // Données CRDS du menu /ref (générées, pas du JSX) : un script normal, lu
   // avant editor-data.jsx comme tout script classique avant les text/babel.
   document.write('<script src="note-ui/crds-data.js' + bust + '"><\/script>');
@@ -399,7 +401,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "suggestionsOn": false,
   "suggestionsPlacement": "curseur",
   "visitStart": false,
-  "themeMode": "clair"
+  "themeMode": "clair",
+  "patient": "pediatrique"
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -672,6 +675,22 @@ function App() {
                       { value: 'sombre', label: 'Sombre' },
                     ]}
                     onChange={(v) => setTweak('themeMode', v)} />
+        {/* Patiente : la page se recharge sur l'autre dossier (patients.js) ;
+            la note en cours ne la suit pas. */}
+        <TweakRadio label="Patiente"
+                    value={window.PATIENT_KEY}
+                    options={[
+                      { value: 'pediatrique', label: 'Geneviève, 15 ans' },
+                      { value: 'adulte', label: 'Micheline, 47 ans' },
+                    ]}
+                    onChange={(v) => {
+                      if (v === window.PATIENT_KEY) return;
+                      setTweak('patient', v);
+                      // ?patient= dans l'URL l'emporterait sur le tweak : on le retire.
+                      var url = new URL(window.location.href);
+                      url.searchParams.delete('patient');
+                      window.location.assign(url.toString());
+                    }} />
         <TweakText label="Nom de l'utilisateur" value={t.doctorName} onChange={(v) => setTweak("doctorName", v)} />
         <TweakText label="Nom de la clinique" value={t.clinicName} onChange={(v) => setTweak("clinicName", v)} />
         <TweakSection label="Général">

@@ -420,7 +420,36 @@ const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 // d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
 // profil garde le Tylenol et la nitrofurantoïne déjà au Sommaire.
 const MED_STATUS_LABEL = { active: t('data.medStatusActive.text'), echue: t('data.medStatusExpired.text'), 'cessée': t('data.medStatusCeased.text') };
-const PATIENT_MEDS = [
+const PATIENT_MEDS = window.forPatient({ adulte: [
+  // Micheline Lamontagne (patients.js) : le profil que reprend le Figma
+  // « Demande de consultation en médecine spécialisée » — almotriptan et
+  // candesartan cochés d'office dans les médicaments essayés de la référence.
+  { key: 'med-almotriptan', name: L('Almotriptan'), dose: '12,5 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    sig: L('1 co PO PRN'),
+    chipSig: L('1 co PO PRN'),
+    details: { molecule: L('Almotriptan'), dose: '12,5', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Migraine'), notes: L('Au début de la crise, max. 2 co par 24 h.') } },
+  { key: 'med-candesartan', name: L('Candesartan'), dose: '8 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    doseSteps: ['4', '8', '16'], // paliers d'exemple (mg), à valider
+    sig: L('1 co PO DIE'),
+    chipSig: L('1 co PO DIE'),
+    details: { molecule: L('Candesartan'), dose: '8', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Prophylaxie de la migraine'), notes: L('Profil actif au dossier.') } },
+  { key: 'med-levothyroxine', name: L('Lévothyroxine'), dose: '75 mcg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    sig: L('1 co PO DIE'),
+    chipSig: L('1 co PO DIE'),
+    details: { molecule: L('Lévothyroxine'), dose: '75', unit: 'mcg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Hypothyroïdie'), notes: L('Profil actif au dossier.') } },
+  { key: 'med-naproxene', name: L('Naproxène'), dose: '500 mg', med: true, medStatus: 'cessée', medDate: '11/2025', medStatusLabel: L('cessé (inefficace)'),
+    sig: L('1 co PO BID'),
+    chipSig: L('1 co PO BID'),
+    details: { molecule: L('Naproxène'), dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Migraine'), notes: L('Cessé 11/2025.') } },
+], pediatrique: [
   { key: 'med-tylenol-100', name: L('Tylenol'), dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
     sig: L('1 co PO PRN'),
@@ -440,7 +469,7 @@ const PATIENT_MEDS = [
     details: { molecule: L('Nitrofurantoïne'), dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '5', durationUnit: 'jours', quantity: '10', refills: '0',
       indication: L('Infection urinaire'), notes: L('Cessée 12/2025.') } },
-];
+] });
 
 // Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
 // médication déjà au dossier : renouveler, augmenter, diminuer, cesser (active ou
@@ -517,7 +546,7 @@ function applyRxFilter(r, f) {
 const ALLERGEN_CLASSES = [
   { key: 'penicilline', allergy: /penicill|amoxicill|ampicill|cloxacill/, product: /penicill|amoxicill|ampicill|cloxacill|piperacill/ },
 ];
-let _patientAllergies = [L('Pénicilline')];
+let _patientAllergies = window.forPatient({ pediatrique: [L('Pénicilline')], adulte: [L('Sulfamides')] });
 let _showAllergens = false;
 function setPatientAllergies(names) { _patientAllergies = (names || []).filter(Boolean); }
 function getPatientAllergies() { return _patientAllergies.slice(); }
@@ -797,30 +826,45 @@ function labShortName(name) {
 // déjà faites, leur dernier résultat et sa tendance par rapport au résultat
 // précédent (décision D4). Repris des résultats du Sommaire
 // (sommaire/store.jsx) ; « Stable » sous 5 % d'écart, seuil fictif (Q-08).
-const LAB_ON_FILE = {
+const LAB_ON_FILE = window.forPatient({ adulte: {
+  fsc:   { date: '2026-05-12', value: L('Hb 128 g/L'), status: 'normal', prev: L('Hb 131 g/L'), trend: 'stable' },
+  creat: { date: '2026-05-12', value: L('78 µmol/L'), status: 'normal', prev: L('74 µmol/L'), trend: 'stable' },
+  ions:  { date: '2026-05-12', value: L('K 4,3 mmol/L'), status: 'normal' },
+  tsh:   { date: '2026-05-12', value: L('2,4 mUI/L'), status: 'normal', prev: L('3,1 mUI/L'), trend: 'down' },
+  hba1c: { date: '2026-05-12', value: '5,6 %', status: 'normal' }
+}, pediatrique: {
   fsc:   { date: '2025-09-28', value: L('Hb 135 g/L'), status: 'normal', prev: L('Hb 141 g/L'), trend: 'stable' },
   creat: { date: '2025-09-28', value: L('82 µmol/L'), status: 'normal', prev: L('79 µmol/L'), trend: 'stable' },
   ldl:   { date: '2025-09-28', value: L('3,4 mmol/L'), status: 'anormal', prev: L('3,7 mmol/L'), trend: 'down' },
   tsh:   { date: '2025-09-28', value: L('2,1 mUI/L'), status: 'normal', prev: L('1,8 mUI/L'), trend: 'up' },
   fer:   { date: '2025-09-28', value: L('18 µmol/L'), status: 'normal' }
-};
+} });
 function labOnFile(key) { return LAB_ON_FILE[key] || null; }
 // Prévention (RA-16 du prototype) et Suggérés selon les problèmes actifs du
 // Sommaire (RA-05) : la raison, la fréquence et l'échéance sur la 2e ligne.
 // Contenu fictif, validation clinique requise (Q-01, Q-10 du prototype).
-const LAB_PREVENTION = [
+const LAB_PREVENTION = window.forPatient({ adulte: [
+  { key: 'lipide', why: L('Dépistage de la dyslipidémie · aux 5 ans · dû depuis le 2026-03-01') },
+  { key: 'hba1c', why: L('Dépistage du diabète · aux 3 ans · fait le 2026-05-12') }
+], pediatrique: [
   { key: 'cguri', why: L('Dépistage des ITSS · selon les facteurs de risque') },
   { key: 'vih', why: L('Dépistage des ITSS · selon les facteurs de risque') },
   { key: 'syphilis', why: L('Dépistage des ITSS · selon les facteurs de risque') }
-];
-const LAB_SUGGESTED = [
+] });
+const LAB_SUGGESTED = window.forPatient({ adulte: [
+  { problem: L('Hypothyroïdie'), items: [
+    { key: 'tsh', why: L('Aux 12 mois · prochain le 2027-05-12') }] },
+  { problem: L('Migraine sans aura'), items: [
+    { key: 'creat', why: L('Suivi du candesartan · aux 12 mois · prochain le 2027-05-12') },
+    { key: 'ions', why: L('Suivi du candesartan · aux 12 mois · prochain le 2027-05-12') }] }
+], pediatrique: [
   { problem: L('Hypertension artérielle'), items: [
     { key: 'ions', why: L('Aux 12 mois · jamais fait') },
     { key: 'creat', why: L('Aux 12 mois · dû depuis le 2026-09-28') }] },
   { problem: L('Dyslipidémie'), items: [
     { key: 'lipide', why: L('Aux 12 mois · dû depuis le 2026-09-28') },
     { key: 'apob', why: L('Selon le risque cardiovasculaire · jamais fait') }] }
-];
+] });
 
 // Panneau de droite du menu /lab (RA-10 du prototype) : des vues, puis les
 // groupes du catalogue. Une vue filtre aussi la recherche en cours, comme le
@@ -1896,7 +1940,23 @@ const NOTE_TEMPLATES = [
   },
 ];
 
-const PATIENT = {
+const PATIENT = window.forPatient({ adulte: {
+  // Micheline Lamontagne : l'exemple du Figma « Demande de consultation en
+  // médecine spécialisée » (patients.js). Données fictives.
+  initials: 'ML',
+  name: 'Micheline Lamontagne',
+  age: L('47 ans'),
+  sex: 'F',
+  dob: L('05 décembre 1978'),
+  ramq: 'LAMM 7862 0512',
+  phone: '819 555 0273',
+  cell: '819-555-0273',
+  email: 'micheline.lamontagne.test@example.com',
+  chart: '702415',
+  reason: L('Migraine sans aura'),
+  status: L('En consultation'),
+  pharmacyId: 'pjc-centre',
+}, pediatrique: {
   initials: 'GT',
   name: 'Geneviève Tremblay',
   age: L('15 ans'),
@@ -1909,7 +1969,7 @@ const PATIENT = {
   // Pharmacie favorite au dossier : préremplie comme destinataire de
   // l'ordonnance au checkout (maquette « Transmission générale »).
   pharmacyId: 'pjc-centre',
-};
+} });
 
 // Bottin des pharmacies à proximité, pour le destinataire de l'ordonnance au
 // checkout. Données SIMULÉES : distances fictives depuis la clinique, courriels
@@ -1964,10 +2024,12 @@ function templatesForReason(text, max) {
 // résultat, un problème au dossier — et un gabarit de début de note suggéré
 // selon ces choix. Données SIMULÉES : le rendez-vous du jour (sans rendez-vous,
 // scénario infection urinaire des tests) et un résultat à suivre.
-const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception') };
-const RESULTS_TO_FOLLOW = [
+const VISIT_APPOINTMENT = window.forPatient({
+  pediatrique: { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception') },
+  adulte: { time: '10:15', type: L('Rendez-vous de suivi'), reason: L('Céphalées plus fréquentes depuis 4 mois'), bookedBy: L('Pris par la patiente en ligne') } });
+const RESULTS_TO_FOLLOW = window.forPatient({ adulte: [], pediatrique: [
   { id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },
-];
+] });
 
 // ctx = { appointment, results, sommaire (lignes de getSommaireDiagnostics) }
 // → [{ id, kind: 'raison'|'resultat'|'probleme', label, detail, text, short, target? }].
