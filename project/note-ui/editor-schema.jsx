@@ -237,7 +237,8 @@ function chipPrintText(a) {
     main = join([rx.name || d.molecule || a.label, rx.dose || (d.dose ? d.dose + ' ' + (d.unit || '') : '')], ' ');
     second = rx.ceased ? '' : (rx.sig || '');
   } else if (a.type === 'lab') {
-    main = (d.tests && d.tests.length) ? d.tests.join(', ') : (rx.name || a.label);
+    // Comme la puce : le nom du bilan entier, sinon les analyses en acronyme (RA-19 du prototype).
+    main = (d.tests && d.tests.length) ? window.NOTE_DATA.deriveLabRx(d).name : (rx.name || a.label);
     second = join([window.NOTE_DATA.valueLabel(d.priority), d.fasting ? t('schema.fasting.text') : ''], ', ');
   } else if (a.type === 'imaging') {
     main = rx.name || join([window.NOTE_DATA.valueLabel(d.modality), window.NOTE_DATA.valueLabel(d.region)], ' ') || a.label;
@@ -2161,11 +2162,14 @@ function parseSlashQuery(query) {
   return { mode: 'menu' };
 }
 
-// Aplatit {contexte?, profil?, profiles?, favoris, frequents, autres} dans
-// l'ordre de rendu de RxMenu — sert de liste unique pour la navigation
-// clavier (↑↓/Entrée).
+// Aplatit {contexte?, profil?, profiles?, labSections?, favoris, frequents,
+// autres} dans l'ordre de rendu de RxMenu — sert de liste unique pour la
+// navigation clavier (↑↓/Entrée). Une analyse peut revenir dans deux
+// sections de /lab (Au dossier et Favoris) : deux lignes, deux positions.
 function flattenRxResults(r) {
-  return (r.contexte || []).concat(r.profil || [], r.profiles || [], r.favoris || [], r.frequents || [], r.autres || []);
+  const lab = [];
+  (r.labSections || []).forEach(function (s) { s.items.forEach(function (it) { lab.push(it); }); });
+  return (r.contexte || []).concat(r.profil || [], r.profiles || [], lab, r.favoris || [], r.frequents || [], r.autres || []);
 }
 
 // Attributs de la région de diagnostic qui contient le curseur, ou null —
@@ -2710,6 +2714,8 @@ function updateChipEntity(editor, cid, entity, extra) {
 // Attrs d'un chip d'ordonnance/requête pour un item du catalogue — même
 // résultat que runOrderCommand (editor-field.jsx) pour un ajout normal.
 function orderChipAttrs(kind, item) {
+  // Une puce labo se construit toujours depuis ses analyses (nom, acronymes, bilan).
+  if (kind === 'lab') return labChipAttrs(Object.assign({}, item.details, { tests: ((item.details && item.details.tests) || [item.name]).slice() }));
   const def = window.NOTE_DATA.ORDER_DEFS[kind];
   const label = (item.name + ' ' + (item.dose || '')).trim();
   const sig = item.chipSig || item.sig;
@@ -2731,26 +2737,37 @@ function labChipAttrs(details) {
   };
 }
 
-// Sélection multiple d'une recherche de requêtes (/req, /lab, /img) → attrs
-// des puces à insérer, dans cet ordre : UNE puce labo pour toutes les
-// analyses cochées (profils déployés, doublons retirés), puis une puce par
-// examen d'imagerie (une puce imagerie décrit un seul examen : modalité,
-// région, vues). `kind` = recherche d'origine, pour les items sans orderKind.
+// Sélection multiple d'une recherche de requêtes (/lab, et l'imagerie des
+// suggestions) → attrs des puces à insérer, dans cet ordre : une puce par
+// bilan, à son nom (ID-07 du prototype « Note saisie fonction »), puis UNE
+// puce labo pour les autres analyses cochées, puis une puce par examen
+// d'imagerie (une puce imagerie décrit un seul examen : modalité, région,
+// vues). Une analyse déjà dans une puce n'est pas répétée. `kind` = recherche
+// d'origine, pour les items sans orderKind.
 function buildRequestChips(items, kind) {
-  const tests = [];
-  let fasting = false;
-  const imgs = [];
-  const profiles = [];
+  const used = [];
+  const fresh = function (tests) { return tests.filter(function (x) { if (used.indexOf(x) >= 0) return false; used.push(x); return true; }); };
+  const imgs = [], bilans = [], singles = [];
   (items || []).forEach(function (it) {
     const k = it.orderKind || kind;
-    if (k === 'img') { imgs.push(it); return; }
-    if (it.profile) profiles.push(it.name);
-    (it.details && it.details.tests || [it.name]).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); });
-    if (it.details && it.details.fasting) fasting = true;
+    if (k === 'img') imgs.push(it);
+    else if (it.profile) bilans.push(it);
+    else singles.push(it);
   });
   const out = [];
-  // `profile` : rappel dans le formulaire (« Depuis le profil … »), rien de plus.
-  if (tests.length) out.push(labChipAttrs(Object.assign({ tests: tests, fasting: fasting }, profiles.length ? { profile: profiles.join(', ') } : {})));
+  // `profile` : rappel dans le formulaire (« Depuis le profil … ») et nom de
+  // la puce tant que ses analyses (`profileTests`) y sont toutes.
+  bilans.forEach(function (b) {
+    const tests = fresh(b.details.tests.slice());
+    if (tests.length) out.push(labChipAttrs({ tests: tests, fasting: !!b.details.fasting, profile: b.name, profileTests: tests.slice() }));
+  });
+  const tests = [];
+  let fasting = false;
+  singles.forEach(function (it) {
+    fresh((it.details && it.details.tests) || [it.name]).forEach(function (x) { tests.push(x); });
+    if (it.details && it.details.fasting) fasting = true;
+  });
+  if (tests.length) out.push(labChipAttrs({ tests: tests, fasting: fasting }));
   imgs.forEach(function (it) { out.push(orderChipAttrs('img', it)); });
   return out;
 }

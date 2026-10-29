@@ -806,6 +806,23 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-menu.is-rail-focus .rx-item.is-active .rx-med-actions { visibility: hidden; }
 .rx-menu.is-rail-focus .rx-rail__item.is-on { outline: 2px solid var(--mat-sys-primary); outline-offset: -2px; }
 .rx-rail__item.is-on .material-icons-outlined, .rx-rail__item.is-on .rx-rail__count { color: inherit; }
+/* Menu /lab (PLAN-menu-requetes-labo.md, lot 3) : hauteur fixe quelle que soit
+   la vue (RA-11 du prototype), la liste et le panneau défilent à l'intérieur. */
+.rx-menu--lab { width: 760px; grid-template-columns: minmax(0, 1fr) 240px; grid-template-rows: 380px auto; }
+.rx-menu--lab .rx-menu__scroll { height: 380px; max-height: none; }
+.rx-rail--lab { min-height: 0; overflow-y: auto; }
+.rx-rail__head { padding: 10px 12px 4px; margin-top: 4px; border-top: 1px solid var(--border-subtle); font: 600 11px var(--font-body); color: var(--fg-3); }
+.rx-rail__item--group { height: 34px; font-weight: 400; }
+.rx-rail__item--group .material-icons-outlined { font-size: 18px; }
+.rx-rail__sel { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 11px var(--font-body); }
+.rx-lab__name { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rx-lab__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-lab__badge { flex-shrink: 0; padding: 0 6px; border-radius: 4px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface-variant); font: 500 11px/18px var(--font-body); white-space: nowrap; }
+.rx-lab__line2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rx-lab__status { font-weight: 600; color: var(--fg-2); }
+.rx-lab__status.is-abnormal { color: var(--mat-sys-error); }
+.rx-lab__trend { display: inline-flex; margin-left: 6px; vertical-align: -3px; color: var(--fg-2); }
+.rx-lab__trend .material-symbols-outlined { font-size: 16px; }
 /* Actions d'une ligne : visibles sur la ligne survolée ou choisie (Figma), pas sur toutes. */
 .rx-item .rx-med-actions { visibility: hidden; }
 .rx-item.is-active .rx-med-actions, .rx-item:hover .rx-med-actions, .rx-item:focus-within .rx-med-actions { visibility: visible; }

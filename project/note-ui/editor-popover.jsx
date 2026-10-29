@@ -850,7 +850,67 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens }) {
+// Corps d'une ligne de /lab (PLAN-menu-requetes-labo.md, lot 3) : le nom et
+// le badge de son groupe ; en dessous, la raison d'une suggestion, ou le
+// dernier résultat au dossier (date · valeur · Normal / Anormal) et sa
+// tendance (D4) ; pour un bilan, ses analyses en texte (RA-19 du prototype).
+// Tout texte tronqué a son contenu complet en infobulle (RA-14).
+function LabItemBody({ it, query, inGroup }) {
+  const res = it.profile ? null : window.NOTE_DATA.labOnFile(it.key);
+  const status = res && (res.status === 'anormal' ? t('popover.labAbnormal.text') : t('popover.labNormal.text'));
+  const trend = res && res.trend && {
+    up: ['trending_up', t('popover.labTrendUp.tooltip', { prev: res.prev })],
+    down: ['trending_down', t('popover.labTrendDown.tooltip', { prev: res.prev })],
+    stable: ['trending_flat', t('popover.labTrendStable.tooltip', { prev: res.prev })]
+  }[res.trend];
+  const badge = it.profile ? t('popover.labBilanBadge.text') : (inGroup ? '' : it.groupName);
+  const line2 = it.why || (it.profile ? it.sig : res ? [res.date, res.value, status].join(' · ') : '');
+  return (
+    <div className="rx-item__body">
+      <div className="rx-item__name rx-lab__name">
+        <span className="rx-lab__label" title={it.name}><RxNameHighlight name={it.name} query={query} /></span>
+        {badge && <span className="rx-lab__badge">{badge}</span>}
+      </div>
+      {line2 &&
+        <div className="rx-item__sig rx-lab__line2" title={line2}>
+          {res && !it.why
+            ? <>{res.date} · {res.value} · <span className={'rx-lab__status' + (res.status === 'anormal' ? ' is-abnormal' : '')}>{status}</span>
+                {trend && <span className="rx-lab__trend" title={trend[1]} role="img" aria-label={trend[1]}>
+                  <span className="material-symbols-outlined" aria-hidden="true">{trend[0]}</span></span>}</>
+            : line2}
+        </div>}
+    </div>);
+}
+
+// Panneau de droite de /lab : les vues (Tout, Prévention, Suggérés, Favoris,
+// Bilans courants) puis les groupes du catalogue, chacun avec son nombre de
+// résultats et, s'il y en a, ses analyses cochées (RA-10 du prototype).
+function LabRail({ rail, view, checkedKeys, onFilter }) {
+  const items = window.NOTE_DATA.ORDER_DEFS.lab.items();
+  const sel = (key) => checkedKeys.filter((u) => {
+    const it = items.find((x) => 'lab:' + x.key === u);
+    return it && (key === 'bilans' ? it.profile : it.group === key);
+  }).length;
+  return (
+    <nav className="rx-rail rx-rail--lab" aria-label={t('popover.labRail.aria')}>
+      {rail.map((r, i) => {
+        const n = sel(r.key);
+        return (
+          <React.Fragment key={r.key}>
+            {r.group && !rail[i - 1].group && <div className="rx-rail__head">{t('popover.labRailGroups.text')}</div>}
+            <button type="button" className={'rx-rail__item' + (r.group ? ' rx-rail__item--group' : '') + (view === r.key ? ' is-on' : '')} aria-pressed={view === r.key}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => onFilter && onFilter(r.key)}>
+              <span className="material-icons-outlined" aria-hidden="true">{r.icon}</span>
+              <span className="rx-rail__label">{r.label}</span>
+              {n > 0 && <span className="rx-rail__sel" title={tn('popover.labRailChecked.tooltip', n)}>{n}</span>}
+              <span className="rx-rail__count">{r.count}</span>
+            </button>
+          </React.Fragment>);
+      })}
+    </nav>);
+}
+
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens, labRail }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -873,12 +933,17 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   // Profils de laboratoire, en tête de /lab (searchLab).
   const profiles = results.profiles || [];
   if (profiles.length) sections.push([t('data.sectionProfiles.title'), profiles]);
+  // /lab : les sections de la vue choisie dans le panneau de droite (searchLab).
+  const labSections = results.labSections || [];
+  labSections.forEach((s) => sections.push([s.title, s.items, s.key]));
   sections.push([d.sections[0], results.favoris]);
   sections.push([d.sections[1], results.frequents]);
   sections.push([d.sections[2], results.autres]);
-  const total = contexte.length + profil.length + profiles.length + results.favoris.length + results.frequents.length + results.autres.length;
-  // Rail de filtres à droite (Figma « Recherche de prescriptions ») : seulement pour /rx.
-  const railOn = kind === 'rx' && !!counts;
+  const total = contexte.length + profil.length + profiles.length + labSections.reduce((n, s) => n + s.items.length, 0) + results.favoris.length + results.frequents.length + results.autres.length;
+  // Rail de filtres à droite (Figma « Recherche de prescriptions ») pour /rx ;
+  // panneau des vues et des groupes pour /lab (pas en contexte d'un diagnostic).
+  const isLab = kind === 'lab' && !!labRail;
+  const railOn = (kind === 'rx' && !!counts) || isLab;
   let flat = -1;
   // Sélection multiple (/lab) : case à cocher par résultat ; dès
   // qu'une case est cochée, un clic sur une ligne coche au lieu d'ajouter.
@@ -888,7 +953,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const noFav = (it) => !!it.profile; // un profil n'a pas de favori
 
   return (
-    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
+    <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (isLab ? ' rx-menu--lab' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
       <div className="rx-menu__main">
       <div className="rx-menu__scroll">
         {/* Produits allergènes masqués (applyAllergyFilter, editor-data.jsx) : la
@@ -906,8 +971,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
         {total === 0 &&
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
-        {sections.map(([ttl, list]) => { if (list.length === 0) return null; return (
-          <div key={ttl} className="rx-sec-block">
+        {sections.map(([ttl, list, secKey]) => { if (list.length === 0) return null; return (
+          <div key={secKey || ttl} className="rx-sec-block">
             <div className="rx-sec">{ttl} <span className="rx-sec-count">({list.length})</span></div>
             {list.map((it) => {
               flat += 1;
@@ -915,7 +980,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               const fav = favSet.has(it.key);
               const medActs = window.NOTE_DATA.medActions(it);
               return (
-                <div key={uid(it)} role="option" aria-selected={idx === activeIndex}
+                <div key={(secKey || '') + uid(it)} role="option" aria-selected={idx === activeIndex}
                   aria-checked={multi ? checkedKeys.indexOf(uid(it)) >= 0 : undefined}
                   className={'rx-item' + (idx === activeIndex ? ' is-active' : '') + (multi && checkedKeys.indexOf(uid(it)) >= 0 ? ' is-checked' : '')}
                   onMouseEnter={() => onHover(idx)}
@@ -928,6 +993,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       onClick={(e) => { e.stopPropagation(); onToggleCheck(it); }}>
                       <span className="material-symbols-outlined" aria-hidden="true">{checkedKeys.indexOf(uid(it)) >= 0 ? 'check_box' : 'check_box_outline_blank'}</span>
                     </button>}
+                  {kind === 'lab' ? <LabItemBody it={it} query={query} inGroup={secKey === it.group} /> :
                   <div className="rx-item__body">
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
@@ -936,7 +1002,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                         <span className="rx-status rx-status--allergy">{t('popover.allergyTag.text', { name: window.NOTE_DATA.rxAllergyOf(it) })}</span>}
                     </div>
                     <div className="rx-item__sig">{it.sig}</div>
-                  </div>
+                  </div>}
                   <div className="rx-item__actions">
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
                         ligne prescrit (renouvelle une médication active ou échue). Une médication au dossier a
@@ -977,8 +1043,17 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                               <span className="material-icons-outlined">add</span>
                             </button>}
                         </span>
-                      : noFav(it) ? null
+                      : noFav(it) && kind !== 'lab' ? null
                       : <>
+                          {/* Dernier résultat au dossier : le documenter dans la note, pas le prescrire (RA-15 du prototype). */}
+                          {kind === 'lab' && !it.profile && window.NOTE_DATA.labOnFile(it.key) &&
+                            <span className="rx-med-actions rx-med-actions--heart">
+                              <button type="button" className="rx-med-btn" title={t('popover.labDocumentResult.tooltip', { name: it.name })} aria-label={t('popover.labDocumentResult.tooltip', { name: it.name })}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={(e) => { e.stopPropagation(); onSelect(it, 'documenter'); }}>
+                                <span className="material-symbols-outlined" aria-hidden="true">edit_document</span>
+                              </button>
+                            </span>}
                           {kind === 'rx' && !it.active &&
                             <span className="rx-med-actions rx-med-actions--heart">
                               <button type="button" className="rx-med-btn" title={t('popover.documenterAjouterProfilSans.tooltip')} aria-label={t('popover.documenterAjouterProfilSans.aria')}
@@ -1007,7 +1082,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
         ); })}
       </div>
       </div>
-      {railOn &&
+      {isLab && <LabRail rail={labRail} view={filter} checkedKeys={checkedKeys} onFilter={onFilter} />}
+      {railOn && !isLab &&
         <nav className="rx-rail" aria-label={t('popover.filtresMedications.aria')}>
           {window.NOTE_DATA.RX_FILTERS.map((f) => (
             <button key={f.key} type="button" className={'rx-rail__item' + (filter === f.key ? ' is-on' : '')} aria-pressed={filter === f.key}

@@ -174,9 +174,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // /ant : des antécédents, pas des puces — une région de diagnostic
     // documentée comme antécédent par choix.
     if (kind === 'ant') { runAntecedentsCommand(editor, range, props.items || (item ? [item] : [])); return; }
-    // Plusieurs résultats cochés ou un profil : une puce labo pour toutes les
-    // analyses (buildRequestChips, editor-schema.jsx).
-    if (props.items || (item && item.profile)) {
+    // Dernier résultat d'une analyse au dossier (menu /lab, RA-15 du prototype
+    // « Explorations requetes ») : documenté en texte dans la note — nom, date,
+    // valeur, normal ou anormal —, sans requête.
+    if (action === 'documenter' && kind === 'lab' && item) {
+      const res = window.NOTE_DATA.labOnFile(item.key);
+      if (!res) return;
+      const text = t('field.labResultText.text', { name: item.name, date: res.date, value: res.value,
+        status: res.status === 'anormal' ? t('popover.labAbnormal.text') : t('popover.labNormal.text') });
+      editor.chain().focus().insertContentAt(range, text + ' ').run();
+      return;
+    }
+    // Plusieurs résultats cochés, un bilan ou une analyse : des puces labo
+    // (buildRequestChips, editor-schema.jsx).
+    if (props.items || (item && (item.profile || kind === 'lab'))) {
       const list = props.items || (item ? [item] : []);
       const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
       const nodes = [];
@@ -390,6 +401,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     let checked = [];
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
     let railFocus = false;
+    // La recherche ouverte montre-t-elle le contexte d'un diagnostic (pas de panneau /lab) ?
+    let orderInContext = false;
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
     function toggleChecked(it, kind) {
       const u = checkUid(it, kind);
@@ -466,13 +479,16 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // de ce diagnostic (searchOrder) ; le rail de filtres se cache alors.
         const results = window.NOTE_DATA.searchOrder(parsed.kind, (parsed.term || '').trim(), window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
         const inContext = !!(results.contexte && results.contexte.length);
+        orderInContext = inContext;
         // La liste navigable est la liste affichée (le filtre du rail la change sans
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
         selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
+        const railKind = parsed.kind === 'rx' || (parsed.kind === 'lab' && !inContext);
         setSlash({ mode: 'order', kind: parsed.kind,
-          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : null,
-          railFocus: parsed.kind === 'rx' && railFocus,
+          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : parsed.kind === 'lab' ? window.NOTE_DATA.getLabView() : null,
+          railFocus: railKind && railFocus,
+          labRail: parsed.kind === 'lab' && !inContext ? window.NOTE_DATA.labRail((parsed.term || '').trim()) : null,
           counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
@@ -495,7 +511,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = []; railFocus = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        window.NOTE_DATA.setRxFilter('tout');
+        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -544,17 +560,22 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // Menu /rx avec rail : Tab / ⇧ Tab bascule le focus entre la liste et le rail de
         // filtres (Tab n'applique plus la sélection, c'est le rôle d'Entrée). Dans le rail,
         // ↑ ↓ changent de filtre, Entrée, ← ou Échap-sans-fermer ramènent à la liste.
+        // Même chose pour le panneau des vues et des groupes de /lab.
+        const railKeys = parsed.mode !== 'order' ? null
+          : parsed.kind === 'rx' ? window.NOTE_DATA.RX_FILTERS.map(function (f) { return f.key; })
+          : parsed.kind === 'lab' && !orderInContext ? window.NOTE_DATA.labViewKeys()
+          : null;
         if (parsed.mode === 'order' && props.event.key === 'Tab') {
-          if (parsed.kind === 'rx') { railFocus = !railFocus; publish(lastQuery); }
+          if (railKeys) { railFocus = !railFocus; publish(lastQuery); }
           return true;
         }
-        if (railFocus && parsed.mode === 'order' && parsed.kind === 'rx') {
+        if (railFocus && railKeys) {
           const key = props.event.key;
-          const filters = window.NOTE_DATA.RX_FILTERS;
-          const cur = Math.max(0, filters.findIndex(function (f) { return f.key === window.NOTE_DATA.getRxFilter(); }));
+          const curKey = parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : window.NOTE_DATA.getLabView();
+          const cur = Math.max(0, railKeys.indexOf(curKey));
           if (key === 'ArrowDown' || key === 'ArrowUp') {
-            const next = filters[(cur + (key === 'ArrowDown' ? 1 : filters.length - 1)) % filters.length];
-            api.setFilter(next.key); return true;
+            const next = railKeys[(cur + (key === 'ArrowDown' ? 1 : railKeys.length - 1)) % railKeys.length];
+            api.setFilter(next); return true;
           }
           if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
         }
@@ -616,7 +637,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       },
       republish() { publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
-      setFilter(f) { window.NOTE_DATA.setRxFilter(f); selectedIndex = 0; publish(lastQuery); },
+      setFilter(f) {
+        if (parseSlashQuery(lastQuery).kind === 'lab') window.NOTE_DATA.setLabView(f); else window.NOTE_DATA.setRxFilter(f);
+        selectedIndex = 0; publish(lastQuery);
+      },
       // Bannière d'allergie du menu /rx : afficher ou masquer les produits allergènes.
       toggleAllergens(on) { window.NOTE_DATA.setShowAllergens(on); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
@@ -1311,7 +1335,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
         <RxMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.kind === 'rx' ? 736 : 476))), zIndex: 60 }}
+          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.labRail ? 776 : slash.kind === 'rx' ? 736 : 476))), zIndex: 60 }}
           kind={slash.kind}
           def={window.NOTE_DATA.ORDER_DEFS[slash.kind]}
           query={slash.query}
@@ -1326,6 +1350,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           filter={slash.filter}
           railFocus={slash.railFocus}
           counts={slash.counts}
+          labRail={slash.labRail}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
           onToggleAllergens={() => { if (slashApiRef.current) slashApiRef.current.toggleAllergens(!(slash.results.allergy && slash.results.allergy.shown)); }}
           onClose={() => setSlash(null)} />
