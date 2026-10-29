@@ -50,5 +50,5 @@ test('diagnostic déjà dans la note : on ne le suggère pas de nouveau', () => 
 test('une fonction sans contexte connu : rien à suggérer', () => {
   const rx = w.orderChipAttrs('rx', item('rx', D.ORDER_DEFS.rx.items().find((it) => !D.DX_CONTEXTS.some((c) => c.rx.includes(it.key))).key));
   assert.deepEqual(D.nextStepSuggestions({ chip: rx, present: [rx], ctx: NO_CTX }), []);
-  assert.deepEqual(D.nextStepSuggestions({ region: { id: 'd2', name: 'Hypertension artérielle', code: 'I10' }, ctx: NO_CTX }), []);
+  assert.deepEqual(D.nextStepSuggestions({ region: { id: 'd2', name: 'Fibrillation auriculaire', code: 'I48.9' }, ctx: NO_CTX }), []);
 });

@@ -149,7 +149,15 @@ Fait sur la branche `feat/textes-rapides-tuiles` :
 
 - Avec la colonne ouverte, une puce longue passe à la ligne après son libellé (« Antibiotique : » puis la puce). Sans la colonne, elle tient sur la ligne.
 - Avec le réglage « Gabarit : lignes à compléter » (allumé par défaut), les tuiles arrivent en lignes à compléter, sans posologie. Éteint, elles arrivent en puces en attente complètes.
-- Restent : étape 4 (autres maladies), étape 5 (menu « / » → Textes rapides).
+- Reste : étape 5 (menu « / » → Textes rapides), reportée après la fusion de `feat/reference-specialite`, qui remanie `editor-field.jsx`, `editor-popover.jsx` et `editor-schema.jsx`.
+
+Fait sur la branche `feat/textes-rapides-maladies` (étape 4) :
+
+- **Nouveaux contextes** : pyélonéphrite (N10), MPOC (J44), pharyngite (J02, J03), sinusite (J01), influenza (J09 à J11), cellulite (L03), zona (B02), HTA (I10 à I15), diabète de type 2 (E11). Le contexte IVRS ne garde que J00, J04 à J06, et perd les mots « grippe » et « influenza ».
+- **Textes rapides** : les 6 gabarits existants passent aux tuiles dans le texte (même sens, nouvelle mise en forme « libellé : tuile »). Nouveaux : pyélonéphrite, exacerbation d'asthme, exacerbation de MPOC (et variante allergie), otite (variante allergie), pharyngite (et variante), sinusite (et variante), influenza, cellulite, zona, HTA, diabète de type 2.
+- **Catalogue** : pénicilline V, oseltamivir, valacyclovir, fluticasone nasale, prednisone 50 mg, avec une clé explicite (`key`). `RX_OTHERS` lit `m.key || 'cat-' + i`, pour que deux ajouts en fin de tableau ne se disputent pas un `cat-N`. Forme « vaporisateur » : « 2 vap. » sur la puce.
+- Pas de tuile de consignes : les consignes (`instr`) n'ont pas de `name` et ne se construisent pas en puce de gabarit. Elles restent du texte.
+- À savoir : la 2e patiente de `feat/reference-specialite` est allergique aux sulfamides, mais `ALLERGEN_CLASSES` ne connaît que la pénicilline. Le TMP-SMX de la pyélonéphrite ne sera signalé qu'une fois une classe « sulfamides » ajoutée.
 
 ## Questions restantes
 

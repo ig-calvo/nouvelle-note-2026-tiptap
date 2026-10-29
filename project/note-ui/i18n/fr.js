@@ -59,6 +59,7 @@
   'rx.qty.gelcap': 'gél',
   'rx.qty.capsule': 'caps.',
   'rx.qty.dose': 'dose',
+  'rx.qty.spray': 'vap.',
   'rx.duration.days': { one: 'jour', other: 'jours' },
   'rx.duration.weeks': { one: 'semaine', other: 'semaines' },
   'rx.duration.months': { one: 'mois', other: 'mois' },
