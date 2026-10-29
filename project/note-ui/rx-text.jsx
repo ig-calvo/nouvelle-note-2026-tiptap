@@ -18,7 +18,8 @@
     'comprimé': tk('rx.qty.tablet'),
     'aérosol-doseur': tk('rx.qty.inhaler'),
     'gélule': tk('rx.qty.gelcap'),
-    'capsule': tk('rx.qty.capsule')
+    'capsule': tk('rx.qty.capsule'),
+    'vaporisateur': tk('rx.qty.spray')
   };
   var FORM_ABBR_DEFAULT = tk('rx.qty.dose');
 
@@ -29,10 +30,10 @@
     mois: tk('rx.duration.months')
   };
 
-  // Nombre d'unités par prise : celui de la modale « Dose », sinon 1 (2 pour un aérosol-doseur).
+  // Nombre d'unités par prise : celui de la modale « Dose », sinon 1 (2 pour un aérosol-doseur ou un vaporisateur).
   function qtyPerDose(d) {
     if (d.qtyDose && /^\d/.test(String(d.qtyDose))) return String(d.qtyDose);
-    return d.form === 'aérosol-doseur' ? '2' : '1';
+    return d.form === 'aérosol-doseur' || d.form === 'vaporisateur' ? '2' : '1';
   }
 
   // « 2 comp. », « 1 inh » — la quantité par prise suivie de l'abréviation de la forme.

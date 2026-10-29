@@ -87,8 +87,35 @@ test('barre de la suite : le texte sans conflit, et aucun produit allergène pro
   const rx = s.filter((x) => x.orderKind === 'rx').map((x) => x.item.key);
   assert.ok(rx.length > 0);
   assert.ok(!rx.includes('cat-50') && !rx.includes('cat-48'), 'ni amoxicilline ni amoxicilline-clavulanate');
-  // Tous en conflit (otite : amoxicilline) : la pastille porte l'avertissement.
+}));
+
+test('tous les textes en conflit : la pastille de la barre porte l’avertissement', () => withAllergies([w.L('Pénicilline'), w.L('Azithromycine')], () => {
+  // Otite : amoxicilline, ou azithromycine pour l'allergie à la pénicilline.
   const otite = D.nextStepSuggestions({ region: { id: 'd2', name: 'Otite', code: 'H66.9' }, ctx: NO_CTX })[0];
   assert.equal(otite.icon, 'warning');
   assert.match(otite.desc, new RegExp(w.L('Pénicilline')));
+}));
+
+test('chaque diagnostic connu a au moins un texte rapide, et chaque texte se construit en entier', () => withAllergies([], () => {
+  D.DX_CONTEXTS.forEach((c) => {
+    const o = D.dxConclusionOptions({ name: 'x', code: c.cim10[0] }, NO_CTX);
+    assert.ok(o.length > 0, `${c.key} : aucun texte rapide`);
+    o.forEach((x) => assert.equal(chipsOf(w.buildConclusionBlocks(x)).length, x.proposals.length, `${x.id} : une tuile introuvable`));
+  });
+}));
+
+test('catalogue : une entrée avec `key` garde sa clé, les autres prennent cat- et leur position', () => {
+  const rx = D.ORDER_DEFS.rx.items();
+  assert.ok(rx.some((it) => it.key === 'penv600' && it.name === w.TR('Pénicilline V')));
+  assert.equal(rx.find((it) => it.key === 'cat-52').name, w.TR('Azithromycine'));
+  assert.equal(new Set(rx.map((it) => it.key)).size, rx.length, 'clés uniques');
+});
+
+test('variantes selon l’allergie : MPOC, otite, pharyngite et sinusite', () => withAllergies([w.L('Pénicilline')], () => {
+  const first = (code) => D.dxConclusionOptions({ name: 'x', code }, NO_CTX)[0].id;
+  assert.equal(first('J44.1'), 'mpoc-allergie');
+  assert.equal(first('H66.9'), 'otite-allergie');
+  assert.equal(first('J02.0'), 'pharyngite-allergie');
+  assert.equal(first('J01.9'), 'sinusite-allergie');
+  assert.equal(first('L03.1'), 'cellulite', 'céphalexine : hors de la classe pénicilline');
 }));

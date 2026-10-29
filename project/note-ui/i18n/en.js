@@ -980,6 +980,7 @@
   'rx.qty.dose': 'dose',
   'rx.qty.gelcap': 'gel cap',
   'rx.qty.inhaler': 'inh',
+  'rx.qty.spray': 'sprays',
   'rx.qty.tablet': 'tab.',
   'schema.acceptAdd.aria': 'Accept addition',
   'schema.annulee.text': 'Cancelled',

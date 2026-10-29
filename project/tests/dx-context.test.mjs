@@ -28,7 +28,8 @@ test('sans code, un mot entier du libellé suffit, dans les deux langues', () =>
   assert.equal(D.dxContextFor({ name: 'Mild asthma' }).key, 'asthme');
   assert.equal(D.dxContextFor({ name: 'Infection urinaire basse' }).key, 'itu');
   assert.equal(D.dxContextFor({ name: 'Urinary tract infection' }).key, 'itu');
-  assert.equal(D.dxContextFor({ name: 'Hypertension artérielle' }), null);
+  assert.equal(D.dxContextFor({ name: 'Hypertension artérielle' }).key, 'hta');
+  assert.equal(D.dxContextFor({ name: 'Fibrillation auriculaire' }), null);
   assert.equal(D.dxContextFor({ name: 'Bursite' }), null, 'pas de faux positif sur un morceau de mot');
   assert.equal(D.dxContextFor(null), null);
 });
@@ -120,8 +121,8 @@ test('options de conclusion sous une ITU : dernière conclusion, mon gabarit, ga
 test('dernière conclusion : seulement si le problème est au dossier ET qu’une note le conclut', () => {
   assert.deepEqual(opts({ code: 'N30.0' }, { notes: CTX.notes, sommaire: [] }).map((x) => x.kind), ['mine', 'omnimed']);
   assert.deepEqual(opts({ code: 'N30.0' }, { notes: [], sommaire: CTX.sommaire }).map((x) => x.kind), ['mine', 'omnimed']);
-  assert.deepEqual(opts({ code: 'H66.9' }, CTX).map((x) => x.kind), ['omnimed'], 'otite : ni dossier ni gabarit à moi');
-  assert.deepEqual(opts({ name: 'Hypertension artérielle', code: 'I10' }, CTX), []);
+  assert.deepEqual(opts({ code: 'H66.9' }, CTX).map((x) => x.kind), ['omnimed', 'omnimed'], 'otite : ni dossier ni gabarit à moi');
+  assert.deepEqual(opts({ name: 'Fibrillation auriculaire', code: 'I48.9' }, CTX), []);
 });
 
 test('gabarit de conclusion : texte en paragraphes, ajouts en attente signés par l’option', () => {
