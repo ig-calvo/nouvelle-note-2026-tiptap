@@ -712,6 +712,7 @@
   'data.sectionRefSpecialties.title': 'Specialties',
   'data.sectionRefNoReason.title': 'No specific reason',
   'data.sectionRefSuggested.title': 'Suggested for {dx}',
+  'data.refHint.placeholder': 'Search for a specialty consultation request',
   'schema.refPrereqTodo.text': 'To do: {items}',
   'schema.refPrereqMin.text': '{label} (at least {n})',
   'data.sectionRefOtherReasons.title': 'Other reasons',

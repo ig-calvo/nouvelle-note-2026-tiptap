@@ -648,6 +648,7 @@
   'data.sectionRefSpecialties.title': 'Spécialités',
   'data.sectionRefNoReason.title': 'Sans raison précise',
   'data.sectionRefSuggested.title': 'Suggérés pour {dx}',
+  'data.refHint.placeholder': 'Rechercher une demande de consultation en spécialité',
   'schema.refPrereqTodo.text': 'À faire : {items}',
   'schema.refPrereqMin.text': '{label} ({n} au moins)',
   'data.sectionRefOtherReasons.title': 'Autres raisons',

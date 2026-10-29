@@ -2212,6 +2212,32 @@ function dxRegionAtSelection(state) {
 // = { onCommand, makeRender } fournis par NoteBody (ils ferment sur son
 // propre state React — voir editor-field.jsx).
 // ---------------------------------------------------------
+// Texte d'aide d'une recherche de fonction encore vide (« /ref ») : le Figma
+// « Demande de consultation en médecine spécialisée » montre « Rechercher une
+// demande de consultation en spécialité » dans la ligne. Seules les fonctions
+// qui ont un `hint` (ORDER_DEFS) en montrent un ; il part dès la 1re lettre.
+function orderHintPlugin() {
+  const PM = window.Tiptap.pm;
+  return new PM.Plugin({ props: { decorations: function (state) {
+    const sel = state.selection;
+    if (!sel.empty || !PM.Decoration || !PM.DecorationSet) return null;
+    const $from = sel.$from;
+    const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '\ufffc');
+    const m = /(?:^|\s)\/(rx|lab|img|ref|exam|serv|instr|ant)\s$/i.exec(before);
+    if (!m || $from.parent.textBetween($from.parentOffset, $from.parent.content.size, undefined, '\ufffc').trim()) return null;
+    const D = window.NOTE_DATA;
+    const def = D.ORDER_DEFS[D.orderKindForKbd(m[1].toLowerCase()) || m[1].toLowerCase()];
+    if (!def || !def.hint) return null;
+    return PM.DecorationSet.create(state.doc, [PM.Decoration.widget(sel.from, function () {
+      const s = document.createElement('span');
+      s.className = 'slash-hint';
+      s.setAttribute('aria-hidden', 'true');
+      s.textContent = def.hint;
+      return s;
+    }, { side: 1, key: 'slash-hint' })]);
+  } } });
+}
+
 function buildSlashExtension(handlers) {
   return window.Tiptap.Extension.create({
     name: 'slashCommand',
@@ -2234,7 +2260,8 @@ function buildSlashExtension(handlers) {
           },
           command: handlers.onCommand,
           render: handlers.makeRender
-        })
+        }),
+        orderHintPlugin()
       ];
     }
   });

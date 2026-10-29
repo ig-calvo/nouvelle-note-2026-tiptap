@@ -369,6 +369,13 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
       </fieldset></div>
       {readOnly ? readOnlyFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel) :
       pending ? pendingFoot({ display: 'flex', alignItems: 'center', padding: '10px 16px', borderTop: '1px solid var(--mat-sys-outline-variant)' }, rxS.btnCancel, rxS.btnSave) :
+      // Référence : « Annuler » et « Enregistrer », comme le Figma (décision d'Ignacio Calvo, 2026-10-29).
+      draft.type === 'referral' ?
+      <div className="popover-footer">
+        <button className="btn btn-o btn-sm" onClick={onClose}>{t('popover.annuler.button')}</button>
+        <span className="grow" />
+        <button className="btn btn-p btn-sm" onClick={() => onSave(chip.id, draft)}>{t('popover.enregistrer.button')}</button>
+      </div> :
       <div className="popover-footer">
         <button className="btn btn-t btn-sm" onClick={() => onRevert(chip.id)}>
           <span className="material-symbols-outlined">undo</span>{t('popover.reconvertirTexte.button')}
