@@ -164,7 +164,8 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
     return () => { document.removeEventListener('mousedown', onDoc); document.removeEventListener('keydown', onKey); };
   }, [onClose]);
   const isRx = draft.type === 'prescription';
-  const W = isRx ? 640 : 380;
+  const refReason = draft.type === 'referral' && !!(draft.details && draft.details.reason);
+  const W = isRx ? 640 : draft.type === 'referral' ? 520 : 380;
   // Où le formulaire s'est ouvert (below / above / center / sheet) : centré,
   // un voile signale que la note est en attente ; bottom sheet, la puce est
   // amenée au-dessus du panneau si celui-ci la cache (une fois par ouverture).
@@ -351,8 +352,9 @@ function ChipPopover({ chip, anchorRect, onClose, onSave, onRevert, onDelete, re
       <div className="popover-head">
         <span className="ic"><span className="material-symbols-outlined">{meta.icon}</span></span>
         <div className="grow">
-          <div className="ttl">{meta.label}</div>
-          <div className="sub">{readOnly ? t('popover.transmisLectureSeule.text') : pending ? t('popover.ajoutProposeVerifierPuis.text') : t('popover.modifierDetailsStructures.text')}</div>
+          {/* Référence à une raison CRDS : « Céphalée » et sa raison, comme le Figma. */}
+          <div className="ttl">{refReason ? (draft.details.section || meta.label) : meta.label}</div>
+          <div className="sub">{readOnly ? t('popover.transmisLectureSeule.text') : pending ? t('popover.ajoutProposeVerifierPuis.text') : refReason ? draft.details.reason : t('popover.modifierDetailsStructures.text')}</div>
         </div>
         <button className="close" onClick={onClose}><span className="material-symbols-outlined">close</span></button>
       </div>
@@ -514,10 +516,13 @@ function ServFields({ d, up }) { return (<>
   <div className="field"><label>{t('popover.consignesInfirmiere.label')}</label><textarea rows={2} value={d.instructions || ''} onChange={e=>up('instructions', e.target.value)} /></div>
 </>); }
 
-// Référence : la spécialité, puis la raison de consultation de son formulaire
-// CRDS (sous ses sections, crds-data.js). La raison donne la priorité — sa
-// cote, A à E — et les pièces jointes que le formulaire demande.
-const NO_CRDS_REASON = { crdsKey: null, reason: '', reasonPath: [], priority: 'Routine' };
+// Référence (PLAN-reference-specialite.md, lot 4) : la spécialité et la raison
+// de consultation de son formulaire CRDS (changeable, D7), ses prérequis (D5,
+// D5b), la priorité en boutons A à E avec son délai (D6), les renseignements
+// cliniques, l'orientation et le commentaire au spécialiste (D7). Changer de
+// raison remet sa cote et ses prérequis (crdsRefDetails).
+const NO_CRDS_REASON = { crdsKey: null, reason: '', reasonPath: [], section: '', priority: 'Routine', prereqs: {} };
+const REF_ORIENTATIONS = ['premier', 'designe'];
 function RefFields({ d, up, set }) {
   const D = window.NOTE_DATA;
   const reasons = D.crdsReasonsOf(d.specialty);
@@ -532,63 +537,103 @@ function RefFields({ d, up, set }) {
   const isCote = /^[A-E]$/.test(d.priority || '');
   const coteLabel = { A: t('popover.crdsPriorityA.label'), B: t('popover.crdsPriorityB.label'), C: t('popover.crdsPriorityC.label'),
     D: t('popover.crdsPriorityD.label'), E: t('popover.crdsPriorityE.label') };
+  const orientLabel = { premier: t('popover.refOrientFirst.label'), designe: t('popover.refOrientNamed.label') };
   return (<>
-  <div className="field"><label>{t('popover.specialite.label')}</label>
-    <select value={d.specialty||''} onChange={e=>set(Object.assign({ specialty: e.target.value }, NO_CRDS_REASON))}>
-      <option value="">{t('popover.choisir.label')}</option>
-      {D.FIELD_OPTIONS.specialty.map((o) => <option key={o} value={o}>{D.valueLabel(o)}</option>)}
-    </select></div>
-  {reasons.length > 0 &&
-  <div className="field"><label>{t('popover.crdsReason.label')}</label>
-    <select value={d.crdsKey||''} onChange={e=>{ const r = D.crdsReason(e.target.value); set(r ? D.crdsRefDetails(r, d) : NO_CRDS_REASON); }}>
-      <option value="">{t('popover.crdsNoReason.label')}</option>
-      {groups.map((g, i) => g.title ? <optgroup key={i} label={g.title}>{g.items.map(option)}</optgroup> : g.items.map(option))}
-    </select></div>}
-  <div className="field"><label>{t('popover.questionClinique.label')}</label><textarea rows={2} value={d.question||''} onChange={e=>up('question', e.target.value)} /></div>
   <div className="row">
-    <div className="field"><label>{t('popover.priorite.label')}</label>
-      {isCote || reason
-        ? <select value={d.priority} onChange={e=>up('priority', e.target.value)}>
-            {D.FIELD_OPTIONS.crdsPriority.map((c) => <option key={c} value={c}>{coteLabel[c]}</option>)}
-          </select>
-        : <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} />}</div>
+    <div className="field"><label>{t('popover.specialite.label')}</label>
+      <select value={d.specialty||''} onChange={e=>set(Object.assign({ specialty: e.target.value }, NO_CRDS_REASON))}>
+        <option value="">{t('popover.choisir.label')}</option>
+        {D.FIELD_OPTIONS.specialty.map((o) => <option key={o} value={o}>{D.valueLabel(o)}</option>)}
+      </select></div>
+    {reasons.length > 0 &&
+    <div className="field"><label>{t('popover.crdsReason.label')}</label>
+      <select value={d.crdsKey||''} onChange={e=>{ const r = D.crdsReason(e.target.value); set(r ? D.crdsRefDetails(r, d) : NO_CRDS_REASON); }}>
+        <option value="">{t('popover.crdsNoReason.label')}</option>
+        {groups.map((g, i) => g.title ? <optgroup key={i} label={g.title}>{g.items.map(option)}</optgroup> : g.items.map(option))}
+      </select></div>}
   </div>
-  {reason && reason.docs.length > 0 && <CrdsDocs docs={reason.docs} />}
-  <div className="field"><label>{t('popover.indication.label')}</label><input value={d.indication||''} onChange={e=>up('indication', e.target.value)} /></div>
+  {reason && <RefPrereqs id={reason.crds} vals={d.prereqs || {}} onChange={(v) => up('prereqs', v)} />}
+  <div className="field"><label id="ref-priority-label">{t('popover.priorite.label')}</label>
+    {isCote || reason
+      ? <div className="ref-cote" role="radiogroup" aria-labelledby="ref-priority-label">
+          {D.FIELD_OPTIONS.crdsPriority.map((c) =>
+            <button key={c} type="button" role="radio" aria-checked={d.priority === c} title={coteLabel[c]}
+              className={'ref-cote__btn' + (d.priority === c ? ' is-on' : '')} onClick={() => up('priority', c)}>
+              {d.priority === c && <span className="material-symbols-outlined" aria-hidden="true">check</span>}{c}
+            </button>)}
+        </div>
+      : <PrioritySelect value={d.priority} onChange={v=>up('priority', v)} />}
+    {isCote && <div className="ref-hint">{coteLabel[d.priority] + (reason && reason.cote === d.priority ? ' · ' + t('popover.refCoteCrds.text') : '')}</div>}
+  </div>
+  <div className="field"><label>{t('popover.refClinical.label')}</label><textarea rows={3} value={d.clinical||''} onChange={e=>up('clinical', e.target.value)} /></div>
+  <div className="field"><label>{t('popover.refOrientation.label')}</label>
+    <select value={d.orientation || 'premier'} onChange={e=>up('orientation', e.target.value)}>
+      {REF_ORIENTATIONS.map((o) => <option key={o} value={o}>{orientLabel[o]}</option>)}
+    </select></div>
   <div className="field"><label>{t('popover.commentaireSpecialiste.label')}</label><input value={d.comment || ''} onChange={e=>up('comment', e.target.value)} /></div>
 </>); }
 
-// Pièces jointes que demande la raison CRDS. Ce que le dossier ou le DSQ
-// fournit est joint d'office ; le reste est à joindre, à inscrire ou à faire.
-const CRDS_DOC_STATE = {
-  DSQ: { icon: 'check_circle', key: 'dsq', auto: true },
-  Facile: { icon: 'check_circle', key: 'dossier', auto: true },
-  Difficile: { icon: 'attach_file', key: 'joindre' },
-};
-function crdsDocState(doc) {
-  if (CRDS_DOC_STATE[doc.auto]) return CRDS_DOC_STATE[doc.auto];
-  if (doc.type === 'saisie') return { icon: 'edit', key: 'inscrire' };
-  if (doc.type === 'action') return { icon: 'pending_actions', key: 'faire' };
-  return { icon: 'attach_file', key: 'joindre' };
-}
-function CrdsDocs({ docs }) {
-  const stateText = { dsq: t('popover.crdsDocDsq.text'), dossier: t('popover.crdsDocDossier.text'), joindre: t('popover.crdsDocJoindre.text'),
-    inscrire: t('popover.crdsDocInscrire.text'), faire: t('popover.crdsDocFaire.text') };
-  return (
-    <div className="field">
-      <label>{t('popover.crdsDocs.label')}</label>
-      <ul className="ref-docs">
-        {docs.map((doc, i) => {
-          const st = crdsDocState(doc);
-          return (
-            <li key={i} className={'ref-docs__item' + (st.auto ? ' is-auto' : '')}>
-              <span className="material-symbols-outlined" aria-hidden="true">{st.icon}</span>
-              <span className="ref-docs__name">{doc.name}{doc.note && <span className="ref-docs__note"> — {doc.note}</span>}</span>
-              <span className="ref-docs__state">{stateText[st.key]}</span>
-            </li>);
-        })}
-      </ul>
-    </div>);
+// Prérequis d'une raison CRDS (crdsPrereqs, editor-data.jsx). Pastilles à
+// cocher par groupe (médicaments essayés de la migraine, cochés d'office
+// d'après le profil), texte à inscrire, case « fait » ou « joint », pièces
+// jointes d'office (DSQ, dossier).
+function RefPrereqs({ id, vals, onChange }) {
+  const fields = window.NOTE_DATA.crdsPrereqs(id);
+  if (!fields.length) return null;
+  const set = (k, v) => onChange(Object.assign({}, vals, { [k]: v }));
+  const choices = fields.filter((f) => f.kind === 'choices');
+  const others = fields.filter((f) => f.kind !== 'choices');
+  const docState = { dsq: t('popover.crdsDocDsq.text'), dossier: t('popover.crdsDocDossier.text') };
+  return (<>
+    {choices.length > 0 &&
+    <div className="field ref-prereq">
+      <div className="ref-prereq__title">{choices[0].title}</div>
+      {choices[0].hint && <div className="ref-hint">{choices[0].hint}</div>}
+      {choices.map((f) => {
+        const on = vals[f.key] || [];
+        const short = on.length < f.min;
+        return (
+          <div key={f.key} className="ref-prereq__group" role="group" aria-label={f.label}>
+            <div className={'ref-prereq__label' + (short ? ' is-short' : '')}>{t('schema.refPrereqMin.text', { label: f.label, n: f.min })}</div>
+            <div className="ref-pills">
+              {f.options.map((o) => {
+                const sel = on.indexOf(o.key) >= 0;
+                return (
+                  <button key={o.key} type="button" aria-pressed={sel} className={'ref-pill' + (sel ? ' is-on' : '')}
+                    onClick={() => set(f.key, sel ? on.filter((k) => k !== o.key) : on.concat(o.key))}>
+                    {sel && <span className="material-symbols-outlined" aria-hidden="true">check</span>}{o.label}
+                  </button>);
+              })}
+            </div>
+          </div>);
+      })}
+    </div>}
+    {others.length > 0 &&
+    <div className="field ref-prereq">
+      <div className="ref-prereq__title">{t('popover.crdsDocs.label')}</div>
+      {others.map((f) => {
+        if (f.kind === 'auto') return (
+          <div key={f.key} className="ref-doc is-auto">
+            <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
+            <span className="ref-doc__name">{f.label}</span>
+            <span className="ref-doc__state">{docState[f.source]}</span>
+          </div>);
+        if (f.kind === 'text') return (
+          <div key={f.key} className="field">
+            <label htmlFor={'ref-pre-' + f.key}>{f.label}</label>
+            <textarea id={'ref-pre-' + f.key} rows={2} value={vals[f.key] || ''} placeholder={t('popover.crdsDocInscrire.text')} onChange={(e) => set(f.key, e.target.value)} />
+          </div>);
+        return (
+          <label key={f.key} className={'ref-doc' + (vals[f.key] ? ' is-auto' : '')}>
+            <input type="checkbox" checked={!!vals[f.key]} onChange={(e) => set(f.key, e.target.checked)} />
+            <span className="ref-doc__name">{f.label}</span>
+            <span className="ref-doc__state">{vals[f.key]
+              ? (f.kind === 'attach' ? t('popover.refDocAttached.text') : t('popover.refDocDone.text'))
+              : (f.kind === 'attach' ? t('popover.crdsDocJoindre.text') : t('popover.crdsDocFaire.text'))}</span>
+          </label>);
+      })}
+    </div>}
+  </>);
 }
 
 // Slash menu

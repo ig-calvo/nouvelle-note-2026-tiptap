@@ -227,6 +227,31 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const attrs = orderChipAttrsFor(kind, item, action);
     if (!attrs) return;
     editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
+    // Référence dont des prérequis CRDS sont à remplir : le formulaire s'ouvre
+    // d'office (D8 de PLAN-reference-specialite.md) ; sinon, au clic.
+    const d = attrs.details || {};
+    if (attrs.type === 'referral' && d.crdsKey && window.NOTE_DATA.crdsPrereqMissing(d.crdsKey, d.prereqs).length) {
+      requestAnimationFrame(function () {
+        const node = editor.view.dom.querySelector('[data-cid="' + attrs.cid + '"]');
+        if (node && onChipClickRef.current) onChipClickRef.current(attrs.cid, node.getBoundingClientRect(), { action: 'modal' });
+      });
+    }
+  }
+
+  // Texte des détails de la consultation : les paragraphes en tête de la note,
+  // avant la ligne de séparation de la conclusion (renseignements cliniques
+  // d'une référence, D7).
+  function noteDetailsText() {
+    const editor = editorRef.current;
+    if (!editor) return '';
+    const parts = [];
+    let done = false;
+    editor.state.doc.forEach(function (n) {
+      if (done) return;
+      if (n.type.name === window.SECTION_SPLIT) { done = true; return; }
+      if (n.type.name === 'paragraph' && n.textContent.trim()) parts.push(n.textContent.trim());
+    });
+    return parts.join('\n').slice(0, 800);
   }
 
   // Attributs de la puce d'un item choisi dans une recherche de fonction
@@ -244,7 +269,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
     // Raison de consultation CRDS (menu /ref) : une puce au nom de la
     // spécialité, avec la raison et sa cote de priorité (crdsRefItem).
-    if (kind === 'ref' && item.crds) item = window.NOTE_DATA.crdsRefItem(item);
+    if (kind === 'ref' && item.crds) {
+      item = window.NOTE_DATA.crdsRefItem(item);
+      // Renseignements cliniques préremplis depuis la note (D7 de PLAN-reference-specialite.md).
+      item = Object.assign({}, item, { details: Object.assign({}, item.details, { clinical: noteDetailsText() }) });
+    }
     // Augmenter / diminuer (Figma, menu /rx) : la même médication, sa dose d'un
     // palier plus haut ou plus bas (adjustMedDose). `src` est alors l'item à
     // prescrire ; sans palier (déjà au bout de l'échelle), rien ne se passe.
