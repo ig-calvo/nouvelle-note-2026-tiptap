@@ -21,11 +21,17 @@ function editorFromNode(node) {
 
 // `position` === 'bas' ancre sous le rect (top: rect.bottom), sinon
 // au-dessus (bottom: viewportHeight - rect.top) — même rect, deux bords.
-function anchorFromRect(editor, rect, position, pinned) {
-  const left = rect.left + rect.width / 2;
+// `start` : la barre commence au bord gauche du rect au lieu d'y être centrée.
+// `lo`/`hi` : bords de la carte de la note — la barre reste dans sa largeur
+// au lieu de déborder sur le menu latéral pour une sélection en début de ligne.
+function anchorFromRect(editor, rect, position, pinned, start) {
+  const left = start ? rect.left : rect.left + rect.width / 2;
+  const card = editor && editor.view && editor.view.dom.closest('.note-card');
+  const box = card ? card.getBoundingClientRect() : null;
+  const bounds = box ? { lo: box.left, hi: box.right } : { lo: 8, hi: window.innerWidth - 8 };
   return position === 'bas'
-    ? { editor, left, top: rect.bottom + 8, pinned }
-    : { editor, left, bottom: window.innerHeight - rect.top + 8, pinned };
+    ? { editor, left, start: !!start, bounds, top: rect.bottom + 8, pinned }
+    : { editor, left, start: !!start, bounds, bottom: window.innerHeight - rect.top + 8, pinned };
 }
 
 // Titres de section verrouillés (attrs.locked, voir LockedHeadingExtension
@@ -44,6 +50,14 @@ function selectionState(position) {
   if (isInLockedHeading(sel.anchorNode) || isInLockedHeading(sel.focusNode)) return null;
   const editor = editorFromNode(sel.anchorNode);
   if (!editor) return null;
+  // Sélection sans texte (lignes vides) : son rectangle est de largeur nulle
+  // ou couvre tout le bloc — la barre, centrée dessus, se collait au bord de
+  // l'écran ou se plaçait au milieu de la note. Elle part alors du début de
+  // la sélection, comme le curseur (position de l'éditeur, coordsAtPos).
+  if (!sel.toString().trim()) {
+    const c = editor.view.coordsAtPos(editor.state.selection.from);
+    return anchorFromRect(editor, { left: c.left, width: 0, top: c.top, bottom: c.bottom }, position, false, true);
+  }
   const rect = sel.getRangeAt(0).getBoundingClientRect();
   if (!rect || (rect.width === 0 && rect.height === 0)) return null;
   return anchorFromRect(editor, rect, position, false);
@@ -148,7 +162,9 @@ function FloatingToolbar({ position = 'haut' }) {
   if (hiddenChunks.length > 0) contentW += S.CHUNK_BTN_W;
   const fitW = contentW + sepCount * (S.CHUNK_DIV_W + 2 * 4) + 2 * 8 + 2;
   const W = linkEditor.editing ? maxW : Math.min(maxW, fitW);
-  const left = Math.max(8, Math.min(state.left - W / 2, window.innerWidth - W - 8));
+  const lo = Math.max(8, state.bounds ? state.bounds.lo : 8);
+  const hi = Math.min(window.innerWidth - 8, state.bounds ? state.bounds.hi : window.innerWidth - 8);
+  const left = Math.max(lo, Math.min(state.start ? state.left - 8 : state.left - W / 2, hi - W));
 
   return (
     <div
