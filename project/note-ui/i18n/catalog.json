@@ -14099,21 +14099,21 @@
       ]
     },
     {
-      "fr": "Commencer dans les 48 h suivant le début des symptômes.",
-      "empreinte": "967cef4ea3aa",
-      "contexte": "donnée de démonstration",
-      "extrait": "indication: L('Influenza'), notes: L('Commencer dans les 48 h suivant le début des symptômes.') } },",
-      "fichiers": [
-        "note-ui/editor-data.jsx:360"
-      ]
-    },
-    {
       "fr": "Commencer dans les 72 h suivant l’éruption.",
       "empreinte": "cea950c766ff",
       "contexte": "donnée de démonstration",
       "extrait": "indication: L('Zona'), notes: L('Commencer dans les 72 h suivant l’éruption.') } },",
       "fichiers": [
         "note-ui/editor-data.jsx:366"
+      ]
+    },
+    {
+      "fr": "Commencer dès que possible, idéalement dans les 48 h suivant le début des symptômes.",
+      "empreinte": "e4f6fc487869",
+      "contexte": "donnée de démonstration",
+      "extrait": "indication: L('Influenza'), notes: L('Commencer dès que possible, idéalement dans les 48 h suivant le début des symptômes.') } },",
+      "fichiers": [
+        "note-ui/editor-data.jsx:360"
       ]
     },
     {
@@ -15039,7 +15039,7 @@
       "fr": "Exacerbation de MPOC",
       "empreinte": "1532fda1c4bf",
       "contexte": "donnée de démonstration",
-      "extrait": "rx: ['prednisone50', 'cat-48', 'cat-51', 'cat-36', 'cat-34'], lab: ['fsc'], img: ['rxpoumon'], label: L('Exacerbation de MPOC') },",
+      "extrait": "rx: ['cat-39', 'cat-48', 'cat-51', 'cat-36', 'cat-34'], lab: ['fsc'], img: ['rxpoumon'], label: L('Exacerbation de MPOC') },",
       "fichiers": [
         "note-ui/editor-data.jsx:1235",
         "note-ui/editor-data.jsx:1306"
@@ -15312,25 +15312,25 @@
       "fr": "Fluticasone (nasal)",
       "empreinte": "77037d6d53d6",
       "contexte": "donnée de démonstration",
-      "extrait": "details: { molecule: L('Fluticasone (nasal)'), dose: '50', unit: 'mcg/vap.', form: 'vaporisateur', route: 'Nasal',",
+      "extrait": "details: { molecule: L('Fluticasone (nasal)'), dose: '50', unit: 'mcg', form: 'vaporisateur', route: 'Nasal',",
       "fichiers": [
         "note-ui/editor-data.jsx:370"
       ]
     },
     {
-      "fr": "Fluticasone nasal 50 mcg/vap.",
-      "empreinte": "8e5d6efe30c6",
+      "fr": "Fluticasone nasal 50 mcg",
+      "empreinte": "c0e519ebedf3",
       "contexte": "donnée de démonstration",
-      "extrait": "label: L('Fluticasone nasal 50 mcg/vap.'),",
+      "extrait": "label: L('Fluticasone nasal 50 mcg'),",
       "fichiers": [
         "note-ui/editor-data.jsx:369"
       ]
     },
     {
-      "fr": "Fluticasone nasal 50 mcg/vap. — 2 vap. par narine DIE",
-      "empreinte": "e78293ce930f",
+      "fr": "Fluticasone nasal 50 mcg — 2 vap. par narine DIE",
+      "empreinte": "117bcb49861f",
       "contexte": "donnée de démonstration",
-      "extrait": "text: L('Fluticasone nasal 50 mcg/vap. — 2 vap. par narine DIE'),",
+      "extrait": "text: L('Fluticasone nasal 50 mcg — 2 vap. par narine DIE'),",
       "fichiers": [
         "note-ui/editor-data.jsx:368"
       ]
@@ -16439,19 +16439,19 @@
       ]
     },
     {
-      "fr": "Impression : exacerbation de MPOC, allergie à la pénicilline.\nCorticostéroïde oral : {cso}\nSi expectorations purulentes : {abx}\nBronchodilatateur : {saba}\nRadiographie pulmonaire : {img}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée au repos, confusion ou somnolence.",
-      "empreinte": "eb74f3973a70",
+      "fr": "Impression : exacerbation de MPOC, allergie à la pénicilline.\nCorticostéroïde oral, 40 mg par jour : {cso}\nSi expectorations purulentes : {abx}\nBronchodilatateur : {saba}\nRadiographie pulmonaire : {img}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée au repos, confusion ou somnolence.",
+      "empreinte": "bc8340179b16",
       "contexte": "donnée de démonstration",
-      "extrait": "content: L('Impression : exacerbation de MPOC, allergie à la pénicilline.\\nCorticostéroïde oral : {cso}\\nSi expectorations purulentes : {abx}\\nBronchodilatateur",
+      "extrait": "content: L('Impression : exacerbation de MPOC, allergie à la pénicilline.\\nCorticostéroïde oral, 40 mg par jour : {cso}\\nSi expectorations purulentes : {abx}\\nB",
       "fichiers": [
         "note-ui/editor-data.jsx:1313"
       ]
     },
     {
-      "fr": "Impression : exacerbation de MPOC.\nCorticostéroïde oral : {cso}\nSi expectorations purulentes : {abx}\nBronchodilatateur : {saba}\nRadiographie pulmonaire : {img}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée au repos, confusion ou somnolence.",
-      "empreinte": "acb0794c0dfb",
+      "fr": "Impression : exacerbation de MPOC.\nCorticostéroïde oral, 40 mg par jour : {cso}\nSi expectorations purulentes : {abx}\nBronchodilatateur : {saba}\nRadiographie pulmonaire : {img}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée au repos, confusion ou somnolence.",
+      "empreinte": "828f9c64e54e",
       "contexte": "donnée de démonstration",
-      "extrait": "content: L('Impression : exacerbation de MPOC.\\nCorticostéroïde oral : {cso}\\nSi expectorations purulentes : {abx}\\nBronchodilatateur : {saba}\\nRadiographie pul",
+      "extrait": "content: L('Impression : exacerbation de MPOC.\\nCorticostéroïde oral, 40 mg par jour : {cso}\\nSi expectorations purulentes : {abx}\\nBronchodilatateur : {saba}\\n",
       "fichiers": [
         "note-ui/editor-data.jsx:1307"
       ]
@@ -16466,19 +16466,19 @@
       ]
     },
     {
-      "fr": "Impression : hypertension artérielle, suivi.\nBilan : {bilan}\nTraitement : {ieca}\nSuivi infirmier : {pa}\nCible : PA inférieure à 130/80.\nRevoir dans 3 mois avec les mesures à domicile.",
-      "empreinte": "8271748ab732",
+      "fr": "Impression : hypertension artérielle, suivi.\nBilan : {bilan}\nTraitement : {ieca}\nSuivi infirmier : {pa}\nCible : PA systolique inférieure à 130 mm Hg, si bien tolérée.\nRevoir dans 3 mois avec les mesures à domicile.",
+      "empreinte": "ca4974df5d67",
       "contexte": "donnée de démonstration",
-      "extrait": "content: L('Impression : hypertension artérielle, suivi.\\nBilan : {bilan}\\nTraitement : {ieca}\\nSuivi infirmier : {pa}\\nCible : PA inférieure à 130/80.\\nRevoir ",
+      "extrait": "content: L('Impression : hypertension artérielle, suivi.\\nBilan : {bilan}\\nTraitement : {ieca}\\nSuivi infirmier : {pa}\\nCible : PA systolique inférieure à 130 m",
       "fichiers": [
         "note-ui/editor-data.jsx:1367"
       ]
     },
     {
-      "fr": "Impression : influenza.\nRepos, hydratation. Fièvre ou douleur : {analg}\nSi risque de complications et moins de 48 h de symptômes : {antiviral}\nConsulter si dyspnée, douleur thoracique ou fièvre au-delà de 5 jours.",
-      "empreinte": "508d058fda3b",
+      "fr": "Impression : influenza.\nRepos, hydratation. Fièvre ou douleur : {analg}\nSi risque de complications, même après 48 h de symptômes : {antiviral}\nConsulter si dyspnée, douleur thoracique ou fièvre au-delà de 5 jours.",
+      "empreinte": "80c08e37d6f7",
       "contexte": "donnée de démonstration",
-      "extrait": "content: L('Impression : influenza.\\nRepos, hydratation. Fièvre ou douleur : {analg}\\nSi risque de complications et moins de 48 h de symptômes : {antiviral}\\nCo",
+      "extrait": "content: L('Impression : influenza.\\nRepos, hydratation. Fièvre ou douleur : {analg}\\nSi risque de complications, même après 48 h de symptômes : {antiviral}\\nCo",
       "fichiers": [
         "note-ui/editor-data.jsx:1353"
       ]
@@ -18512,7 +18512,7 @@
       "fr": "Pénicilline V",
       "empreinte": "b71ee3b8181c",
       "contexte": "donnée de démonstration",
-      "extrait": "details: { molecule: L('Pénicilline V'), dose: '600', unit: 'mg', form: 'comprimé', route: 'PO',",
+      "extrait": "details: { molecule: L('Pénicilline V'), dose: '600', unit: 'mg', form: 'comprimé', route: 'PO', qtyDose: '2',",
       "fichiers": [
         "note-ui/editor-data.jsx:352"
       ]

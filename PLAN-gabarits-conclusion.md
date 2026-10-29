@@ -168,5 +168,5 @@ Fait sur la branche `feat/menu-textes-rapides` (étape 5, règle Q-P11 de SPEC-r
 
 ## Questions restantes
 
-- **Q8. Validation clinique** : qui relit les exemples avant une démo ?
+- **Q8. Validation clinique** : qui relit les exemples avant une démo ? Une première relecture (sources et anglais) est dans [RELECTURE-textes-rapides.md](RELECTURE-textes-rapides.md). Ses corrections sont faites ; il reste 8 questions pour un clinicien.
 - **Q10. Tuile « rendez-vous à planifier »** (suite de Q6) : forme et destination à définir dans un plan à part.
