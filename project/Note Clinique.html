@@ -386,6 +386,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "reviewAuthor": "me",
   "checkoutSuggestions": false,
   "simulateTxFailure": false,
+  "patientPharmacy": true,
   "templateTextProposed": false,
   "templateDraftLines": true,
   "suggestionStyle": "tirets",
@@ -598,6 +599,7 @@ function App() {
               reviewAuthor={t.reviewAuthor || 'me'}
               checkoutSuggestions={t.checkoutSuggestions === true}
               simulateTxFailure={t.simulateTxFailure === true}
+              patientPharmacy={t.patientPharmacy !== false}
               templateTextProposed={t.templateTextProposed === true}
               templateDraftLines={t.templateDraftLines !== false}
               suggestionStyle={t.suggestionStyle || 'tirets'}
@@ -701,6 +703,8 @@ function App() {
                       onChange={(v) => setTweak('groupRequests', v === 'type')} />
           <TweakToggle label="Simuler un échec de transmission" value={t.simulateTxFailure === true}
                        onChange={(v) => setTweak('simulateTxFailure', v)} />
+          <TweakToggle label="Pharmacie favorite au dossier" value={t.patientPharmacy !== false}
+                       onChange={(v) => setTweak('patientPharmacy', v)} />
         </TweakSection>
         <TweakSection label="Gabarits">
           <TweakToggle label="Gabarit : lignes à compléter" value={t.templateDraftLines !== false}

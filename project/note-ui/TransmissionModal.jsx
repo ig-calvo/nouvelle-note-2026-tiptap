@@ -23,11 +23,9 @@ const TX_META = {
     attachments: [L('Liste de médicaments active'), L('Note clinique')],
     attachmentsOn: [L('Liste de médicaments active')],
     noteLabel: t('transmission.txNotePharmacist.label'),
-    suggestions: [
-      { name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673', favorite: true },
-      { name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', favorite: true },
-      { name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false },
-    ],
+    // Bottin des pharmacies (editor-data.jsx) : distance, bannière, canaux.
+    suggestions: window.NOTE_DATA.PHARMACIES,
+    nearby: true,
   },
   lab: {
     icon: 'science', accent: '#2e9b7a', nounPhrase: t('transmission.txNounLab.text'),

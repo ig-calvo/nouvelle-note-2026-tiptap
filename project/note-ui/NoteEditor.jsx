@@ -1,7 +1,7 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true,
   saveDraftRef, noteWide = false,
-  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
   aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
@@ -18,6 +18,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
   // pour que le pied de note et le checkout le voient dès ce rendu-ci.
   window.__GROUP_REQUESTS = !!groupRequests;
+  // Tweak « Pharmacie favorite au dossier » : préremplit l'ordonnance au
+  // checkout (defaultRecipients, editor-schema.jsx). Posé pendant le rendu.
+  window.__PATIENT_PHARMACY = patientPharmacy !== false;
   // Tweak « Gabarit : lignes à compléter » (A3) : lu par buildTemplateChipNode
   // (editor-schema.jsx) à l'application d'un gabarit, de note ou de conclusion.
   window.__TEMPLATE_DRAFT_LINES = templateDraftLines !== false;
