@@ -87,8 +87,8 @@
   'popover.batch.title': { one: '{n} élément prêt à ajouter', other: '{n} éléments prêts à ajouter' },
   'quickSend.summary.text': { one: '1 document · {n} destination', other: '1 document · {n} destinations' },
   'transmission.pending.hint': {
-    one: 'Cette note contient {n} document non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter.',
-    other: 'Cette note contient {n} documents non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter.'
+    one: 'Cette note contient {n} document non transmis ({titles}). Le checkout s\'ouvrira après la complétion pour le transmettre.',
+    other: 'Cette note contient {n} documents non transmis ({titles}). Le checkout s\'ouvrira après la complétion pour les transmettre.'
   },
   'transmission.sent.toast': { one: '{n} document transmis', other: '{n} documents transmis' },
   'transmission.elementsPartages.label': { one: '{n} élément partagé', other: '{n} éléments partagés' },
@@ -1369,10 +1369,6 @@
   'fax.faxer.button': 'Faxer',
 
   // TransmissionModal.jsx
-  'transmission.ordonnance.tooltip': 'ORDONNANCE',
-  'transmission.requetes.tooltip': 'REQUÊTES',
-  'transmission.outilsCliniques.tooltip': 'OUTILS CLINIQUES',
-  'transmission.consignes.tooltip': 'CONSIGNES',
   'transmission.noteClinique.text': 'Note clinique',
   'transmission.faireSuivreNote.text': 'Faire suivre la note',
   'transmission.signature.text': 'Signature',
@@ -1385,7 +1381,6 @@
   'transmission.documentsNote.text': 'Documents de la note',
   'transmission.transmissionDocuments.text': 'Transmission des documents',
   'transmission.fermer.aria': 'Fermer',
-  'transmission.faireSuivreSigner.text': 'Faire suivre et signer',
   'transmission.ajoutDocumentVenir.toast': 'Ajout de document — à venir',
   'transmission.ajouterDocument.button': 'Ajouter un document',
   'transmission.selectionnezDocumentListe.text': 'Sélectionnez un document dans la liste.',
@@ -1430,6 +1425,17 @@
   'transmission.statusReady.text': 'Prêt',
   'transmission.statusDone.text': 'Finalisé',
   'transmission.transmitAll.button': 'Tout transmettre ({n})',
+  'transmission.annuler.button': 'Annuler',
+  'transmission.documentsCount.label': 'Documents ({n})',
+  'transmission.catCopieNote.text': 'Copie de note',
+  'transmission.catMedication.text': 'Médication',
+  'transmission.catLaboratoire.text': 'Laboratoire',
+  'transmission.catImagerie.text': 'Imagerie',
+  'transmission.catConsultation.text': 'Consultation',
+  'transmission.catExamen.text': 'Examen diagnostique',
+  'transmission.catService.text': 'Service',
+  'transmission.catFormulaire.text': 'Formulaire',
+  'transmission.catConsignes.text': 'Consignes',
   'transmission.portailPatient.text': 'Portail patient',
   'transmission.preFacturation.text': 'Pré-facturation',
   'transmission.preFacturationMontant.text': '150,00 $',

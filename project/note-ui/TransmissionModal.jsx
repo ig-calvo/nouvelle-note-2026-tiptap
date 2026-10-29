@@ -104,12 +104,20 @@ const TX_META = {
   },
 };
 
-// Groupes de la sidebar, dans l'ordre d'affichage : un par famille de document.
+// Catégories de la sidebar, dans l'ordre de la maquette « Transmission
+// générale » : une par type de document, affichées même vides (avec 0).
+// « Copie de note » n'a pas encore de type de document. « Consignes »,
+// absente de la maquette, est ajoutée en dernier (Q5 du plan).
 const TX_SIDE_GROUPS = [
-  { title: t('transmission.ordonnance.tooltip'), kinds: ['prescription'] },
-  { title: t('transmission.requetes.tooltip'), kinds: ['lab', 'imaging', 'referral', 'exam', 'service'] },
-  { title: t('transmission.outilsCliniques.tooltip'), kinds: ['clinicalTool'] },
-  { title: t('transmission.consignes.tooltip'), kinds: ['instructions'] },
+  { title: t('transmission.catCopieNote.text'), kinds: [] },
+  { title: t('transmission.catMedication.text'), kinds: ['prescription'] },
+  { title: t('transmission.catLaboratoire.text'), kinds: ['lab'] },
+  { title: t('transmission.catImagerie.text'), kinds: ['imaging'] },
+  { title: t('transmission.catConsultation.text'), kinds: ['referral'] },
+  { title: t('transmission.catExamen.text'), kinds: ['exam'] },
+  { title: t('transmission.catService.text'), kinds: ['service'] },
+  { title: t('transmission.catFormulaire.text'), kinds: ['clinicalTool'] },
+  { title: t('transmission.catConsignes.text'), kinds: ['instructions'] },
 ];
 
 const TX_FORWARD_OPTS = [
@@ -121,8 +129,6 @@ const TX_FORWARD_OPTS = [
 ];
 const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];
 const TX_OTHER_INSTITUTIONS = [L('Hôpital Fleurimont — CHUS'), L('GMF Sherbrooke-Est'), L('Clinique médicale King Ouest')];
-
-const NOTE_ITEM_ID = '__note__';
 
 function txStatus(doc) {
   if (!doc.complete) return 'todo';
@@ -139,10 +145,11 @@ const TX_PILL_STYLE = {
   done: { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' },
 };
 
-// Panneau de l'item « Note » — faire suivre la note + signature. Distinct de
-// DocumentActionPanel : pas de destinataire/aperçu, la « complétion » ferme
-// tout le flux (elle finalise la note plutôt que de changer un statut).
-function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFinalize }) {
+// Dialogue « Compléter la note » — faire suivre la note + signature, ouvert
+// par « Finaliser » dans l'éditeur. La complétion de la note est sortie du
+// checkout (D-11) : celui-ci ne traite plus que les documents, et s'ouvre
+// après la complétion s'il en reste à transmettre (Q-40).
+function NoteFinalizeDialog({ noteInfo, doctorName, institution, pendingDocs, onFinalize, onCancel }) {
   const [ddOpen, setDdOpen] = React.useState(null);
   const [forwardIdx, setForwardIdx] = React.useState(0);
   const [doctorIdx, setDoctorIdx] = React.useState(0);
@@ -189,8 +196,21 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
     );
   }
 
+  React.useEffect(function () {
+    function onKey(e) { if (e.key === 'Escape' && !ddOpen) onCancel(); }
+    document.addEventListener('keydown', onKey);
+    return function () { document.removeEventListener('keydown', onKey); };
+  }, [onCancel, ddOpen]);
+
   return (
-    <React.Fragment>
+    <div style={nap.scrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onCancel(); }}>
+      <div style={nap.dialog} role="dialog" aria-modal="true" aria-label={t('transmission.completerNote.button')}>
+      <div style={nap.dialogHead}>
+        <span style={nap.dialogTitle}>{t('transmission.completerNote.button')}</span>
+        <button type="button" className="ds-icon-btn" onClick={onCancel} aria-label={t('transmission.fermer.aria')}>
+          <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+        </button>
+      </div>
       <div style={nap.noteTile}>
         <span style={nap.noteTileIcon}>
           <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>description</span>
@@ -230,30 +250,38 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
         </div>
       </div>
 
-      <button style={nap.completeBtn} onClick={function () { onFinalize({ forwardIdx: forwardIdx, doctorIdx: doctorIdx, instIdx: instIdx }); }}>
-        {t('transmission.completerNote.button')}
-      </button>
-    </React.Fragment>
+      <div style={nap.dialogActions}>
+        <button type="button" className="ds-btn ds-btn--outlined" onClick={onCancel}>{t('transmission.annuler.button')}</button>
+        <button type="button" className="ds-btn ds-btn--filled" autoFocus
+          onClick={function () { onFinalize({ forwardIdx: forwardIdx, doctorIdx: doctorIdx, instIdx: instIdx }); }}>
+          {t('transmission.completerNote.button')}
+        </button>
+      </div>
+      </div>
+    </div>
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onPatchArchivedNote, onClose }) {
-  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (readOnly ? (docs[0] && docs[0].id) : null) || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
+function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onPatchArchivedNote, onClose }) {
+  const [selectedId, setSelectedId] = React.useState(function () {
+    const list = initialFrozenDocs || docs;
+    return initialSelectedId || (list[0] && list[0].id) || null;
+  });
   // 'review' | 'print'. L'écran fax n'a plus d'entrée depuis que le split
   // « Compléter et faxer » est retiré (maquette « Transmission générale ») :
   // Transmettre envoie par les canaux cochés du destinataire.
   const [screen, setScreen] = React.useState('review');
-  // Finaliser la note (voir finalizeNote) réinitialise l'éditeur en amont
-  // (docStats/txState remis à vide pour une nouvelle note) — si des documents
-  // restent à transmettre, ce modal doit continuer à fonctionner dessus
-  // indépendamment de cette remise à zéro : on en fige alors un instantané
-  // local, et toute la suite (sélection, compteurs, patch) l'utilise à la
-  // place de la prop `docs` tant qu'il existe.
-  const [frozenDocs, setFrozenDocs] = React.useState(null);
+  // Compléter la note (NoteFinalizeDialog, dans l'éditeur) réinitialise
+  // l'éditeur (docStats/txState remis à vide pour une nouvelle note) — si des
+  // documents restent à transmettre, le checkout s'ouvre ensuite sur un
+  // instantané pris avant la complétion (`initialFrozenDocs`), et toute la
+  // suite (sélection, compteurs, patch) l'utilise à la place de la prop
+  // `docs` tant qu'il existe.
+  const [frozenDocs, setFrozenDocs] = React.useState(initialFrozenDocs || null);
   const effectiveDocs = frozenDocs || docs;
 
   React.useEffect(function () {
-    if (selectedId !== NOTE_ITEM_ID && effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
+    if (effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
       setSelectedId(effectiveDocs[0].id);
     }
   }, [effectiveDocs]); // eslint-disable-line
@@ -264,16 +292,14 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return function () { document.removeEventListener('keydown', onKey); };
   }, [screen, onClose]);
 
-  const isNoteSelected = !readOnly && selectedId === NOTE_ITEM_ID;
-  const selected = isNoteSelected ? null : (effectiveDocs.find(function (d) { return d.id === selectedId; }) || null);
+  const selected = effectiveDocs.find(function (d) { return d.id === selectedId; }) || null;
   const meta = selected ? TX_META[selected.kind] : null;
 
   const counts = { todo: 0, ready: 0, done: 0 };
   effectiveDocs.forEach(function (d) { counts[txStatus(d)]++; });
 
-  // Un groupe de sidebar par famille de document. Un groupe vide n'est pas
-  // rendu (PLAN-checkout-v7 §B5). Un kind absent de la liste tombe dans
-  // « Autres documents » plutôt que de disparaître de la sidebar.
+  // Un kind absent des catégories tombe dans « Autres documents » plutôt que
+  // de disparaître de la sidebar.
   const sideGroups = TX_SIDE_GROUPS.map(function (g) {
     return { title: g.title, docs: effectiveDocs.filter(function (d) { return g.kinds.indexOf(d.kind) !== -1; }) };
   });
@@ -281,7 +307,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return !TX_SIDE_GROUPS.some(function (g) { return g.kinds.indexOf(d.kind) !== -1; });
   });
   if (otherDocs.length) sideGroups.push({ title: t('transmission.autresDocuments.tooltip'), docs: otherDocs });
-  const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
 
   // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
   // plus remonter au txState vivant de l'éditeur (déjà réinitialisé pour une
@@ -345,20 +370,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     onClose();
   }
 
-  // Finaliser la note ne ferme le flux que s'il ne reste aucun document en
-  // attente (même règle que afterTransmit ci-dessus) — sinon on enchaîne sur
-  // le premier document restant (ex. l'ordonnance) plutôt que de fermer.
-  function finalizeNote(meta) {
-    if (onFinalizeNote) onFinalizeNote(meta);
-    if (window.toast) window.toast(t('transmission.noteCompletee.toast'), { icon: 'check_circle' });
-    if (pendingDocs.length === 0) { onClose(); return; }
-    // onFinalizeNote archive la note et réinitialise l'éditeur : figer les
-    // documents restants MAINTENANT (avant que la prop `docs` ne s'effondre
-    // au prochain rendu) pour pouvoir continuer à les transmettre.
-    setFrozenDocs(effectiveDocs);
-    setSelectedId(pendingDocs[0].id);
-  }
-
   function onPrintDone() {
     if (selected) patch(selected.id, { transmitted: true });
     if (selected) afterTransmit(selected.id);
@@ -383,9 +394,9 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
         .filter(Boolean).join('\n') || undefined;
 
   // Document précédent / suivant : l'ordre de la sidebar.
-  const navIds = (readOnly ? [] : [NOTE_ITEM_ID]).concat(sideGroups.reduce(function (acc, g) {
+  const navIds = sideGroups.reduce(function (acc, g) {
     return acc.concat(g.docs.map(function (d) { return d.id; }));
-  }, []));
+  }, []);
   const navIdx = navIds.indexOf(selectedId);
   function goTo(delta) {
     const id = navIds[navIdx + delta];
@@ -448,21 +459,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
 
         <div style={tx.bodyRow}>
           <div style={tx.sidebar}>
-            {!readOnly &&
-            <div style={tx.sideGroup}>
-              <button
-                style={Object.assign({}, tx.sideRow, isNoteSelected ? tx.sideRowSel : {})}
-                onClick={function () { setSelectedId(NOTE_ITEM_ID); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 18, color: 'var(--mat-sys-on-surface)', flexShrink: 0, marginTop: 1 }}>description</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={tx.sideRowTitle}>{(noteInfo && noteInfo.title) || t('transmission.noteClinique.text')}</div>
-                  <div style={tx.sideRowSub}>{t('transmission.faireSuivreSigner.text')}</div>
-                </div>
-              </button>
-            </div>}
-
+            <div style={tx.sideHead}>
+              <span>{t('transmission.documentsCount.label', { n: effectiveDocs.length })}</span>
+              {!readOnly &&
+                <button type="button" className="ds-icon-btn" style={tx.sideAddBtn}
+                  title={t('transmission.ajouterDocument.button')} aria-label={t('transmission.ajouterDocument.button')}
+                  onClick={function () { if (window.toast) window.toast(t('transmission.ajoutDocumentVenir.toast'), { icon: 'info' }); }}>
+                  <span className="material-icons" style={{ fontSize: 20 }}>add</span>
+                </button>}
+            </div>
             {sideGroups.map(function (g) {
-              if (!g.docs.length) return null;
               return (
                 <div key={g.title} style={tx.sideGroup}>
                   <div style={tx.sideGroupTitle}>{g.title} {g.docs.length}</div>
@@ -470,13 +476,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 </div>
               );
             })}
-            {!readOnly &&
-              <button style={tx.addDocBtn} onClick={function () {
-                if (window.toast) window.toast(t('transmission.ajoutDocumentVenir.toast'), { icon: 'info' });
-              }}>
-                <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
-                {t('transmission.ajouterDocument.button')}
-              </button>}
           </div>
 
           <div style={tx.main}>
@@ -487,18 +486,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
               <window.PatientBanner compactOnly />
             </div>
             <div style={tx.panel}>
-              {isNoteSelected
-                ? <NoteActionPanel noteInfo={noteInfo} doctorName={doctorName} institution={institution} pendingDocs={pendingDocs} onFinalize={finalizeNote} />
-                : selected
-                  ? <window.DocumentActionPanel
-                      doc={selected} meta={meta} doctorName={doctorName} institution={institution}
-                      showSuggestions={showSuggestions}
-                      readOnly={readOnly}
-                      onPatch={function (p) { patch(selected.id, p); }}
-                      onAddRecipient={function (r) { addRecipient(selected, r); }}
-                      onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
-                      onQuickPrint={quickPrint} />
-                  : <div style={tx.panelEmpty}>{t('transmission.selectionnezDocumentListe.text')}</div>
+              {selected
+                ? <window.DocumentActionPanel
+                    doc={selected} meta={meta} doctorName={doctorName} institution={institution}
+                    showSuggestions={showSuggestions}
+                    readOnly={readOnly}
+                    onPatch={function (p) { patch(selected.id, p); }}
+                    onAddRecipient={function (r) { addRecipient(selected, r); }}
+                    onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
+                    onQuickPrint={quickPrint} />
+                : <div style={tx.panelEmpty}>{t('transmission.selectionnezDocumentListe.text')}</div>
               }
             </div>
           </div>
@@ -552,7 +549,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // à gauche et passe le titre en bleu.
   function renderSideRow(d) {
     const st = txStatus(d);
-    const m = TX_META[d.kind];
     const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
       ? tn('transmission.prescriptions.label', d.items.length)
@@ -562,15 +558,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       : null;
     return (
       <button key={d.id}
-        style={Object.assign({}, tx.sideRow, sel ? tx.sideRowSel : {})}
+        style={Object.assign({}, tx.sideRow, st === 'done' ? tx.sideRowDone : {}, sel ? tx.sideRowSel : {})}
+        aria-current={sel ? 'true' : undefined}
         onClick={function () { setSelectedId(d.id); }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
+          <div style={Object.assign({}, tx.sideRowTitle, st === 'done' ? tx.sideRowTitleDone : {}, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
           <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || t('transmission.aucunDestinataire.text')}</div>
         </div>
-        <span className="material-icons" style={{ fontSize: 17, color: TX_STATUS_COLOR[st], flexShrink: 0 }} title={TX_STATUS_LABEL[st]}>
+        <span className="material-icons-outlined" style={{ fontSize: 20, color: TX_STATUS_COLOR[st], flexShrink: 0 }}
+          title={st === 'done' ? t('documentAction.transmise.text') : TX_STATUS_LABEL[st]}>
           {TX_STATUS_ICON[st]}
         </span>
       </button>
@@ -620,29 +617,35 @@ const tx = {
 
   bodyRow: { flex: 1, display: 'flex', overflow: 'hidden' },
 
+  // Sidebar (maquette « Transmission générale ») : fond lavande, catégories
+  // en casse normale avec compteur, lignes sans icône de type ; la ligne
+  // choisie est une carte blanche au titre bleu, une ligne transmise est grise.
   sidebar: {
     width: 280, flexShrink: 0, borderRight: '1px solid var(--mat-sys-outline-variant)',
-    overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 18,
+    background: 'var(--mat-sys-surface-container-low)',
+    overflowY: 'auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 14,
   },
-  sideGroup: { display: 'flex', flexDirection: 'column', gap: 6 },
-  sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
+  sideHead: {
+    display: 'flex', alignItems: 'center', gap: 4, padding: '0 0 0 12px',
+    fontSize: 12.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)',
+  },
+  sideAddBtn: { color: 'var(--mat-sys-on-surface)' },
+  sideGroup: { display: 'flex', flexDirection: 'column', gap: 4 },
+  sideGroupTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', padding: '0 12px' },
   sideRow: {
-    display: 'flex', alignItems: 'flex-start', gap: 9, width: '100%',
-    border: 0, borderLeft: '3px solid transparent', background: 'transparent',
-    borderRadius: 10, padding: '9px 8px 9px 6px',
-    cursor: 'pointer', textAlign: 'left',
+    display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%',
+    border: 0, background: 'transparent', borderRadius: 8, padding: '10px 12px',
+    cursor: 'pointer', textAlign: 'left', font: 'inherit',
   },
-  sideRowSel: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderLeft: '3px solid var(--mat-sys-on-surface-variant)' },
-  sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
-  sideRowTitleSel: { color: 'var(--mat-sys-on-surface)' },
-  sideRowSub: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDest: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDestNone: { fontSize: 12, color: 'light-dark(#a15c00, #e9cca5)', marginTop: 1 },
-  addDocBtn: {
-    display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed var(--mat-sys-outline-variant)', borderRadius: 9,
-    background: 'transparent', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', font: "500 13px 'Inter',sans-serif",
-    padding: '9px 10px', cursor: 'pointer', marginTop: 'auto',
-  },
+  sideRowSel: { background: 'var(--mat-sys-surface-container-lowest)', boxShadow: '0 1px 2px rgba(37,36,94,.08)' },
+  sideRowDone: { background: 'var(--mat-sys-surface-container)' },
+  sideRowTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
+  sideRowTitleSel: { color: 'var(--mat-sys-primary)' },
+  sideRowTitleDone: { color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)' },
+  sideRowSub: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDest: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDestNone: { fontSize: 12.5, color: 'light-dark(#a15c00, #e9cca5)', marginTop: 2 },
 
   main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
   bannerWrap: { padding: '12px 12px 0', flexShrink: 0 },
@@ -681,7 +684,7 @@ const nap = {
   },
   warnText: { fontSize: 13, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.45 },
 
-  fieldBlock: { marginTop: 18, maxWidth: 460 },
+  fieldBlock: { marginTop: 18 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 },
   subLabel: { fontSize: 11.5, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginBottom: 5 },
   sigRow: { display: 'flex', gap: 12 },
@@ -707,12 +710,20 @@ const nap = {
   },
   ddOptionSel: { color: 'var(--mat-sys-primary)', background: 'light-dark(#f5f8fe, #24324c)' },
 
-  completeBtn: {
-    marginTop: 26, border: 0, borderRadius: 9, background: '#25245E', color: '#fff',
-    font: "600 14px 'Inter',sans-serif", padding: '11px 22px', cursor: 'pointer',
+  scrim: {
+    position: 'fixed', inset: 0, zIndex: 3999, background: 'rgba(20,20,40,0.45)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sheet-scrim-in 200ms ease-out',
   },
+  dialog: {
+    width: 560, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
+    background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 14, padding: '18px 24px 22px',
+    boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter', sans-serif",
+  },
+  dialogHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  dialogTitle: { font: "600 19px 'Poppins',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  dialogActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 26 },
 };
 
 window.TransmissionModal = TransmissionModal;
 window.TX_META = TX_META;
-window.TX_NOTE_ITEM_ID = NOTE_ITEM_ID;
+window.NoteFinalizeDialog = NoteFinalizeDialog;
