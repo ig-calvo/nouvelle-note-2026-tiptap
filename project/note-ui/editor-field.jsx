@@ -170,7 +170,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // Quill : « cesser » construit un chip barré sans posologie ; « ajuster »
   // rouvre la modale complète juste après l'insertion.
   function runOrderCommand(editor, range, props) {
-    const kind = props.kind, item = props.item, action = props.action;
+    const kind = props.kind, action = props.action;
+    let item = props.item;
     // /ant : des antécédents, pas des puces — une région de diagnostic
     // documentée comme antécédent par choix.
     if (kind === 'ant') { runAntecedentsCommand(editor, range, props.items || (item ? [item] : [])); return; }
@@ -206,6 +207,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
     const def = window.NOTE_DATA.ORDER_DEFS[kind];
     if (!def || !item) return;
+    // Raison de consultation CRDS (menu /ref) : une puce au nom de la
+    // spécialité, avec la raison et sa cote de priorité (crdsRefItem).
+    if (kind === 'ref' && item.crds) item = window.NOTE_DATA.crdsRefItem(item);
     // Augmenter / diminuer (Figma, menu /rx) : la même médication, sa dose d'un
     // palier plus haut ou plus bas (adjustMedDose). `src` est alors l'item à
     // prescrire ; sans palier (déjà au bout de l'échelle), rien ne se passe.
@@ -484,11 +488,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // que le plugin « / » ne la recalcule).
         currentItems = window.flattenRxResults(results);
         selectedIndex = Math.max(0, Math.min(selectedIndex, currentItems.length - 1));
-        const railKind = parsed.kind === 'rx' || (parsed.kind === 'lab' && !inContext);
+        // Panneau de droite : les filtres de /rx, les vues de /lab et de /ref.
+        const viewRail = (parsed.kind === 'lab' || parsed.kind === 'ref') && !inContext;
+        const railKind = parsed.kind === 'rx' || viewRail;
         setSlash({ mode: 'order', kind: parsed.kind,
-          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : parsed.kind === 'lab' ? window.NOTE_DATA.getLabView() : null,
+          filter: parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : window.NOTE_DATA.getOrderView(parsed.kind),
           railFocus: railKind && railFocus,
-          labRail: parsed.kind === 'lab' && !inContext ? window.NOTE_DATA.labRail((parsed.term || '').trim()) : null,
+          labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, (parsed.term || '').trim()) : null,
           counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts((parsed.term || '').trim()) : null, query: (parsed.term || '').trim(), results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
@@ -511,7 +517,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = []; railFocus = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout');
+        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout'); window.NOTE_DATA.setRefView('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -560,10 +566,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // Menu /rx avec rail : Tab / ⇧ Tab bascule le focus entre la liste et le rail de
         // filtres (Tab n'applique plus la sélection, c'est le rôle d'Entrée). Dans le rail,
         // ↑ ↓ changent de filtre, Entrée, ← ou Échap-sans-fermer ramènent à la liste.
-        // Même chose pour le panneau des vues et des groupes de /lab.
+        // Même chose pour le panneau des vues de /lab (groupes) et de /ref (spécialités).
         const railKeys = parsed.mode !== 'order' ? null
           : parsed.kind === 'rx' ? window.NOTE_DATA.RX_FILTERS.map(function (f) { return f.key; })
-          : parsed.kind === 'lab' && !orderInContext ? window.NOTE_DATA.labViewKeys()
+          : !orderInContext ? window.NOTE_DATA.orderViewKeys(parsed.kind)
           : null;
         if (parsed.mode === 'order' && props.event.key === 'Tab') {
           if (railKeys) { railFocus = !railFocus; publish(lastQuery); }
@@ -571,7 +577,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         }
         if (railFocus && railKeys) {
           const key = props.event.key;
-          const curKey = parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : window.NOTE_DATA.getLabView();
+          const curKey = parsed.kind === 'rx' ? window.NOTE_DATA.getRxFilter() : window.NOTE_DATA.getOrderView(parsed.kind);
           const cur = Math.max(0, railKeys.indexOf(curKey));
           if (key === 'ArrowDown' || key === 'ArrowUp') {
             const next = railKeys[(cur + (key === 'ArrowDown' ? 1 : railKeys.length - 1)) % railKeys.length];
@@ -638,7 +644,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       republish() { publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
       setFilter(f) {
-        if (parseSlashQuery(lastQuery).kind === 'lab') window.NOTE_DATA.setLabView(f); else window.NOTE_DATA.setRxFilter(f);
+        const kind = parseSlashQuery(lastQuery).kind;
+        if (kind === 'rx') window.NOTE_DATA.setRxFilter(f); else window.NOTE_DATA.setOrderView(kind, f);
         selectedIndex = 0; publish(lastQuery);
       },
       // Bannière d'allergie du menu /rx : afficher ou masquer les produits allergènes.

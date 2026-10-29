@@ -70,6 +70,8 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
     return out[0];
   };
   for (const rel of SHARED_SOURCES) evaluate(rel);
+  // Les données CRDS (menu /ref) se chargent avant editor-data.jsx, comme dans la page.
+  if (files.includes('note-ui/editor-data.jsx')) evaluate('note-ui/crds-data.js');
   for (const rel of files) evaluate(rel);
   return win;
 }

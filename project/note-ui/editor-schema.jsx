@@ -245,7 +245,7 @@ function chipPrintText(a) {
     second = join([window.NOTE_DATA.valueLabel(d.laterality), window.NOTE_DATA.valueLabel(d.priority)], ', ');
   } else if (a.type === 'referral') {
     main = t('schema.referenceMain.text', { name: window.NOTE_DATA.valueLabel(d.specialty) || rx.name || a.label });
-    second = window.NOTE_DATA.valueLabel(d.priority) || '';
+    second = join([d.reason, window.NOTE_DATA.priorityLabel(d.priority)], ', ');
   } else if (a.type === 'exam') {
     main = d.exam || rx.name || a.label;
     second = window.NOTE_DATA.valueLabel(d.priority) || '';
@@ -540,7 +540,7 @@ function buildChipDomBase(data, existingEl) {
       const pr = document.createElement('span');
       pr.className = 'chip-rx-priority';
       pr.setAttribute('data-field', 'priority');
-      pr.textContent = window.NOTE_DATA.valueLabel(d.priority) || t('schema.routine.text');
+      pr.textContent = window.NOTE_DATA.priorityLabel(d.priority) || t('schema.routine.text');
       poso.appendChild(pr);
       node.appendChild(poso);
       if (kind === 'img' && d.laterality) {
@@ -2461,7 +2461,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
       sub = [window.NOTE_DATA.valueLabel(d.views), window.NOTE_DATA.valueLabel(d.priority), (d.contrast && d.contrast !== 'Sans') ? window.t('data.withContrastLower.text') : ''].filter(Boolean).join(' · ');
     } else if (t === 'referral') {
       label = window.NOTE_DATA.valueLabel(d.specialty) || ent.label;
-      sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');
+      sub = [d.reason, window.NOTE_DATA.priorityLabel(d.priority), d.question].filter(Boolean).join(' · ');
     } else if (t === 'exam') {
       label = d.exam || ent.label;
       sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');

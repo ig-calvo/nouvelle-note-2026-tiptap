@@ -559,6 +559,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         details.modality = examParts[0];
         details.region = examParts.slice(1).join(' ');
       } else if (field === 'specialty' && type === 'referral') {
+        // La raison CRDS est propre à sa spécialité : elle part avec elle.
+        if (details.specialty !== val && details.crdsKey) Object.assign(details, { crdsKey: null, reason: '', reasonPath: [], priority: 'Routine' });
         details.specialty = val;
       }
     }
@@ -1379,7 +1381,8 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
   // liste à cette seule valeur (« BID » ne montrait que BID et BID PRN).
   // Une valeur hors liste (saisie libre) est ajoutée en tête pour rester visible.
   var norm = function(v) { return String(v || '').toLowerCase().replace(/\s+/g, ''); };
-  var options = ALL_SUGGESTIONS[field] || [];
+  // Une référence à une raison CRDS a une cote (A à E) pour priorité.
+  var options = field === 'priority' && /^[A-E]$/.test(initialVal || '') ? window.NOTE_DATA.FIELD_OPTIONS.crdsPriority : (ALL_SUGGESTIONS[field] || []);
   var currentIdx = initialVal ? options.findIndex(function(s) { return norm(s) === norm(initialVal); }) : -1;
   if (initialVal && currentIdx < 0) { options = [initialVal].concat(options); currentIdx = 0; }
   var current = currentIdx >= 0 ? options[currentIdx] : null;

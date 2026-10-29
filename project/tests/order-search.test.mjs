@@ -48,8 +48,8 @@ test('le gel est propre à chaque fonction (rx, lab, ref)', () => {
   D.endOrderSearch();
   for (const kind of ['rx', 'lab', 'img', 'ref']) {
     const favKey = Array.from(D.ORDER_DEFS[kind].favs)[0];
-    // /lab range ses favoris dans une section de sa vue « Tout » (labSections).
-    const favs = (r) => (kind === 'lab' ? (r.labSections.find((s) => s.key === 'favoris') || { items: [] }).items : r.favoris).map((it) => it.key);
+    // /lab et /ref rangent leurs favoris dans une section de leur vue « Tout » (labSections).
+    const favs = (r) => (r.labSections ? (r.labSections.find((s) => s.key === 'favoris') || { items: [] }).items : r.favoris).map((it) => it.key);
     const avant = favs(D.searchOrder(kind, ''));
     assert.ok(avant.includes(favKey), kind);
     D.toggleOrderFav(kind, favKey);

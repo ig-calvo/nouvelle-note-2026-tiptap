@@ -33,7 +33,7 @@ test('recherche /rx en anglais : par le nom anglais ET par le nom français', ()
 test('recherche /lab et /ref en anglais : le nom français trouve toujours', () => {
   const w = loadPrototype(files, { lang: 'en', english: false, data: EN });
   const refs = w.NOTE_DATA.searchOrder('ref', 'cardiol');
-  assert.ok([...refs.favoris, ...refs.frequents, ...refs.autres].some((it) => it.name === 'Cardiology'));
+  assert.ok(refs.labSections.flatMap((s) => s.items).some((it) => it.name === 'Cardiology'));
   const labs = w.NOTE_DATA.searchOrder('lab', 'lipid');
   assert.ok(labs.labSections.flatMap((s) => s.items).some((it) => it.name === 'Lipid panel'));
 });
