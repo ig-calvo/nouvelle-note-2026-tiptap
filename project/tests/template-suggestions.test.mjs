@@ -34,7 +34,8 @@ test('« Pneumonie » propose imagerie, labo et une ordonnance incomplète, tout
   const rx = chips[2].attrs;
   assert.equal(rx.details.frequency, '');
   assert.doesNotMatch(rx.rx.sig, /BID/, 'la posologie affichée suit la fréquence vidée');
-  assert.deepEqual(w.chipIssues(rx).map((i) => i.kind), ['incomplete']);
+  // Amoxicilline-clavulanate : la patiente de démo est allergique à la pénicilline.
+  assert.deepEqual(w.chipIssues(rx).map((i) => i.kind), ['incomplete', 'allergy']);
 });
 
 test('pendingSummary : puces en attente et sources', () => {
