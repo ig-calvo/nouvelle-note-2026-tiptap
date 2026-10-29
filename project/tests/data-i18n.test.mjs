@@ -35,7 +35,7 @@ test('recherche /lab et /ref en anglais : le nom français trouve toujours', () 
   const refs = w.NOTE_DATA.searchOrder('ref', 'cardiol');
   assert.ok([...refs.favoris, ...refs.frequents, ...refs.autres].some((it) => it.name === 'Cardiology'));
   const labs = w.NOTE_DATA.searchOrder('lab', 'lipid');
-  assert.ok([...labs.favoris, ...labs.frequents, ...labs.autres].some((it) => it.name === 'Lipid panel'));
+  assert.ok(labs.labSections.flatMap((s) => s.items).some((it) => it.name === 'Lipid panel'));
 });
 
 test('données : sans traduction, le français est celui d’avant (repli)', () => {

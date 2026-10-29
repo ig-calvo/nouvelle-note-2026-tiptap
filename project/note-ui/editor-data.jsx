@@ -587,59 +587,286 @@ function searchRx(q, favs) {
 function toggleRxFav(key) { RX_FAVS.has(key) ? RX_FAVS.delete(key) : RX_FAVS.add(key); }
 
 // =========================================================
-// Laboratoire — commande « /lab » (mêmes sections que /rx)
+// Laboratoire — commande « /lab » (PLAN-menu-requetes-labo.md)
 // =========================================================
-const LAB_FAVS = new Set(['fsc', 'lipide']);
-const LAB_ITEMS = [
-  { key: 'fsc', name: L('FSC'), dose: '',
-    sig: L('Formule sanguine complète · Routine'),
-    chipSig: L('Routine'),
-    details: { tests: [L('FSC')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'lipide', name: L('Bilan lipidique'), dose: '',
-    sig: L('Cholestérol total, HDL, LDL, TG · À jeun 12 h · Routine'),
-    chipSig: L('À jeun · Routine'),
-    details: { tests: [L('Cholestérol total'), L('HDL'), L('LDL'), L('Triglycérides')], priority: 'Routine', fasting: true, context: L('Dépistage cardiovasculaire'), collection: L('Au CH le plus proche') } },
-  { key: 'tsh', name: L('TSH'), dose: '', freq: true,
-    sig: L('Thyréostimuline · Routine'),
-    chipSig: L('Routine'),
-    details: { tests: [L('TSH')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'glyc', name: L('Glycémie à jeun'), dose: '', freq: true,
-    sig: L('Glucose plasmatique · À jeun 8 h · Routine'),
-    chipSig: L('À jeun · Routine'),
-    details: { tests: [L('Glycémie à jeun')], priority: 'Routine', fasting: true, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'hba1c', name: L('HbA1c'), dose: '', freq: true,
-    sig: L('Hémoglobine glyquée · Routine'),
-    chipSig: L('Routine'),
-    details: { tests: [L('HbA1c')], priority: 'Routine', fasting: false, context: L('Suivi diabète'), collection: L('Au CH le plus proche') } },
-  { key: 'creat', name: L('Créatinine / DFGe'), dose: '', freq: true,
-    sig: L('Créatinine sérique + débit de filtration · Routine'),
-    chipSig: L('Routine'),
-    details: { tests: [L('Créatinine'), L('DFGe')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'ions', name: L('Ions (Na, K, Cl)'), dose: '', freq: true,
-    sig: L('Électrolytes · Routine'),
-    chipSig: L('Routine'),
-    details: { tests: [L('Sodium'), L('Potassium'), L('Chlore')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'ferritine', name: L('Ferritine'), dose: '',
-    sig: L('Réserves de fer · Routine'), chipSig: L('Routine'),
-    details: { tests: [L('Ferritine')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'b12', name: L('Vitamine B12'), dose: '',
-    sig: L('Cobalamine sérique · Routine'), chipSig: L('Routine'),
-    details: { tests: [L('Vitamine B12')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'bilanhep', name: L('Bilan hépatique'), dose: '',
-    sig: L('ALT, AST, PAL, bilirubine · Routine'), chipSig: L('Routine'),
-    details: { tests: [L('ALT'), L('AST'), L('PAL'), L('Bilirubine')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
-  { key: 'inr', name: L('INR'), dose: '',
-    sig: L('Temps de prothrombine · Prioritaire'), chipSig: L('Prioritaire'),
-    details: { tests: [L('INR')], priority: 'Prioritaire', fasting: false, context: L('Suivi anticoagulation'), collection: L('Au CH le plus proche') } },
-  { key: 'srum', name: L("Analyse d'urine (SMU-DCA)"), dose: '',
-    sig: L('Sommaire microscopique + culture · Routine'), chipSig: L('Routine'),
-    details: { tests: [L('SMU'), L('Culture urinaire')], priority: 'Routine', fasting: false, context: '', collection: L('Au CH le plus proche') } },
+// Catalogue : la liste « contenu fourni » du prototype « Menu requete »
+// (Claude Design, 2026-10-14, décision D1), termes repris tels quels,
+// coquilles comprises (« Électrolytes (Na, K, CI) »). Une analyse est une
+// chaîne, ou un objet quand il lui faut une clé connue (gabarits, bilans,
+// données du dossier), un acronyme (`short`, montré dans la puce) ou des
+// alias de recherche (`alias`, FR et EN, table du prototype). La spirométrie
+// reste dans /lab (RA-25), seule dans son groupe.
+const LAB_GROUPS = [
+  { key: 'biochimie', name: L('Biochimie'), tests: [
+    L('Acide folique'), L('Acide urique'), L('Acide valproïque'),
+    { key: 'alb', name: L('Albumine') },
+    { key: 'pal', name: L('Phosphatase alcaline'), short: L('PAL'), alias: 'pal alp' },
+    { key: 'alt', name: L('Alanine aminotransférase'), short: L('ALT'), alias: 'alt' },
+    { key: 'srum', name: L("Analyse d'urine"), alias: 'au smu urine' },
+    { key: 'ttg', name: L('Anticorps anti-transglutaminase'), short: L('Anti-TTG'), alias: 'ttg' },
+    { key: 'tpo', name: L('Anticorps antithyroïdiens'), alias: 'tpo' },
+    { key: 'apob', name: L('Apolipoprotéine B'), short: L('Apo B'), alias: 'apob apo b', fasting: true },
+    { key: 'ast', name: L('Aspartate aminotransférase'), short: L('AST'), alias: 'ast' },
+    { key: 'bhcg', name: L('Beta-HCG'), alias: 'bhcg hcg' },
+    { key: 'bili', name: L('Bilirubine (totale)') },
+    { key: 'bun', name: L('Azote uréique du sang'), short: L('BUN'), alias: 'bun' },
+    { key: 'ca', name: L('Calcium (total)') },
+    { key: 'ca125', name: L('Cancer antigen 125'), short: L('CA 125'), alias: 'ca125 ca-125' },
+    L('Analyse de calcul'),
+    { key: 'ace', name: L('Antigène carcinoembryonaire'), short: L('ACE'), alias: 'ace cea' },
+    { key: 'chol', name: L('Cholestérol total'), fasting: true },
+    { key: 'hdl', name: L('Lipoprotéines de haute densité'), short: L('HDL'), alias: 'hdl', fasting: true },
+    { key: 'ldl', name: L('Lipoprotéine de basse densité'), short: L('LDL'), alias: 'ldl', fasting: true },
+    { key: 'ckmb', name: L('Créatine kinase-MB'), short: L('CK-MB'), alias: 'ck-mb ckmb' },
+    L('Cortisol - AM'), L('Cortisol - Au hasard'), L('Cortisol - PM'), L('Cortisol - Urine de 24 h'),
+    { key: 'creat', name: L('Créatinine sérique'), alias: 'creat' },
+    { key: 'ions', name: L('Électrolytes (Na, K, CI)'), short: L('Électrolytes'), alias: 'lytes ions na k cl' },
+    L('Électrophorèse (hémoglobine)'),
+    { key: 'eps', name: L('Électrophorèse des protéines sériques'), short: L('EPS'), alias: 'eps' },
+    { key: 'oestradiol', name: L('Oestradiol') },
+    { key: 'fer', name: L('Fer') },
+    { key: 'ferritine', name: L('Ferritine') },
+    { key: 'fsh', name: L('Hormone folliculo-stimulante'), short: L('FSH'), alias: 'fsh' },
+    L('Glucose 1 h post 50 g glucose PO'),
+    { key: 'hgpo', name: L('Glucose 2 h post 75 g glucose PO'), alias: 'hgpo' },
+    { key: 'glyc', name: L('Glucose à jeun'), alias: 'glycemie gaj', fasting: true },
+    { key: 'glucose', name: L('Glucose'), alias: 'glycemie' },
+    L('Glucose 2 h post 100 g glucose PO'),
+    { key: 'hba1c', name: L('Hémoglobine glyquée'), short: L('HbA1c'), alias: 'hba1c a1c' },
+    L('Immunoglobulines'),
+    { key: 'k', name: L('Potassium'), alias: 'k' },
+    { key: 'ldh', name: L('Lactate déshydrogénase'), short: L('LDH'), alias: 'ld ldh' },
+    { key: 'lh', name: L('Hormone lutéino-stimulante'), short: L('LH'), alias: 'lh' },
+    L('Lithium'),
+    { key: 'lipase', name: L('Triacylglycérol lipase'), short: L('Lipase'), alias: 'lipase' },
+    { key: 'mg', name: L('Magnésium'), alias: 'mg' },
+    { key: 'na', name: L('Sodium'), alias: 'na' },
+    L('Phénytoïne'), L('Phosphore'),
+    { key: 'prolactine', name: L('Prolactine') },
+    { key: 'aps', name: L('Antigène prostatique spécifique'), short: L('APS'), alias: 'aps psa' },
+    { key: 'rsosi', name: L('Recherche de sang occulte (selles)'), short: L('RSOSi'), alias: 'rsosi' },
+    { key: 't4l', name: L('T4 libre'), alias: 't4l' },
+    { key: 'grossesse', name: L('Test de grossesse (qualitatif)'), alias: 'bhcg' },
+    { key: 'testo', name: L('Testostérone') },
+    { key: 'tg', name: L('Triglycérides'), alias: 'tg trig', fasting: true },
+    { key: 'tsh', name: L('Hormone thyréostimulante'), short: L('TSH'), alias: 'tsh' },
+    L('Urée'), L('Acide urique (Urine 24h)'), L('Calcium (Urine 24)'), L('Clairance créatinine (Urine 24h)'),
+    L('Protéine (Urine 24h)'), L('Magnésium (Urine 24h)'), L('Phosphore (Urine 24h)'),
+    { key: 'b12', name: L('Vitamine B12'), short: L('B12'), alias: 'b12' },
+    { key: 'vitd', name: L('Vitamine D'), short: L('Vit D'), alias: 'vit d 25-oh' }
+  ] },
+  { key: 'biochimie-urinaire', name: L('Biochimie urinaire'), tests: [
+    L('Électrophorèse des protéines (urine)'),
+    { key: 'microalb', name: L('Microalbumine (Urine)'), alias: 'microalb rac' },
+    L('Protéine totale (Urine)')
+  ] },
+  { key: 'hematologie', name: L('Hématologie'), tests: [
+    L('Antithrombine III'), L('Fibrinogène'), L('Frottis sanguin'),
+    { key: 'fsc', name: L('Formule sanguine complète'), short: L('FSC'), alias: 'fsc cbc' },
+    { key: 'g6pd', name: L('Glucose-6-phosphate déshydrogénase'), short: L('G6PD'), alias: 'g6pd' },
+    { key: 'crp', name: L('Protéine C-réactive'), short: L('CRP'), alias: 'crp pcr' },
+    L('Protéine C+S'),
+    { key: 'inr', name: L('International Normalized Ratio'), short: L('INR'), alias: 'inr rin pt' },
+    { key: 'tca', name: L('Temps de céphaline induite'), short: L('TCA'), alias: 'tca ptt' },
+    { key: 'fr', name: L('Facteur rhumatoïde'), alias: 'fr' },
+    L('Réticulocytes'),
+    { key: 'vs', name: L('Sédimentation'), alias: 'vs esr' },
+    L('Streptozyme'), L('Temps de saignement'), L('Transfusion'),
+    { key: 'vih', name: L('VIH 1+2 Ac + VIH 1 p24 Ag'), short: L('VIH'), alias: 'vih hiv' }
+  ] },
+  { key: 'medicament', name: L('Médicament'), tests: [
+    L('Carbamazépine'), L('Digoxine'), L('Théophylline'), L('Tricycliques')
+  ] },
+  { key: 'microbiologie', name: L('Microbiologie'), tests: [
+    L('Malaria'),
+    { key: 'cguri', name: L('CGURI - Chlamydia+gono - Urine'), alias: 'chlamydia gonorrhee itss' },
+    L('Chlamydia+gono - Col'), L('Chlamydia+gono - Urètre'),
+    L('Culture - Expectorations'), L('Culture - Gorge'), L('Culture - Plaie/Pus'),
+    L('Culture - Selles x1'), L('Culture - Selles x2'),
+    { key: 'curine', name: L('Culture - Urine (bas compte de colonie non-requis)'), alias: 'cu culture urinaire' },
+    L('Culture - Urogénital (précisez le site dans sectio'),
+    L('Culture champignon - Crachat'), L('Culture champignons - Poil'), L("Culture champignons - Rognures d'ongles"),
+    L('Cultures tuberculose - Crachat'), L('Cultures tuberculose - Urine (première urine du matin)'),
+    { name: L('Dépistage de Staphylococcus aureus résistant à la méticilline - Autre site'), alias: 'sarm mrsa' },
+    { name: L('Dépistage de Staphylococcus aureus résistant à la méticilline - Narines'), alias: 'sarm mrsa' },
+    { name: L('Dépistage de Staphylococcus aureus résistant à la méticilline - Péri anal'), alias: 'sarm mrsa' },
+    { name: L('Dépistage de Staphylococcus aureus résistant à la méticilline - Plaies/incision'), alias: 'sarm mrsa' },
+    { name: L('Entérocoque résistant à la vancomycine'), alias: 'erv vre' },
+    L('Enterobius vermicularis; Examen des oxyures'), L('Ova & parasites; Microscopie fond clair')
+  ] },
+  { key: 'serologie', name: L('Sérologie'), tests: [
+    { key: 'aan', name: L('Anticorps antinucléaires'), short: L('AAN'), alias: 'aan ana' },
+    L("Anticorps de l'hépatite B"),
+    { key: 'hbsag', name: L("Antigène de l'hépatite B"), alias: 'hbsag' },
+    L('Hépatite A'),
+    { key: 'vhc', name: L('Hépatite C'), alias: 'vhc hcv' },
+    { name: L('Monotest'), alias: 'mono' },
+    { key: 'syphilis', name: L('Syphilis'), alias: 'vdrl' }
+  ] },
   // Requête liée à l'asthme (table d'intention thérapeutique, DX_CONTEXTS) :
   // contenu d'exemple, à valider.
-  { key: 'efr', name: L('Spirométrie (EFR)'), dose: '',
-    sig: L('Pré et post bronchodilatateur · Routine'), chipSig: L('Routine'),
-    details: { tests: [L('Spirométrie (EFR)')], priority: 'Routine', fasting: false, context: '', collection: L('Laboratoire de physiologie respiratoire') } },
+  { key: 'fonction-respiratoire', name: L('Fonction respiratoire'), tests: [
+    { key: 'efr', name: L('Spirométrie (EFR)'), alias: 'efr', collection: L('Laboratoire de physiologie respiratoire') }
+  ] }
 ];
+const LAB_FAVS = new Set(['fsc', 'lipide']);
+// Une analyse = un item de recherche, comme un médicament dans /rx : son nom,
+// son groupe (badge et panneau de droite) et ses détails de requête.
+const LAB_ITEMS = [];
+LAB_GROUPS.forEach(function (g) {
+  g.tests.forEach(function (x, i) {
+    const o = typeof x === 'string' ? { name: x } : x;
+    LAB_ITEMS.push({ key: o.key || g.key + '-' + i, name: o.name, dose: '', short: o.short || '', alias: o.alias || '',
+      group: g.key, groupName: g.name, sig: g.name, chipSig: L('Routine'),
+      details: { tests: [o.name], priority: 'Routine', fasting: !!o.fasting, context: '', collection: o.collection || L('Au CH le plus proche') } });
+  });
+});
+function _labItem(key) { return LAB_ITEMS.find(function (it) { return it.key === key; }) || null; }
+
+// Bilans courants (décision D2) : ceux de la requête de laboratoire papier,
+// leurs analyses renommées selon le catalogue quand il en a une (clé), sinon
+// gardées en texte. Un bilan se coche en entier dans le menu ; ses analyses
+// arrivent dans une puce à son nom et chacune se retire dans le formulaire.
+// Bilans prénatal 1 et 2 laissés de côté (contenu inconnu, Q-07 du
+// prototype). Les trois profils d'avant (rencontre inline entity, ID-09)
+// restent : les gabarits et les tests s'en servent. Contenu à valider.
+const LAB_BILANS = [
+  { key: 'bilan-base', name: L('Bilan de base'), tests: ['fsc', 'glucose', 'creat', 'k', 'na'] },
+  { key: 'bilan-cardiaque', name: L('Bilan cardiaque'), tests: ['fsc', 'glucose', 'creat', 'k', 'na', L('Troponine T cardiaque'), L('Créatine kinase'), 'inr', 'tca'] },
+  { key: 'bilan-hta-initial', name: L('Bilan HTA initial'), tests: ['na', 'k', 'creat', 'glyc', 'chol', 'hdl', 'ldl', 'tg', 'srum'] },
+  { key: 'bilan-hta-suivi', name: L('Bilan HTA de suivi'), tests: ['na', 'k', 'creat', 'glyc', 'srum'] },
+  { key: 'bilanhep', name: L('Bilan hépatique'), tests: ['alb', 'alt', 'pal', 'bili', L('Bilirubine directe')] },
+  { key: 'bilan-hep-court', name: L('Bilan hépatique (court)'), tests: ['alt', 'pal', 'ast', L('GGT'), 'bili'] },
+  { key: 'bilan-hep-urgence', name: L('Bilan hépatique urgence'), tests: ['fsc', 'glucose', 'creat', 'k', 'na', 'alt', 'ldh', 'bili', 'lipase', 'pal'] },
+  { key: 'bilan-calcique', name: L('Bilan calcique'), tests: ['ca', 'alb'] },
+  { key: 'lipide', name: L('Bilan lipidique'), tests: ['chol', 'hdl', 'ldl', 'tg'] },
+  { key: 'bilan-lipidique-2', name: L('Bilan lipidique 2'), tests: ['hdl', 'ldl', 'chol', 'tg', 'apob', L('Rapport cholestérol total/HDL')] },
+  { key: 'bilan-fatigue', name: L('Fatigue'), tests: ['fsc', 'ferritine', 'tsh', 'creat'] },
+  { key: 'bilan-martial', name: L('Bilan martial'), tests: ['fsc', 'ferritine', 'crp'] },
+  { key: 'bilan-pcos', name: L('Bilan PCOS'), tests: ['oestradiol', 'fsh', 'lh', 'bhcg', 'prolactine', L('17-OH progestérone'), 'testo', 'tsh', 'hba1c'] },
+  { key: 'bilan-itss', name: L('Bilan ITSS'), tests: ['hbsag', 'vih', 'syphilis'] },
+  { key: 'prof-diabete', name: L('Profil diabète'), tests: ['hba1c', 'glyc', 'creat', 'lipide'] },
+  { key: 'prof-annuel', name: L('Bilan annuel'), tests: ['fsc', 'glyc', 'lipide', 'creat', 'tsh'] },
+  { key: 'prof-anemie', name: L('Bilan anémie'), tests: ['fsc', 'ferritine', 'b12'] }
+].map(function (b, i, all) {
+  // Une clé d'analyse donne son item ; une clé de bilan, ses analyses ; un texte reste tel quel.
+  const items = [];
+  const tests = [];
+  const add = function (name, it) { if (tests.indexOf(name) < 0) { tests.push(name); items.push(it); } };
+  b.tests.forEach(function (x) {
+    const it = _labItem(x);
+    if (it) { add(it.name, it); return; }
+    const sub = all.find(function (o) { return o.key === x; });
+    if (sub) { sub.tests.forEach(function (y) { const s = _labItem(y); if (s) add(s.name, s); }); return; }
+    add(x, null);
+  });
+  return { key: b.key, name: b.name, dose: '', profile: true, orderKind: 'lab',
+    sig: items.map(function (it, j) { return it ? (it.short || it.name) : tests[j]; }).join(' · '),
+    details: { tests: tests, priority: 'Routine', fasting: items.some(function (it) { return it && it.details.fasting; }), context: '', profile: b.name, profileTests: tests.slice() } };
+});
+
+// Acronyme d'une analyse (« Formule sanguine complète » → « FSC ») pour le
+// nom d'une puce ; le nom complet reste dans le formulaire et l'infobulle.
+function labShortName(name) {
+  const it = LAB_ITEMS.find(function (x) { return x.name === name; });
+  return (it && it.short) || name;
+}
+
+// Au dossier (RA-01 du prototype « Explorations requetes ») : les analyses
+// déjà faites, leur dernier résultat et sa tendance par rapport au résultat
+// précédent (décision D4). Repris des résultats du Sommaire
+// (sommaire/store.jsx) ; « Stable » sous 5 % d'écart, seuil fictif (Q-08).
+const LAB_ON_FILE = {
+  fsc:   { date: '2025-09-28', value: L('Hb 135 g/L'), status: 'normal', prev: L('Hb 141 g/L'), trend: 'stable' },
+  creat: { date: '2025-09-28', value: L('82 µmol/L'), status: 'normal', prev: L('79 µmol/L'), trend: 'stable' },
+  ldl:   { date: '2025-09-28', value: L('3,4 mmol/L'), status: 'anormal', prev: L('3,7 mmol/L'), trend: 'down' },
+  tsh:   { date: '2025-09-28', value: L('2,1 mUI/L'), status: 'normal', prev: L('1,8 mUI/L'), trend: 'up' },
+  fer:   { date: '2025-09-28', value: L('18 µmol/L'), status: 'normal' }
+};
+function labOnFile(key) { return LAB_ON_FILE[key] || null; }
+// Prévention (RA-16 du prototype) et Suggérés selon les problèmes actifs du
+// Sommaire (RA-05) : la raison, la fréquence et l'échéance sur la 2e ligne.
+// Contenu fictif, validation clinique requise (Q-01, Q-10 du prototype).
+const LAB_PREVENTION = [
+  { key: 'cguri', why: L('Dépistage des ITSS · selon les facteurs de risque') },
+  { key: 'vih', why: L('Dépistage des ITSS · selon les facteurs de risque') },
+  { key: 'syphilis', why: L('Dépistage des ITSS · selon les facteurs de risque') }
+];
+const LAB_SUGGESTED = [
+  { problem: L('Hypertension artérielle'), items: [
+    { key: 'ions', why: L('Aux 12 mois · jamais fait') },
+    { key: 'creat', why: L('Aux 12 mois · dû depuis le 2026-09-28') }] },
+  { problem: L('Dyslipidémie'), items: [
+    { key: 'lipide', why: L('Aux 12 mois · dû depuis le 2026-09-28') },
+    { key: 'apob', why: L('Selon le risque cardiovasculaire · jamais fait') }] }
+];
+
+// Panneau de droite du menu /lab (RA-10 du prototype) : des vues, puis les
+// groupes du catalogue. Une vue filtre aussi la recherche en cours, comme le
+// rail de /rx (RA-17), et revient à « Tout » à chaque nouvelle recherche.
+let _labView = 'tout';
+function labViewKeys() {
+  return ['tout', 'prev', 'sugg', 'favoris', 'bilans'].concat(LAB_GROUPS.map(function (g) { return g.key; }));
+}
+function setLabView(v) { _labView = labViewKeys().indexOf(v) >= 0 ? v : 'tout'; }
+function getLabView() { return _labView; }
+
+// Texte où chercher : nom (deux langues), acronyme, alias et nom du groupe
+// (« biochimie » liste tout le groupe, RA-03 de « Menu sélection examens »).
+function _labHay(it) {
+  if (it.profile) return _hay(it.name) + ' ' + _hay(t('data.sectionLabBilans.title')) + ' ' + it.details.tests.map(_hay).join(' ');
+  return _hay(it.name) + ' ' + _hay(it.short) + ' ' + _norm(it.alias) + ' ' + _hay(it.groupName);
+}
+function _labWith(list) {
+  return list.map(function (x) {
+    const it = _labItem(x.key) || LAB_BILANS.find(function (b) { return b.key === x.key; });
+    return it ? Object.assign({}, it, { why: x.why }) : null;
+  }).filter(Boolean);
+}
+// Toutes les vues pour la recherche `q` : { vue: [sections] }, une section =
+// { key, title, items }. Sans recherche, Tout = Au dossier, Prévention,
+// Suggérés, Favoris (RA-01, RA-16) ; avec une recherche, Tout = les bilans
+// trouvés puis les analyses sous leur groupe.
+function labViews(q, favSet) {
+  const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
+  const match = function (it) { const h = _labHay(it); return words.every(function (w) { return h.includes(w); }); };
+  const sec = function (key, title, items) { return { key: key, title: title, items: items.filter(match) }; };
+  const all = LAB_ITEMS.concat(LAB_BILANS);
+  const dossier = sec('dossier', t('data.sectionLabOnFile.title'), Object.keys(LAB_ON_FILE).map(_labItem).filter(Boolean));
+  const prev = sec('prev', t('data.sectionLabPrevention.title'), _labWith(LAB_PREVENTION));
+  const sugg = LAB_SUGGESTED.map(function (s, i) { return sec('sugg' + i, t('data.sectionLabSuggested.title', { problem: s.problem }), _labWith(s.items)); });
+  const fav = sec('favoris', t('data.sectionFavorites.title'), all.filter(function (it) { return favSet.has(it.key); }));
+  const bilans = sec('bilans', t('data.sectionLabBilans.title'), LAB_BILANS);
+  const groups = LAB_GROUPS.map(function (g) { return sec(g.key, g.name, LAB_ITEMS.filter(function (it) { return it.group === g.key; })); });
+  const v = {
+    tout: words.length ? [bilans].concat(groups) : [dossier, prev].concat(sugg, [fav]),
+    prev: [prev], sugg: sugg, favoris: [fav], bilans: [bilans]
+  };
+  LAB_GROUPS.forEach(function (g, i) { v[g.key] = [groups[i]]; });
+  Object.keys(v).forEach(function (k) { v[k] = v[k].filter(function (s) { return s.items.length; }); });
+  return v;
+}
+function _labCount(secs) { return secs.reduce(function (n, s) { return n + s.items.length; }, 0); }
+// Recherche /lab : les sections de la vue choisie (`labSections`, rendues par
+// RxMenu et aplaties pour le clavier par flattenRxResults).
+function searchLab(q, favSet) {
+  const v = labViews(q, favSet);
+  return { labSections: v[_labView] || [], favoris: [], frequents: [], autres: [] };
+}
+// Le panneau de droite : chaque vue et chaque groupe, avec son nombre de
+// résultats pour la recherche en cours.
+const LAB_VIEW_DEFS = [
+  { key: 'tout', label: t('data.labViewAll.label'), icon: 'folder_copy' },
+  { key: 'prev', label: t('data.sectionLabPrevention.title'), icon: 'health_and_safety' },
+  { key: 'sugg', label: t('data.labViewSuggested.label'), icon: 'lightbulb' },
+  { key: 'favoris', label: t('data.sectionFavorites.title'), icon: 'favorite_border' },
+  { key: 'bilans', label: t('data.sectionLabBilans.title'), icon: 'library_add_check' }
+];
+function labRail(q, favSet) {
+  const v = labViews(q, favSet || _favFreeze.lab || LAB_FAVS);
+  return LAB_VIEW_DEFS.map(function (d) { return Object.assign({ count: _labCount(v[d.key] || []) }, d); })
+    .concat(LAB_GROUPS.map(function (g) { return { key: g.key, label: g.name, icon: 'folder', group: true, count: _labCount(v[g.key] || []) }; }));
+}
 
 // =========================================================
 // Imagerie — commande « /img » (mêmes sections que /rx)
@@ -787,13 +1014,14 @@ const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: t('data.rxVerb.text'), emptyNoun: t('data.rxNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
-  // Labo en sélection multiple, profils en tête (`profiles`, searchLab).
+  // Labo en sélection multiple, avec son panneau de droite (searchLab, labRail) ;
+  // les bilans sont des items comme les analyses (`profile`).
   // Imagerie en sélection unique : on commande un examen précis à la fois
   // (rencontre du 2026-10-27 : Xavier Boilard, A2). Plus de recherche unifiée
   // /req : on va directement aux branches (C1).
   lab: { kbd: 'lab', type: 'lab',          icon: 'science',   glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.labNoun.text'), multi: true,
          sections: [t('data.sectionFavorites.title'), t('data.sectionLabFrequent.title'), t('data.sectionLabOther.title')],
-         favs: LAB_FAVS, items: function () { return LAB_ITEMS; }, search: function (q, favs) { return searchLab(q, favs || LAB_FAVS); } },
+         favs: LAB_FAVS, items: function () { return LAB_ITEMS.concat(LAB_BILANS); }, search: function (q, favs) { return searchLab(q, favs || LAB_FAVS); } },
   img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionImgFrequent.title'), t('data.sectionImgOther.title')],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
@@ -1117,31 +1345,9 @@ const VALUE_LABEL = {
 };
 function valueLabel(v) { return Object.prototype.hasOwnProperty.call(VALUE_LABEL, v) ? VALUE_LABEL[v] : v; }
 
-// Profils de laboratoire : un raccourci qui commande plusieurs analyses du
-// catalogue (rencontre inline entity, Antoine Cloutier). Choisir un profil ne
-// crée rien d'office : ses analyses arrivent dans une seule puce labo, et
-// chacune se retire dans le formulaire. Contenu d'exemple, à valider (ID-09).
-const LAB_PROFILES = [
-  { key: 'prof-diabete', name: L('Profil diabète'), labKeys: ['hba1c', 'glyc', 'creat', 'lipide'] },
-  { key: 'prof-annuel', name: L('Bilan annuel'), labKeys: ['fsc', 'glyc', 'lipide', 'creat', 'tsh'] },
-  { key: 'prof-anemie', name: L('Bilan anémie'), labKeys: ['fsc', 'ferritine', 'b12'] },
-].map(function (p) {
-  const items = p.labKeys.map(function (k) { return LAB_ITEMS.find(function (it) { return it.key === k; }); }).filter(Boolean);
-  const tests = [];
-  items.forEach(function (it) { (it.details.tests || []).forEach(function (t) { if (tests.indexOf(t) < 0) tests.push(t); }); });
-  return { key: p.key, name: p.name, dose: '', profile: true, orderKind: 'lab',
-    sig: tn('data.profileSig.text', tests.length, { tests: tests.join(', ') }),
-    details: { tests: tests, priority: 'Routine', fasting: items.some(function (it) { return it.details.fasting; }), context: '', profile: p.name } };
-});
-
-// Recherche /lab : les profils en tête (`profiles`, une section de plus pour
-// RxMenu), puis les analyses en trois sections. Un profil se trouve par son
-// nom ou par une de ses analyses (« hba1c » trouve le profil diabète).
-function searchLab(q, favSet) {
-  const nq = _norm((q || '').trim());
-  const match = function (it) { return !nq || _hay(it.name).includes(nq) || _hay(it.sig || '').includes(nq); };
-  return Object.assign({ profiles: LAB_PROFILES.filter(match) }, _searchList(LAB_ITEMS, favSet, q));
-}
+// Les profils d'avant sont des bilans comme les autres (LAB_BILANS) ; le nom
+// reste pour les gabarits ({ kind: 'profile', key }) et le formulaire.
+const LAB_PROFILES = LAB_BILANS;
 
 function _searchList(list, favSet, q) {
   const nq = _norm((q || '').trim());
@@ -1185,14 +1391,20 @@ function searchOrder(kind, q, dx) {
   const r = d.search(q, _favFreeze[kind]);
   return kind === 'rx' ? applyAllergyFilter(applyRxFilter(r, _rxFilter)) : r;
 }
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _showAllergens = false; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _showAllergens = false; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
 
 // Regenerate the rich-chip payload after a popover edit (lab / imaging)
+// Nom d'une puce labo : le nom du bilan tant qu'il est entier (RA-19 du
+// prototype « Note saisie fonction chips »), sinon les analyses, en acronyme
+// quand elles en ont un (« FSC, TSH », RA-18).
 function deriveLabRx(d) {
-  const name = (d.tests && d.tests.length) ? d.tests.join(', ') : t('schema.labRequest.text');
+  const tests = d.tests || [];
+  const whole = d.profile && d.profileTests && d.profileTests.length === tests.length
+    && d.profileTests.every(function (x) { return tests.indexOf(x) >= 0; });
+  const name = whole ? d.profile : tests.length ? tests.map(labShortName).join(', ') : t('schema.labRequest.text');
   const sig = [d.fasting ? t('schema.fasting.text') : '', valueLabel(d.priority)].filter(Boolean).join(' · ');
   return { name: name, dose: '', sig: sig, kind: 'lab' };
 }
@@ -1545,6 +1757,6 @@ window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_T
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, searchLab, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
+  LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

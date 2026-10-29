@@ -111,7 +111,7 @@ test('les filtres ne touchent que /rx : /lab garde sa liste', () => {
   D.endOrderSearch();
   D.setRxFilter('cessees');
   const lab = D.searchOrder('lab', '');
-  assert.ok(lab.favoris.length > 0 || lab.frequents.length > 0);
+  assert.ok(lab.labSections.length > 0);
   assert.equal(lab.phrases, undefined);
   D.endOrderSearch();
 });

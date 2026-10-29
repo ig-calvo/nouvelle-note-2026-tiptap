@@ -12,41 +12,43 @@ const lab = (key) => D.ORDER_DEFS.lab.items().find((it) => it.key === key);
 const img = (key) => D.ORDER_DEFS.img.items().find((it) => it.key === key);
 const prof = (key) => D.LAB_PROFILES.find((p) => p.key === key);
 
-test('plus de /req : /lab montre les profils en tête, puis les analyses ; l’imagerie en sélection unique', () => {
+test('plus de /req : /lab montre ses vues (Au dossier, Prévention, Suggérés, Favoris) ; l’imagerie en sélection unique', () => {
   assert.deepEqual(w.parseSlashQuery('req diab'), { mode: 'menu' }, '« /req » n’ouvre plus de recherche');
   assert.ok(!D.ORDER_DEFS.req);
   assert.ok(!D.SLASH_ITEMS.some((it) => it.kbd === 'req'));
   const all = D.searchOrder('lab', '');
-  assert.deepEqual(all.profiles.map((p) => p.key), ['prof-diabete', 'prof-annuel', 'prof-anemie']);
-  assert.ok(all.frequents.length > 0);
-  assert.deepEqual(w.flattenRxResults(all).slice(0, 3).map((it) => it.key), ['prof-diabete', 'prof-annuel', 'prof-anemie'], 'au clavier, les profils d’abord');
+  assert.deepEqual(all.labSections.map((s) => s.key), ['dossier', 'prev', 'sugg0', 'sugg1', 'favoris']);
+  assert.equal(w.flattenRxResults(all)[0].key, all.labSections[0].items[0].key, 'au clavier, dans l’ordre des sections');
   D.endOrderSearch();
-  assert.deepEqual(D.searchOrder('lab', 'diab').profiles.map((p) => p.name), [w.TR('Profil diabète')]);
+  assert.deepEqual(D.searchOrder('lab', 'diab').labSections[0].items.map((p) => p.name), [w.TR('Profil diabète')], 'un bilan se trouve par son nom');
   D.endOrderSearch();
-  assert.equal(D.searchOrder('img', '').profiles, undefined, 'pas de profils en imagerie');
+  assert.equal(D.searchOrder('img', '').labSections, undefined, 'pas de vues en imagerie');
   D.endOrderSearch();
   assert.ok(D.ORDER_DEFS.lab.multi && !D.ORDER_DEFS.img.multi && !D.ORDER_DEFS.rx.multi);
 });
 
 test('un profil déploie ses analyses, sans doublon', () => {
   const p = prof('prof-diabete');
-  assert.deepEqual(p.details.tests, [w.TR('HbA1c'), w.TR('Glycémie à jeun'), w.TR('Créatinine'), w.TR('DFGe'), w.TR('Cholestérol total'), w.TR('HDL'), w.TR('LDL'), w.TR('Triglycérides')]);
+  assert.deepEqual(p.details.tests, ['Hémoglobine glyquée', 'Glucose à jeun', 'Créatinine sérique', 'Cholestérol total', 'Lipoprotéines de haute densité', 'Lipoprotéine de basse densité', 'Triglycérides'].map(w.TR));
   assert.equal(p.details.fasting, true);
 });
 
-test('sélection multiple : UNE puce labo pour toutes les analyses, une puce par examen d’imagerie', () => {
+test('sélection multiple : une puce par bilan, UNE puce labo pour les autres analyses, une puce par examen d’imagerie', () => {
   const chips = w.buildRequestChips([Object.assign({}, lab('fsc'), { orderKind: 'lab' }), Object.assign({}, img('rxpoumon'), { orderKind: 'img' }), Object.assign({}, lab('lipide'), { orderKind: 'lab' }), Object.assign({}, img('echoabdo'), { orderKind: 'img' })]);
-  assert.deepEqual(chips.map((c) => c.type), ['lab', 'imaging', 'imaging']);
-  assert.deepEqual(chips[0].details.tests, [w.TR('FSC'), w.TR('Cholestérol total'), w.TR('HDL'), w.TR('LDL'), w.TR('Triglycérides')]);
+  assert.deepEqual(chips.map((c) => c.type), ['lab', 'lab', 'imaging', 'imaging']);
+  assert.equal(chips[0].rx.name, w.TR('Bilan lipidique'), 'le bilan garde son nom');
+  assert.deepEqual(chips[0].details.tests, ['Cholestérol total', 'Lipoprotéines de haute densité', 'Lipoprotéine de basse densité', 'Triglycérides'].map(w.TR));
   assert.equal(chips[0].details.fasting, true);
-  assert.equal(chips[0].rx.name, ['FSC', 'Cholestérol total', 'HDL', 'LDL', 'Triglycérides'].map((x) => w.L(x)).join(', '));
-  assert.notEqual(chips[1].cid, chips[2].cid);
+  assert.equal(chips[1].rx.name, w.TR('FSC'), 'l’analyse seule, en acronyme');
+  assert.deepEqual(chips[1].details.tests, [w.TR('Formule sanguine complète')], 'le nom complet reste dans le formulaire');
+  assert.notEqual(chips[2].cid, chips[3].cid);
 });
 
-test('profil + analyse déjà dedans : pas de doublon ; depuis /lab, le type vient de la recherche', () => {
+test('bilan + analyse déjà dedans : pas de doublon ; depuis /lab, le type vient de la recherche', () => {
   const chips = w.buildRequestChips([prof('prof-anemie'), lab('fsc')], 'lab');
   assert.equal(chips.length, 1);
-  assert.deepEqual(chips[0].details.tests, [w.TR('FSC'), w.TR('Ferritine'), w.TR('Vitamine B12')]);
+  assert.deepEqual(chips[0].details.tests, ['Formule sanguine complète', 'Ferritine', 'Vitamine B12'].map(w.TR));
+  assert.equal(chips[0].rx.name, w.TR('Bilan anémie'));
 });
 
 test('un gabarit peut proposer un profil : une puce labo en attente, analyses retirables avant d’accepter', () => {
@@ -54,7 +56,7 @@ test('un gabarit peut proposer un profil : une puce labo en attente, analyses re
   assert.equal(n.attrs.type, 'lab');
   assert.equal(n.attrs.pending, true);
   assert.equal(n.attrs.proposedBy, 'Gabarit « Test »');
-  assert.deepEqual(n.attrs.details.tests, [w.TR('FSC'), w.TR('Ferritine'), w.TR('Vitamine B12')]);
+  assert.deepEqual(n.attrs.details.tests, ['Formule sanguine complète', 'Ferritine', 'Vitamine B12'].map(w.TR));
 });
 
 test('checkout : une requête par puce, ou regroupées par type', () => {

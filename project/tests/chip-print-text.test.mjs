@@ -29,7 +29,8 @@ test('ni état ni commentaire : incomplète, transmise, commentée → même tex
 
 test('labo : analyses — priorité, à jeun', () => {
   assert.equal(w.chipPrintText(attrs('lab', 'fsc')), w.TR('FSC') + ' — Routine');
-  assert.equal(w.chipPrintText(attrs('lab', 'lipide')), ['Cholestérol total', 'HDL', 'LDL', 'Triglycérides'].map((x) => w.L(x)).join(', ') + ' — Routine, ' + w.t('schema.fasting.text'));
+  // Un bilan entier garde son nom (RA-19 du prototype « Note saisie fonction chips »).
+  assert.equal(w.chipPrintText(attrs('lab', 'lipide')), w.TR('Bilan lipidique') + ' — Routine, ' + w.t('schema.fasting.text'));
 });
 
 test('imagerie : examen — priorité ; référence : préfixée, sinon illisible sans icône', () => {
