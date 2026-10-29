@@ -1335,7 +1335,7 @@ const ORDER_DEFS = {
   img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionImgFrequent.title'), t('data.sectionImgOther.title')],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
-  ref: { kbd: 'ref', type: 'referral',     icon: 'assignment', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
+  ref: { kbd: 'ref', type: 'referral',     icon: 'assignment', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'), hint: t('data.refHint.placeholder'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return searchRef(q, favs || REF_FAVS); } },
   exam: { kbd: 'exam', type: 'exam',       icon: 'monitor_heart', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.examNoun.text'),

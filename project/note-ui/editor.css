@@ -80,6 +80,9 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
   box-decoration-break: clone;
 }
 
+/* Texte d'aide d'une recherche de fonction vide (« /ref », orderHintPlugin). */
+.note-field .ql-editor .slash-hint { color: var(--mat-sys-on-surface-variant); opacity: 0.75; font-weight: 400; pointer-events: none; user-select: none; }
+
 /* ============================================================
    Diagnostic region — node bloc imbriqué (.dxr > .dxr-head + .dxr-body).
    Style par défaut = barre gauche accent (WYSIWYG), pas de boîte/fond.
