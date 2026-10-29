@@ -870,7 +870,6 @@
   'popover.labTrendUp.tooltip': 'En hausse (précédent : {prev})',
   'popover.labTrendDown.tooltip': 'En baisse (précédent : {prev})',
   'popover.labTrendStable.tooltip': 'Stable (précédent : {prev})',
-  'popover.labBilanBadge.text': 'Bilan',
   'popover.labRail.aria': 'Vues et groupes d’analyses',
   'popover.labRailGroups.text': 'Groupes',
   'popover.labRailChecked.tooltip': { one: '{n} élément coché', other: '{n} éléments cochés' },

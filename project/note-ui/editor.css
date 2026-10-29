@@ -629,7 +629,6 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-rail__sel { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); font: 600 11px var(--font-body); }
 .rx-lab__name { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rx-lab__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rx-lab__badge { flex-shrink: 0; padding: 0 6px; border-radius: 4px; background: var(--mat-sys-surface-container-high); color: var(--mat-sys-on-surface-variant); font: 500 11px/18px var(--font-body); white-space: nowrap; }
 .rx-lab__line2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rx-lab__status { font-weight: 600; color: var(--fg-2); }
 .rx-lab__status.is-abnormal { color: var(--mat-sys-error); }

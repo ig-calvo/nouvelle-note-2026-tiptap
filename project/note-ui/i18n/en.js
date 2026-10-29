@@ -631,7 +631,6 @@
   'popover.labTrendUp.tooltip': 'Rising (previous: {prev})',
   'popover.labTrendDown.tooltip': 'Falling (previous: {prev})',
   'popover.labTrendStable.tooltip': 'Stable (previous: {prev})',
-  'popover.labBilanBadge.text': 'Panel',
   'popover.labRail.aria': 'Lab test views and groups',
   'popover.labRailGroups.text': 'Groups',
   'popover.labRailChecked.tooltip': { one: '{n} item checked', other: '{n} items checked' },

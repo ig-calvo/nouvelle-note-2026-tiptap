@@ -912,12 +912,12 @@ function RxNameHighlight({ name, query }) {
     </>);
 }
 
-// Corps d'une ligne de /lab (PLAN-menu-requetes-labo.md, lot 3) : le nom et
-// le badge de son groupe ; en dessous, la raison d'une suggestion, ou le
+// Corps d'une ligne de /lab (PLAN-menu-requetes-labo.md, lot 3) : le nom (plus
+// de badge de groupe ni de « Bilan », retirés le 2026-10-29) ; en dessous, la raison d'une suggestion, ou le
 // dernier résultat au dossier (date · valeur · Normal / Anormal) et sa
 // tendance (D4) ; pour un bilan, ses analyses en texte (RA-19 du prototype).
 // Tout texte tronqué a son contenu complet en infobulle (RA-14).
-function LabItemBody({ it, query, inGroup }) {
+function LabItemBody({ it, query }) {
   const res = it.profile ? null : window.NOTE_DATA.labOnFile(it.key);
   const status = res && (res.status === 'anormal' ? t('popover.labAbnormal.text') : t('popover.labNormal.text'));
   const trend = res && res.trend && {
@@ -925,13 +925,11 @@ function LabItemBody({ it, query, inGroup }) {
     down: ['trending_down', t('popover.labTrendDown.tooltip', { prev: res.prev })],
     stable: ['trending_flat', t('popover.labTrendStable.tooltip', { prev: res.prev })]
   }[res.trend];
-  const badge = it.profile ? t('popover.labBilanBadge.text') : (inGroup ? '' : it.groupName);
   const line2 = it.why || (it.profile ? it.sig : res ? [res.date, res.value, status].join(' · ') : '');
   return (
     <div className="rx-item__body">
       <div className="rx-item__name rx-lab__name">
         <span className="rx-lab__label" title={it.name}><RxNameHighlight name={it.name} query={query} /></span>
-        {badge && <span className="rx-lab__badge">{badge}</span>}
       </div>
       {line2 &&
         <div className="rx-item__sig rx-lab__line2" title={line2}>
@@ -1063,7 +1061,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       onClick={(e) => { e.stopPropagation(); onToggleCheck(it); }}>
                       <span className="material-symbols-outlined" aria-hidden="true">{checkedKeys.indexOf(uid(it)) >= 0 ? 'check_box' : 'check_box_outline_blank'}</span>
                     </button>}
-                  {kind === 'lab' ? <LabItemBody it={it} query={query} inGroup={secKey === it.group} /> :
+                  {kind === 'lab' ? <LabItemBody it={it} query={query} /> :
                   <div className="rx-item__body">
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
