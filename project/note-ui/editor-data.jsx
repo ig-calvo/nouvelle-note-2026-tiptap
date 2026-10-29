@@ -545,6 +545,8 @@ function applyRxFilter(r, f) {
 // classes et correspondances simulées, à valider cliniquement.
 const ALLERGEN_CLASSES = [
   { key: 'penicilline', allergy: /penicill|amoxicill|ampicill|cloxacill/, product: /penicill|amoxicill|ampicill|cloxacill|piperacill/ },
+  // Sulfamides antibactériens (2e patiente, RA-38) : le TMP-SMX (cat-45).
+  { key: 'sulfamides', allergy: /sulfam|sulfon/, product: /sulfamethox/ },
 ];
 let _patientAllergies = window.forPatient({ pediatrique: [L('Pénicilline')], adulte: [L('Sulfamides')] });
 let _showAllergens = false;

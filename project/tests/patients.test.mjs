@@ -31,6 +31,19 @@ test('patiente adulte : identité, migraine au Sommaire, profil médicamenteux d
   assert.ok(!meds.includes('med-tylenol-100'), 'pas le profil de l’autre dossier');
 });
 
+test('patiente adulte : l’allergie aux sulfamides masque le TMP-SMX dans /rx, pas un autre antibiotique', () => {
+  const w = loadPrototype(files, { patient: 'adulte' });
+  const D = w.NOTE_DATA;
+  D.endOrderSearch();
+  const tmp = D.searchOrder('rx', 'sulfamethox');
+  assert.equal(tmp.allergy && tmp.allergy.count, 1, 'TMP-SMX masqué et compté');
+  const shown = [...tmp.favoris, ...tmp.frequents, ...tmp.autres].map((it) => it.key);
+  assert.ok(!shown.includes('cat-45'), shown.join(', '));
+  assert.equal(D.rxAllergyOf({ name: 'Trimethoprime-sulfamethoxazole', details: {} }), w.TR('Sulfamides'));
+  const amox = D.searchOrder('rx', 'amox');
+  assert.ok(!amox.allergy, 'l’amoxicilline n’est pas masquée pour cette patiente');
+});
+
 test('une patiente inconnue retombe sur le dossier pédiatrique', () => {
   const w = loadPrototype(files, { patient: 'inconnue' });
   assert.equal(w.PATIENT_KEY, 'pediatrique');
