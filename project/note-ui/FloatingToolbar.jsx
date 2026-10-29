@@ -6,11 +6,8 @@
 // valide ni clic extérieur ne la remplace/ferme. Formats lus/écrits via
 // editor.isActive()/editor.chain() — plus d'état de formats dupliqué.
 //
-// Mode "Flottante" du tweak "Barre de mise en forme" uniquement — le mode
-// "Haut de note" est un bloc en flux normal rendu par NoteEditor.jsx
-// (NoteRichTextToolbar), pas une variante de ce composant. Les deux
-// partagent désormais le même jeu de boutons/palettes — voir
-// rich-text-controls.jsx — pour ne plus dériver l'un de l'autre.
+// Seule barre de mise en forme (le mode « Haut de note » est retiré,
+// 2026-10-28). Boutons, palettes et débordement : rich-text-controls.jsx.
 //
 // `position` (tweak "Position de la barre", 'haut'/'bas') place la bulle
 // au-dessus ou en-dessous de la sélection/du bouton « T » — voir

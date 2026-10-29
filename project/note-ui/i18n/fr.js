@@ -78,7 +78,6 @@
   // Pluriels (tn)
   'document.pill.aria': { one: '{kind} : {n} sur {total} complété', other: '{kind} : {n} sur {total} complétés' },
   'portal.pill.label': { one: 'Portail patient : {n} élément partagé', other: 'Portail patient : {n} éléments partagés' },
-  'noteStart.drafts.label': { one: 'Brouillon', other: '{n} brouillons' },
   'quickSend.summary.text': { one: '1 document · {n} destination', other: '1 document · {n} destinations' },
   'transmission.pending.hint': {
     one: 'Cette note contient {n} document non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter.',
@@ -289,7 +288,6 @@
   'noteEditor.echecTransmissionSimule.toast': 'Échec de transmission (simulé)',
   'noteEditor.annulationEnvoyee.toast': 'Annulation envoyée',
   'noteEditor.noteClinique.text': 'Note Clinique',
-  'noteEditor.cours.text': 'En cours',
   'noteEditor.raisonConsultation.label': 'Raison de consultation',
   'noteEditor.date.label': 'Date',
   'noteEditor.heure.label': 'Heure',
@@ -326,12 +324,6 @@
   'noteEditor.ajouter.placeholder': 'Ajouter…',
   'noteEditor.ajouterEtiquette.placeholder': 'Ajouter une étiquette…',
 
-  // NoteStartCards.jsx
-  'noteStart.nouvelleNote.tooltip': 'Nouvelle note',
-  'noteStart.depuisDerniereNote.tooltip': 'Depuis la dernière note',
-  'noteStart.noteIntelligente.tooltip': 'Note intelligente',
-  'noteStart.continuerNote.text': 'Continuer la note',
-
   // NotesList.jsx
   'notesList.cesse.text': 'Cessé',
   'notesList.listeNotesCliniques.text': 'Liste de notes cliniques',
@@ -347,13 +339,6 @@
   'notesList.ouvrir.aria': 'Ouvrir',
   'notesList.detailsNote.text': 'Détails de la note',
   'notesList.conclusion.text': 'Conclusion',
-
-  // SmartNoteModal.jsx
-  'smartNote.noteIntelligente.text': 'Note intelligente',
-  'smartNote.fermer.aria': 'Fermer',
-  'smartNote.fonctionnaliteNoteIntelligenteDefi.text': 'La fonctionnalité de «\u00a0note intelligente\u00a0» est définitivement rattachée à la note en cours, modifier ce statut supprimera tout le contenu actuel rédigé.',
-  'smartNote.annuler.button': 'Annuler',
-  'smartNote.activerNoteIntelligente.button': 'Activer la note intelligente',
 
   // Summary.jsx
   'summary.taches.label': 'Tâches',
@@ -778,7 +763,6 @@
   'ai.ajouterNote.button': 'Ajouter à la note',
 
   // NoteEditor.jsx
-  'noteEditor.redactionAssistee.text': 'Rédaction assistée',
 
   // NotesList.jsx
   'notesList.aucuneConclusionNote.text': 'Aucune conclusion à cette note',
@@ -837,6 +821,7 @@
   'field.diagScope.hint': 'S’applique au diagnostic n° {number} partout dans la note.',
   'popover.unitOf.aria': '{label} : unité',
   'popover.allergyHidden.text': { one: '{n} produit masqué (allergie au dossier : {names})', other: '{n} produits masqués (allergie au dossier : {names})' },
+  'popover.allergyOnly.text': { one: 'Le seul produit trouvé pour « {query} » est masqué (allergie au dossier : {names}).', other: 'Les {n} produits trouvés pour « {query} » sont masqués (allergie au dossier : {names}).' },
   'popover.allergyShown.text': { one: '{n} produit allergène affiché (allergie au dossier : {names})', other: '{n} produits allergènes affichés (allergie au dossier : {names})' },
   'popover.allergyShow.button': 'Afficher',
   'popover.allergyHide.button': 'Masquer',
@@ -892,9 +877,6 @@
   // AIBox.jsx
   'ai.enregistrementPause.text': 'Enregistrement en pause',
   'ai.enregistrementCours.text': 'Enregistrement en cours',
-
-  // NoteStartCards.jsx
-  'noteStart.noteSansTitre.text': 'Note sans titre',
 
   // NotesList.jsx
   'notesList.conclusion2.text': 'Conclusion',
@@ -1006,9 +988,6 @@
   'schema.clinicalTool.text': 'Outil clinique',
   'patientBanner.bornMale.text': 'Homme né le',
   'patientBanner.bornFemale.text': 'Femme née le',
-  'noteStart.clinicalNote.label': 'Note clinique',
-  'noteStart.medicalNote.label': 'Note médicale',
-  'noteStart.assistedWriting.label': 'Rédaction assistée',
   'actionLog.verbAdded.text': 'Ajouté',
   'actionLog.verbByOn.text': '{verb} par {author} le {when}',
   'actionLog.verbBy.text': '{verb} par {author}',
@@ -1020,7 +999,6 @@
   'sections.details.heading': 'Détails de la consultation',
   'sections.conclusion.heading': 'Conclusion',
   'noteEditor.ituRoadmap.text': 'Feuille de route - Symptômes urinaires',
-  'noteEditor.savedAt.text': 'Sauvegardé à {time}',
   'noteEditor.txSimulatedFailure.text': 'envoi non reçu par le destinataire (simulé)',
   'noteEditor.noSuggestion.empty': 'Aucune suggestion',
   'noteEditor.fieldDose.label': 'Dose',

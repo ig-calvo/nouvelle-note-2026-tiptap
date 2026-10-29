@@ -262,8 +262,8 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
 
   // Aperçu d'une note repliée : la CONCLUSION de la note, telle que
   // délimitée par la ligne de séparation de l'éditeur. Toutes les notes de
-  // cette liste sont complétées (signées) — les brouillons, eux, ne sortent
-  // pas de l'éditeur (voir NoteStartCards) et ne sont donc pas concernés.
+  // cette liste sont complétées (signées) — un brouillon ne sort pas de
+  // l'éditeur et n'est donc pas concerné.
   //   - note rédigée dans l'éditeur (n.doc) : les blocs sous la ligne ;
   //   - note de démonstration (pas de doc Tiptap) : son champ `conclusion` ;
   //   - rien sous la ligne : état vide explicite, jamais un aperçu muet qui

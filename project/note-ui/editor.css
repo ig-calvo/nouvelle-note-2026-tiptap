@@ -18,6 +18,14 @@
 .nf-add:hover, .nf-tt:hover { color: color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent); background: color-mix(in srgb, var(--mat-sys-on-surface) 5%, transparent); }
 .nf-tt { height: 30px; min-width: 30px; margin-top: 5px; padding: 0 6px; align-items: baseline; gap: 1px; line-height: 1; font-family: var(--font-display); font-weight: 700; }
 .nf-tt-sm { font-size: 12px; }
+/* Tweak « Note plus large » (html[data-note-wide], posé par NoteEditor) : le
+   « + » et le « Tt » sortent du flux et se logent dans la marge de la carte
+   (36px, neStyles.cardWide) — la zone de texte prend toute la largeur. Le
+   titre de section et la ligne Détails / Conclusion suivent le texte. */
+html[data-note-wide="on"] .note-field-shell { position: relative; }
+html[data-note-wide="on"] .nf-add { position: absolute; top: 0; left: -32px; }
+html[data-note-wide="on"] .nf-tt { position: absolute; top: 0; right: -32px; }
+html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
 .nf-tt-lg { font-size: 17px; }
 /* Base ProseMirror (remplace quill.snow.css) — .ql-editor est posé via
    editorProps.attributes.class sur la racine contenteditable de Tiptap. */
@@ -253,7 +261,7 @@
 
 /* Bref flash au clic sur une puce .dxref (renvoi) qui saute jusqu'à son
    diagnostic — confirme visuellement QUEL diagnostic vient d'être ciblé,
-   pas seulement le scroll. Indépendant des variantes diag-style-*. */
+   pas seulement le scroll. Indépendant du style .diag-style-actuel. */
 @keyframes dxr-flash-kf { from { background: rgba(122, 168, 216, 0.35); } to { background: transparent; } }
 .note-field .ql-editor .dxr.dxr-flash { animation: dxr-flash-kf 900ms ease-out; border-radius: 6px; }
 
@@ -295,17 +303,16 @@
 }
 
 /* ============================================================
-   Diagnostic region — variantes (tweak "Style de région").
-   Le style par défaut ci-dessus est "actuel" (accent gauche) — la variante
-   du même nom retire cet accent et ajoute pastille numérotée + flèche de
-   liaison par ligne. Carte/Étiquette reprennent ce même mécanisme
-   (icône masquée, pastille noire, flèche par <p>) par-dessus leur propre
-   habillage (boîte, pilule, bandeau). Numéroté garde son propre repère
-   "1." (pas de pastille) mais gagne lui aussi la flèche par ligne.
+   Diagnostic region — style « actuel », le seul retenu (les variantes
+   Numéroté, Carte et Étiquette du tweak « Style de région » sont retirées,
+   2026-10-28). La classe .diag-style-actuel reste posée sur .app (Note
+   Clinique.html) : elle donne à ces règles le pas sur le style de base
+   ci-dessus (accent gauche), qu'elles retirent pour ajouter pastille
+   numérotée + flèche de liaison par ligne.
    ============================================================ */
 
-/* --- Actuel : le style de base + numérotation, sans barre d'accent ---
-   Même numéro que la variante « Numéroté », posé par décoration
+/* --- Le style de base + numérotation, sans barre d'accent ---
+   Numéro posé par décoration
    (dxNumberingPlugin, editor-schema.jsx) sur data-dx-num, une par diagnostic
    du fil (dxKey) — pas par un compteur CSS positionnel, qui ne peut pas
    dédoublonner un même diagnostic repris plus loin dans la note (R3). Le
@@ -365,201 +372,6 @@
   color: #9dbbd6;
   position: absolute;
   left: -16px;
-  width: 18px;
-  display: flex;
-  justify-content: center;
-  top: 4px;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* --- Carte : callout plein, coins arrondis, sans accent gauche ---
-   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
-   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
-   .dxr-head, gouttière de 28px dans .dxr-body pour la flèche de chaque <p>. */
-.diag-style-carte .note-field .ql-editor .dxr-head {
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest));
-  border-left: none;
-  border-radius: 10px 10px 0 0;
-  padding: 8px 14px 5px 12px;
-}
-.diag-style-carte .note-field .ql-editor .dxr-ic {
-  display: none;
-}
-.diag-style-carte .note-field .ql-editor .dxr-head::before {
-  content: attr(data-dx-num);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-.diag-style-carte .note-field .ql-editor .dxr-name {
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0;
-  text-transform: none;
-  color: light-dark(#0f5fa8, #a5c8e9);
-}
-.diag-style-carte .note-field .ql-editor .dxr-body {
-  background: color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest));
-  border-left: none;
-  border-radius: 0 0 10px 10px;
-  padding: 4px 14px 10px;
-  padding-left: 28px;
-}
-.diag-style-carte .note-field .ql-editor .dxr-body p {
-  position: relative;
-}
-.diag-style-carte .note-field .ql-editor .dxr-body p::before {
-  content: 'subdirectory_arrow_right';
-  font-family: 'Material Icons Outlined';
-  font-size: 15px;
-  line-height: 1;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  font-variant-ligatures: common-ligatures;
-  color: #9dbbd6;
-  position: absolute;
-  left: -16px;
-  width: 18px;
-  display: flex;
-  justify-content: center;
-  top: 4px;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* --- Étiquette : pill compacte flottante + corps flush indenté ---
-   Numérotation + flèche de liaison par ligne, même mécanisme que « actuel »
-   (voir plus haut) : icône masquée, pastille noire en tête via ::before sur
-   .dxr-head, gouttière de 24px dans .dxr-body pour la flèche de chaque <p>
-   (padding-left du head = 8px ici, d'où le -16px qui reste identique). */
-.diag-style-etiquette .note-field .ql-editor .dxr-head {
-  display: inline-flex;
-  background: var(--brand-primary-container, light-dark(#e5e2f3, #2b244c));
-  border-left: none;
-  border-radius: 999px;
-  padding: 3px 12px 3px 8px;
-  margin-bottom: 3px;
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-ic {
-  display: none;
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-head::before {
-  content: attr(data-dx-num);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #000;
-  color: #fff;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 11px;
-  line-height: 1;
-  flex-shrink: 0;
-  user-select: none;
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-name {
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--brand-primary, var(--mat-sys-primary));
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-body {
-  border-left: none;
-  padding: 1px 12px 9px 20px;
-  padding-left: 24px;
-  border-bottom: 1px solid rgba(46, 56, 166, 0.12);
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-body p {
-  position: relative;
-}
-.diag-style-etiquette .note-field .ql-editor .dxr-body p::before {
-  content: 'subdirectory_arrow_right';
-  font-family: 'Material Icons Outlined';
-  font-size: 15px;
-  line-height: 1;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  font-variant-ligatures: common-ligatures;
-  color: #9dbbd6;
-  position: absolute;
-  left: -16px;
-  width: 18px;
-  display: flex;
-  justify-content: center;
-  top: 4px;
-  user-select: none;
-  pointer-events: none;
-}
-
-/* --- Numéroté : titre + bullet numéroté selon la position dans la note ---
-   Le numéro vient de data-dx-num (dxNumberingPlugin, editor-schema.jsx),
-   posé par décoration sur .dxr-head — un par FIL (dxKey), pas par occurrence
-   ni par position DOM : une reprise du même diagnostic garde son numéro. */
-.diag-style-numbered .note-field .ql-editor .dxr-head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  background: transparent;
-  border-left: none;
-  padding: 4px 0 2px;
-}
-.diag-style-numbered .note-field .ql-editor .dxr-head::before {
-  content: attr(data-dx-num) '.';
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 14px;
-  color: var(--mat-sys-on-surface);
-  flex-shrink: 0;
-}
-.diag-style-numbered .note-field .ql-editor .dxr-ic {
-  display: none;
-}
-.diag-style-numbered .note-field .ql-editor .dxr-name {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0;
-  text-transform: none;
-  color: color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent);
-}
-.diag-style-numbered .note-field .ql-editor .dxr-body {
-  border-left: none;
-  padding: 1px 0 8px 23px;
-}
-.diag-style-numbered .note-field .ql-editor .dxr-body p {
-  position: relative;
-}
-/* Flèche de liaison par ligne, même mécanisme que « actuel » (voir plus
-   haut) — mais ce style garde son propre repère « 1. » (pas de pastille
-   noire), d'où un alignement à gauche (-23px = padding-left du corps) plutôt
-   qu'au centre d'une pastille de largeur fixe. */
-.diag-style-numbered .note-field .ql-editor .dxr-body p::before {
-  content: 'subdirectory_arrow_right';
-  font-family: 'Material Icons Outlined';
-  font-size: 15px;
-  line-height: 1;
-  font-feature-settings: 'liga';
-  -webkit-font-feature-settings: 'liga';
-  font-variant-ligatures: common-ligatures;
-  color: #9dbbd6;
-  position: absolute;
-  left: -23px;
   width: 18px;
   display: flex;
   justify-content: center;
@@ -1042,6 +854,7 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
   margin-right: -42px;
   user-select: none;
 }
+html[data-note-wide="on"] .note-field .ql-editor .nsx { margin-right: -4px; }
 .note-field .ql-editor .nsx-bar {
   display: flex;
   align-items: center;

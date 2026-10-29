@@ -1,9 +1,12 @@
 /* global React */
-function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, smartActive, doctorName, institution, showClinicalTools = true,
-  startPoints = false, lastNote, onLinkEpisode, onSmartPick, saveDraftRef, ftBarStyle = 'haut', ftBarPosition = 'haut',
+function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true,
+  saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
   aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true }) {
+  // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
+  // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
+  React.useEffect(function() { document.documentElement.setAttribute('data-note-wide', noteWide ? 'on' : 'off'); }, [noteWide]);
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
@@ -59,12 +62,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.__REVIEW_STATE = { active: reviewingMode && reviewActive, author: currentReviewAuthor };
   }, [reviewingMode, reviewActive, reviewAuthor, doctorName]);
 
-  // Brouillons sauvegardés (« Continuer la note ») et lien d'épisode de soin
-  // (« Depuis la dernière note ») — voir NoteStartCards.jsx pour l'UI et
-  // NotesList.jsx pour l'affichage de l'épisode dans la liste.
-  const [drafts, setDrafts] = React.useState([]);
-  const [episodeId, setEpisodeId] = React.useState(null);
-
   // L'éditeur Tiptap est non contrôlé : React n'écrit dans le doc que par
   // commandes impératives. `editorRef` référence l'instance vivante (le
   // temps où isOpen est vrai) ; `initialDocRef` porte le contenu de départ
@@ -114,8 +111,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.addEventListener('note:confidential-field-request', onRequest);
     return function() { window.removeEventListener('note:confidential-field-request', onRequest); };
   }, []);
-  // État (pas seulement une ref) pour que NoteRichTextToolbar — rendu en flux
-  // normal, voir plus bas — se (re)monte quand l'éditeur apparaît/disparaît.
+  // État (pas seulement une ref) pour que les panneaux qui lisent l'éditeur
+  // (suggestions, journal d'actions) se (re)montent quand il apparaît/disparaît.
   const [editorInstance, setEditorInstance] = React.useState(null);
 
   const [popover, setPopover] = React.useState(null);
@@ -702,7 +699,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setInlineEdit(null);
     setPopover(null);
     setLinkedChipId(null);
-    setEpisodeId(null);
     setDocStats({ counts: {}, items: [], diagNames: [], chips: [] });
     setDocJson(null);
     setConfidentialContent('');
@@ -717,49 +713,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setReviewGate(false);
   }
 
-  // ----- Points de départ (tweak "Points de départ") -----
-  function startFromLast() {
-    if (lastNote && lastNote.doc) {
-      // rebaseDiagDocForNewNote (diagnostics.jsx) clone le doc (jamais la
-      // même référence que la note complétée — appendToFirstSection et
-      // insertClinicalTool ci-dessus mutent initialDocRef.current en place
-      // avant montage) et relie chaque diagnostic à sa ligne du dossier :
-      // cette note-ci n'a pas encore documenté quoi que ce soit, elle ne
-      // doit pas prétendre avoir cessé/remplacé ce que la précédente a fait.
-      initialDocRef.current = window.rebaseDiagDocForNewNote(lastNote.doc, window.__SOMMAIRE_DX_BASE || window.sommaireDxSeed());
-      if (!raison.trim()) setRaison(lastNote.title || '');
-    }
-    var epId = (lastNote && lastNote.episodeId) || ('ep-' + Date.now());
-    setEpisodeId(epId);
-    if (onLinkEpisode) onLinkEpisode(epId);
-    if (onOpen) onOpen();
-  }
-
-  // Sauvegarde un instantané du brouillon SANS toucher à la note en cours
-  // d'édition — « Sauvegarder » ne doit pas la fermer ni en effacer le contenu.
+  // « Sauvegarder » : confirmation seulement — le prototype ne garde pas de
+  // brouillon et ne ferme ni n'efface la note en cours d'édition.
   function saveDraft() {
-    var id = 'draft-' + Date.now();
-    var savedLabel = t('noteEditor.savedAt.text', { time: new Date().toTimeString().slice(0, 5) });
-    var doc = window.ensureSplit(editorRef.current ? editorRef.current.getJSON() : (initialDocRef.current || window.DEFAULT_DOC()));
-    setDrafts(function(prev) {
-      return [{ id: id, savedLabel: savedLabel, raison: raison, doc: doc,
-        date: noteDate, time: noteTime, visitType: visitType, tags: tags,
-        confidential: confidentialContent || null, actionEvents: actionEvents }].concat(prev);
-    });
     if (window.toast) window.toast(t('noteEditor.brouillonSauvegarde.toast'), { icon: 'check_circle' });
-  }
-
-  function continueDraft(id) {
-    var draft = drafts.find(function(d) { return d.id === id; });
-    if (!draft) return;
-    setDrafts(function(prev) { return prev.filter(function(d) { return d.id !== id; }); });
-    initialDocRef.current = draft.doc;
-    setRaison(draft.raison || '');
-    setTags(draft.tags || []);
-    if (draft.visitType) setVisitType(draft.visitType);
-    if (draft.confidential) { setConfidentialContent(draft.confidential); setConfidentialAdded(true); }
-    setActionEvents(draft.actionEvents || []);
-    if (onOpen) onOpen();
   }
 
   // Points de départ de la visite (VisitStartPanel.jsx) : la note de départ
@@ -770,13 +727,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setRaison(window.NOTE_DATA.visitReason(choice.points));
     setAppliedTemplate(choice.tplKey || null);
     if (onOpen) onOpen();
-  }
-
-  function handleStartPick(key, payload) {
-    if (key === 'nouvelle') { if (onOpen) onOpen(); return; }
-    if (key === 'derniere') { startFromLast(); return; }
-    if (key === 'continuer') { continueDraft(payload); return; }
-    if (key === 'intelligente') { if (onSmartPick) onSmartPick(); return; }
   }
 
   // Construit la liste des documents transmissibles réellement présents dans
@@ -959,7 +909,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       tags: tags,
       diagnostics: stats.diagNames,
       doc: doc,
-      episodeId: episodeId,
       // Hors du doc Tiptap par conception (voir déclaration de l'état plus
       // haut) — persisté séparément pour que la note complétée garde le
       // champ, mais jamais lu par PrintDialog ni par un rendu « autre
@@ -999,13 +948,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   });
 
   return (
-    <div ref={noteCardRef} className="note-card" style={neStyles.card}>
+    <div ref={noteCardRef} className="note-card" style={noteWide ? Object.assign({}, neStyles.card, neStyles.cardWide) : neStyles.card}>
       <div style={neStyles.topRow}>
         <div>
           <div style={neStyles.overline}>{(institution || 'Clinique du Centre-ville').toUpperCase()}</div>
           <div style={neStyles.titleRow}>
             <span style={neStyles.title}>{t('noteEditor.noteClinique.text')}</span>
-            {smartActive && <span style={neStyles.statusBadge}>{t('noteEditor.cours.text')}</span>}
           </div>
         </div>
         <div style={{ flex: 1 }} />
@@ -1016,30 +964,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             count={reviewChanges.length}
             onAcceptAll={function() { if (editorRef.current) window.acceptAllChanges(editorRef.current); }}
             onRejectAll={function() { if (editorRef.current) window.rejectAllChanges(editorRef.current); }} />}
-        {smartActive
-          ? (
-            <div style={neStyles.assistRow}>
-              <span style={neStyles.assistChip}>
-                <span className="material-icons" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>check</span>
-                {t('noteEditor.redactionAssistee.text')}
-              </span>
-            </div>
-          )
-          : null
-        }
       </div>
 
-      {/* Points de départ — tweak "Points de départ", masqués une fois la note ouverte */}
+      {/* Points de départ de la visite — tweak du même nom, masqués une fois la note ouverte */}
       {visitStart && !isOpen &&
         <div style={{ marginBottom: 20 }}>
           <window.VisitStartPanel onStart={handleVisitStart} showTools={showClinicalTools} />
-        </div>}
-      {startPoints && !visitStart && !isOpen &&
-        <div style={{ marginBottom: 20 }}>
-          <NoteStartCards
-            onPick={handleStartPick}
-            hasLastNote={!!(lastNote && lastNote.doc)}
-            drafts={drafts} />
         </div>}
 
       {/* Fields */}
@@ -1104,12 +1034,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div style={suggestionsColumn ? neStyles.withSuggestions : undefined}>
           <div style={suggestionsColumn ? neStyles.writingZone : undefined}>
 
-          {/* Position de la barre (tweak "Position de la barre") : "haut" la
-              place avant le cadre de la note (comportement d'origine), "bas"
-              la déplace après — le cadre (noteDiv) continue d'entourer
-              uniquement le corps éditable dans les deux cas. */}
-          {ftBarStyle === 'haut' && ftBarPosition !== 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
-
           <div style={neStyles.noteDiv} />
 
           {pending.count > 0 &&
@@ -1128,8 +1052,6 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
             linkedChipId={linkedChipId} />
 
           <div style={neStyles.noteDiv} />
-
-          {ftBarStyle === 'haut' && ftBarPosition === 'bas' && <NoteRichTextToolbar editor={editorInstance} />}
           </div>
           {suggestionsColumn &&
             <window.SuggestionsColumn editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
@@ -1910,6 +1832,9 @@ const neFieldStyles = {
 const neStyles = {
   // DS3 : carte statique = container-lowest sur surface, élévation 1 (ombre noire neutre), grille 4 pt
   card: { background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 'var(--mat-sys-corner-small)', padding: 'var(--ds-spacing-s) var(--ds-spacing-m)', boxShadow: 'var(--mat-sys-level1)', fontFamily: 'var(--font-mat-sys-plain-family)' },
+  // Tweak « Note plus large » : marge assez large pour loger le « + » et le
+  // « Tt » (30 px chacun), sortis du flux de la zone de texte (editor.css).
+  cardWide: { padding: 'var(--ds-spacing-s) 36px' },
   // Cadre le corps éditable de la note (NoteBody) — un trait au-dessus, un en
   // dessous — repris de la maquette Figma (« redaction » y démarre par cette
   // même ligne, cf. "Ds2 - Rich text Toolbar" / node 11534:40525).
@@ -1918,9 +1843,6 @@ const neStyles = {
   noteDiv: { height: 1, background: 'var(--mat-sys-outline-variant)', margin: 'var(--ds-spacing-12) 0' },
   topRow: { display: 'flex', alignItems: 'flex-start', gap: 'var(--ds-spacing-12)', marginBottom: 'var(--ds-spacing-s)' },
   titleRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', marginTop: 'var(--ds-spacing-xxs)' },
-  statusBadge: { background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-label-large-bold)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-12)', borderRadius: 'var(--mat-sys-corner-small)' },
-  assistRow: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)' },
-  assistChip: { display: 'inline-flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: 'var(--mat-sys-body-large-bold)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-s)', borderRadius: 'var(--mat-sys-corner-small)' },
   overline: { font: 'var(--mat-sys-label-medium)', letterSpacing: 'var(--mat-sys-label-medium-tracking)', textTransform: 'uppercase', color: 'var(--mat-sys-on-surface-variant)' },
   title: { font: 'var(--mat-sys-headline-small)', color: 'var(--mat-sys-on-surface)', margin: 0 },
   // Entre deux lignes (carte étroite) : 12 + 8 = 20 px — le libellé flottant du deuxième rang mord déjà sur l'interligne.
@@ -2035,80 +1957,3 @@ const tagStyles = {
   menuItem: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', minHeight: 48, boxSizing: 'border-box', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', font: 'var(--mat-sys-body-large)', color: 'var(--mat-sys-on-surface)', cursor: 'pointer' }
 };
 
-// ---------------------------------------------------------
-// NoteRichTextToolbar — barre de mise en forme du tweak "Barre de mise en
-// forme = Haut de note" (maquette Figma "Ds2 - Rich text Toolbar"). Bloc en
-// flux normal entre l'Assistant IA et le corps de la note — jamais en
-// position fixe/overlay, contrairement au mode "Flottante"
-// (FloatingToolbar.jsx, qui suit la sélection). Boutons/palettes/logique de
-// débordement partagés avec ce dernier — voir rich-text-controls.jsx : les deux
-// modes ne doivent plus dériver l'un de l'autre.
-// ---------------------------------------------------------
-function NoteRichTextToolbar({ editor }) {
-  const [, bump] = React.useState(0);
-  const barRef = React.useRef(null);
-  const S = window.ToolbarShared;
-
-  React.useEffect(function () {
-    if (!editor) return undefined;
-    function onTx() { bump(function (n) { return n + 1; }); }
-    editor.on('transaction', onTx);
-    return function () { editor.off('transaction', onTx); };
-  }, [editor]);
-
-  // Mesure la largeur réelle disponible — la barre est en flux normal (pas
-  // flottante), sa largeur dépend du panneau/de la fenêtre. Dépend de
-  // `editor` (pas []) : au tout premier rendu editor est encore null (voir
-  // le early-return plus bas), donc rien n'est monté sous barRef — un effet
-  // [] figerait l'observer sur cet état et ne se redéclencherait jamais une
-  // fois la barre réellement affichée.
-  const containerWidth = S.useToolbarWidth(barRef, [editor]);
-
-  // Doit rester appelé à chaque render (règle des Hooks) même quand
-  // `editor` est encore null — voir le early-return juste après.
-  const linkEditor = S.useLinkEditor(editor);
-
-  if (!editor) return null;
-
-  function run(fn) { fn(editor.chain().focus()).run(); }
-
-  var curLevel = [1, 2, 3].find(function (l) { return editor.isActive('heading', { level: l }); }) || 0;
-  var curBlock = S.TOOLBAR_BLOCK_TYPES.find(function (b) { return b.level === curLevel; }) || S.TOOLBAR_BLOCK_TYPES[0];
-
-  var chunks = S.buildToolbarChunks(editor, linkEditor, run);
-  var visibleCount = S.visibleChunkCount(S.CHUNK_WIDTHS, containerWidth);
-  var hiddenChunks = chunks.slice(visibleCount);
-
-  return (
-    <div ref={barRef} style={rtS.bar}>
-      {linkEditor.editing ? (
-        <S.ToolbarLinkEditRow linkEditor={linkEditor} />
-      ) : (
-        <React.Fragment>
-          <S.ToolbarBlockDropdown
-            curBlock={curBlock}
-            onPick={function (b) { run(function (c) { return b.level === 0 ? c.setParagraph() : c.toggleHeading({ level: b.level }); }); }} />
-
-          {chunks.slice(0, visibleCount).map(function (chunk) {
-            return (
-              <React.Fragment key={chunk.key}>
-                <div style={S.tbS.sep} />
-                {chunk.render(false)}
-              </React.Fragment>
-            );
-          })}
-
-          {hiddenChunks.length > 0 &&
-            <React.Fragment>
-              <div style={S.tbS.sep} />
-              <S.ToolbarOverflowMenu chunks={hiddenChunks} />
-            </React.Fragment>}
-        </React.Fragment>
-      )}
-    </div>
-  );
-}
-
-const rtS = {
-  bar: { display: 'flex', alignItems: 'center', gap: 0, padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xs)', borderRadius: 'var(--mat-sys-corner-small)', flexWrap: 'nowrap', marginBottom: 'var(--ds-spacing-12)' }
-};

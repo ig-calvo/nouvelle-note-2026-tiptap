@@ -58,8 +58,8 @@ function dxWalkDoc(doc, cb) {
   });
 }
 
-// Même parcours, mais sur un JSON qu'on mutera en place (prepareDiagDoc,
-// rebaseDiagDocForNewNote) — pose attrs:{} si absent pour pouvoir y écrire.
+// Même parcours, mais sur un JSON qu'on mutera en place (prepareDiagDoc)
+// — pose attrs:{} si absent pour pouvoir y écrire.
 function dxWalkDocMutable(doc, cb) {
   (doc && doc.content || []).forEach(function (top) {
     if (!top) return;
@@ -287,25 +287,6 @@ function prepareDiagDoc(json) {
     delete n.attrs.promotedAt;
     delete n.attrs.promotedBy;
     if (n.attrs.status !== 'cesse') n.attrs.status = 'actif';
-  });
-  return doc;
-}
-
-// « Depuis la dernière note » : relie chaque région à sa ligne du sommaire
-// (par code, ou par nom si aucun des deux n'a de code — dxFindLinkableRow),
-// et efface replaces/les horodatages : la nouvelle note ne doit pas prétendre
-// avoir documenté quelque chose que la note précédente avait déjà fait.
-function rebaseDiagDocForNewNote(json, base) {
-  const doc = JSON.parse(JSON.stringify(json || { type: 'doc', content: [] }));
-  dxWalkDocMutable(doc, function (n) {
-    const a = n.attrs;
-    if (!a.sommaireId && base) {
-      const found = dxFindLinkableRow(base, { name: a.name, code: a.code || null });
-      if (found) a.sommaireId = found.row.id;
-    }
-    a.replaces = null;
-    a.documentedAt = null;
-    a.documentedBy = null;
   });
   return doc;
 }
@@ -631,7 +612,7 @@ Object.assign(window, {
   sommaireDxDateField: sommaireDxDateField, sommaireDxValidDate: sommaireDxValidDate, sommaireDxPatchDate: sommaireDxPatchDate,
   newDiagId: newDiagId, diagnosticThreads: diagnosticThreads, listDiagnostics: listDiagnostics,
   diagPlacement: diagPlacement, dxSommaireTargetId: dxSommaireTargetId, normalizeDiagAttrs: normalizeDiagAttrs,
-  makeDiagRegionAttrs: makeDiagRegionAttrs, prepareDiagDoc: prepareDiagDoc, rebaseDiagDocForNewNote: rebaseDiagDocForNewNote,
+  makeDiagRegionAttrs: makeDiagRegionAttrs, prepareDiagDoc: prepareDiagDoc,
   diagRelabelPatches: diagRelabelPatches, diagCanRefine: diagCanRefine, dxRegionCimId: dxRegionCimId, diagCodeLabel: diagCodeLabel,
   diagDocButton: diagDocButton, diagDocMenuItems: diagDocMenuItems, DX_QUALIFIERS: DX_QUALIFIERS,
   getSommaireDiagnostics: getSommaireDiagnostics, sommaireDxSeed: sommaireDxSeed, dxFindLinkableRow: dxFindLinkableRow,

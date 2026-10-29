@@ -1,15 +1,9 @@
 /* global React */
 
 // =========================================================
-// rich-text-controls.jsx — cœur commun aux deux barres de mise en forme
-// (FloatingToolbar.jsx, mode "Flottante" ; NoteRichTextToolbar dans
-// NoteEditor.jsx, mode "Haut de note" — tweak "Barre de mise en forme").
-//
-// Les deux modes ne doivent différer que par leur HABILLAGE (bulle
-// positionnée sur la sélection vs bandeau en flux normal au-dessus de la
-// note) : mêmes groupes de boutons, mêmes tailles, mêmes palettes, même
-// bascule "..." en cas de manque de place. Avant ce fichier, les deux
-// composants dupliquaient (et désynchronisaient) tout ça séparément.
+// rich-text-controls.jsx — boutons, palettes et bascule « … » en cas de
+// manque de place de la barre de mise en forme flottante (FloatingToolbar.jsx).
+// La barre « Haut de note », qui les partageait, est retirée (2026-10-28).
 // =========================================================
 
 const TOOLBAR_BLOCK_TYPES = [
