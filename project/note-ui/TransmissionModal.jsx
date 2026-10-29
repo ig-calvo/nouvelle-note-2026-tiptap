@@ -365,6 +365,13 @@ function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, docto
     if (!selected || selected.transmitted || !selected.complete) return;
     quickSend(selected);
   }
+  // « Signer et transmettre » : complète le document s'il ne l'est pas, puis
+  // le transmet d'un seul geste.
+  function signAndTransmit() {
+    if (!selected || selected.transmitted) return;
+    if (!selected.complete) markComplete(selected);
+    quickSend(selected);
+  }
   function transmitAll() {
     var ids = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).map(function (d) { return d.id; });
     ids.forEach(function (id) { patch(id, { transmitted: true }); });
@@ -387,6 +394,11 @@ function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, docto
   const blocked = !!selected && !selected.complete && (selected.blocking || []).length > 0;
   const completeDisabled = !selected || selected.complete || noRecipient || blocked;
   const transmitDisabled = !selected || !selected.complete || noRecipient || selected.transmitted;
+  const signDisabled = !selected || selected.transmitted || noRecipient || blocked;
+  const signTitle = !selected ? undefined
+    : selected.transmitted ? t('documentAction.alreadyTransmitted.tooltip')
+    : blocked ? (selected.blocking || []).join('\n')
+    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
   const completeTitle = !selected ? undefined
     : selected.complete ? t('documentAction.alreadyCompleted.tooltip')
     : blocked ? (selected.blocking || []).join('\n')
@@ -471,10 +483,17 @@ function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, docto
                   <span className="material-icons" style={{ fontSize: 20 }}>add</span>
                 </button>}
             </div>
-            {sideGroups.map(function (g) {
+            {sideGroups.filter(function (g) { return g.docs.length > 0; }).map(function (g) {
+              // Tout ce que contient la section est transmis : coche verte.
+              const allSent = g.docs.every(function (d) { return txStatus(d) === 'done'; });
               return (
                 <div key={g.title} style={tx.sideGroup}>
-                  <div style={tx.sideGroupTitle}>{g.title} {g.docs.length}</div>
+                  <div style={tx.sideGroupTitle}>
+                    {g.title} {g.docs.length}
+                    {allSent &&
+                      <span className="material-icons" role="img" title={TX_STATUS_LABEL.done} aria-label={TX_STATUS_LABEL.done}
+                        style={tx.sideGroupCheck}>check_circle</span>}
+                  </div>
                   {g.docs.map(function (d) { return renderSideRow(d); })}
                 </div>
               );
@@ -504,41 +523,33 @@ function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, docto
           </div>
         </div>
 
-        {/* Pied : gestes du document à gauche, navigation et « Tout
-            transmettre » à droite. */}
+        {/* Pied : navigation entre documents (boutons icônes) à gauche,
+            « Tout transmettre » puis « Signer et transmettre » à droite. */}
         <div style={tx.footer}>
-          {!readOnly && selected &&
-            <React.Fragment>
-              <button type="button" className="ds-btn ds-btn--tonal" style={tx.footBtn}
-                title={completeTitle} disabled={completeDisabled}
-                onClick={function () { markComplete(selected); }}>
-                <span className="material-icons-outlined" style={tx.footIc}>edit</span>
-                {t('documentAction.complete.button', { noun: meta.nounPhrase })}
-              </button>
-              <button type="button" className="ds-btn ds-btn--filled" style={tx.footBtn}
-                title={transmitTitle} disabled={transmitDisabled}
-                onClick={transmitReady}>
-                <span className="material-icons" style={tx.footIc}>send</span>
-                {t('documentAction.transmit.button', { noun: meta.nounPhrase })}
-              </button>
-            </React.Fragment>}
-          <div style={{ flex: 1 }} />
-          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footBtn}
+          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footIconBtn}
+            title={t('transmission.documentPrecedent.button')} aria-label={t('transmission.documentPrecedent.button')}
             disabled={navIdx <= 0} onClick={function () { goTo(-1); }}>
-            <span className="material-icons" style={tx.footIc}>chevron_left</span>
-            {t('transmission.documentPrecedent.button')}
+            <span className="material-icons" style={{ fontSize: 22 }}>chevron_left</span>
           </button>
-          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footBtn}
+          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footIconBtn}
+            title={t('transmission.documentSuivant.button')} aria-label={t('transmission.documentSuivant.button')}
             disabled={navIdx < 0 || navIdx >= navIds.length - 1} onClick={function () { goTo(1); }}>
-            <span className="material-icons" style={tx.footIc}>chevron_right</span>
-            {t('transmission.documentSuivant.button')}
+            <span className="material-icons" style={{ fontSize: 22 }}>chevron_right</span>
           </button>
+          <div style={{ flex: 1 }} />
           {!readOnly &&
             <button type="button" className="ds-btn ds-btn--tonal" style={tx.footIconBtn}
               title={t('transmission.transmitAll.button', { n: readyCount })}
               aria-label={t('transmission.transmitAll.button', { n: readyCount })}
               disabled={readyCount === 0} onClick={transmitAll}>
               <span className="material-icons" style={{ fontSize: 22 }}>send</span>
+            </button>}
+          {!readOnly && selected &&
+            <button type="button" className="ds-btn ds-btn--filled" style={tx.footBtn}
+              title={signTitle} disabled={signDisabled}
+              onClick={signAndTransmit}>
+              <span className="material-icons" style={tx.footIc}>send</span>
+              {t('documentAction.signTransmit.button')}
             </button>}
         </div>
       </div>
@@ -635,6 +646,7 @@ const tx = {
   },
   sideAddBtn: { color: 'var(--mat-sys-on-surface)' },
   sideGroup: { display: 'flex', flexDirection: 'column', gap: 4 },
+  sideGroupCheck: { fontSize: 18, verticalAlign: 'middle', marginLeft: 6, color: 'light-dark(#1e7e34, #6fcf8a)' },
   sideGroupTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', padding: '0 12px' },
   sideRow: {
     display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%',
