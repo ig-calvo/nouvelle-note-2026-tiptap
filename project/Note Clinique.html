@@ -402,7 +402,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "suggestionsPlacement": "curseur",
   "visitStart": false,
   "themeMode": "clair",
-  "patient": "pediatrique"
+  "patient": "adulte"
 } /*EDITMODE-END*/;
 
 // Filet de sécurité pour toute erreur de rendu non prévue (ex. un composant
@@ -465,6 +465,7 @@ function docPillStyle(done) {
     background: done ? 'var(--mat-sys-surface-container-low)' : 'var(--mat-sys-primary-container)',
     color: done ? 'var(--mat-sys-on-surface-variant)' : 'var(--mat-sys-primary)',
     font: 'var(--mat-sys-label-medium)', fontWeight: 600, letterSpacing: 'var(--mat-sys-label-medium-tracking)',
+    border: 0, cursor: 'pointer',
   };
 }
 
@@ -622,10 +623,11 @@ function App() {
               {docStatusSummary.map((s) => {
                 const done = s.total > 0 && s.done === s.total;
                 return (
-                  <div key={s.kind} role="img" aria-label={docPillLabel(s.kind, s.done, s.total)} title={docPillLabel(s.kind, s.done, s.total)} style={docPillStyle(done)}>
+                  <button type="button" key={s.kind} aria-label={docPillLabel(s.kind, s.done, s.total)} title={docPillLabel(s.kind, s.done, s.total)} style={docPillStyle(done)}
+                    onClick={() => window.dispatchEvent(new CustomEvent('note:open-transmission', { detail: { kind: s.kind } }))}>
                     <span className="material-symbols-outlined" aria-hidden="true" style={docPillIcon}>{s.icon}</span>
                     {s.done}/{s.total}
-                  </div>
+                  </button>
                 );
               })}
               {/* Portail patient : nombre d'éléments partageables présents dans
@@ -634,10 +636,11 @@ function App() {
                   le patient n'a pas le portail. Pas de pastille pré-facturation
                   tant qu'aucune donnée de facturation n'existe (PLAN §M.2/M.3). */}
               {t.portalActive !== false && portalSharedCount(docStatusSummary) > 0 &&
-              <div role="img" aria-label={portalPillLabel(portalSharedCount(docStatusSummary))} title={portalPillLabel(portalSharedCount(docStatusSummary))} style={docPillStyle(true)}>
+              <button type="button" aria-label={portalPillLabel(portalSharedCount(docStatusSummary))} title={portalPillLabel(portalSharedCount(docStatusSummary))} style={docPillStyle(true)}
+                onClick={() => window.dispatchEvent(new CustomEvent('note:open-transmission', { detail: {} }))}>
                 <span className="material-symbols-outlined" aria-hidden="true" style={docPillIcon}>verified_user</span>
                 {portalSharedCount(docStatusSummary)}
-              </div>}
+              </button>}
               <div style={{ flex: 1 }} />
               <button className="ds-btn ds-btn--tonal"
                 onClick={() => { if (noteSaveDraftRef.current) noteSaveDraftRef.current(); }}>{window.t('app.sauvegarder.button')}</button>

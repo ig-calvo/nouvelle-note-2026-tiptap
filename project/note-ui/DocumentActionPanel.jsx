@@ -164,7 +164,9 @@ function DapHeart({ on }) {
 function DapRecipientCard({ r, readOnly, showStar, isPatientPharmacy, onRemove, onChannels }) {
   const avail = recipientChannels(r);
   const checked = checkedChannels(r);
-  const shown = readOnly ? avail.filter(function (c) { return checked.indexOf(c) >= 0; }) : avail;
+  // Un fax seul n'offre aucun choix de canal : la ligne est omise (le numéro reste dans la carte).
+  const shown = (readOnly ? avail.filter(function (c) { return checked.indexOf(c) >= 0; }) : avail)
+    .filter(function (c) { return !(c === 'fax' && avail.length === 1); });
   function toggle(c) {
     onChannels(checked.indexOf(c) >= 0
       ? checked.filter(function (x) { return x !== c; })

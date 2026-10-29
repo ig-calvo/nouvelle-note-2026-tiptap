@@ -997,7 +997,18 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     // restreint à ce document (voir QuickSendModal).
     function onOpenCheckout(e) { openQuickSend(e && e.detail && e.detail.cid); }
     window.addEventListener('note:open-checkout', onOpenCheckout);
-    return function() { window.removeEventListener('note:open-checkout', onOpenCheckout); };
+    // Clic sur un compteur du pied de note : le checkout complet, sur le
+    // premier document de cette nature (ou sans présélection, compteur portail).
+    function onOpenTransmission(e) {
+      var kind = e && e.detail && e.detail.kind;
+      var first = kind ? buildTransmissionDocs().filter(function(d) { return d.kind === kind; })[0] : null;
+      openTransmission(first ? first.id : null);
+    }
+    window.addEventListener('note:open-transmission', onOpenTransmission);
+    return function() {
+      window.removeEventListener('note:open-checkout', onOpenCheckout);
+      window.removeEventListener('note:open-transmission', onOpenTransmission);
+    };
   });
 
   return (

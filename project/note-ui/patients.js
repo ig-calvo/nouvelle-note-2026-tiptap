@@ -1,7 +1,7 @@
 // Patiente du prototype (tweak « Patiente », PLAN-reference-specialite.md, D3).
 // Deux dossiers fictifs :
-//   - 'pediatrique' (défaut) : Geneviève Tremblay, 15 ans — le dossier d'origine ;
-//   - 'adulte' : Micheline Lamontagne, 47 ans, migraine — l'exemple du Figma
+//   - 'pediatrique' : Geneviève Tremblay, 15 ans — le dossier d'origine ;
+//   - 'adulte' (défaut) : Micheline Lamontagne, 47 ans, migraine — l'exemple du Figma
 //     « Demande de consultation en médecine spécialisée ».
 // Un script classique, lu avant les données (editor-data.jsx, diagnostics.jsx,
 // Summary.jsx…), qui le lisent à leur évaluation par forPatient(). Changer de
@@ -20,7 +20,7 @@
       var o = JSON.parse(localStorage.getItem('omd-tweaks:' + location.pathname) || '{}') || {};
       if (KEYS.indexOf(o.patient) >= 0) return o.patient;
     } catch (e) { /* stockage indisponible */ }
-    return 'pediatrique';
+    return 'adulte';
   }
   if (KEYS.indexOf(window.PATIENT_KEY) < 0) window.PATIENT_KEY = read();
   window.PATIENT_KEYS = KEYS;

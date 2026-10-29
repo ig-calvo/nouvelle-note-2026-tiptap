@@ -29,9 +29,10 @@ const I18N_SOURCES_EN = ['note-ui/i18n/en.js', 'note-ui/i18n/data-en.js'];
 // `lang` : 'fr' (défaut) ou 'en' — la variable d'environnement I18N_TEST_LANG=en fait tourner toute la suite en anglais ; `english: false` n'y charge pas les fichiers anglais ; `data` : table « français → anglais » de démonstration. Les fichiers reçoivent `t`, `tn`, `L` et `tk`
 // comme variables libres, ainsi qu'ils les reçoivent de `window` dans le
 // navigateur — un fichier chargé par `new Function` n'y a pas accès autrement.
-export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = process.env.I18N_TEST_LANG || 'fr', english = true, data = null, patient = null } = {}) {
+export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-schema.jsx'], { lang = process.env.I18N_TEST_LANG || 'fr', english = true, data = null, patient = 'pediatrique' } = {}) {
   const win = {};
-  // `patient` : 'pediatrique' (défaut) ou 'adulte' — la patiente active (patients.js).
+  // `patient` : 'pediatrique' (défaut des tests, qui s'appuient sur ce dossier) ou 'adulte' ;
+  // une clé inconnue laisse patients.js choisir la patiente par défaut du prototype.
   if (patient) win.PATIENT_KEY = patient;
   if (lang !== 'fr') win.location = { search: `?lang=${lang}` };
   let globals = [];
