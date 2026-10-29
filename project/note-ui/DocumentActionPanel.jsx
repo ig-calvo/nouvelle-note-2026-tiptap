@@ -98,62 +98,200 @@ function DapContentRow({ it, meta, readOnly }) {
   );
 }
 
-// Carte destinataire : favori, adresse, coordonnées, choix du canal
-// (fax/courriel) et retrait au survol (plan V7 §F).
-function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
-  const [hover, setHover] = React.useState(false);
-  const channel = r.channel || 'fax';
-  function channelBtn(key, cls, icon, title, sentTitle) {
-    const on = channel === key;
-    return (
-      <button style={Object.assign({}, dap.channelBtn, on ? dap.channelBtnOn : {},
-          readOnly ? { cursor: 'default' } : {})}
-        title={readOnly ? (on ? sentTitle : '') : title}
-        aria-pressed={on} disabled={readOnly}
-        onClick={function () { if (!readOnly) onChannel(key); }}>
-        <span className={cls} style={{ fontSize: 18 }}>{icon}</span>
-      </button>
-    );
-  }
+// Canaux d'envoi d'un destinataire (maquette « Transmission générale ») :
+// PrescribeIT seul quand la pharmacie le reçoit ; sinon fax et courriel,
+// selon les coordonnées connues. Le premier est le canal principal, toujours
+// coché (Q7 du plan). `channels` garde les cases cochées ; l'ancien champ
+// `channel` (notes d'exemple du journal) en tient lieu s'il est seul.
+function recipientChannels(r) {
+  if (r.prescribeIt) return ['prescribeit'];
+  const list = [];
+  if (r.fax) list.push('fax');
+  if (r.email) list.push('email');
+  return list;
+}
+function checkedChannels(r) {
+  const avail = recipientChannels(r);
+  const picked = r.channels || (r.channel ? [r.channel] : []);
+  const out = avail.filter(function (c) { return picked.indexOf(c) >= 0; });
+  if (avail.length && out.indexOf(avail[0]) < 0) out.unshift(avail[0]);
+  return out;
+}
+const DAP_CHANNELS = {
+  fax: { icon: 'fax', label: t('documentAction.canalFax.label'), value: function (r) { return r.fax; } },
+  email: { icon: 'mail', label: t('documentAction.canalCourriel.label'), value: function (r) { return r.email; } },
+  prescribeit: { icon: 'local_pharmacy', label: 'PrescribeIT', value: function (r) { return r.phone; } },
+};
+
+// Pastille à l'initiale du destinataire (« PJC » et « Pharmacie » ignorés).
+const DAP_AVATAR_TONES = [
+  ['light-dark(#f7dbe4, #5a2a3c)', 'light-dark(#8a2c4c, #f7dbe4)'],
+  ['light-dark(#f4ecc8, #4c4224)', 'light-dark(#6b5a12, #f4ecc8)'],
+  ['light-dark(#d7efdc, #244c32)', 'light-dark(#22683a, #d7efdc)'],
+  ['light-dark(#e2e0f6, #322c5c)', 'light-dark(#3a3167, #e2e0f6)'],
+];
+function DapAvatar({ name }) {
+  const letter = (name || '?').replace(/^(PJC|Pharmacie)\s+/i, '').charAt(0).toUpperCase();
+  const tone = DAP_AVATAR_TONES[letter.charCodeAt(0) % DAP_AVATAR_TONES.length];
+  return <span style={Object.assign({}, dap.avatar, { background: tone[0], color: tone[1] })} aria-hidden="true">{letter}</span>;
+}
+
+function DapContactLine({ r }) {
   return (
-    <div style={dap.recipientCard}
-      onMouseEnter={function () { setHover(true); }}
-      onMouseLeave={function () { setHover(false); }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={dap.recipientName}>
-          {r.name}
-          <span className="material-icons"
-            style={{ fontSize: 15, marginLeft: 5, color: r.favorite ? 'light-dark(#e0637a, #e9a5b2)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent)' }}>
-            {r.favorite ? 'favorite' : 'favorite_border'}
-          </span>
-        </div>
-        {r.address ? <div style={dap.recipientAddr}>{r.address}</div> : null}
-        <div style={dap.recipientMeta}>
-          {r.phone ? <span style={dap.recipientMetaItem}>
-            <span className="material-icons-outlined" style={{ fontSize: 14 }}>call</span>{r.phone}
-          </span> : null}
-          {r.fax ? <span style={dap.recipientMetaItem}>
-            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>fax</span>{r.fax}
-          </span> : null}
-        </div>
-      </div>
-      <div style={dap.channelGroup}>
-        {(r.fax && (!readOnly || channel === 'fax')) ? channelBtn('fax', 'material-symbols-outlined', 'fax', t('documentAction.sendByFax.tooltip'), t('documentAction.sentByFax.tooltip')) : null}
-        {(!readOnly || channel === 'email') ? channelBtn('email', 'material-icons-outlined', 'mail', t('documentAction.sendByEmail.tooltip'), t('documentAction.sentByEmail.tooltip')) : null}
-      </div>
-      {hover && !readOnly &&
-        <button style={dap.removeBadge} onClick={onRemove} title={t('documentAction.retirerDestinataire.tooltip')}>
-          <span className="material-icons" style={{ fontSize: 15 }}>close</span>
-        </button>}
+    <div style={dap.recipientMeta}>
+      {r.phone ? <span style={dap.recipientMetaItem}>
+        <span className="material-icons-outlined" style={{ fontSize: 15 }}>call</span>{r.phone}
+      </span> : null}
+      {r.fax ? <span style={dap.recipientMetaItem}>
+        <span className="material-symbols-outlined" style={{ fontSize: 15 }}>fax</span>{r.fax}
+      </span> : null}
     </div>
   );
 }
 
+function DapHeart({ on }) {
+  return (
+    <span className="material-icons" title={on ? t('documentAction.favoriMedecin.tooltip') : undefined}
+      style={{ fontSize: 18, flexShrink: 0, color: on ? 'light-dark(#e0637a, #e9a5b2)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 25%, transparent)' }}>
+      {on ? 'favorite' : 'favorite_border'}
+    </span>
+  );
+}
+
+// Destinataire choisi : pastille, ★ (pharmacie favorite au dossier du
+// patient, ordonnance seulement), nom, ♡ (favori du médecin), coordonnées,
+// puis une ligne à cocher par canal.
+function DapRecipientCard({ r, readOnly, showStar, isPatientPharmacy, onRemove, onChannels }) {
+  const avail = recipientChannels(r);
+  const checked = checkedChannels(r);
+  const shown = readOnly ? avail.filter(function (c) { return checked.indexOf(c) >= 0; }) : avail;
+  function toggle(c) {
+    onChannels(checked.indexOf(c) >= 0
+      ? checked.filter(function (x) { return x !== c; })
+      : avail.filter(function (x) { return x === c || checked.indexOf(x) >= 0; }));
+  }
+  return (
+    <div style={dap.recipientCard}>
+      <div style={dap.cardHead}>
+        <DapAvatar name={r.name} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={dap.cardName}>
+            {showStar &&
+              <span className="material-icons"
+                title={isPatientPharmacy ? t('documentAction.pharmacieDossier.tooltip') : undefined}
+                style={{ fontSize: 19, flexShrink: 0, color: isPatientPharmacy ? 'light-dark(#c98a12, #f0c060)' : 'color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)' }}>
+                {isPatientPharmacy ? 'star' : 'star_border'}
+              </span>}
+            <span style={dap.cardNameText}>{r.name}</span>
+            <DapHeart on={r.favorite} />
+          </div>
+          {r.address ? <div style={dap.recipientAddr}>{r.address}</div> : null}
+          <DapContactLine r={r} />
+        </div>
+        {!readOnly &&
+          <button type="button" className="ds-icon-btn" onClick={onRemove}
+            title={t('documentAction.retirerDestinataire.tooltip')} aria-label={t('documentAction.retirerDestinataire.tooltip')}>
+            <span className="material-icons" style={{ fontSize: 20 }}>close</span>
+          </button>}
+      </div>
+      {shown.length > 0 &&
+        <div style={dap.channelList}>
+          {shown.map(function (c) {
+            const def = DAP_CHANNELS[c];
+            const on = checked.indexOf(c) >= 0;
+            const locked = readOnly || c === avail[0];
+            return (
+              <label key={c} style={Object.assign({}, dap.channelRow, on ? dap.channelRowOn : {}, locked ? { cursor: 'default' } : {})}
+                title={!readOnly && c === avail[0] ? t('documentAction.canalPrincipal.tooltip') : undefined}>
+                <input type="checkbox" checked={on} disabled={locked} style={dap.channelCheck}
+                  onChange={function () { toggle(c); }} />
+                <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface-variant)' }}>{def.icon}</span>
+                <span style={{ minWidth: 0 }}>
+                  <span style={dap.channelLabel}>{def.label}</span>
+                  <span style={dap.channelValue}>{def.value(r)}</span>
+                </span>
+              </label>
+            );
+          })}
+        </div>}
+    </div>
+  );
+}
+
+// Carte du bottin : comme le destinataire choisi, avec la distance et « + ».
+function DapDirectoryCard({ s, onAdd }) {
+  return (
+    <div style={dap.dirCard}>
+      <div style={dap.cardHead}>
+        <DapAvatar name={s.name} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={dap.cardName}>
+            <span style={dap.cardNameText}>{s.name}</span>
+            <DapHeart on={s.favorite} />
+          </div>
+          {s.address ? <div style={dap.recipientAddr}>{s.address}</div> : null}
+          <DapContactLine r={s} />
+        </div>
+        <button type="button" className="ds-icon-btn" style={{ alignSelf: 'center' }} onClick={onAdd}
+          title={t('documentAction.ajouterDestinataire.tooltip')} aria-label={t('documentAction.ajouterNom.aria', { name: s.name })}>
+          <span className="material-icons" style={{ fontSize: 22 }}>add</span>
+        </button>
+      </div>
+      {s.distanceKm != null &&
+        <span style={dap.distBadge}>{t('documentAction.distanceKm.text', { km: s.distanceKm.toLocaleString(window.I18N.locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}</span>}
+    </div>
+  );
+}
+
+// Petit menu déroulant des filtres (distance, bannière).
+function DapSelect({ value, options, onChange }) {
+  const [open, setOpen] = React.useState(false);
+  const cur = options.find(function (o) { return o.value === value; }) || options[0];
+  return (
+    <div style={{ position: 'relative' }}>
+      <button type="button" style={dap.selectBtn} aria-haspopup="listbox" aria-expanded={open}
+        onClick={function () { setOpen(!open); }}>
+        {cur.label}
+        <span className="material-icons" style={{ fontSize: 20 }}>arrow_drop_down</span>
+      </button>
+      {open &&
+        <React.Fragment>
+          <div style={dap.menuScrim} onMouseDown={function () { setOpen(false); }} />
+          <div style={dap.selectMenu} role="listbox">
+            {options.map(function (o) {
+              const sel = o.value === cur.value;
+              return (
+                <button key={String(o.value)} type="button" role="option" aria-selected={sel}
+                  style={Object.assign({}, dap.selectItem, sel ? dap.selectItemOn : {})}
+                  onClick={function () { onChange(o.value); setOpen(false); }}>
+                  <span className="material-icons" style={{ fontSize: 18, color: sel ? 'var(--mat-sys-primary)' : 'transparent' }}>check</span>
+                  {o.label}
+                </button>
+              );
+            })}
+          </div>
+        </React.Fragment>}
+    </div>
+  );
+}
+
+function dapNorm(v) { return (v || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+// Nom, adresse, téléphone ou télécopie ; les chiffres se comparent sans
+// espaces ni tirets.
+function dapMatches(s, query) {
+  const q = dapNorm(query).trim();
+  if (!q) return true;
+  const digits = q.replace(/\D/g, '');
+  if (digits.length >= 3 && [s.phone, s.fax].some(function (n) { return (n || '').replace(/\D/g, '').indexOf(digits) >= 0; })) return true;
+  return q.split(/\s+/).every(function (w) { return dapNorm([s.name, s.address, s.banner].join(' ')).indexOf(w) >= 0; });
+}
+
 function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, showSuggestions, readOnly,
-  onAddRecipient, onRemoveRecipient, onComplete, onCompleteAndPrint, onCompleteAndFax,
-  onQuickPrint, onQuickSend }) {
-  const [menuOpen, setMenuOpen] = React.useState(false);
-  const [recipientPickerOpen, setRecipientPickerOpen] = React.useState(false);
+  onAddRecipient, onRemoveRecipient, onQuickPrint }) {
+  const [searchOpen, setSearchOpen] = React.useState(false);
+  const [query, setQuery] = React.useState('');
+  const [maxKm, setMaxKm] = React.useState(5);
+  const [banner, setBanner] = React.useState('');
   const [previewZoom, setPreviewZoom] = React.useState(false);
   const [openContent, setOpenContent] = React.useState(true);
   const [openAttach, setOpenAttach] = React.useState(false);
@@ -173,81 +311,48 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   const attachments = doc.attachments || meta.attachmentsOn || [];
   const attachRemaining = attachOptions.filter(function (a) { return attachments.indexOf(a) < 0; });
   function setAttachments(next) { if (onPatch) onPatch({ attachments: next }); }
-  function setChannel(rid, channel) {
+  function setChannels(rid, channels) {
     if (!onPatch) return;
     onPatch({ recipients: doc.recipients.map(function (x) {
-      return x.id === rid ? Object.assign({}, x, { channel: channel }) : x;
+      return x.id === rid ? Object.assign({}, x, { channels: channels }) : x;
     }) });
   }
 
-  // Deux boutons persistants plutôt qu'un split qui disparaît une fois le
-  // document complété (plan V7 §B1) : « Compléter » se grise, « Transmettre »
-  // devient primaire. Le médecin voit donc toujours les deux gestes et où il
-  // en est, au lieu de voir l'un remplacer l'autre.
-  const noRecipient = doc.recipients.length === 0;
-  // Un item incomplet (prescription sans voie, p. ex.) empêche de compléter.
-  const blocked = !doc.complete && (doc.blocking || []).length > 0;
-  const completeDisabled = doc.complete || noRecipient || blocked;
-  const transmitDisabled = !doc.complete || noRecipient || doc.transmitted;
-  const completeTitle = doc.complete
-    ? t('documentAction.alreadyCompleted.tooltip')
-    : blocked ? (doc.blocking || []).join('\n')
-    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
-  const transmitTitle = doc.transmitted
-    ? t('documentAction.alreadyTransmitted.tooltip')
-    : [!doc.complete ? t('documentAction.notCompleted.tooltip', { title: doc.title }) : '', noRecipient ? t('documentAction.noRecipient.tooltip') : '']
-        .filter(Boolean).join('\n') || undefined;
+  // Bottin (maquette « Transmission générale ») : recherche, et pour les
+  // pharmacies (`meta.nearby`) filtres de distance et de bannière, triés du
+  // plus proche au plus loin. Visible tant qu'il n'y a pas de destinataire,
+  // puis par le « + » de l'en-tête.
+  const nearby = !!meta.nearby;
+  const patient = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
+  const patientPharmacy = nearby && (meta.suggestions || []).find(function (p) { return p.id === patient.pharmacyId; });
+  const showSearch = !readOnly && (doc.recipients.length === 0 || searchOpen);
+  const directory = (meta.suggestions || [])
+    .filter(function (s) { return !doc.recipients.some(function (r) { return r.name === s.name; }); })
+    .filter(function (s) { return dapMatches(s, query); })
+    .filter(function (s) { return !nearby || maxKm == null || s.distanceKm <= maxKm; })
+    .filter(function (s) { return !nearby || !banner || s.banner === banner; })
+    .sort(function (a, b) { return nearby ? a.distanceKm - b.distanceKm : 0; });
+  const bannerOptions = [{ value: '', label: t('documentAction.toutesBannieres.text') }].concat(
+    (meta.suggestions || []).reduce(function (acc, s) { return s.banner && acc.indexOf(s.banner) < 0 ? acc.concat([s.banner]) : acc; }, [])
+      .sort().map(function (b) { return { value: b, label: b }; }));
+  const kmOptions = [1, 5, 10].map(function (k) { return { value: k, label: t('documentAction.distanceKm.text', { km: k }) }; })
+    .concat([{ value: null, label: t('documentAction.touteDistance.text') }]);
+  function comingSoon() { if (window.toast) window.toast(t('transmission.aVenir.toast'), { icon: 'info' }); }
 
   return (
     <React.Fragment>
-      <div style={dap.statusBar}>
-        <span className="material-icons-outlined" style={{ fontSize: 21, color: meta.accent, flexShrink: 0 }}>{meta.icon}</span>
-        <span style={dap.docTitle}>{docTitle}</span>
-        <span style={Object.assign({}, dap.statusBadge, doc.complete ? dap.statusBadgeOn : {})}>
-          {doc.complete ? t('documentAction.completee.text') : t('documentAction.nonCompletee.text')}
-        </span>
-        <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeOn : {})}>
-          {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.nonTransmise.text')}
-        </span>
-        <div style={{ flex: 1 }} />
-        {!readOnly &&
-        <React.Fragment>
-        <button
-          title={doc.complete ? t('documentAction.imprimer.tooltip') : t('documentAction.completerDocumentAvantImpression.tooltip')}
-          style={Object.assign({}, dap.iconBtn, !doc.complete ? dap.btnDisabled : {})}
-          disabled={!doc.complete}
-          onClick={onQuickPrint}>
-          <span className="material-icons-outlined" style={{ fontSize: 20 }}>print</span>
-        </button>
-        <div style={{ position: 'relative' }}>
-          <button
-            title={completeTitle}
-            style={Object.assign({}, dap.splitBtn, completeDisabled ? dap.btnDisabled : {})}
-            disabled={completeDisabled}
-            onClick={function () { setMenuOpen(!menuOpen); }}>
-            {t('documentAction.complete.button', { noun: meta.nounPhrase })}
-            <span className="material-icons" style={{ fontSize: 20 }}>arrow_drop_down</span>
-          </button>
-          {menuOpen && !completeDisabled &&
-            <React.Fragment>
-              <div style={dap.ddScrim} onMouseDown={function () { setMenuOpen(false); }} />
-              <div style={dap.splitMenu}>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onComplete(); }}>{t('documentAction.completer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndPrint(); }}>{t('documentAction.completerImprimer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(true); }}>{t('documentAction.completerFaxer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(false); }}>{t('documentAction.completerFaxer2.button')}</button>
-              </div>
-            </React.Fragment>
-          }
-        </div>
-        <button
-          title={transmitTitle}
-          style={Object.assign({}, dap.transmitBtn, transmitDisabled ? dap.btnDisabled : {})}
-          disabled={transmitDisabled}
-          onClick={onQuickSend}>
-          {t('documentAction.transmit.button', { noun: meta.nounPhrase })}
-        </button>
-        </React.Fragment>}
+      {/* Titre du document (maquette « Transmission générale ») : grand titre
+          et un seul badge, une fois le document complété ou transmis. Les
+          gestes Compléter / Transmettre sont dans le pied du checkout
+          (TransmissionModal). */}
+      <div style={dap.titleRow}>
+        <span className="material-symbols-outlined" style={dap.titleIcon}>{meta.icon}</span>
+        <h2 style={dap.docTitle}>{docTitle}</h2>
+        {(doc.complete || doc.transmitted) &&
+          <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeSent : {})}>
+            <span className="material-icons-outlined" style={{ fontSize: 16 }}>{doc.transmitted ? 'done_all' : 'check_circle'}</span>
+            {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.completee.text')}
+          </span>}
       </div>
 
       <div style={hasContent ? dap.cols : dap.colsTwo}>
@@ -310,13 +415,21 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         </div>
         }
 
-        {/* Colonne 2 — destinataires (plan V7 §F) */}
+        {/* Colonne 2 — destinataires (maquette « Transmission générale ») */}
         <div style={dap.col}>
-          <div style={dap.colLabel}>{t('documentAction.recipients.label', { n: doc.recipients.length })}
+          <div style={dap.recipHead}>
+            <span style={dap.recipTitle}>{t('documentAction.destinataire.label', { n: doc.recipients.length })}</span>
+            {!readOnly && doc.recipients.length > 0 &&
+              <button type="button" className="ds-icon-btn" style={{ color: 'var(--mat-sys-primary)' }}
+                title={t('documentAction.ajouterDestinataire.tooltip')} aria-label={t('documentAction.ajouterDestinataire.tooltip')}
+                aria-expanded={searchOpen} onClick={function () { setSearchOpen(!searchOpen); }}>
+                <span className="material-icons" style={{ fontSize: 22 }}>add</span>
+              </button>}
             {!readOnly &&
-              <button style={dap.addRecipientBtn} title={t('documentAction.ajouterDestinataire.tooltip')}
-                onClick={function () { setRecipientPickerOpen(!recipientPickerOpen); }}>
-                <span className="material-icons" style={{ fontSize: 18 }}>add</span>
+              <button type="button" className="ds-icon-btn" style={{ marginLeft: 'auto', color: 'var(--mat-sys-primary)' }}
+                title={t('documentAction.ajouterDepuisBottin.button')} aria-label={t('documentAction.ajouterDepuisBottin.button')}
+                onClick={comingSoon}>
+                <span className="material-icons-outlined" style={{ fontSize: 22 }}>contact_page</span>
               </button>}
           </div>
 
@@ -324,63 +437,63 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
             <div style={dap.emptyReadonly}>{t('documentAction.aucunDestinataireEteChoisi.text')}</div>
           }
 
-          {doc.recipients.length === 0 && !readOnly &&
-            <div style={dap.emptyBox}>
-              <span className="material-icons-outlined" style={{ fontSize: 22, color: 'light-dark(#a15c00, #e9cca5)' }}>warning</span>
-              <div style={dap.emptyTitle}>{t('documentAction.aucunDestinataire.text')}</div>
-              <div style={dap.emptyText}>
-                {t('documentAction.addRecipientHint.text', { noun: meta.nounPhrase })}
-              </div>
-              <button style={dap.emptyLink} onClick={function () { setRecipientPickerOpen(true); }}>
-                {t('documentAction.ajouterDepuisBottin.button')}
-              </button>
-            </div>
-          }
-
           {doc.recipients.map(function (r) {
             return (
               <DapRecipientCard key={r.id} r={r} readOnly={readOnly}
+                showStar={nearby}
+                isPatientPharmacy={!!patientPharmacy && r.name === patientPharmacy.name}
                 onRemove={function () { onRemoveRecipient(r.id); }}
-                onChannel={function (ch) { setChannel(r.id, ch); }} />
+                onChannels={function (chs) { setChannels(r.id, chs); }} />
             );
           })}
 
-          {/* Le sélecteur de destinataire existe toujours ; c'est son
-              habillage « suggestion » (✨ + masquage) qui est piloté par le
-              tweak `checkoutSuggestions` (plan V7 §B4). Tweak à false : une
-              simple liste de contacts, sans promesse d'intelligence. */}
-          {recipientPickerOpen && !(showSuggestions && suggestHidden) &&
-            <div style={dap.suggestBox}>
-              <div style={dap.suggestTitle}>
-                {showSuggestions
-                  ? <React.Fragment>
-                      <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
-                      {t('documentAction.suggestions.label', { n: meta.suggestions.length })}
-                      <button style={dap.suggestHideBtn} title={t('documentAction.masquerSuggestions.tooltip')}
-                        onClick={function () { setSuggestHidden(true); }}>
-                        <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
-                      </button>
-                    </React.Fragment>
-                  : <span style={{ color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' }}>{t('documentAction.ajouterDestinataire.text')}</span>}
+          {showSearch &&
+            <div style={dap.searchBlock}>
+              <div style={dap.searchField}>
+                <span className="material-icons" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>search</span>
+                <input style={dap.searchInput} value={query} placeholder={t('documentAction.rechercheDestinataire.placeholder')}
+                  aria-label={t('documentAction.rechercheDestinataire.placeholder')}
+                  onChange={function (e) { setQuery(e.target.value); }} />
+                <button type="button" className="ds-icon-btn" onClick={comingSoon}
+                  title={t('documentAction.carte.tooltip')} aria-label={t('documentAction.carte.tooltip')}>
+                  <span className="material-icons-outlined" style={{ fontSize: 22 }}>map</span>
+                </button>
               </div>
-              {meta.suggestions.filter(function (s) { return !doc.recipients.some(function (r) { return r.name === s.name; }); }).map(function (s) {
-                return (
-                  <button key={s.name} style={dap.suggestRow} onClick={function () { onAddRecipient(s); setRecipientPickerOpen(false); }}>
-                    {s.favorite ? <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#e0637a, #e9a5b2)' }}>favorite</span> : <span style={{ width: 15 }} />}
-                    <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                      <div style={dap.suggestName}>{s.name}</div>
-                      <div style={dap.suggestMeta}>{[s.phone, s.fax].filter(Boolean).join(' · ')}</div>
-                    </div>
-                    <span className="material-icons" style={{ fontSize: 18, color: 'var(--mat-sys-primary)' }}>add</span>
+              {nearby &&
+                <div style={dap.filterRow}>
+                  <DapSelect value={maxKm} options={kmOptions} onChange={setMaxKm} />
+                  <DapSelect value={banner} options={bannerOptions} onChange={setBanner} />
+                </div>}
+              {/* Le bottin est la base ; le tweak `checkoutSuggestions` n'y
+                  ajoute que l'habillage ✨ (D-12). */}
+              {showSuggestions && !suggestHidden && directory.length > 0 &&
+                <div style={dap.suggestTitle}>
+                  <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
+                  {t('documentAction.suggestions.label', { n: directory.length })}
+                  <button style={dap.suggestHideBtn} title={t('documentAction.masquerSuggestions.tooltip')}
+                    onClick={function () { setSuggestHidden(true); }}>
+                    <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
                   </button>
-                );
-              })}
-            </div>
-          }
+                </div>}
+              {directory.length === 0
+                ? <div style={dap.emptyReadonly}>{t('documentAction.aucunResultat.text')}</div>
+                : directory.map(function (s) {
+                    return (
+                      <DapDirectoryCard key={s.id || s.name} s={s}
+                        onAdd={function () { onAddRecipient(s); setSearchOpen(false); setQuery(''); }} />
+                    );
+                  })}
+            </div>}
         </div>
 
         <div style={dap.col}>
           <div style={dap.colLabel}>{t('documentAction.preview.label')}
+            {!readOnly &&
+              <button style={Object.assign({}, dap.zoomBtn, !doc.complete ? dap.btnDisabled : {})}
+                disabled={!doc.complete} onClick={onQuickPrint}
+                title={doc.complete ? t('documentAction.imprimer.tooltip') : t('documentAction.completerDocumentAvantImpression.tooltip')}>
+                <span className="material-icons-outlined" style={{ fontSize: 17 }}>print</span>
+              </button>}
             <button style={dap.zoomBtn} onClick={function () { setPreviewZoom(!previewZoom); }} title={t('documentAction.agrandir.tooltip')}>
               <span className="material-icons-outlined" style={{ fontSize: 17 }}>{previewZoom ? 'close_fullscreen' : 'open_in_full'}</span>
             </button>
@@ -395,43 +508,15 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 }
 
 const dap = {
-  statusBar: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18, position: 'relative', flexWrap: 'wrap' },
+  titleRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 },
+  titleIcon: { fontSize: 26, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', flexShrink: 0 },
+  docTitle: { margin: 0, fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 26, lineHeight: 1.2, color: 'var(--mat-sys-on-surface)' },
   statusBadge: {
-    fontSize: 12, fontWeight: 700, borderRadius: 7, padding: '5px 10px',
-    background: 'var(--mat-sys-surface-container)', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)',
+    display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, borderRadius: 6, padding: '4px 10px',
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface-container-lowest))', color: 'var(--mat-sys-primary)',
   },
-  statusBadgeOn: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
-  iconBtn: {
-    width: 36, height: 36, borderRadius: 8, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)',
-  },
-  splitBtn: {
-    display: 'inline-flex', alignItems: 'center', gap: 4, border: 0, borderRadius: 9,
-    background: '#25245E', color: '#fff', font: "600 13.5px 'Inter',sans-serif",
-    padding: '9px 8px 9px 16px', cursor: 'pointer', whiteSpace: 'nowrap',
-  },
-  transmitBtn: {
-    display: 'inline-flex', alignItems: 'center', border: 0, borderRadius: 9,
-    background: '#1F4FD8', color: '#fff', font: "600 13.5px 'Inter',sans-serif",
-    padding: '9px 16px', cursor: 'pointer', whiteSpace: 'nowrap',
-  },
+  statusBadgeSent: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
   btnDisabled: { opacity: 0.42, cursor: 'not-allowed' },
-  ddScrim: { position: 'fixed', inset: 0, zIndex: 10 },
-  splitMenu: {
-    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 11, minWidth: 220,
-    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
-    boxShadow: '0 10px 28px rgba(20,20,50,0.18)', padding: '5px 0',
-  },
-  splitMenuItem: {
-    display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
-    padding: '10px 14px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer',
-  },
-
-  docTitle: {
-    fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16,
-    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)', marginRight: 4, whiteSpace: 'nowrap',
-    overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 320,
-  },
   cols: { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr', gap: 22, alignItems: 'start' },
   colsTwo: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, alignItems: 'start' },
   col: { minWidth: 0 },
@@ -491,65 +576,77 @@ const dap = {
   },
   pickerName: { font: "500 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 78%, transparent)' },
 
-  emptyBox: {
-    display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 4,
-    border: '1px solid light-dark(#f3ddb0, #4c3f24)', background: 'light-dark(#fdf6e6, #4c4024)', borderRadius: 10, padding: '16px 14px', marginBottom: 10,
-  },
   emptyReadonly: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', lineHeight: 1.45, marginBottom: 10 },
-  emptyTitle: { font: "600 13.5px 'Inter',sans-serif", color: 'light-dark(#7a5200, #e9d2a5)' },
-  emptyText: { fontSize: 12.5, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.45, maxWidth: 260 },
-  emptyLink: {
-    border: 0, background: 'transparent', cursor: 'pointer', marginTop: 4,
-    font: "600 13px 'Inter',sans-serif", color: 'var(--mat-sys-primary)',
-  },
 
-  addRecipientBtn: {
-    marginLeft: 4, width: 20, height: 20, borderRadius: 6, border: 0, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))',
-    color: 'var(--mat-sys-on-surface)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+  recipHead: { display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12, minHeight: 32 },
+  recipTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16, color: 'var(--mat-sys-on-surface)' },
+  avatar: {
+    width: 40, height: 40, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    font: "500 15px 'Inter',sans-serif",
   },
-  warnBanner: {
-    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid light-dark(#f3ddb0, #4c3f24)', background: 'light-dark(#fdf6e6, #4c4024)',
-    borderRadius: 9, padding: '9px 11px', marginBottom: 10,
-  },
-  warnText: { fontSize: 12.5, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.4 },
   recipientCard: {
-    display: 'flex', alignItems: 'center', gap: 8, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 9,
-    padding: '10px 11px', marginBottom: 8, position: 'relative',
+    background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 8, padding: 12, marginBottom: 10,
+    boxShadow: '0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)',
   },
-  recipientName: { display: 'flex', alignItems: 'center', fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
-  recipientAddr: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 2, lineHeight: 1.35 },
-  recipientMeta: { display: 'flex', flexWrap: 'wrap', gap: 10, fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginTop: 3 },
-  recipientMetaItem: { display: 'inline-flex', alignItems: 'center', gap: 3 },
-
-  channelGroup: { display: 'inline-flex', gap: 6, flexShrink: 0 },
-  channelBtn: {
-    width: 32, height: 32, borderRadius: 8, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)',
+  dirCard: {
+    position: 'relative', background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 8, padding: '14px 12px', marginBottom: 10,
+    boxShadow: '0 2px 4px 0 rgba(37,36,94,.14), 0 0 5px 0 rgba(37,36,94,.12)',
   },
-  channelBtnOn: { background: 'var(--mat-sys-primary)', border: '1px solid var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)' },
-  removeBadge: {
-    position: 'absolute', top: -7, right: -7, width: 22, height: 22, borderRadius: '50%',
-    border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', boxShadow: '0 2px 6px rgba(20,20,50,0.16)',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', padding: 0,
+  cardHead: { display: 'flex', alignItems: 'flex-start', gap: 12 },
+  cardName: { display: 'flex', alignItems: 'flex-start', gap: 5, fontSize: 13.5, fontWeight: 600, color: 'var(--mat-sys-on-surface)', minWidth: 0 },
+  cardNameText: { minWidth: 0 },
+  recipientAddr: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', marginTop: 2, lineHeight: 1.35 },
+  recipientMeta: { display: 'flex', flexWrap: 'wrap', gap: 14, fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', marginTop: 3 },
+  recipientMetaItem: { display: 'inline-flex', alignItems: 'center', gap: 4 },
+  distBadge: {
+    position: 'absolute', top: 0, right: 0, padding: '2px 8px', borderRadius: '0 8px 0 8px',
+    background: 'var(--mat-sys-secondary-container)', color: 'var(--mat-sys-on-secondary-container)', font: "600 12px 'Inter',sans-serif",
   },
 
-  suggestBox: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, marginTop: 6, padding: '6px 0', background: 'light-dark(#fcfcfe, #24244c)' },
+  channelList: { display: 'flex', flexDirection: 'column', gap: 2, marginTop: 10 },
+  channelRow: {
+    display: 'flex', alignItems: 'center', gap: 14, padding: '8px 12px', borderRadius: 4, cursor: 'pointer',
+  },
+  channelRowOn: { background: 'var(--mat-sys-surface-container-low)' },
+  channelCheck: { width: 18, height: 18, margin: 0, accentColor: 'var(--mat-sys-primary)', flexShrink: 0 },
+  channelLabel: { display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--mat-sys-on-surface)' },
+  channelValue: { display: 'block', fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)' },
+
+  searchBlock: { display: 'flex', flexDirection: 'column', gap: 0, marginTop: 4 },
+  searchField: {
+    display: 'flex', alignItems: 'center', gap: 8, height: 44, padding: '0 6px 0 12px', marginBottom: 12,
+    border: '1px solid var(--mat-sys-outline)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)',
+  },
+  searchInput: {
+    flex: 1, minWidth: 0, border: 0, outline: 'none', background: 'transparent',
+    font: "400 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)',
+  },
+  filterRow: { display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap' },
+  selectBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 6, height: 32, padding: '0 6px 0 12px',
+    border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)',
+    font: "500 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', cursor: 'pointer',
+  },
+  menuScrim: { position: 'fixed', inset: 0, zIndex: 10 },
+  selectMenu: {
+    position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 11, minWidth: 180,
+    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8,
+    boxShadow: '0 10px 28px rgba(20,20,50,0.16)', padding: '4px 0',
+  },
+  selectItem: {
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent', cursor: 'pointer',
+    padding: '8px 12px', font: "400 13.5px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', textAlign: 'left',
+  },
+  selectItemOn: { color: 'var(--mat-sys-primary)' },
+
   suggestTitle: {
     display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 700, color: 'light-dark(#5b54b8, #b3b0de)',
-    padding: '6px 12px 6px', letterSpacing: 0.3, textTransform: 'uppercase',
+    padding: '0 2px 8px', letterSpacing: 0.3, textTransform: 'uppercase',
   },
   suggestHideBtn: {
     marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer',
     color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)', display: 'inline-flex', alignItems: 'center', padding: 0,
   },
-  suggestRow: {
-    display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent',
-    padding: '8px 12px', cursor: 'pointer',
-  },
-  suggestName: { fontSize: 13, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)' },
-  suggestMeta: { fontSize: 11.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 48%, transparent)' },
 
   zoomBtn: { marginLeft: 'auto', border: 0, background: 'transparent', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' },
   previewWrap: { border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 12, padding: 14, background: 'var(--mat-sys-surface-container-low)', overflow: 'auto' },

@@ -508,8 +508,8 @@ function NotesList({ doctorName = "Véronique Charland", clinicName = "Clinique 
         </button>}
 
       {/* Checkout d'une note déjà complétée : même vue que pendant la
-          rédaction, mais figée — pas d'action de transmission, pas d'item
-          « Note » (elle est déjà signée), pas de pied de page. */}
+          rédaction, mais figée — pas d'action de transmission ; le pied ne
+          garde que Document précédent / suivant. */}
       {checkoutNote &&
         <window.TransmissionModal
           readOnly

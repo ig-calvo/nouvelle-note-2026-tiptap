@@ -23,11 +23,9 @@ const TX_META = {
     attachments: [L('Liste de médicaments active'), L('Note clinique')],
     attachmentsOn: [L('Liste de médicaments active')],
     noteLabel: t('transmission.txNotePharmacist.label'),
-    suggestions: [
-      { name: L('PJC Jean-Coutu — Centre-ville'), address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673', favorite: true },
-      { name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', favorite: true },
-      { name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false },
-    ],
+    // Bottin des pharmacies (editor-data.jsx) : distance, bannière, canaux.
+    suggestions: window.NOTE_DATA.PHARMACIES,
+    nearby: true,
   },
   lab: {
     icon: 'science', accent: '#2e9b7a', nounPhrase: t('transmission.txNounLab.text'),
@@ -104,12 +102,20 @@ const TX_META = {
   },
 };
 
-// Groupes de la sidebar, dans l'ordre d'affichage : un par famille de document.
+// Catégories de la sidebar, dans l'ordre de la maquette « Transmission
+// générale » : une par type de document, affichées même vides (avec 0).
+// « Copie de note » n'a pas encore de type de document. « Consignes »,
+// absente de la maquette, est ajoutée en dernier (Q5 du plan).
 const TX_SIDE_GROUPS = [
-  { title: t('transmission.ordonnance.tooltip'), kinds: ['prescription'] },
-  { title: t('transmission.requetes.tooltip'), kinds: ['lab', 'imaging', 'referral', 'exam', 'service'] },
-  { title: t('transmission.outilsCliniques.tooltip'), kinds: ['clinicalTool'] },
-  { title: t('transmission.consignes.tooltip'), kinds: ['instructions'] },
+  { title: t('transmission.catCopieNote.text'), kinds: [] },
+  { title: t('transmission.catMedication.text'), kinds: ['prescription'] },
+  { title: t('transmission.catLaboratoire.text'), kinds: ['lab'] },
+  { title: t('transmission.catImagerie.text'), kinds: ['imaging'] },
+  { title: t('transmission.catConsultation.text'), kinds: ['referral'] },
+  { title: t('transmission.catExamen.text'), kinds: ['exam'] },
+  { title: t('transmission.catService.text'), kinds: ['service'] },
+  { title: t('transmission.catFormulaire.text'), kinds: ['clinicalTool'] },
+  { title: t('transmission.catConsignes.text'), kinds: ['instructions'] },
 ];
 
 const TX_FORWARD_OPTS = [
@@ -122,8 +128,6 @@ const TX_FORWARD_OPTS = [
 const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];
 const TX_OTHER_INSTITUTIONS = [L('Hôpital Fleurimont — CHUS'), L('GMF Sherbrooke-Est'), L('Clinique médicale King Ouest')];
 
-const NOTE_ITEM_ID = '__note__';
-
 function txStatus(doc) {
   if (!doc.complete) return 'todo';
   if (!doc.transmitted) return 'ready';
@@ -132,11 +136,18 @@ function txStatus(doc) {
 const TX_STATUS_LABEL = { todo: t('transmission.statusTodo.text'), ready: t('transmission.statusReady.text'), done: t('transmission.statusDone.text') };
 const TX_STATUS_ICON = { todo: 'warning_amber', ready: 'check_circle', done: 'done_all' };
 const TX_STATUS_COLOR = { todo: '#a15c00', ready: 'var(--mat-sys-primary)', done: '#2e9b7a' };
+// Pastilles de compte dans l'onglet « Transmission des documents ».
+const TX_PILL_STYLE = {
+  todo: { color: TX_STATUS_COLOR.todo, background: 'light-dark(#fdf1de, #4c3d24)' },
+  ready: { color: TX_STATUS_COLOR.ready, background: 'color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface-container-lowest))' },
+  done: { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' },
+};
 
-// Panneau de l'item « Note » — faire suivre la note + signature. Distinct de
-// DocumentActionPanel : pas de destinataire/aperçu, la « complétion » ferme
-// tout le flux (elle finalise la note plutôt que de changer un statut).
-function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFinalize }) {
+// Dialogue « Compléter la note » — faire suivre la note + signature, ouvert
+// par « Finaliser » dans l'éditeur. La complétion de la note est sortie du
+// checkout (D-11) : celui-ci ne traite plus que les documents, et s'ouvre
+// après la complétion s'il en reste à transmettre (Q-40).
+function NoteFinalizeDialog({ noteInfo, doctorName, institution, pendingDocs, onFinalize, onCancel }) {
   const [ddOpen, setDdOpen] = React.useState(null);
   const [forwardIdx, setForwardIdx] = React.useState(0);
   const [doctorIdx, setDoctorIdx] = React.useState(0);
@@ -183,8 +194,21 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
     );
   }
 
+  React.useEffect(function () {
+    function onKey(e) { if (e.key === 'Escape' && !ddOpen) onCancel(); }
+    document.addEventListener('keydown', onKey);
+    return function () { document.removeEventListener('keydown', onKey); };
+  }, [onCancel, ddOpen]);
+
   return (
-    <React.Fragment>
+    <div style={nap.scrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onCancel(); }}>
+      <div style={nap.dialog} role="dialog" aria-modal="true" aria-label={t('transmission.completerNote.button')}>
+      <div style={nap.dialogHead}>
+        <span style={nap.dialogTitle}>{t('transmission.completerNote.button')}</span>
+        <button type="button" className="ds-icon-btn" onClick={onCancel} aria-label={t('transmission.fermer.aria')}>
+          <span className="material-icons" style={{ fontSize: 22 }}>close</span>
+        </button>
+      </div>
       <div style={nap.noteTile}>
         <span style={nap.noteTileIcon}>
           <span className="material-icons-outlined" style={{ fontSize: 20, color: 'var(--mat-sys-on-surface)' }}>description</span>
@@ -224,28 +248,38 @@ function NoteActionPanel({ noteInfo, doctorName, institution, pendingDocs, onFin
         </div>
       </div>
 
-      <button style={nap.completeBtn} onClick={function () { onFinalize({ forwardIdx: forwardIdx, doctorIdx: doctorIdx, instIdx: instIdx }); }}>
-        {t('transmission.completerNote.button')}
-      </button>
-    </React.Fragment>
+      <div style={nap.dialogActions}>
+        <button type="button" className="ds-btn ds-btn--outlined" onClick={onCancel}>{t('transmission.annuler.button')}</button>
+        <button type="button" className="ds-btn ds-btn--filled" autoFocus
+          onClick={function () { onFinalize({ forwardIdx: forwardIdx, doctorIdx: doctorIdx, instIdx: instIdx }); }}>
+          {t('transmission.completerNote.button')}
+        </button>
+      </div>
+      </div>
+    </div>
   );
 }
 
-function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onFinalizeNote, onPatchArchivedNote, onClose }) {
-  const [selectedId, setSelectedId] = React.useState(initialSelectedId || (readOnly ? (docs[0] && docs[0].id) : null) || (docs[0] && docs[0].id) || NOTE_ITEM_ID);
-  const [screen, setScreen] = React.useState('review'); // 'review' | 'print' | 'fax'
-  const [faxPrefill, setFaxPrefill] = React.useState(null);
-  // Finaliser la note (voir finalizeNote) réinitialise l'éditeur en amont
-  // (docStats/txState remis à vide pour une nouvelle note) — si des documents
-  // restent à transmettre, ce modal doit continuer à fonctionner dessus
-  // indépendamment de cette remise à zéro : on en fige alors un instantané
-  // local, et toute la suite (sélection, compteurs, patch) l'utilise à la
-  // place de la prop `docs` tant qu'il existe.
-  const [frozenDocs, setFrozenDocs] = React.useState(null);
+function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, doctorName, institution, initialSelectedId, showSuggestions, readOnly, noteInfo, onPatchArchivedNote, onClose }) {
+  const [selectedId, setSelectedId] = React.useState(function () {
+    const list = initialFrozenDocs || docs;
+    return initialSelectedId || (list[0] && list[0].id) || null;
+  });
+  // 'review' | 'print'. L'écran fax n'a plus d'entrée depuis que le split
+  // « Compléter et faxer » est retiré (maquette « Transmission générale ») :
+  // Transmettre envoie par les canaux cochés du destinataire.
+  const [screen, setScreen] = React.useState('review');
+  // Compléter la note (NoteFinalizeDialog, dans l'éditeur) réinitialise
+  // l'éditeur (docStats/txState remis à vide pour une nouvelle note) — si des
+  // documents restent à transmettre, le checkout s'ouvre ensuite sur un
+  // instantané pris avant la complétion (`initialFrozenDocs`), et toute la
+  // suite (sélection, compteurs, patch) l'utilise à la place de la prop
+  // `docs` tant qu'il existe.
+  const [frozenDocs, setFrozenDocs] = React.useState(initialFrozenDocs || null);
   const effectiveDocs = frozenDocs || docs;
 
   React.useEffect(function () {
-    if (selectedId !== NOTE_ITEM_ID && effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
+    if (effectiveDocs.length && !effectiveDocs.some(function (d) { return d.id === selectedId; })) {
       setSelectedId(effectiveDocs[0].id);
     }
   }, [effectiveDocs]); // eslint-disable-line
@@ -256,16 +290,14 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return function () { document.removeEventListener('keydown', onKey); };
   }, [screen, onClose]);
 
-  const isNoteSelected = !readOnly && selectedId === NOTE_ITEM_ID;
-  const selected = isNoteSelected ? null : (effectiveDocs.find(function (d) { return d.id === selectedId; }) || null);
+  const selected = effectiveDocs.find(function (d) { return d.id === selectedId; }) || null;
   const meta = selected ? TX_META[selected.kind] : null;
 
   const counts = { todo: 0, ready: 0, done: 0 };
   effectiveDocs.forEach(function (d) { counts[txStatus(d)]++; });
 
-  // Un groupe de sidebar par famille de document. Un groupe vide n'est pas
-  // rendu (PLAN-checkout-v7 §B5). Un kind absent de la liste tombe dans
-  // « Autres documents » plutôt que de disparaître de la sidebar.
+  // Un kind absent des catégories tombe dans « Autres documents » plutôt que
+  // de disparaître de la sidebar.
   const sideGroups = TX_SIDE_GROUPS.map(function (g) {
     return { title: g.title, docs: effectiveDocs.filter(function (d) { return g.kinds.indexOf(d.kind) !== -1; }) };
   });
@@ -273,15 +305,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     return !TX_SIDE_GROUPS.some(function (g) { return g.kinds.indexOf(d.kind) !== -1; });
   });
   if (otherDocs.length) sideGroups.push({ title: t('transmission.autresDocuments.tooltip'), docs: otherDocs });
-  const pendingDocs = effectiveDocs.filter(function (d) { return !(d.complete && d.transmitted); });
-
-  // Identité patient — même source unique que PatientBanner (window.NOTE_DATA.PATIENT) :
-  // le flux de transmission peut s'ouvrir en lecture seule depuis le journal
-  // d'une autre note, il faut donc rappeler de qui il s'agit.
-  const P = (window.NOTE_DATA && window.NOTE_DATA.PATIENT) || {};
-  const patientName = P.name || 'Geneviève Tremblay';
-  const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age || L('15 ans')) + ')';
-  const patientRamq = P.ramq || 'TREG 1155 0301';
 
   // Une fois figé (voir frozenDocs plus haut), le patch/complete ne peut
   // plus remonter au txState vivant de l'éditeur (déjà réinitialisé pour une
@@ -307,13 +330,12 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     patch(doc.id, { recipients: doc.recipients.filter(function (x) { return x.id !== rid; }) });
   }
 
-  // Après une transmission (fax, impression, envoi rapide) : s'il reste des
+  // Après une transmission (impression, envoi) : s'il reste des
   // documents non transmis, on revient à l'écran de revue ; sinon on ferme
   // tout le flux (règle sticky Figma, voir PLAN §2.6).
   function afterTransmit(thisId) {
     var remaining = effectiveDocs.filter(function (d) { return d.id !== thisId && !(d.complete && d.transmitted); }).length;
     setScreen('review');
-    setFaxPrefill(null);
     if (remaining === 0) onClose();
   }
 
@@ -325,12 +347,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       return;
     }
     if (onComplete) onComplete(doc.id);
-  }
-  function doCompleteAndPrint(doc) { markComplete(doc); setScreen('print'); }
-  function doCompleteAndFax(doc, prefill) {
-    markComplete(doc);
-    setFaxPrefill(prefill ? (doc.recipients[0] || null) : null);
-    setScreen('fax');
   }
   function quickPrint() { setScreen('print'); }
   function quickSend(doc) {
@@ -352,32 +368,41 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
     onClose();
   }
 
-  // Finaliser la note ne ferme le flux que s'il ne reste aucun document en
-  // attente (même règle que afterTransmit ci-dessus) — sinon on enchaîne sur
-  // le premier document restant (ex. l'ordonnance) plutôt que de fermer.
-  function finalizeNote(meta) {
-    if (onFinalizeNote) onFinalizeNote(meta);
-    if (window.toast) window.toast(t('transmission.noteCompletee.toast'), { icon: 'check_circle' });
-    if (pendingDocs.length === 0) { onClose(); return; }
-    // onFinalizeNote archive la note et réinitialise l'éditeur : figer les
-    // documents restants MAINTENANT (avant que la prop `docs` ne s'effondre
-    // au prochain rendu) pour pouvoir continuer à les transmettre.
-    setFrozenDocs(effectiveDocs);
-    setSelectedId(pendingDocs[0].id);
-  }
-
-  function onFaxSent(recipient) {
-    if (recipient && selected) addRecipient(selected, recipient);
-    if (selected) patch(selected.id, { transmitted: true });
-    if (!window.__SIMULATE_TX_FAILURE && window.toast) window.toast(t('transmission.faxEnvoye.toast'), { icon: 'check_circle' });
-    if (selected) afterTransmit(selected.id);
-  }
   function onPrintDone() {
     if (selected) patch(selected.id, { transmitted: true });
     if (selected) afterTransmit(selected.id);
   }
 
   const readyCount = effectiveDocs.filter(function (d) { return d.complete && !d.transmitted; }).length;
+
+  // Boutons du document, dans le pied (maquette « Transmission générale ») :
+  // « Compléter » puis « Transmettre ». Transmettre reste désactivé tant que
+  // le document n'est pas complété (réponse Q2 du plan, 2026-10-29).
+  const noRecipient = !selected || selected.recipients.length === 0;
+  const blocked = !!selected && !selected.complete && (selected.blocking || []).length > 0;
+  const completeDisabled = !selected || selected.complete || noRecipient || blocked;
+  const transmitDisabled = !selected || !selected.complete || noRecipient || selected.transmitted;
+  const completeTitle = !selected ? undefined
+    : selected.complete ? t('documentAction.alreadyCompleted.tooltip')
+    : blocked ? (selected.blocking || []).join('\n')
+    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
+  const transmitTitle = !selected ? undefined
+    : selected.transmitted ? t('documentAction.alreadyTransmitted.tooltip')
+    : [!selected.complete ? t('documentAction.notCompleted.tooltip', { title: selected.title }) : '', noRecipient ? t('documentAction.noRecipient.tooltip') : '']
+        .filter(Boolean).join('\n') || undefined;
+
+  // Document précédent / suivant : l'ordre de la sidebar.
+  const navIds = sideGroups.reduce(function (acc, g) {
+    return acc.concat(g.docs.map(function (d) { return d.id; }));
+  }, []);
+  const navIdx = navIds.indexOf(selectedId);
+  function goTo(delta) {
+    const id = navIds[navIdx + delta];
+    if (id) setSelectedId(id);
+  }
+  function comingSoon() {
+    if (window.toast) window.toast(t('transmission.aVenir.toast'), { icon: 'info' });
+  }
 
   if (screen === 'print' && selected) {
     return (
@@ -387,62 +412,61 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
         onDone={onPrintDone} />
     );
   }
-  if (screen === 'fax' && selected) {
-    return (
-      <window.FaxScreen
-        doc={selected} doctorName={doctorName} institution={institution}
-        directory={meta ? meta.suggestions : []}
-        prefill={faxPrefill}
-        onCancel={function () { setScreen('review'); setFaxPrefill(null); }}
-        onSent={onFaxSent} />
-    );
-  }
 
   return (
     <div style={tx.scrim} onMouseDown={onClose}>
       <div style={tx.shell} onMouseDown={function (e) { e.stopPropagation(); }}>
-        <div style={tx.dragHandle} />
-        <div style={tx.head}>
-          <div style={tx.headTitle}>
-            {readOnly ? t('transmission.documentsNote.text') : t('transmission.transmissionDocuments.text')}
-            {readOnly && noteInfo && noteInfo.title
-              ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
-          </div>
-          <div style={tx.headCounts}>
-            {counts.todo > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.todo, background: 'light-dark(#fdf1de, #4c3d24)' })}>{counts.todo} {TX_STATUS_LABEL.todo}</span>}
-            {counts.ready > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.ready, background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))' })}>{counts.ready} {TX_STATUS_LABEL.ready}</span>}
-            {counts.done > 0 && <span style={Object.assign({}, tx.pill, { color: TX_STATUS_COLOR.done, background: 'light-dark(#e6f5ee, #244c39)' })}>{counts.done} {TX_STATUS_LABEL.done}</span>}
+        {/* Onglets du checkout. Portail patient et Pré-facturation ne sont
+            pas encore conçus : affichés, ils annoncent « à venir » (Q10). */}
+        <div style={tx.tabsRow}>
+          <div style={tx.tabs} role="tablist">
+            <div style={tx.tab} role="tab" aria-selected="true">
+              <span style={Object.assign({}, tx.tabTitle, tx.tabTitleOn)}>
+                {readOnly ? t('transmission.documentsNote.text') : t('transmission.transmissionDocuments.text')}
+                {readOnly && noteInfo && noteInfo.title
+                  ? <span style={tx.headNote}> — {noteInfo.title}</span> : null}
+              </span>
+              <span style={tx.tabSub}>
+                {['todo', 'ready', 'done'].map(function (st) {
+                  if (!counts[st]) return null;
+                  return (
+                    <span key={st} style={Object.assign({}, tx.pill, TX_PILL_STYLE[st])}>
+                      <span className="material-icons-outlined" style={{ fontSize: 15 }}>{TX_STATUS_ICON[st]}</span>
+                      {counts[st]} {TX_STATUS_LABEL[st]}
+                    </span>
+                  );
+                })}
+              </span>
+              <span style={tx.tabIndicator} />
+            </div>
+            {!readOnly &&
+              <button style={tx.tab} role="tab" aria-selected="false" onClick={comingSoon}>
+                <span style={tx.tabTitle}>{t('transmission.portailPatient.text')}</span>
+                <span style={tx.tabSubText}>{tn('transmission.elementsPartages.label', 0)}</span>
+              </button>}
+            {!readOnly &&
+              <button style={tx.tab} role="tab" aria-selected="false" onClick={comingSoon}>
+                <span style={tx.tabTitle}>{t('transmission.preFacturation.text')}</span>
+                <span style={tx.tabSubText}>{t('transmission.preFacturationMontant.text')}</span>
+              </button>}
           </div>
           <button style={tx.closeBtn} onClick={onClose} aria-label={t('transmission.fermer.aria')}>
-            <span className="material-icons" style={{ fontSize: 24, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' }}>close</span>
+            <span className="material-icons" style={{ fontSize: 24 }}>close</span>
           </button>
-        </div>
-
-        <div style={tx.patientRow}>
-          <span style={tx.patientAvatar}>
-            <span className="material-icons" style={{ color: 'light-dark(#8a5cb8, #c7b1dd)', fontSize: 16 }}>person</span>
-          </span>
-          <span style={tx.patientName}>{patientName}</span>
-          <span style={tx.patientMeta}>{[patientSub, patientRamq].join(' · ')}</span>
         </div>
 
         <div style={tx.bodyRow}>
           <div style={tx.sidebar}>
-            {!readOnly &&
-            <div style={tx.sideGroup}>
-              <button
-                style={Object.assign({}, tx.sideRow, isNoteSelected ? tx.sideRowSel : {})}
-                onClick={function () { setSelectedId(NOTE_ITEM_ID); }}>
-                <span className="material-icons-outlined" style={{ fontSize: 18, color: 'var(--mat-sys-on-surface)', flexShrink: 0, marginTop: 1 }}>description</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={tx.sideRowTitle}>{(noteInfo && noteInfo.title) || t('transmission.noteClinique.text')}</div>
-                  <div style={tx.sideRowSub}>{t('transmission.faireSuivreSigner.text')}</div>
-                </div>
-              </button>
-            </div>}
-
+            <div style={tx.sideHead}>
+              <span>{t('transmission.documentsCount.label', { n: effectiveDocs.length })}</span>
+              {!readOnly &&
+                <button type="button" className="ds-icon-btn" style={tx.sideAddBtn}
+                  title={t('transmission.ajouterDocument.button')} aria-label={t('transmission.ajouterDocument.button')}
+                  onClick={function () { if (window.toast) window.toast(t('transmission.ajoutDocumentVenir.toast'), { icon: 'info' }); }}>
+                  <span className="material-icons" style={{ fontSize: 20 }}>add</span>
+                </button>}
+            </div>
             {sideGroups.map(function (g) {
-              if (!g.docs.length) return null;
               return (
                 <div key={g.title} style={tx.sideGroup}>
                   <div style={tx.sideGroupTitle}>{g.title} {g.docs.length}</div>
@@ -450,19 +474,17 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                 </div>
               );
             })}
-            {!readOnly &&
-              <button style={tx.addDocBtn} onClick={function () {
-                if (window.toast) window.toast(t('transmission.ajoutDocumentVenir.toast'), { icon: 'info' });
-              }}>
-                <span className="material-icons-outlined" style={{ fontSize: 18 }}>add</span>
-                {t('transmission.ajouterDocument.button')}
-              </button>}
           </div>
 
-          <div style={tx.panel}>
-            {isNoteSelected
-              ? <NoteActionPanel noteInfo={noteInfo} doctorName={doctorName} institution={institution} pendingDocs={pendingDocs} onFinalize={finalizeNote} />
-              : selected
+          <div style={tx.main}>
+            {/* Bandeau patient du DME, version repliée : le flux peut s'ouvrir
+                en lecture seule depuis le journal d'une autre note, il faut
+                rappeler de qui il s'agit. */}
+            <div style={tx.bannerWrap}>
+              <window.PatientBanner compactOnly />
+            </div>
+            <div style={tx.panel}>
+              {selected
                 ? <window.DocumentActionPanel
                     doc={selected} meta={meta} doctorName={doctorName} institution={institution}
                     showSuggestions={showSuggestions}
@@ -470,40 +492,50 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
                     onPatch={function (p) { patch(selected.id, p); }}
                     onAddRecipient={function (r) { addRecipient(selected, r); }}
                     onRemoveRecipient={function (rid) { removeRecipient(selected, rid); }}
-                    onComplete={function () { markComplete(selected); }}
-                    onCompleteAndPrint={function () { doCompleteAndPrint(selected); }}
-                    onCompleteAndFax={function (prefill) { doCompleteAndFax(selected, prefill); }}
-                    onQuickPrint={quickPrint}
-                    onQuickSend={function () { quickSend(selected); }} />
+                    onQuickPrint={quickPrint} />
                 : <div style={tx.panelEmpty}>{t('transmission.selectionnezDocumentListe.text')}</div>
-            }
+              }
+            </div>
           </div>
         </div>
 
-        {!isNoteSelected && !readOnly &&
-          <div style={tx.footer}>
-            <div style={tx.footerSummary}>
-              {readyCount > 0 &&
-                <React.Fragment>
-                  <span className="material-icons-outlined" style={{ fontSize: 18, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)' }}>outbox</span>
-                  {tn('transmission.ready.label', readyCount)}
-                </React.Fragment>
-              }
-            </div>
-            <button
-              style={Object.assign({}, tx.secondaryBtn, (!selected || !selected.complete || selected.transmitted) ? tx.btnDisabled : {})}
-              disabled={!selected || !selected.complete || selected.transmitted}
-              onClick={transmitReady}>
-              {t('transmission.transmettreDocumentPret.button')}
-            </button>
-            <button
-              style={Object.assign({}, tx.primaryBtn, readyCount === 0 ? tx.btnDisabled : {})}
-              disabled={readyCount === 0}
-              onClick={transmitAll}>
-              {t('transmission.transmitAll.button', { n: readyCount })}
-            </button>
-          </div>
-        }
+        {/* Pied : gestes du document à gauche, navigation et « Tout
+            transmettre » à droite. */}
+        <div style={tx.footer}>
+          {!readOnly && selected &&
+            <React.Fragment>
+              <button type="button" className="ds-btn ds-btn--tonal" style={tx.footBtn}
+                title={completeTitle} disabled={completeDisabled}
+                onClick={function () { markComplete(selected); }}>
+                <span className="material-icons-outlined" style={tx.footIc}>edit</span>
+                {t('documentAction.complete.button', { noun: meta.nounPhrase })}
+              </button>
+              <button type="button" className="ds-btn ds-btn--filled" style={tx.footBtn}
+                title={transmitTitle} disabled={transmitDisabled}
+                onClick={transmitReady}>
+                <span className="material-icons" style={tx.footIc}>send</span>
+                {t('documentAction.transmit.button', { noun: meta.nounPhrase })}
+              </button>
+            </React.Fragment>}
+          <div style={{ flex: 1 }} />
+          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footBtn}
+            disabled={navIdx <= 0} onClick={function () { goTo(-1); }}>
+            <span className="material-icons" style={tx.footIc}>chevron_left</span>
+            {t('transmission.documentPrecedent.button')}
+          </button>
+          <button type="button" className="ds-btn ds-btn--outlined" style={tx.footBtn}
+            disabled={navIdx < 0 || navIdx >= navIds.length - 1} onClick={function () { goTo(1); }}>
+            <span className="material-icons" style={tx.footIc}>chevron_right</span>
+            {t('transmission.documentSuivant.button')}
+          </button>
+          {!readOnly &&
+            <button type="button" className="ds-btn ds-btn--tonal" style={tx.footIconBtn}
+              title={t('transmission.transmitAll.button', { n: readyCount })}
+              aria-label={t('transmission.transmitAll.button', { n: readyCount })}
+              disabled={readyCount === 0} onClick={transmitAll}>
+              <span className="material-icons" style={{ fontSize: 22 }}>send</span>
+            </button>}
+        </div>
       </div>
     </div>
   );
@@ -515,7 +547,6 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
   // à gauche et passe le titre en bleu.
   function renderSideRow(d) {
     const st = txStatus(d);
-    const m = TX_META[d.kind];
     const sel = d.id === selectedId;
     const sub = d.kind === 'prescription'
       ? tn('transmission.prescriptions.label', d.items.length)
@@ -525,15 +556,16 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
       : null;
     return (
       <button key={d.id}
-        style={Object.assign({}, tx.sideRow, sel ? tx.sideRowSel : {})}
+        style={Object.assign({}, tx.sideRow, st === 'done' ? tx.sideRowDone : {}, sel ? tx.sideRowSel : {})}
+        aria-current={sel ? 'true' : undefined}
         onClick={function () { setSelectedId(d.id); }}>
-        <span className="material-symbols-outlined" style={{ fontSize: 18, color: m.accent, flexShrink: 0, marginTop: 1 }}>{m.icon}</span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={Object.assign({}, tx.sideRowTitle, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
+          <div style={Object.assign({}, tx.sideRowTitle, st === 'done' ? tx.sideRowTitleDone : {}, sel ? tx.sideRowTitleSel : {})}>{d.title}</div>
           {sub ? <div style={tx.sideRowSub}>{sub}</div> : null}
           <div style={dest ? tx.sideRowDest : tx.sideRowDestNone}>{dest || t('transmission.aucunDestinataire.text')}</div>
         </div>
-        <span className="material-icons" style={{ fontSize: 17, color: TX_STATUS_COLOR[st], flexShrink: 0 }} title={TX_STATUS_LABEL[st]}>
+        <span className="material-icons-outlined" style={{ fontSize: 20, color: TX_STATUS_COLOR[st], flexShrink: 0 }}
+          title={st === 'done' ? t('documentAction.transmise.text') : TX_STATUS_LABEL[st]}>
           {TX_STATUS_ICON[st]}
         </span>
       </button>
@@ -542,87 +574,90 @@ function TransmissionModal({ docs, onPatch, onComplete, doctorName, institution,
 }
 
 const tx = {
+  // Modale ancrée sous la barre du DME, à marges latérales (maquette
+  // « Transmission générale ») ; l'entrée sheet-up est gardée (V7 §A.1).
   scrim: {
     position: 'fixed', inset: 0, background: 'rgba(20,20,40,0.5)', zIndex: 3999,
     display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
     animation: 'sheet-scrim-in 200ms ease-out',
   },
   shell: {
-    position: 'relative', width: '100%', maxWidth: 1440, height: '95vh', maxHeight: 'calc(100vh - 12px)',
+    position: 'relative', width: 'calc(100% - 80px)', maxWidth: 1440, height: 'calc(100vh - 66px)',
     background: 'var(--mat-sys-surface-container-lowest)', zIndex: 4000, borderRadius: '20px 20px 0 0',
     boxShadow: '0 -12px 40px rgba(20,20,50,0.28)',
     display: 'flex', flexDirection: 'column', overflow: 'hidden',
     fontFamily: "'Inter', sans-serif", animation: 'sheet-up 320ms cubic-bezier(.16,1,.3,1)',
   },
-  dragHandle: {
-    width: 44, height: 5, borderRadius: 3, background: 'var(--mat-sys-surface-container)',
-    margin: '10px auto 0', flexShrink: 0,
+  tabsRow: {
+    display: 'flex', alignItems: 'center', gap: 12, padding: '0 14px 0 12px', height: 79,
+    borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
   },
-  head: {
-    display: 'flex', alignItems: 'center', gap: 16,
-    padding: '12px 26px 16px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
+  tabs: { flex: 1, display: 'flex', alignSelf: 'stretch' },
+  tab: {
+    flex: '0 1 33.333%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4,
+    border: 0, background: 'transparent', padding: '0 8px', cursor: 'pointer', font: 'inherit',
+  },
+  tabTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 500, fontSize: 15, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', whiteSpace: 'nowrap' },
+  tabTitleOn: { fontWeight: 600, color: 'var(--mat-sys-primary)' },
+  tabSub: { display: 'flex', gap: 6, minHeight: 22 },
+  tabSubText: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 75%, transparent)' },
+  tabIndicator: {
+    position: 'absolute', bottom: 0, left: '50%', transform: 'translateX(-50%)',
+    width: 128, height: 3, borderRadius: '3px 3px 0 0', background: 'var(--mat-sys-primary)',
   },
   headNote: { fontWeight: 400, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)' },
-  headTitle: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 19, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
-  headCounts: { display: 'flex', gap: 8, flex: 1 },
-  pill: { fontSize: 12.5, fontWeight: 700, borderRadius: 20, padding: '5px 12px' },
-  closeBtn: { border: 0, background: 'transparent', cursor: 'pointer', padding: 2, display: 'inline-flex' },
-
-  patientRow: {
-    display: 'flex', alignItems: 'center', gap: 10,
-    padding: '9px 26px', borderBottom: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
-    background: 'light-dark(#faf9fc, #32254b)',
+  pill: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, fontWeight: 600, borderRadius: 4, padding: '2px 6px' },
+  closeBtn: {
+    width: 40, height: 40, flexShrink: 0, border: 0, borderRadius: 8, cursor: 'pointer',
+    background: 'var(--mat-sys-surface-container)', color: 'var(--mat-sys-on-surface)',
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
   },
-  patientAvatar: {
-    width: 26, height: 26, borderRadius: '50%', background: 'var(--mat-sys-secondary-container)',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  patientName: { fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' },
-  patientMeta: { fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)' },
 
   bodyRow: { flex: 1, display: 'flex', overflow: 'hidden' },
 
+  // Sidebar (maquette « Transmission générale ») : fond lavande, catégories
+  // en casse normale avec compteur, lignes sans icône de type ; la ligne
+  // choisie est une carte blanche au titre bleu, une ligne transmise est grise.
   sidebar: {
     width: 280, flexShrink: 0, borderRight: '1px solid var(--mat-sys-outline-variant)',
-    overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 18,
+    background: 'var(--mat-sys-surface-container-low)',
+    overflowY: 'auto', padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 14,
   },
-  sideGroup: { display: 'flex', flexDirection: 'column', gap: 6 },
-  sideGroupTitle: { fontSize: 11, fontWeight: 700, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', letterSpacing: 0.4, padding: '0 8px', marginBottom: 2 },
+  sideHead: {
+    display: 'flex', alignItems: 'center', gap: 4, padding: '0 0 0 12px',
+    fontSize: 12.5, fontWeight: 700, letterSpacing: 0.4, textTransform: 'uppercase',
+    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)',
+  },
+  sideAddBtn: { color: 'var(--mat-sys-on-surface)' },
+  sideGroup: { display: 'flex', flexDirection: 'column', gap: 4 },
+  sideGroupTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', padding: '0 12px' },
   sideRow: {
-    display: 'flex', alignItems: 'flex-start', gap: 9, width: '100%',
-    border: 0, borderLeft: '3px solid transparent', background: 'transparent',
-    borderRadius: 10, padding: '9px 8px 9px 6px',
-    cursor: 'pointer', textAlign: 'left',
+    display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%',
+    border: 0, background: 'transparent', borderRadius: 8, padding: '10px 12px',
+    cursor: 'pointer', textAlign: 'left', font: 'inherit',
   },
-  sideRowSel: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', borderLeft: '3px solid var(--mat-sys-on-surface-variant)' },
-  sideRowTitle: { fontSize: 13.5, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)' },
-  sideRowTitleSel: { color: 'var(--mat-sys-on-surface)' },
-  sideRowSub: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDest: { fontSize: 12, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  sideRowDestNone: { fontSize: 12, color: 'light-dark(#a15c00, #e9cca5)', marginTop: 1 },
-  addDocBtn: {
-    display: 'flex', alignItems: 'center', gap: 6, border: '1px dashed var(--mat-sys-outline-variant)', borderRadius: 9,
-    background: 'transparent', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', font: "500 13px 'Inter',sans-serif",
-    padding: '9px 10px', cursor: 'pointer', marginTop: 'auto',
-  },
+  sideRowSel: { background: 'var(--mat-sys-surface-container-lowest)', boxShadow: '0 1px 2px rgba(37,36,94,.08)' },
+  sideRowDone: { background: 'var(--mat-sys-surface-container)' },
+  sideRowTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)' },
+  sideRowTitleSel: { color: 'var(--mat-sys-primary)' },
+  sideRowTitleDone: { color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)' },
+  sideRowSub: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDest: { fontSize: 12.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  sideRowDestNone: { fontSize: 12.5, color: 'light-dark(#a15c00, #e9cca5)', marginTop: 2 },
 
-  panel: { flex: 1, overflowY: 'auto', padding: '18px 28px 28px' },
+  main: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' },
+  bannerWrap: { padding: '12px 12px 0', flexShrink: 0 },
+  panel: { flex: 1, overflowY: 'auto', padding: '22px 28px 28px' },
   panelEmpty: { color: 'color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)', fontSize: 14, padding: 30, textAlign: 'center' },
 
   footer: {
     display: 'flex', alignItems: 'center', gap: 12,
-    padding: '14px 26px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
+    padding: '16px 24px', borderTop: '1px solid var(--mat-sys-outline-variant)', flexShrink: 0,
+    background: 'var(--mat-sys-surface-container-lowest)',
   },
-  footerSummary: { flex: 1, display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', fontWeight: 500 },
-  secondaryBtn: {
-    border: '1.5px solid var(--mat-sys-on-surface-variant)', borderRadius: 9, background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)',
-    font: "600 13.5px 'Inter',sans-serif", padding: '10px 16px', cursor: 'pointer',
-  },
-  primaryBtn: {
-    border: 0, borderRadius: 9, background: '#25245E', color: '#fff',
-    font: "600 13.5px 'Inter',sans-serif", padding: '10px 18px', cursor: 'pointer',
-  },
-  btnDisabled: { opacity: 0.42, cursor: 'not-allowed' },
+  footBtn: { height: 44, whiteSpace: 'nowrap' },
+  footIc: { fontSize: 20 },
+  footIconBtn: { width: 44, height: 44, padding: 0 },
 };
 
 // Styles du panneau « Note » (faire suivre + signature).
@@ -647,7 +682,7 @@ const nap = {
   },
   warnText: { fontSize: 13, color: 'light-dark(#7a5200, #e9d2a5)', lineHeight: 1.45 },
 
-  fieldBlock: { marginTop: 18, maxWidth: 460 },
+  fieldBlock: { marginTop: 18 },
   fieldLabel: { fontSize: 12, fontWeight: 600, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.3 },
   subLabel: { fontSize: 11.5, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', marginBottom: 5 },
   sigRow: { display: 'flex', gap: 12 },
@@ -673,12 +708,20 @@ const nap = {
   },
   ddOptionSel: { color: 'var(--mat-sys-primary)', background: 'light-dark(#f5f8fe, #24324c)' },
 
-  completeBtn: {
-    marginTop: 26, border: 0, borderRadius: 9, background: '#25245E', color: '#fff',
-    font: "600 14px 'Inter',sans-serif", padding: '11px 22px', cursor: 'pointer',
+  scrim: {
+    position: 'fixed', inset: 0, zIndex: 3999, background: 'rgba(20,20,40,0.45)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'sheet-scrim-in 200ms ease-out',
   },
+  dialog: {
+    width: 560, maxWidth: 'calc(100vw - 32px)', maxHeight: 'calc(100vh - 48px)', overflowY: 'auto',
+    background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 14, padding: '18px 24px 22px',
+    boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter', sans-serif",
+  },
+  dialogHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+  dialogTitle: { font: "600 19px 'Poppins',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  dialogActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 26 },
 };
 
 window.TransmissionModal = TransmissionModal;
 window.TX_META = TX_META;
-window.TX_NOTE_ITEM_ID = NOTE_ITEM_ID;
+window.NoteFinalizeDialog = NoteFinalizeDialog;

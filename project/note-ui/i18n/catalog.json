@@ -3,8 +3,8 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1357,
-    "donnees": 954
+    "interface": 1366,
+    "donnees": 958
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -84,7 +84,7 @@
       "empreinte": "94f6f208e9ce",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1020",
+        "note-ui/NoteEditor.jsx:1044",
         "note-ui/editor-schema.jsx:367",
         "note-ui/review-mode.jsx:28"
       ]
@@ -190,7 +190,7 @@
       "empreinte": "cf66d4fe2da4",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:418"
+        "Note Clinique.html:419"
       ]
     },
     "app.error.title": {
@@ -198,7 +198,7 @@
       "empreinte": "a834b7056422",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:416"
+        "Note Clinique.html:417"
       ]
     },
     "app.finaliser.button": {
@@ -206,7 +206,7 @@
       "empreinte": "ad181d5f077f",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:640"
+        "Note Clinique.html:642"
       ]
     },
     "app.noteClinique.tooltip": {
@@ -214,7 +214,7 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "info-bulle",
       "fichiers": [
-        "Note Clinique.html:558"
+        "Note Clinique.html:559"
       ]
     },
     "app.portailPatientActif.toast": {
@@ -222,7 +222,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "notification",
       "fichiers": [
-        "Note Clinique.html:523"
+        "Note Clinique.html:524"
       ]
     },
     "app.sauvegarder.button": {
@@ -230,7 +230,7 @@
       "empreinte": "9ada14395d66",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:638"
+        "Note Clinique.html:640"
       ]
     },
     "app.tiptap.hint": {
@@ -1897,9 +1897,9 @@
       "fichiers": [
         "note-ui/ClinicalTool.jsx:103",
         "note-ui/ClinicalTool.jsx:89",
-        "note-ui/DocumentActionPanel.jsx:170",
+        "note-ui/DocumentActionPanel.jsx:308",
         "note-ui/editor-schema.jsx:140",
-        "note-ui/editor-schema.jsx:2509",
+        "note-ui/editor-schema.jsx:2522",
         "note-ui/editor-schema.jsx:343",
         "note-ui/editor-schema.jsx:388"
       ]
@@ -2392,7 +2392,7 @@
       "empreinte": "5fb96ee2e73a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2466"
+        "note-ui/editor-schema.jsx:2479"
       ]
     },
     "date.atTime": {
@@ -2459,7 +2459,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:430"
+        "Note Clinique.html:431"
       ]
     },
     "document.kind.exam": {
@@ -2467,7 +2467,7 @@
       "empreinte": "130a08fa06ba",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:432"
+        "Note Clinique.html:433"
       ]
     },
     "document.kind.imaging": {
@@ -2475,7 +2475,7 @@
       "empreinte": "876ab0ce03e2",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:431"
+        "Note Clinique.html:432"
       ]
     },
     "document.kind.instructions": {
@@ -2483,7 +2483,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:433"
+        "Note Clinique.html:434"
       ]
     },
     "document.kind.lab": {
@@ -2491,7 +2491,7 @@
       "empreinte": "0f78e26d87bf",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:431"
+        "Note Clinique.html:432"
       ]
     },
     "document.kind.prescription": {
@@ -2499,7 +2499,7 @@
       "empreinte": "212f9846068b",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:430"
+        "Note Clinique.html:431"
       ]
     },
     "document.kind.referral": {
@@ -2507,7 +2507,7 @@
       "empreinte": "f8130bb03a28",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:432"
+        "Note Clinique.html:433"
       ]
     },
     "document.kind.service": {
@@ -2515,7 +2515,7 @@
       "empreinte": "329cb8b6ba8c",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:432"
+        "Note Clinique.html:433"
       ]
     },
     "document.pill.aria": {
@@ -2526,15 +2526,7 @@
       "empreinte": "bf0aa7983972",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "Note Clinique.html:439"
-      ]
-    },
-    "documentAction.addRecipientHint.text": {
-      "fr": "Ajouter une pharmacie ou un professionnel de la santé pour transmettre {noun}",
-      "empreinte": "b5c06a1a1dc5",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:332"
+        "Note Clinique.html:440"
       ]
     },
     "documentAction.agrandir.tooltip": {
@@ -2542,7 +2534,7 @@
       "empreinte": "0811e108abbd",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:384"
+        "note-ui/DocumentActionPanel.jsx:497"
       ]
     },
     "documentAction.ajouter.tooltip": {
@@ -2558,15 +2550,7 @@
       "empreinte": "f318f1bbc49f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:335"
-      ]
-    },
-    "documentAction.ajouterDestinataire.text": {
-      "fr": "Ajouter un destinataire",
-      "empreinte": "a1e13eb790d0",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:364"
+        "note-ui/DocumentActionPanel.jsx:430"
       ]
     },
     "documentAction.ajouterDestinataire.tooltip": {
@@ -2574,7 +2558,16 @@
       "empreinte": "a1e13eb790d0",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:317"
+        "note-ui/DocumentActionPanel.jsx:236",
+        "note-ui/DocumentActionPanel.jsx:424"
+      ]
+    },
+    "documentAction.ajouterNom.aria": {
+      "fr": "Ajouter {name}",
+      "empreinte": "c3c1ad75c1e5",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:236"
       ]
     },
     "documentAction.alreadyCompleted.tooltip": {
@@ -2582,7 +2575,7 @@
       "empreinte": "fd3cf9a6aec5",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:193"
+        "note-ui/TransmissionModal.jsx:386"
       ]
     },
     "documentAction.alreadyTransmitted.tooltip": {
@@ -2590,16 +2583,8 @@
       "empreinte": "94ba984dfa76",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:197",
-        "note-ui/QuickSendModal.jsx:64"
-      ]
-    },
-    "documentAction.aucunDestinataire.text": {
-      "fr": "Aucun destinataire",
-      "empreinte": "72efbe9121c3",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:330"
+        "note-ui/QuickSendModal.jsx:64",
+        "note-ui/TransmissionModal.jsx:390"
       ]
     },
     "documentAction.aucunDestinataireEteChoisi.text": {
@@ -2607,7 +2592,15 @@
       "empreinte": "155244992218",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:324"
+        "note-ui/DocumentActionPanel.jsx:437"
+      ]
+    },
+    "documentAction.aucunResultat.text": {
+      "fr": "Aucun résultat. Élargissez la distance ou la bannière.",
+      "empreinte": "9c89141e3ceb",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:479"
       ]
     },
     "documentAction.aucunePieceJointe.text": {
@@ -2615,7 +2608,39 @@
       "empreinte": "7a2abc76f470",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:279"
+        "note-ui/DocumentActionPanel.jsx:384"
+      ]
+    },
+    "documentAction.canalCourriel.label": {
+      "fr": "Courriel",
+      "empreinte": "ecb875f1e79b",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:122"
+      ]
+    },
+    "documentAction.canalFax.label": {
+      "fr": "Fax",
+      "empreinte": "b67fad2e2edf",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:121"
+      ]
+    },
+    "documentAction.canalPrincipal.tooltip": {
+      "fr": "Canal principal, toujours utilisé",
+      "empreinte": "b9a8e0e1f385",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:205"
+      ]
+    },
+    "documentAction.carte.tooltip": {
+      "fr": "Voir sur la carte",
+      "empreinte": "245e07ec2fcb",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:458"
       ]
     },
     "documentAction.complete.button": {
@@ -2623,7 +2648,7 @@
       "empreinte": "a54ead538c35",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:228"
+        "note-ui/TransmissionModal.jsx:511"
       ]
     },
     "documentAction.completee.text": {
@@ -2631,15 +2656,7 @@
       "empreinte": "67f9e8d80427",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:207"
-      ]
-    },
-    "documentAction.completer.button": {
-      "fr": "Compléter",
-      "empreinte": "449b5006156f",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:235"
+        "note-ui/DocumentActionPanel.jsx:354"
       ]
     },
     "documentAction.completerDocumentAvantImpression.tooltip": {
@@ -2647,31 +2664,15 @@
       "empreinte": "f88bb2273f1d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:216"
+        "note-ui/DocumentActionPanel.jsx:494"
       ]
     },
-    "documentAction.completerFaxer.button": {
-      "fr": "Compléter et faxer",
-      "empreinte": "b8aecd530ba1",
-      "contexte": "bouton",
+    "documentAction.destinataire.label": {
+      "fr": "Destinataire ({n})",
+      "empreinte": "39950315b43f",
+      "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:237"
-      ]
-    },
-    "documentAction.completerFaxer2.button": {
-      "fr": "Compléter et faxer à",
-      "empreinte": "ace8df884094",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:238"
-      ]
-    },
-    "documentAction.completerImprimer.button": {
-      "fr": "Compléter et imprimer",
-      "empreinte": "c2f0e4f3202a",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:236"
+        "note-ui/DocumentActionPanel.jsx:421"
       ]
     },
     "documentAction.details.label": {
@@ -2679,7 +2680,24 @@
       "empreinte": "aaa029e6a255",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:261"
+        "note-ui/DocumentActionPanel.jsx:366"
+      ]
+    },
+    "documentAction.distanceKm.text": {
+      "fr": "{km} km",
+      "empreinte": "5d1ec3cd1573",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:241",
+        "note-ui/DocumentActionPanel.jsx:338"
+      ]
+    },
+    "documentAction.favoriMedecin.tooltip": {
+      "fr": "Dans vos favoris",
+      "empreinte": "3b571afbbaf4",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:154"
       ]
     },
     "documentAction.imprimer.tooltip": {
@@ -2687,7 +2705,7 @@
       "empreinte": "5382c09d3fd3",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:216"
+        "note-ui/DocumentActionPanel.jsx:494"
       ]
     },
     "documentAction.masquerSuggestions.tooltip": {
@@ -2695,7 +2713,7 @@
       "empreinte": "d11985674d77",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:359"
+        "note-ui/DocumentActionPanel.jsx:473"
       ]
     },
     "documentAction.modifier.tooltip": {
@@ -2711,25 +2729,9 @@
       "empreinte": "5c12481d1d0c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:195",
-        "note-ui/DocumentActionPanel.jsx:198",
-        "note-ui/QuickSendModal.jsx:66"
-      ]
-    },
-    "documentAction.nonCompletee.text": {
-      "fr": "Non complétée",
-      "empreinte": "f9ae195d2624",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:207"
-      ]
-    },
-    "documentAction.nonTransmise.text": {
-      "fr": "Non transmise",
-      "empreinte": "24303a19b65c",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:210"
+        "note-ui/QuickSendModal.jsx:66",
+        "note-ui/TransmissionModal.jsx:388",
+        "note-ui/TransmissionModal.jsx:391"
       ]
     },
     "documentAction.notCompleted.tooltip": {
@@ -2737,7 +2739,15 @@
       "empreinte": "e59b76a3e31d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:198"
+        "note-ui/TransmissionModal.jsx:391"
+      ]
+    },
+    "documentAction.pharmacieDossier.tooltip": {
+      "fr": "Pharmacie favorite au dossier du patient",
+      "empreinte": "d2dea7ae0426",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:181"
       ]
     },
     "documentAction.piecesJointes.label": {
@@ -2745,7 +2755,7 @@
       "empreinte": "98d89a25004b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:273"
+        "note-ui/DocumentActionPanel.jsx:378"
       ]
     },
     "documentAction.prescriptions.label": {
@@ -2753,7 +2763,7 @@
       "empreinte": "d7d1c0636806",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:261"
+        "note-ui/DocumentActionPanel.jsx:366"
       ]
     },
     "documentAction.preview.label": {
@@ -2761,15 +2771,16 @@
       "empreinte": "f8141f9629c6",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:383"
+        "note-ui/DocumentActionPanel.jsx:490"
       ]
     },
-    "documentAction.recipients.label": {
-      "fr": "DESTINATAIRE ({n})",
-      "empreinte": "800c2dfde9f9",
-      "contexte": "libellé",
+    "documentAction.rechercheDestinataire.placeholder": {
+      "fr": "Nom, adresse, téléphone, télécopie",
+      "empreinte": "2d9458a27c67",
+      "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:315"
+        "note-ui/DocumentActionPanel.jsx:454",
+        "note-ui/DocumentActionPanel.jsx:455"
       ]
     },
     "documentAction.retirer.tooltip": {
@@ -2777,7 +2788,7 @@
       "empreinte": "54ec24a19c21",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:286",
+        "note-ui/DocumentActionPanel.jsx:391",
         "note-ui/DocumentActionPanel.jsx:93"
       ]
     },
@@ -2786,39 +2797,7 @@
       "empreinte": "80483f55b318",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:145"
-      ]
-    },
-    "documentAction.sendByEmail.tooltip": {
-      "fr": "Transmettre par courriel",
-      "empreinte": "bb3aeefdaa9e",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:142"
-      ]
-    },
-    "documentAction.sendByFax.tooltip": {
-      "fr": "Transmettre par fax",
-      "empreinte": "bf0f89b3b208",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:141"
-      ]
-    },
-    "documentAction.sentByEmail.tooltip": {
-      "fr": "Transmis par courriel",
-      "empreinte": "a4ba75cb997e",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:142"
-      ]
-    },
-    "documentAction.sentByFax.tooltip": {
-      "fr": "Transmis par fax",
-      "empreinte": "6894eec7fd63",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:141"
+        "note-ui/DocumentActionPanel.jsx:193"
       ]
     },
     "documentAction.suggestions.label": {
@@ -2826,7 +2805,23 @@
       "empreinte": "f9fe3b4fd405",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:358"
+        "note-ui/DocumentActionPanel.jsx:472"
+      ]
+    },
+    "documentAction.touteDistance.text": {
+      "fr": "Toute distance",
+      "empreinte": "25446db2b1ee",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:339"
+      ]
+    },
+    "documentAction.toutesBannieres.text": {
+      "fr": "Toutes les bannières",
+      "empreinte": "93c065bbaa1d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:335"
       ]
     },
     "documentAction.transmise.text": {
@@ -2834,7 +2829,8 @@
       "empreinte": "bead84ab0c20",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:210"
+        "note-ui/DocumentActionPanel.jsx:354",
+        "note-ui/TransmissionModal.jsx:568"
       ]
     },
     "documentAction.transmit.button": {
@@ -2842,7 +2838,7 @@
       "empreinte": "1834175109ba",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:248"
+        "note-ui/TransmissionModal.jsx:517"
       ]
     },
     "documentPreview.apercuDocumentNonComplete.text": {
@@ -2932,7 +2928,7 @@
       "fichiers": [
         "note-ui/DocumentPreview.jsx:103",
         "note-ui/DocumentPreview.jsx:55",
-        "note-ui/TransmissionModal.jsx:144"
+        "note-ui/TransmissionModal.jsx:155"
       ]
     },
     "documentPreview.nam.text": {
@@ -3717,7 +3713,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/FaxScreen.jsx:49",
-        "note-ui/TransmissionModal.jsx:145"
+        "note-ui/TransmissionModal.jsx:156"
       ]
     },
     "fax.faxer.button": {
@@ -4280,7 +4276,7 @@
       "empreinte": "bbb276c7a418",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1928"
+        "note-ui/NoteEditor.jsx:1963"
       ]
     },
     "noteEditor.ajouterEtiquette.placeholder": {
@@ -4288,7 +4284,7 @@
       "empreinte": "1097cb8e1d00",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1928"
+        "note-ui/NoteEditor.jsx:1963"
       ]
     },
     "noteEditor.ajouterEtiquettes.aria": {
@@ -4296,7 +4292,7 @@
       "empreinte": "5b6efbfeb4be",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:992"
+        "note-ui/NoteEditor.jsx:1016"
       ]
     },
     "noteEditor.ajouterEtiquettes.tooltip": {
@@ -4304,7 +4300,7 @@
       "empreinte": "5b6efbfeb4be",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:991"
+        "note-ui/NoteEditor.jsx:1015"
       ]
     },
     "noteEditor.annulationEnvoyee.toast": {
@@ -4312,7 +4308,7 @@
       "empreinte": "a4746d901e98",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:803"
+        "note-ui/NoteEditor.jsx:812"
       ]
     },
     "noteEditor.annuler.button": {
@@ -4320,8 +4316,8 @@
       "empreinte": "49ba3292420c",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1145",
-        "note-ui/NoteEditor.jsx:1171"
+        "note-ui/NoteEditor.jsx:1169",
+        "note-ui/NoteEditor.jsx:1195"
       ]
     },
     "noteEditor.appuyerAfficherCommandes.placeholder": {
@@ -4329,7 +4325,7 @@
       "empreinte": "d94edcaf8119",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1050"
+        "note-ui/NoteEditor.jsx:1074"
       ]
     },
     "noteEditor.assurancePrivee.label": {
@@ -4337,7 +4333,7 @@
       "empreinte": "918e94b73c5c",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1080"
+        "note-ui/NoteEditor.jsx:1104"
       ]
     },
     "noteEditor.aucunElementDossier.text": {
@@ -4345,7 +4341,7 @@
       "empreinte": "1efba1d1ad4e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:662"
+        "note-ui/NoteEditor.jsx:671"
       ]
     },
     "noteEditor.aujourdHui.button": {
@@ -4353,7 +4349,7 @@
       "empreinte": "ba0603b43d81",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1762"
+        "note-ui/NoteEditor.jsx:1797"
       ]
     },
     "noteEditor.brouillonSauvegarde.toast": {
@@ -4361,7 +4357,7 @@
       "empreinte": "94be170991d3",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:722"
+        "note-ui/NoteEditor.jsx:731"
       ]
     },
     "noteEditor.cardiologie.label": {
@@ -4369,7 +4365,7 @@
       "empreinte": "f1703cc56ce5",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1081"
+        "note-ui/NoteEditor.jsx:1105"
       ]
     },
     "noteEditor.champsConfidentiel.text": {
@@ -4377,7 +4373,7 @@
       "empreinte": "5b03afb49e23",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1107"
+        "note-ui/NoteEditor.jsx:1131"
       ]
     },
     "noteEditor.choisirHeure.label": {
@@ -4385,7 +4381,7 @@
       "empreinte": "36cf897a5208",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1668"
+        "note-ui/NoteEditor.jsx:1703"
       ]
     },
     "noteEditor.contenuChampsNoteConfidentielle.text": {
@@ -4393,7 +4389,7 @@
       "empreinte": "11e31bfb5215",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1142"
+        "note-ui/NoteEditor.jsx:1166"
       ]
     },
     "noteEditor.contenuRedigeSeraDefinitivement.text": {
@@ -4401,7 +4397,7 @@
       "empreinte": "14d426cecdd7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1168"
+        "note-ui/NoteEditor.jsx:1192"
       ]
     },
     "noteEditor.date.label": {
@@ -4409,7 +4405,7 @@
       "empreinte": "eb9a4bc1c0c1",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:985"
+        "note-ui/NoteEditor.jsx:1009"
       ]
     },
     "noteEditor.documenterChampConfidentiel.placeholder": {
@@ -4417,7 +4413,7 @@
       "empreinte": "0bd36a500c86",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1117"
+        "note-ui/NoteEditor.jsx:1141"
       ]
     },
     "noteEditor.echecTransmissionSimule.toast": {
@@ -4425,7 +4421,7 @@
       "empreinte": "b06e61b328de",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:764"
+        "note-ui/NoteEditor.jsx:773"
       ]
     },
     "noteEditor.ecrire.button": {
@@ -4433,7 +4429,7 @@
       "empreinte": "4a2abc77808a",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1149"
+        "note-ui/NoteEditor.jsx:1173"
       ]
     },
     "noteEditor.etiquettes.text": {
@@ -4441,7 +4437,7 @@
       "empreinte": "e26c690ca57a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1912"
+        "note-ui/NoteEditor.jsx:1947"
       ]
     },
     "noteEditor.examenPhysiqueVersionCourte.label": {
@@ -4449,7 +4445,7 @@
       "empreinte": "2d854507c050",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1083"
+        "note-ui/NoteEditor.jsx:1107"
       ]
     },
     "noteEditor.fieldDose.label": {
@@ -4457,7 +4453,7 @@
       "empreinte": "da7f99e8cbbf",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1410"
       ]
     },
     "noteEditor.fieldDuration.label": {
@@ -4465,7 +4461,7 @@
       "empreinte": "6feac25effc5",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1376"
+        "note-ui/NoteEditor.jsx:1411"
       ]
     },
     "noteEditor.fieldDurationRefills.label": {
@@ -4473,7 +4469,7 @@
       "empreinte": "14e03029b192",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1410"
       ]
     },
     "noteEditor.fieldExam.label": {
@@ -4481,7 +4477,7 @@
       "empreinte": "f0a010017d3b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1377"
+        "note-ui/NoteEditor.jsx:1412"
       ]
     },
     "noteEditor.fieldForm.label": {
@@ -4489,7 +4485,7 @@
       "empreinte": "5f9d25690e5c",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1410"
       ]
     },
     "noteEditor.fieldFrequency.label": {
@@ -4497,7 +4493,7 @@
       "empreinte": "bafbfba73ab9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1410"
       ]
     },
     "noteEditor.fieldPriority.label": {
@@ -4505,7 +4501,7 @@
       "empreinte": "eede91d2f77e",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1377"
+        "note-ui/NoteEditor.jsx:1412"
       ]
     },
     "noteEditor.fieldRefills.label": {
@@ -4513,7 +4509,7 @@
       "empreinte": "5b961f3ab582",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1376"
+        "note-ui/NoteEditor.jsx:1411"
       ]
     },
     "noteEditor.fieldRoute.label": {
@@ -4521,7 +4517,7 @@
       "empreinte": "2085078a7f15",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1375"
+        "note-ui/NoteEditor.jsx:1410"
       ]
     },
     "noteEditor.fieldSpecialty.label": {
@@ -4529,7 +4525,7 @@
       "empreinte": "cbaf96abb0f9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1377"
+        "note-ui/NoteEditor.jsx:1412"
       ]
     },
     "noteEditor.heure.label": {
@@ -4537,7 +4533,7 @@
       "empreinte": "5073129fadb8",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:986"
+        "note-ui/NoteEditor.jsx:1010"
       ]
     },
     "noteEditor.heures.aria": {
@@ -4545,7 +4541,7 @@
       "empreinte": "b4448c06daab",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1797"
+        "note-ui/NoteEditor.jsx:1832"
       ]
     },
     "noteEditor.ituRoadmap.text": {
@@ -4553,8 +4549,8 @@
       "empreinte": "1bbbd6771382",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:314",
-        "note-ui/editor-schema.jsx:2937"
+        "note-ui/NoteEditor.jsx:323",
+        "note-ui/editor-schema.jsx:2950"
       ]
     },
     "noteEditor.masquerEtiquettes.aria": {
@@ -4562,7 +4558,7 @@
       "empreinte": "aa3638ab7fd0",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:992"
+        "note-ui/NoteEditor.jsx:1016"
       ]
     },
     "noteEditor.masquerEtiquettes.tooltip": {
@@ -4570,7 +4566,7 @@
       "empreinte": "aa3638ab7fd0",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:991"
+        "note-ui/NoteEditor.jsx:1015"
       ]
     },
     "noteEditor.moisPrecedent.aria": {
@@ -4578,7 +4574,7 @@
       "empreinte": "535707c762c5",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1716"
+        "note-ui/NoteEditor.jsx:1751"
       ]
     },
     "noteEditor.moisSuivant.aria": {
@@ -4586,7 +4582,7 @@
       "empreinte": "7b08eaecd203",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1720"
+        "note-ui/NoteEditor.jsx:1755"
       ]
     },
     "noteEditor.noSuggestion.empty": {
@@ -4594,7 +4590,7 @@
       "empreinte": "7bec56e7dee9",
       "contexte": "état vide",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1461"
+        "note-ui/NoteEditor.jsx:1496"
       ]
     },
     "noteEditor.noteClinique.text": {
@@ -4602,7 +4598,7 @@
       "empreinte": "faa86995709c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:959"
+        "note-ui/NoteEditor.jsx:983"
       ]
     },
     "noteEditor.noteClinique.tooltip": {
@@ -4610,7 +4606,8 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1205"
+        "note-ui/NoteEditor.jsx:1221",
+        "note-ui/NoteEditor.jsx:1241"
       ]
     },
     "noteEditor.noteConfidentielle.text": {
@@ -4618,7 +4615,7 @@
       "empreinte": "82d714bd9df8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1135"
+        "note-ui/NoteEditor.jsx:1159"
       ]
     },
     "noteEditor.outilsCliniques.tooltip": {
@@ -4626,7 +4623,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1070"
+        "note-ui/NoteEditor.jsx:1094"
       ]
     },
     "noteEditor.ouvrirCalendrier.label": {
@@ -4634,7 +4631,7 @@
       "empreinte": "68d7da0b9a5a",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1661"
+        "note-ui/NoteEditor.jsx:1696"
       ]
     },
     "noteEditor.raisonConsultation.label": {
@@ -4642,7 +4639,7 @@
       "empreinte": "0526229047e4",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:980"
+        "note-ui/NoteEditor.jsx:1004"
       ]
     },
     "noteEditor.rechercher.placeholder": {
@@ -4650,7 +4647,7 @@
       "empreinte": "1d12cdfbd87a",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1455"
+        "note-ui/NoteEditor.jsx:1490"
       ]
     },
     "noteEditor.removeTag.aria": {
@@ -4658,7 +4655,7 @@
       "empreinte": "fe1edfe26212",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1919"
+        "note-ui/NoteEditor.jsx:1954"
       ]
     },
     "noteEditor.supprimer.button": {
@@ -4666,7 +4663,7 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1176"
+        "note-ui/NoteEditor.jsx:1200"
       ]
     },
     "noteEditor.supprimerChampConfidentiel.text": {
@@ -4674,7 +4671,7 @@
       "empreinte": "f20d3a776dcf",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1162"
+        "note-ui/NoteEditor.jsx:1186"
       ]
     },
     "noteEditor.supprimerChampConfidentiel.tooltip": {
@@ -4682,7 +4679,7 @@
       "empreinte": "f6a7cc5392c1",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1109"
+        "note-ui/NoteEditor.jsx:1133"
       ]
     },
     "noteEditor.txSimulatedFailure.text": {
@@ -4690,7 +4687,7 @@
       "empreinte": "035b9fb963d3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:762"
+        "note-ui/NoteEditor.jsx:771"
       ]
     },
     "noteEditor.typeVisite.label": {
@@ -4698,7 +4695,7 @@
       "empreinte": "35ece345adca",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:987"
+        "note-ui/NoteEditor.jsx:1011"
       ]
     },
     "noteEditor.voulezVraimentEcrireNote.text": {
@@ -4706,7 +4703,7 @@
       "empreinte": "e75d4c71cc40",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1141"
+        "note-ui/NoteEditor.jsx:1165"
       ]
     },
     "notesList.allNotes.text": {
@@ -4891,8 +4888,8 @@
       "empreinte": "dafd501364a8",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:158",
-        "note-ui/PatientBanner.jsx:60"
+        "note-ui/PatientBanner.jsx:162",
+        "note-ui/PatientBanner.jsx:63"
       ]
     },
     "patientBanner.bornFemale.text": {
@@ -4900,8 +4897,7 @@
       "empreinte": "5ff6be055082",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12",
-        "note-ui/TransmissionModal.jsx:283"
+        "note-ui/PatientBanner.jsx:15"
       ]
     },
     "patientBanner.bornMale.text": {
@@ -4909,8 +4905,7 @@
       "empreinte": "3f88e32511a7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12",
-        "note-ui/TransmissionModal.jsx:283"
+        "note-ui/PatientBanner.jsx:15"
       ]
     },
     "patientBanner.cellulaire.text": {
@@ -4918,7 +4913,7 @@
       "empreinte": "6941c85e3f6f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:124"
+        "note-ui/PatientBanner.jsx:128"
       ]
     },
     "patientBanner.consentementValide.aria": {
@@ -4926,7 +4921,7 @@
       "empreinte": "effcc928b036",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:72"
+        "note-ui/PatientBanner.jsx:75"
       ]
     },
     "patientBanner.consentementValide.text": {
@@ -4934,7 +4929,7 @@
       "empreinte": "26c806adad4b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:176"
+        "note-ui/PatientBanner.jsx:180"
       ]
     },
     "patientBanner.documents.aria": {
@@ -4942,8 +4937,8 @@
       "empreinte": "ec96667ac8c5",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:164",
-        "note-ui/PatientBanner.jsx:82"
+        "note-ui/PatientBanner.jsx:168",
+        "note-ui/PatientBanner.jsx:85"
       ]
     },
     "patientBanner.etendre.aria": {
@@ -4951,7 +4946,7 @@
       "empreinte": "4affabe7e837",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:85"
+        "note-ui/PatientBanner.jsx:89"
       ]
     },
     "patientBanner.exp0328.text": {
@@ -4959,8 +4954,8 @@
       "empreinte": "564e805e1b3c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:108",
-        "note-ui/PatientBanner.jsx:50"
+        "note-ui/PatientBanner.jsx:112",
+        "note-ui/PatientBanner.jsx:53"
       ]
     },
     "patientBanner.genevieveTremblayTestExample.text": {
@@ -4968,7 +4963,7 @@
       "empreinte": "16e31ce322d7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:129"
+        "note-ui/PatientBanner.jsx:133"
       ]
     },
     "patientBanner.imprimer.aria": {
@@ -4976,8 +4971,8 @@
       "empreinte": "f50668cd01a6",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:161",
-        "note-ui/PatientBanner.jsx:79"
+        "note-ui/PatientBanner.jsx:165",
+        "note-ui/PatientBanner.jsx:82"
       ]
     },
     "patientBanner.inscriptionGroupe.text": {
@@ -4985,7 +4980,7 @@
       "empreinte": "7c18cf5f1a7c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:140"
+        "note-ui/PatientBanner.jsx:144"
       ]
     },
     "patientBanner.medecin.aria": {
@@ -4993,7 +4988,7 @@
       "empreinte": "a6702e111947",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:66"
+        "note-ui/PatientBanner.jsx:69"
       ]
     },
     "patientBanner.notes.aria": {
@@ -5001,7 +4996,7 @@
       "empreinte": "3add7b961210",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:63"
+        "note-ui/PatientBanner.jsx:66"
       ]
     },
     "patientBanner.pharmacie.aria": {
@@ -5009,7 +5004,7 @@
       "empreinte": "ef21f1b60d4a",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:69"
+        "note-ui/PatientBanner.jsx:72"
       ]
     },
     "patientBanner.pjcJeanCoutuCentre.text": {
@@ -5017,7 +5012,7 @@
       "empreinte": "120280dd30c9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:146"
+        "note-ui/PatientBanner.jsx:150"
       ]
     },
     "patientBanner.portailPatientActif.aria": {
@@ -5025,7 +5020,7 @@
       "empreinte": "5d7ea9910b3f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:76"
+        "note-ui/PatientBanner.jsx:79"
       ]
     },
     "patientBanner.portailPatientActif.text": {
@@ -5033,7 +5028,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:181"
+        "note-ui/PatientBanner.jsx:185"
       ]
     },
     "patientBanner.portailPatientActif.tooltip": {
@@ -5041,7 +5036,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:76"
+        "note-ui/PatientBanner.jsx:79"
       ]
     },
     "patientBanner.reduire.aria": {
@@ -5049,7 +5044,7 @@
       "empreinte": "ba986755f96f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:167"
+        "note-ui/PatientBanner.jsx:171"
       ]
     },
     "picker.none.text": {
@@ -6539,7 +6534,7 @@
       "empreinte": "3cc0b7c2227d",
       "contexte": "libellé",
       "fichiers": [
-        "Note Clinique.html:450"
+        "Note Clinique.html:451"
       ]
     },
     "presentation.aDire.heading": {
@@ -8103,7 +8098,7 @@
       "empreinte": "b1be8383fb3b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2558"
+        "note-ui/editor-schema.jsx:2571"
       ]
     },
     "schema.comment.aria": {
@@ -8241,8 +8236,8 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-data.jsx:1665",
-        "note-ui/editor-schema.jsx:2463",
-        "note-ui/editor-schema.jsx:247"
+        "note-ui/editor-schema.jsx:247",
+        "note-ui/editor-schema.jsx:2476"
       ]
     },
     "schema.fichier.label": {
@@ -8274,7 +8269,7 @@
       "empreinte": "ff429b00a1ec",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2542"
+        "note-ui/editor-schema.jsx:2555"
       ]
     },
     "schema.incomplet.text": {
@@ -8315,7 +8310,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-data.jsx:1664",
-        "note-ui/editor-schema.jsx:2462"
+        "note-ui/editor-schema.jsx:2475"
       ]
     },
     "schema.labRequestFull.label": {
@@ -8323,7 +8318,7 @@
       "empreinte": "bb9a2508d8d3",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2542"
+        "note-ui/editor-schema.jsx:2555"
       ]
     },
     "schema.mentionMedicationProfil.tooltip": {
@@ -8411,7 +8406,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2477"
+        "note-ui/editor-schema.jsx:2490"
       ]
     },
     "schema.preciser.text": {
@@ -8559,7 +8554,7 @@
       "empreinte": "212f9846068b",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2540"
+        "note-ui/editor-schema.jsx:2553"
       ]
     },
     "schema.rxIncomplete.text": {
@@ -10545,7 +10540,7 @@
       "empreinte": "abd6ed455496",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2783"
+        "note-ui/editor-schema.jsx:2796"
       ]
     },
     "template.lastConclusion.label": {
@@ -10562,7 +10557,7 @@
       "contexte": "libellé",
       "fichiers": [
         "note-ui/editor-data.jsx:1314",
-        "note-ui/editor-schema.jsx:2854"
+        "note-ui/editor-schema.jsx:2867"
       ]
     },
     "topBar.deconnexion.aria": {
@@ -10597,12 +10592,21 @@
         "note-ui/TopBar.jsx:18"
       ]
     },
+    "transmission.aVenir.toast": {
+      "fr": "À venir",
+      "empreinte": "5ae4e5874c90",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/DocumentActionPanel.jsx:340",
+        "note-ui/TransmissionModal.jsx:404"
+      ]
+    },
     "transmission.ajoutDocumentVenir.toast": {
       "fr": "Ajout de document — à venir",
       "empreinte": "25c2d8a26161",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:455"
+        "note-ui/TransmissionModal.jsx:465"
       ]
     },
     "transmission.ajouterDocument.button": {
@@ -10610,7 +10614,15 @@
       "empreinte": "166900369afc",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:458"
+        "note-ui/TransmissionModal.jsx:464"
+      ]
+    },
+    "transmission.annuler.button": {
+      "fr": "Annuler",
+      "empreinte": "49ba3292420c",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:252"
       ]
     },
     "transmission.aucunDestinataire.text": {
@@ -10618,7 +10630,7 @@
       "empreinte": "72efbe9121c3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:534"
+        "note-ui/TransmissionModal.jsx:565"
       ]
     },
     "transmission.autresDocuments.tooltip": {
@@ -10626,7 +10638,79 @@
       "empreinte": "ec9183b57fc6",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:275"
+        "note-ui/TransmissionModal.jsx:307"
+      ]
+    },
+    "transmission.catConsignes.text": {
+      "fr": "Consignes",
+      "empreinte": "3fe5942894c3",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:118"
+      ]
+    },
+    "transmission.catConsultation.text": {
+      "fr": "Consultation",
+      "empreinte": "54b87b923306",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:114"
+      ]
+    },
+    "transmission.catCopieNote.text": {
+      "fr": "Copie de note",
+      "empreinte": "11b99ffae197",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:110"
+      ]
+    },
+    "transmission.catExamen.text": {
+      "fr": "Examen diagnostique",
+      "empreinte": "130a08fa06ba",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:115"
+      ]
+    },
+    "transmission.catFormulaire.text": {
+      "fr": "Formulaire",
+      "empreinte": "87e4e76f05dd",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:117"
+      ]
+    },
+    "transmission.catImagerie.text": {
+      "fr": "Imagerie",
+      "empreinte": "876ab0ce03e2",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:113"
+      ]
+    },
+    "transmission.catLaboratoire.text": {
+      "fr": "Laboratoire",
+      "empreinte": "0f78e26d87bf",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:112"
+      ]
+    },
+    "transmission.catMedication.text": {
+      "fr": "Médication",
+      "empreinte": "7b5890c4e1c1",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:111"
+      ]
+    },
+    "transmission.catService.text": {
+      "fr": "Service",
+      "empreinte": "329cb8b6ba8c",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:116"
       ]
     },
     "transmission.completerNote.button": {
@@ -10634,15 +10718,25 @@
       "empreinte": "bcbd6c13a269",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:228"
+        "note-ui/TransmissionModal.jsx:205",
+        "note-ui/TransmissionModal.jsx:207",
+        "note-ui/TransmissionModal.jsx:255"
       ]
     },
-    "transmission.consignes.tooltip": {
-      "fr": "CONSIGNES",
-      "empreinte": "b1fa3935eee0",
-      "contexte": "info-bulle",
+    "transmission.documentPrecedent.button": {
+      "fr": "Document précédent",
+      "empreinte": "62872681f41f",
+      "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:112"
+        "note-ui/TransmissionModal.jsx:524"
+      ]
+    },
+    "transmission.documentSuivant.button": {
+      "fr": "Document suivant",
+      "empreinte": "dc5e93e187d0",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:529"
       ]
     },
     "transmission.documentTransmis.toast": {
@@ -10650,7 +10744,15 @@
       "empreinte": "502a24794aaf",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:339"
+        "note-ui/TransmissionModal.jsx:355"
+      ]
+    },
+    "transmission.documentsCount.label": {
+      "fr": "Documents ({n})",
+      "empreinte": "55257adc1172",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:461"
       ]
     },
     "transmission.documentsNote.text": {
@@ -10658,7 +10760,18 @@
       "empreinte": "cd5c4dd1dd15",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:407"
+        "note-ui/TransmissionModal.jsx:425"
+      ]
+    },
+    "transmission.elementsPartages.label": {
+      "fr": {
+        "one": "{n} élément partagé",
+        "other": "{n} éléments partagés"
+      },
+      "empreinte": "d7c118ee87f6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:445"
       ]
     },
     "transmission.etablissement.text": {
@@ -10666,7 +10779,7 @@
       "empreinte": "e2d294e40fb4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:221"
+        "note-ui/TransmissionModal.jsx:245"
       ]
     },
     "transmission.faireSuivreNote.text": {
@@ -10674,23 +10787,7 @@
       "empreinte": "aeb5d14ea254",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:209"
-      ]
-    },
-    "transmission.faireSuivreSigner.text": {
-      "fr": "Faire suivre et signer",
-      "empreinte": "df73e45aaddb",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:439"
-      ]
-    },
-    "transmission.faxEnvoye.toast": {
-      "fr": "Fax envoyé",
-      "empreinte": "5822abb56476",
-      "contexte": "notification",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:372"
+        "note-ui/TransmissionModal.jsx:233"
       ]
     },
     "transmission.fermer.aria": {
@@ -10698,7 +10795,8 @@
       "empreinte": "5ab4ec640d65",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:416"
+        "note-ui/TransmissionModal.jsx:208",
+        "note-ui/TransmissionModal.jsx:453"
       ]
     },
     "transmission.medecin.text": {
@@ -10706,7 +10804,7 @@
       "empreinte": "f569ce3bcd51",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:217"
+        "note-ui/TransmissionModal.jsx:241"
       ]
     },
     "transmission.noteClinique.text": {
@@ -10714,8 +10812,7 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:193",
-        "note-ui/TransmissionModal.jsx:438"
+        "note-ui/TransmissionModal.jsx:217"
       ]
     },
     "transmission.noteCompletee.toast": {
@@ -10723,34 +10820,42 @@
       "empreinte": "ad268aa92811",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:360"
-      ]
-    },
-    "transmission.ordonnance.tooltip": {
-      "fr": "ORDONNANCE",
-      "empreinte": "77a161f07e12",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:109"
-      ]
-    },
-    "transmission.outilsCliniques.tooltip": {
-      "fr": "OUTILS CLINIQUES",
-      "empreinte": "549721bea26b",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:111"
+        "note-ui/NoteEditor.jsx:872"
       ]
     },
     "transmission.pending.hint": {
       "fr": {
-        "one": "Cette note contient {n} document non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter.",
-        "other": "Cette note contient {n} documents non transmis ({titles}) — sélectionnez-les dans la liste à gauche pour les compléter."
+        "one": "Cette note contient {n} document non transmis ({titles}). Le checkout s'ouvrira après la complétion pour le transmettre.",
+        "other": "Cette note contient {n} documents non transmis ({titles}). Le checkout s'ouvrira après la complétion pour les transmettre."
       },
-      "empreinte": "5e518ba15a91",
+      "empreinte": "c9f562bd35de",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:203"
+        "note-ui/TransmissionModal.jsx:227"
+      ]
+    },
+    "transmission.portailPatient.text": {
+      "fr": "Portail patient",
+      "empreinte": "cc316ac5b713",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:444"
+      ]
+    },
+    "transmission.preFacturation.text": {
+      "fr": "Pré-facturation",
+      "empreinte": "0810877dbac6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:449"
+      ]
+    },
+    "transmission.preFacturationMontant.text": {
+      "fr": "150,00 $",
+      "empreinte": "e61d91f2fc8d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:450"
       ]
     },
     "transmission.prescriptions.label": {
@@ -10761,26 +10866,7 @@
       "empreinte": "de94c1473a68",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:521"
-      ]
-    },
-    "transmission.ready.label": {
-      "fr": {
-        "one": "{n} document prêt à transmettre",
-        "other": "{n} documents prêts à transmettre"
-      },
-      "empreinte": "ffd0451eda25",
-      "contexte": "libellé",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:489"
-      ]
-    },
-    "transmission.requetes.tooltip": {
-      "fr": "REQUÊTES",
-      "empreinte": "46a856aac02a",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:110"
+        "note-ui/TransmissionModal.jsx:552"
       ]
     },
     "transmission.selectionnezDocumentListe.text": {
@@ -10788,7 +10874,7 @@
       "empreinte": "42b85210c46e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:478"
+        "note-ui/TransmissionModal.jsx:496"
       ]
     },
     "transmission.sent.toast": {
@@ -10799,7 +10885,7 @@
       "empreinte": "5f529d873568",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:350"
+        "note-ui/TransmissionModal.jsx:366"
       ]
     },
     "transmission.signature.text": {
@@ -10807,7 +10893,7 @@
       "empreinte": "2f32be1dc741",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:214"
+        "note-ui/TransmissionModal.jsx:238"
       ]
     },
     "transmission.statusDone.text": {
@@ -10815,7 +10901,7 @@
       "empreinte": "f514de0dc919",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:132"
+        "note-ui/TransmissionModal.jsx:136"
       ]
     },
     "transmission.statusReady.text": {
@@ -10823,7 +10909,7 @@
       "empreinte": "c5e3c29f8857",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:132"
+        "note-ui/TransmissionModal.jsx:136"
       ]
     },
     "transmission.statusTodo.text": {
@@ -10831,15 +10917,7 @@
       "empreinte": "b06198e13a28",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:132"
-      ]
-    },
-    "transmission.transmettreDocumentPret.button": {
-      "fr": "Transmettre le document prêt",
-      "empreinte": "e49f915877e8",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:497"
+        "note-ui/TransmissionModal.jsx:136"
       ]
     },
     "transmission.transmissionDocuments.text": {
@@ -10847,7 +10925,7 @@
       "empreinte": "b2dd47025606",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:407"
+        "note-ui/TransmissionModal.jsx:425"
       ]
     },
     "transmission.transmitAll.button": {
@@ -10855,7 +10933,8 @@
       "empreinte": "e9f25e7d87c6",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:503"
+        "note-ui/TransmissionModal.jsx:533",
+        "note-ui/TransmissionModal.jsx:534"
       ]
     },
     "transmission.txNoteExam.label": {
@@ -10863,7 +10942,7 @@
       "empreinte": "8c0e18f8461d",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:69"
+        "note-ui/TransmissionModal.jsx:67"
       ]
     },
     "transmission.txNoteImaging.label": {
@@ -10871,7 +10950,7 @@
       "empreinte": "082afcd97fe3",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:47"
+        "note-ui/TransmissionModal.jsx:45"
       ]
     },
     "transmission.txNoteLab.label": {
@@ -10879,7 +10958,7 @@
       "empreinte": "f7ac75b0a13f",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:36"
+        "note-ui/TransmissionModal.jsx:34"
       ]
     },
     "transmission.txNotePatient.label": {
@@ -10887,7 +10966,7 @@
       "empreinte": "6d204161ad03",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:100"
+        "note-ui/TransmissionModal.jsx:98"
       ]
     },
     "transmission.txNotePharmacist.label": {
@@ -10903,7 +10982,7 @@
       "empreinte": "981fa83b26d1",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:90"
+        "note-ui/TransmissionModal.jsx:88"
       ]
     },
     "transmission.txNoteService.label": {
@@ -10911,7 +10990,7 @@
       "empreinte": "b883e20c457e",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:79"
+        "note-ui/TransmissionModal.jsx:77"
       ]
     },
     "transmission.txNoteSpecialist.label": {
@@ -10919,7 +10998,7 @@
       "empreinte": "03e6e64a4886",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:57"
+        "note-ui/TransmissionModal.jsx:55"
       ]
     },
     "transmission.txNounDocument.text": {
@@ -10927,7 +11006,7 @@
       "empreinte": "ddfec0abde4c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:97"
+        "note-ui/TransmissionModal.jsx:95"
       ]
     },
     "transmission.txNounExam.text": {
@@ -10935,7 +11014,7 @@
       "empreinte": "fbf71c07ed91",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:66"
+        "note-ui/TransmissionModal.jsx:64"
       ]
     },
     "transmission.txNounForm.text": {
@@ -10943,7 +11022,7 @@
       "empreinte": "0d3ffe1d4fb7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:86"
+        "note-ui/TransmissionModal.jsx:84"
       ]
     },
     "transmission.txNounImaging.text": {
@@ -10951,7 +11030,7 @@
       "empreinte": "a74a1f17eedd",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:44"
+        "note-ui/TransmissionModal.jsx:42"
       ]
     },
     "transmission.txNounLab.text": {
@@ -10959,7 +11038,7 @@
       "empreinte": "a4cfe115f162",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:33"
+        "note-ui/TransmissionModal.jsx:31"
       ]
     },
     "transmission.txNounPrescription.text": {
@@ -10975,7 +11054,7 @@
       "empreinte": "fb8878d96c68",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:54"
+        "note-ui/TransmissionModal.jsx:52"
       ]
     },
     "transmission.txNounService.text": {
@@ -10983,7 +11062,7 @@
       "empreinte": "13c4e6b1972f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:76"
+        "note-ui/TransmissionModal.jsx:74"
       ]
     },
     "transmission.txTitlePrefixTool.text": {
@@ -10991,7 +11070,7 @@
       "empreinte": "b1be8383fb3b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:87"
+        "note-ui/TransmissionModal.jsx:85"
       ]
     },
     "visit.aucunGabarit.text": {
@@ -11057,7 +11136,7 @@
       "empreinte": "bdbab40c55b6",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:1951"
+        "note-ui/editor-data.jsx:1980"
       ]
     },
     "visit.rdv.text": {
@@ -11081,8 +11160,8 @@
       "empreinte": "4738c69c6acd",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-data.jsx:1953",
-        "note-ui/editor-data.jsx:1955"
+        "note-ui/editor-data.jsx:1982",
+        "note-ui/editor-data.jsx:1984"
       ]
     },
     "visit.suiviResultat.text": {
@@ -11090,7 +11169,7 @@
       "empreinte": "5a5d16809ad1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-data.jsx:1955"
+        "note-ui/editor-data.jsx:1984"
       ]
     },
     "visit.type.clinic": {
@@ -11098,7 +11177,7 @@
       "empreinte": "c73d6f09340e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1524"
       ]
     },
     "visit.type.phone": {
@@ -11106,7 +11185,7 @@
       "empreinte": "6536a7ce83c4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1524"
       ]
     },
     "visit.type.update": {
@@ -11114,20 +11193,11 @@
       "empreinte": "f1241990ae57",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1489"
+        "note-ui/NoteEditor.jsx:1524"
       ]
     }
   },
   "donnees": [
-    {
-      "fr": "03 mai 2011",
-      "empreinte": "d48259d6e29c",
-      "contexte": "donnée de démonstration",
-      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age |",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:283"
-      ]
-    },
     {
       "fr": "03 mai 2011",
       "empreinte": "a063becf7717",
@@ -11143,7 +11213,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -11152,7 +11222,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('6 mois R1'), L('1 an R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1353"
+        "note-ui/NoteEditor.jsx:1388"
       ]
     },
     {
@@ -11253,7 +11323,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11262,7 +11332,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1347"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -11271,7 +11341,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Clinique de radiologie de Sherbrooke'), address: L('1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1'), phone: '819 562-3131', fax: '819 562-3132', f",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:50"
+        "note-ui/TransmissionModal.jsx:48"
       ]
     },
     {
@@ -11307,7 +11377,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('GMF Sherbrooke-Est'), address: L('1200 rue King Est, Sherbrooke (Québec) J1G 1E5'), phone: '819 565-1200', fax: '819 565-1201', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:93"
+        "note-ui/TransmissionModal.jsx:91"
       ]
     },
     {
@@ -11318,7 +11388,7 @@
       "fichiers": [
         "note-ui/NotesList.jsx:25",
         "note-ui/NotesList.jsx:49",
-        "note-ui/TransmissionModal.jsx:27"
+        "note-ui/editor-data.jsx:1921"
       ]
     },
     {
@@ -11327,7 +11397,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11336,16 +11406,16 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1347"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
-      "fr": "15 ans",
-      "empreinte": "ef022374f11d",
+      "fr": "150 rue Queen, Sherbrooke (Québec) J1M 1J6",
+      "empreinte": "a9ef2f01e328",
       "contexte": "donnée de démonstration",
-      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age |",
+      "extrait": "address: L('150 rue Queen, Sherbrooke (Québec) J1M 1J6'), phone: '819 346-8411', fax: '819 346-8412',",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:283"
+        "note-ui/editor-data.jsx:1936"
       ]
     },
     {
@@ -11363,7 +11433,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Biron Groupe Santé'), address: L('1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1'), phone: '819 562-8000', fax: '819 562-8001', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:39"
+        "note-ui/TransmissionModal.jsx:37"
       ]
     },
     {
@@ -11472,16 +11542,16 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1940"
+        "note-ui/editor-data.jsx:1969"
       ]
     },
     {
       "fr": "2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8",
       "empreinte": "a9b718bc03b1",
       "contexte": "donnée de démonstration",
-      "extrait": "{ name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false }",
+      "extrait": "address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204',",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:29"
+        "note-ui/editor-data.jsx:1927"
       ]
     },
     {
@@ -11490,7 +11560,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11499,7 +11569,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('21 jours R0'), L('28 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1348"
+        "note-ui/NoteEditor.jsx:1383"
       ]
     },
     {
@@ -11508,7 +11578,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11517,7 +11587,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('21 jours R0'), L('28 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1348"
+        "note-ui/NoteEditor.jsx:1383"
       ]
     },
     {
@@ -11544,7 +11614,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11553,7 +11623,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1347"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -11580,7 +11650,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -11589,7 +11659,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1349"
+        "note-ui/NoteEditor.jsx:1384"
       ]
     },
     {
@@ -11598,7 +11668,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1349"
+        "note-ui/NoteEditor.jsx:1384"
       ]
     },
     {
@@ -11607,7 +11677,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R5'), L('30 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1350"
+        "note-ui/NoteEditor.jsx:1385"
       ]
     },
     {
@@ -11616,7 +11686,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1349"
+        "note-ui/NoteEditor.jsx:1384"
       ]
     },
     {
@@ -11625,7 +11695,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R0'), L('30 jours R1'), L('30 jours R2'), L('30 jours R3'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1349"
+        "note-ui/NoteEditor.jsx:1384"
       ]
     },
     {
@@ -11634,7 +11704,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours R5'), L('30 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1350"
+        "note-ui/NoteEditor.jsx:1385"
       ]
     },
     {
@@ -11643,7 +11713,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fa",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:59"
+        "note-ui/TransmissionModal.jsx:57"
       ]
     },
     {
@@ -11653,11 +11723,20 @@
       "extrait": "recipients: [{ id: 'r-demo-chus', name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 ",
       "fichiers": [
         "note-ui/NotesList.jsx:45",
-        "note-ui/TransmissionModal.jsx:38",
-        "note-ui/TransmissionModal.jsx:49",
-        "note-ui/TransmissionModal.jsx:60",
-        "note-ui/TransmissionModal.jsx:71",
-        "note-ui/TransmissionModal.jsx:92"
+        "note-ui/TransmissionModal.jsx:36",
+        "note-ui/TransmissionModal.jsx:47",
+        "note-ui/TransmissionModal.jsx:58",
+        "note-ui/TransmissionModal.jsx:69",
+        "note-ui/TransmissionModal.jsx:90"
+      ]
+    },
+    {
+      "fr": "3050 boulevard de Portland, Sherbrooke (Québec) J1L 1K1",
+      "empreinte": "ed3953fc2729",
+      "contexte": "donnée de démonstration",
+      "extrait": "address: L('3050 boulevard de Portland, Sherbrooke (Québec) J1L 1K1'), phone: '819 569-1414', fax: '819 569-1415',",
+      "fichiers": [
+        "note-ui/editor-data.jsx:1930"
       ]
     },
     {
@@ -11666,7 +11745,16 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Dynacare'), address: L('375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1'), phone: '819 566-3000', fax: '819 566-3001', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:40"
+        "note-ui/TransmissionModal.jsx:38"
+      ]
+    },
+    {
+      "fr": "4800 boulevard Bourque, Sherbrooke (Québec) J1N 2A7",
+      "empreinte": "452bc8767cc2",
+      "contexte": "donnée de démonstration",
+      "extrait": "address: L('4800 boulevard Bourque, Sherbrooke (Québec) J1N 2A7'), phone: '819 864-4441', fax: '819 864-4442',",
+      "fichiers": [
+        "note-ui/editor-data.jsx:1933"
       ]
     },
     {
@@ -11684,7 +11772,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11693,7 +11781,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1347"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -11702,7 +11790,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('CLSC de Sherbrooke — soins à domicile'), address: L('50 rue Camirand, Sherbrooke (Québec) J1H 4J5'), phone: '819 780-2222', fax: '819 780-2223', favo",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:82"
+        "note-ui/TransmissionModal.jsx:80"
       ]
     },
     {
@@ -11718,9 +11806,9 @@
       "fr": "560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3",
       "empreinte": "a2c3704c7089",
       "contexte": "donnée de démonstration",
-      "extrait": "{ name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', f",
+      "extrait": "address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363',",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:28"
+        "note-ui/editor-data.jsx:1924"
       ]
     },
     {
@@ -11729,7 +11817,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Clinique du sommeil de l’Estrie'), address: L('580 rue Bowen Sud, Sherbrooke (Québec) J1G 2E8'), phone: '819 563-2222', fax: '819 563-2223', favorite",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:72"
+        "note-ui/TransmissionModal.jsx:70"
       ]
     },
     {
@@ -11738,7 +11826,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -11747,7 +11835,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('6 mois R1'), L('1 an R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1353"
+        "note-ui/NoteEditor.jsx:1388"
       ]
     },
     {
@@ -11756,7 +11844,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1940"
+        "note-ui/editor-data.jsx:1969"
       ]
     },
     {
@@ -11765,7 +11853,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -11774,7 +11862,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('60 jours R0'), L('60 jours R5'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1351"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -11783,7 +11871,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('60 jours R0'), L('60 jours R5'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1351"
+        "note-ui/NoteEditor.jsx:1386"
       ]
     },
     {
@@ -11792,7 +11880,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours'), L('5 jours'), L('7 jours'), L('10 jours'), L('14 jours'), L('21 jours'), L('28 jours'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1357"
+        "note-ui/NoteEditor.jsx:1392"
       ]
     },
     {
@@ -11801,7 +11889,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1347"
+        "note-ui/NoteEditor.jsx:1382"
       ]
     },
     {
@@ -11837,7 +11925,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -11846,7 +11934,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1352"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -11855,7 +11943,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1352"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -11864,7 +11952,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('90 jours R0'), L('90 jours R3'), L('90 jours R11'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1352"
+        "note-ui/NoteEditor.jsx:1387"
       ]
     },
     {
@@ -11931,7 +12019,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:557"
+        "Note Clinique.html:558"
       ]
     },
     {
@@ -12695,7 +12783,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1916"
       ]
     },
     {
@@ -12777,7 +12865,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1916"
       ]
     },
     {
@@ -12901,7 +12989,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Autre professionnel de la santé'),",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:120"
+        "note-ui/TransmissionModal.jsx:126"
       ]
     },
     {
@@ -13284,7 +13372,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Biron Groupe Santé'), address: L('1600 rue King Ouest, Sherbrooke (Québec) J1J 2C1'), phone: '819 562-8000', fax: '819 562-8001', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:39"
+        "note-ui/TransmissionModal.jsx:37"
       ]
     },
     {
@@ -13357,7 +13445,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception'",
       "fichiers": [
-        "note-ui/editor-data.jsx:1938"
+        "note-ui/editor-data.jsx:1967"
       ]
     },
     {
@@ -13411,8 +13499,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('CIUSSS de l’Estrie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1111', favorite: t",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:38",
-        "note-ui/TransmissionModal.jsx:92"
+        "note-ui/TransmissionModal.jsx:36",
+        "note-ui/TransmissionModal.jsx:90"
       ]
     },
     {
@@ -13430,7 +13518,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('CLSC de Sherbrooke — soins à domicile'), address: L('50 rue Camirand, Sherbrooke (Québec) J1H 4J5'), phone: '819 780-2222', fax: '819 780-2223', favo",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:82"
+        "note-ui/TransmissionModal.jsx:80"
       ]
     },
     {
@@ -13448,7 +13536,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1916"
       ]
     },
     {
@@ -13467,7 +13555,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fa",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:59"
+        "note-ui/TransmissionModal.jsx:57"
       ]
     },
     {
@@ -13568,7 +13656,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
+        "note-ui/NoteEditor.jsx:1916",
         "note-ui/editor-data.jsx:1516"
       ]
     },
@@ -13578,7 +13666,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Cardiologie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1113', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:60"
+        "note-ui/TransmissionModal.jsx:58"
       ]
     },
     {
@@ -13813,7 +13901,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Clinique de radiologie de Sherbrooke'), address: L('1150 rue King Ouest, Sherbrooke (Québec) J1H 1S1'), phone: '819 562-3131', fax: '819 562-3132', f",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:50"
+        "note-ui/TransmissionModal.jsx:48"
       ]
     },
     {
@@ -13822,7 +13910,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Clinique du sommeil de l’Estrie'), address: L('580 rue Bowen Sud, Sherbrooke (Québec) J1G 2E8'), phone: '819 563-2222', fax: '819 563-2223', favorite",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:72"
+        "note-ui/TransmissionModal.jsx:70"
       ]
     },
     {
@@ -13832,7 +13920,7 @@
       "extrait": "{ name: L('Clinique médicale King Ouest'), phone: '819 555-0166', fax: '819 555-0167' },",
       "fichiers": [
         "note-ui/FaxScreen.jsx:14",
-        "note-ui/TransmissionModal.jsx:123"
+        "note-ui/TransmissionModal.jsx:129"
       ]
     },
     {
@@ -14456,7 +14544,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:122"
+        "note-ui/TransmissionModal.jsx:128"
       ]
     },
     {
@@ -14465,7 +14553,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:122"
+        "note-ui/TransmissionModal.jsx:128"
       ]
     },
     {
@@ -14474,7 +14562,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TX_OTHER_DOCTORS = [L('Dr Marc Lefebvre'), L('Dre Sophie Bouchard'), L('Dr Julien Gagnon')];",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:122"
+        "note-ui/TransmissionModal.jsx:128"
       ]
     },
     {
@@ -14510,7 +14598,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Dynacare'), address: L('375 rue Belvédère Sud, Sherbrooke (Québec) J1H 4B1'), phone: '819 566-3000', fax: '819 566-3001', favorite: false },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:40"
+        "note-ui/TransmissionModal.jsx:38"
       ]
     },
     {
@@ -14944,6 +15032,15 @@
       ]
     },
     {
+      "fr": "Familiprix — Fleurimont",
+      "empreinte": "69eef0a49419",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ id: 'familiprix-fleurimont', name: L('Familiprix — Fleurimont'), banner: 'Familiprix', distanceKm: 4.1,",
+      "fichiers": [
+        "note-ui/editor-data.jsx:1929"
+      ]
+    },
+    {
       "fr": "Fatigue",
       "empreinte": "849afde5f9da",
       "contexte": "donnée de démonstration",
@@ -15208,8 +15305,8 @@
       "extrait": "{ name: L('GMF Sherbrooke-Est'), phone: '819 555-0142', fax: '819 555-0143' },",
       "fichiers": [
         "note-ui/FaxScreen.jsx:13",
-        "note-ui/TransmissionModal.jsx:123",
-        "note-ui/TransmissionModal.jsx:93"
+        "note-ui/TransmissionModal.jsx:129",
+        "note-ui/TransmissionModal.jsx:91"
       ]
     },
     {
@@ -15534,7 +15631,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ key: 'hba1c', name: L('Hémoglobine glyquée'), short: L('HbA1c'), alias: 'hba1c a1c' },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1940",
+        "note-ui/editor-data.jsx:1969",
         "note-ui/editor-data.jsx:656"
       ]
     },
@@ -15781,7 +15878,7 @@
       "extrait": "{ name: L('Hôpital Fleurimont — CHUS'), phone: '819 346-1110', fax: '819 346-1199' },",
       "fichiers": [
         "note-ui/FaxScreen.jsx:12",
-        "note-ui/TransmissionModal.jsx:123"
+        "note-ui/TransmissionModal.jsx:129"
       ]
     },
     {
@@ -15853,7 +15950,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1368"
+        "note-ui/NoteEditor.jsx:1403"
       ]
     },
     {
@@ -15862,7 +15959,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1369"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     {
@@ -15871,7 +15968,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1369"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     {
@@ -15880,7 +15977,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1368"
+        "note-ui/NoteEditor.jsx:1403"
       ]
     },
     {
@@ -15889,7 +15986,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1368"
+        "note-ui/NoteEditor.jsx:1403"
       ]
     },
     {
@@ -15907,7 +16004,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1369"
+        "note-ui/NoteEditor.jsx:1404"
       ]
     },
     {
@@ -16444,8 +16541,8 @@
         "note-ui/NotesList.jsx:50",
         "note-ui/TransmissionModal.jsx:23",
         "note-ui/TransmissionModal.jsx:24",
-        "note-ui/TransmissionModal.jsx:55",
-        "note-ui/TransmissionModal.jsx:77"
+        "note-ui/TransmissionModal.jsx:53",
+        "note-ui/TransmissionModal.jsx:75"
       ]
     },
     {
@@ -16472,7 +16569,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('30 jours'), L('60 jours'), L('90 jours'), L('6 mois'), L('1 an'), L('Long terme')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1358"
+        "note-ui/NoteEditor.jsx:1393"
       ]
     },
     {
@@ -16481,7 +16578,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1354"
+        "note-ui/NoteEditor.jsx:1389"
       ]
     },
     {
@@ -16490,7 +16587,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1354"
+        "note-ui/NoteEditor.jsx:1389"
       ]
     },
     {
@@ -16499,7 +16596,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Long terme R0'), L('Long terme R3'), L('Long terme R11')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1354"
+        "note-ui/NoteEditor.jsx:1389"
       ]
     },
     {
@@ -16638,7 +16735,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Mammographie Bilatérale')",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1370"
+        "note-ui/NoteEditor.jsx:1405"
       ]
     },
     {
@@ -16814,7 +16911,7 @@
         "note-ui/NotesList.jsx:57",
         "note-ui/NotesList.jsx:7",
         "note-ui/NotesList.jsx:90",
-        "note-ui/TransmissionModal.jsx:117"
+        "note-ui/TransmissionModal.jsx:123"
       ]
     },
     {
@@ -16823,7 +16920,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Médecin référent'),",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:118"
+        "note-ui/TransmissionModal.jsx:124"
       ]
     },
     {
@@ -16952,7 +17049,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Ne pas faire suivre'),",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:116"
+        "note-ui/TransmissionModal.jsx:122"
       ]
     },
     {
@@ -17054,15 +17151,15 @@
       "fichiers": [
         "note-ui/NotesList.jsx:46",
         "note-ui/TransmissionModal.jsx:23",
-        "note-ui/TransmissionModal.jsx:34",
-        "note-ui/TransmissionModal.jsx:45",
-        "note-ui/TransmissionModal.jsx:55",
-        "note-ui/TransmissionModal.jsx:56",
-        "note-ui/TransmissionModal.jsx:67",
-        "note-ui/TransmissionModal.jsx:77",
-        "note-ui/TransmissionModal.jsx:78",
-        "note-ui/TransmissionModal.jsx:88",
-        "note-ui/TransmissionModal.jsx:98"
+        "note-ui/TransmissionModal.jsx:32",
+        "note-ui/TransmissionModal.jsx:43",
+        "note-ui/TransmissionModal.jsx:53",
+        "note-ui/TransmissionModal.jsx:54",
+        "note-ui/TransmissionModal.jsx:65",
+        "note-ui/TransmissionModal.jsx:75",
+        "note-ui/TransmissionModal.jsx:76",
+        "note-ui/TransmissionModal.jsx:86",
+        "note-ui/TransmissionModal.jsx:96"
       ]
     },
     {
@@ -17316,7 +17413,16 @@
       "fichiers": [
         "note-ui/NotesList.jsx:25",
         "note-ui/NotesList.jsx:49",
-        "note-ui/TransmissionModal.jsx:27"
+        "note-ui/editor-data.jsx:1920"
+      ]
+    },
+    {
+      "fr": "PJC Jean-Coutu — Rock Forest",
+      "empreinte": "8d6093c01048",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ id: 'pjc-rock-forest', name: L('PJC Jean-Coutu — Rock Forest'), banner: 'Jean Coutu', distanceKm: 8.7,",
+      "fichiers": [
+        "note-ui/editor-data.jsx:1932"
       ]
     },
     {
@@ -17325,7 +17431,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:557",
+        "Note Clinique.html:558",
         "note-ui/NotesList.jsx:34",
         "note-ui/NotesList.jsx:58",
         "note-ui/NotesList.jsx:74",
@@ -17385,7 +17491,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Patient (portail sécurisé)'),",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:119"
+        "note-ui/TransmissionModal.jsx:125"
       ]
     },
     {
@@ -17456,9 +17562,9 @@
       "fr": "Pharmacie Brunet — Wellington Sud",
       "empreinte": "f9f9c1580abd",
       "contexte": "donnée de démonstration",
-      "extrait": "{ name: L('Pharmacie Brunet — Wellington Sud'), address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363', f",
+      "extrait": "{ id: 'brunet-wellington', name: L('Pharmacie Brunet — Wellington Sud'), banner: 'Brunet', distanceKm: 2.4,",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:28"
+        "note-ui/editor-data.jsx:1923"
       ]
     },
     {
@@ -17647,7 +17753,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Portail patient sécurisé'), address: '', phone: '', fax: '', favorite: true },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:102"
+        "note-ui/TransmissionModal.jsx:100"
       ]
     },
     {
@@ -17785,7 +17891,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception'",
       "fichiers": [
-        "note-ui/editor-data.jsx:1938"
+        "note-ui/editor-data.jsx:1967"
       ]
     },
     {
@@ -17897,6 +18003,15 @@
       "extrait": "L('DFGe (eGFR)'),L('Urée'),L('Calcium'),L('Phosphore'),L('Magnésium'),L('Albumine'),L('Protéines totales'),",
       "fichiers": [
         "note-ui/SummaryModals.jsx:742"
+      ]
+    },
+    {
+      "fr": "Proxim — Lennoxville",
+      "empreinte": "877f1574fbd9",
+      "contexte": "donnée de démonstration",
+      "extrait": "{ id: 'proxim-lennoxville', name: L('Proxim — Lennoxville'), banner: 'Proxim', distanceKm: 9.6,",
+      "fichiers": [
+        "note-ui/editor-data.jsx:1935"
       ]
     },
     {
@@ -18034,7 +18149,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1364"
+        "note-ui/NoteEditor.jsx:1399"
       ]
     },
     {
@@ -18043,7 +18158,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1364"
+        "note-ui/NoteEditor.jsx:1399"
       ]
     },
     {
@@ -18052,7 +18167,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1363"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -18061,7 +18176,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1363"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -18070,7 +18185,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Cheville'), L('Radiographie Poignet'), L('Radiographie Colonne'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1364"
+        "note-ui/NoteEditor.jsx:1399"
       ]
     },
     {
@@ -18079,7 +18194,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Radiographie Thorax'), L('Radiographie Genou'), L('Radiographie Hanche'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1363"
+        "note-ui/NoteEditor.jsx:1398"
       ]
     },
     {
@@ -18116,7 +18231,7 @@
       "extrait": "recipients: [{ id: 'r-demo-chus', name: L('Radiologie CHUS — Hôpital Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 ",
       "fichiers": [
         "note-ui/NotesList.jsx:45",
-        "note-ui/TransmissionModal.jsx:49"
+        "note-ui/TransmissionModal.jsx:47"
       ]
     },
     {
@@ -18465,9 +18580,9 @@
       "contexte": "donnée de démonstration",
       "extrait": "attachments: [L('Note clinique'), L('Résultats antérieurs')],",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:34",
-        "note-ui/TransmissionModal.jsx:45",
-        "note-ui/TransmissionModal.jsx:67"
+        "note-ui/TransmissionModal.jsx:32",
+        "note-ui/TransmissionModal.jsx:43",
+        "note-ui/TransmissionModal.jsx:65"
       ]
     },
     {
@@ -18558,8 +18673,8 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
-        "note-ui/editor-data.jsx:1938"
+        "note-ui/NoteEditor.jsx:1916",
+        "note-ui/editor-data.jsx:1967"
       ]
     },
     {
@@ -18744,7 +18859,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Soins infirmiers — Clinique du Centre-ville'), address: '', phone: '', fax: '', favorite: true },",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:81"
+        "note-ui/TransmissionModal.jsx:79"
       ]
     },
     {
@@ -18827,7 +18942,7 @@
       "extrait": "const GABARITS = [L('Canevas'), L('Première visite'), L('Suivi'), L('Consultation SOAP'), L('Note de décharge')];",
       "fichiers": [
         "note-ui/AIBox.jsx:3",
-        "note-ui/NoteEditor.jsx:1881",
+        "note-ui/NoteEditor.jsx:1916",
         "note-ui/editor-data.jsx:1701",
         "note-ui/editor-data.jsx:1786"
       ]
@@ -19034,7 +19149,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1367"
+        "note-ui/NoteEditor.jsx:1402"
       ]
     },
     {
@@ -19043,7 +19158,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1367"
+        "note-ui/NoteEditor.jsx:1402"
       ]
     },
     {
@@ -19052,7 +19167,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1367"
+        "note-ui/NoteEditor.jsx:1402"
       ]
     },
     {
@@ -19061,7 +19176,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1367"
+        "note-ui/NoteEditor.jsx:1402"
       ]
     },
     {
@@ -19439,7 +19554,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1916"
       ]
     },
     {
@@ -19464,9 +19579,9 @@
       "fr": "Uniprix — King Ouest",
       "empreinte": "425637812646",
       "contexte": "donnée de démonstration",
-      "extrait": "{ name: L('Uniprix — King Ouest'), address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204', favorite: false }",
+      "extrait": "{ id: 'uniprix-king', name: L('Uniprix — King Ouest'), banner: 'Uniprix', distanceKm: 2.4,",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:29"
+        "note-ui/editor-data.jsx:1926"
       ]
     },
     {
@@ -19475,7 +19590,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881",
+        "note-ui/NoteEditor.jsx:1916",
         "note-ui/editor-data.jsx:1492"
       ]
     },
@@ -19621,7 +19736,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "const TAG_SUGGESTIONS = [L('Visite en clinique'), L('Appel téléphonique'), L('Assurance privée'), L('CNESST'), L('Cardiologie'), L('Suivi'), L('Sans rendez-vous",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1881"
+        "note-ui/NoteEditor.jsx:1916"
       ]
     },
     {
@@ -19805,7 +19920,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },",
       "fichiers": [
-        "note-ui/editor-data.jsx:1940"
+        "note-ui/editor-data.jsx:1969"
       ]
     },
     {
@@ -19823,7 +19938,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1365"
+        "note-ui/NoteEditor.jsx:1400"
       ]
     },
     {
@@ -19832,7 +19947,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1366"
+        "note-ui/NoteEditor.jsx:1401"
       ]
     },
     {
@@ -19841,7 +19956,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1366"
+        "note-ui/NoteEditor.jsx:1401"
       ]
     },
     {
@@ -19850,7 +19965,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1365"
+        "note-ui/NoteEditor.jsx:1400"
       ]
     },
     {
@@ -19859,7 +19974,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1366"
+        "note-ui/NoteEditor.jsx:1401"
       ]
     },
     {
@@ -19868,7 +19983,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),",
       "fichiers": [
-        "note-ui/NoteEditor.jsx:1365"
+        "note-ui/NoteEditor.jsx:1400"
       ]
     },
     {
@@ -19949,7 +20064,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ name: L('Électrophysiologie — CHUS Fleurimont'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1114', ",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:71"
+        "note-ui/TransmissionModal.jsx:69"
       ]
     },
     {

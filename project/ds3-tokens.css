@@ -112,6 +112,10 @@
 .ds-btn--filled { background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
 .ds-btn--tonal { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
 .ds-btn--icon { width: 40px; padding: 0; background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-secondary-container); border: 1px solid var(--mat-sys-outline); }
+.ds-btn--outlined { background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); border: 1px solid var(--mat-sys-outline); }
+/* Désactivé (DS3) : fond on-surface 12 %, libellé 38 %, sans state-layer. */
+.ds-btn:disabled { background: color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent); color: color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent); border-color: transparent; cursor: not-allowed; }
+.ds-btn:disabled::before { opacity: 0; }
 
 /* Bouton icône 32 px (dsButtonSize xsmall) et item de sélecteur : state-layer 0,08 / 0,12,
    focus clavier = anneau 3 px inverse-surface. */

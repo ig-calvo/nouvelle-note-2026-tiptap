@@ -1906,7 +1906,36 @@ const PATIENT = {
   phone: '514 555 0184',
   reason: L('Otite moyenne aiguë'),
   status: L('En consultation'),
+  // Pharmacie favorite au dossier : préremplie comme destinataire de
+  // l'ordonnance au checkout (maquette « Transmission générale »).
+  pharmacyId: 'pjc-centre',
 };
+
+// Bottin des pharmacies à proximité, pour le destinataire de l'ordonnance au
+// checkout. Données SIMULÉES : distances fictives depuis la clinique, courriels
+// en exemple. `favorite` = favori du médecin (♡) ; la pharmacie du patient est
+// PATIENT.pharmacyId (★). `prescribeIt` : la pharmacie reçoit l'ordonnance par
+// PrescribeIT, qui remplace alors le fax et le courriel.
+const PHARMACIES = [
+  { id: 'pjc-centre', name: L('PJC Jean-Coutu — Centre-ville'), banner: 'Jean Coutu', distanceKm: 1.2,
+    address: L('1211 rue King Ouest, Sherbrooke (Québec) J1H 1R2'), phone: '819 565-9595', fax: '819 565-9673',
+    email: 'centre-ville@pharmacie.exemple', favorite: true },
+  { id: 'brunet-wellington', name: L('Pharmacie Brunet — Wellington Sud'), banner: 'Brunet', distanceKm: 2.4,
+    address: L('560 rue Wellington Sud, Sherbrooke (Québec) J1H 5E3'), phone: '819 566-2223', fax: '819 566-0363',
+    prescribeIt: true, favorite: true },
+  { id: 'uniprix-king', name: L('Uniprix — King Ouest'), banner: 'Uniprix', distanceKm: 2.4,
+    address: L('2050 rue King Ouest, Sherbrooke (Québec) J1J 2E8'), phone: '819 823-2222', fax: '819 823-7204',
+    favorite: false },
+  { id: 'familiprix-fleurimont', name: L('Familiprix — Fleurimont'), banner: 'Familiprix', distanceKm: 4.1,
+    address: L('3050 boulevard de Portland, Sherbrooke (Québec) J1L 1K1'), phone: '819 569-1414', fax: '819 569-1415',
+    prescribeIt: true, favorite: false },
+  { id: 'pjc-rock-forest', name: L('PJC Jean-Coutu — Rock Forest'), banner: 'Jean Coutu', distanceKm: 8.7,
+    address: L('4800 boulevard Bourque, Sherbrooke (Québec) J1N 2A7'), phone: '819 864-4441', fax: '819 864-4442',
+    email: 'rock-forest@pharmacie.exemple', favorite: false },
+  { id: 'proxim-lennoxville', name: L('Proxim — Lennoxville'), banner: 'Proxim', distanceKm: 9.6,
+    address: L('150 rue Queen, Sherbrooke (Québec) J1M 1J6'), phone: '819 346-8411', fax: '819 346-8412',
+    favorite: false },
+];
 
 // Gabarits de note suggérés selon la raison de consultation (colonne de
 // suggestions, rencontre vision 2026-10-27) : mots de la raison, dans les deux
@@ -1968,7 +1997,7 @@ function visitReason(points) {
   return (points || []).map(function (p) { return p.short; }).join(' · ');
 }
 
-window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT,
+window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,

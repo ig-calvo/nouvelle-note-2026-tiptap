@@ -1,6 +1,9 @@
 /* global React */
-function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clinique du Centre-ville' }) {
-  const [phase, setPhase] = React.useState('expanded');
+// `compactOnly` : rangée repliée seule, sans bouton pour l'étendre — utilisée
+// en tête du checkout (TransmissionModal), où le patient doit rester visible
+// sans prendre la place de la carte complète.
+function PatientBanner({ forceCollapsed, compactOnly, portalActive = true, clinicName = 'Clinique du Centre-ville' }) {
+  const [phase, setPhase] = React.useState(compactOnly ? 'collapsed' : 'expanded');
   const phaseRef = React.useRef(phase);
   phaseRef.current = phase;
 
@@ -82,9 +85,10 @@ function PatientBanner({ forceCollapsed, portalActive = true, clinicName = 'Clin
           <button style={pbStyles.iconBtn} aria-label={t('patientBanner.documents.aria')}>
             <span className="material-icons-outlined" style={pbStyles.iconBtnIc}>description</span>
           </button>
+          {!compactOnly &&
           <button style={{ ...pbStyles.iconBtn, border: 0 }} aria-label={t('patientBanner.etendre.aria')} onClick={() => setPhase('expanded')}>
             <span className="material-icons" style={{ ...pbStyles.iconBtnIc, color: "color-mix(in srgb, var(--mat-sys-on-surface) 45%, transparent)" }}>keyboard_arrow_down</span>
-          </button>
+          </button>}
         </div>
       </div>
       </div>

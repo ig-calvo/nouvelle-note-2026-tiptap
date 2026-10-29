@@ -1,7 +1,7 @@
 /* global React */
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true,
   saveDraftRef, noteWide = false,
-  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false,
+  reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
   aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
@@ -18,6 +18,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // (editor-schema.jsx), ici et dans la liste des notes. Posé pendant le rendu
   // pour que le pied de note et le checkout le voient dès ce rendu-ci.
   window.__GROUP_REQUESTS = !!groupRequests;
+  // Tweak « Pharmacie favorite au dossier » : préremplit l'ordonnance au
+  // checkout (defaultRecipients, editor-schema.jsx). Posé pendant le rendu.
+  window.__PATIENT_PHARMACY = patientPharmacy !== false;
   // Tweak « Gabarit : lignes à compléter » (A3) : lu par buildTemplateChipNode
   // (editor-schema.jsx) à l'application d'un gabarit, de note ou de conclusion.
   window.__TEMPLATE_DRAFT_LINES = templateDraftLines !== false;
@@ -132,6 +135,12 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // complete, transmitted, comment } }, pour que le bandeau « documents non
   // transmis » de l'item Note reste exact même après fermeture du sheet.
   const [transmissionOpen, setTransmissionOpen] = React.useState(false);
+  // Dialogue « Compléter la note » (faire suivre + signature), ouvert par
+  // « Finaliser » ; la complétion est sortie du checkout (D-11, Q-40).
+  const [finalizeOpen, setFinalizeOpen] = React.useState(false);
+  // Documents figés au moment de la complétion, pour que le checkout qui
+  // s'ouvre ensuite survive à la remise à zéro de l'éditeur.
+  const [frozenTxDocs, setFrozenTxDocs] = React.useState(null);
   const [transmissionOnlyId, setTransmissionOnlyId] = React.useState(null);
   const [txState, setTxState] = React.useState({});
   // Événements d'action de la note (D-05) : [{cid, type: 'transmis' |
@@ -834,9 +843,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setTransmissionOpen(true);
   }
 
-  // Bouton « Compléter » de la barre du bas — ouvre le même checkout de
-  // transmission, avec l'item « Note » présélectionné (faire suivre +
-  // signature), qui est le point d'entrée par défaut pour compléter la note.
+  // Bouton « Finaliser » de la barre du bas — ouvre le dialogue « Compléter
+  // la note » (faire suivre + signature) ; le checkout suit s'il reste des
+  // documents à transmettre (completeNoteFromDialog).
   // Mode révision : des modifications en attente bloquent la complétion —
   // dialogue « Tout accepter et compléter / Réviser / Annuler » plutôt que
   // de laisser un contenu ambigu (non relu) partir au dossier.
@@ -849,7 +858,22 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       setPendingGate(true);
       return;
     }
-    openTransmission(window.TX_NOTE_ITEM_ID);
+    setFinalizeOpen(true);
+  }
+
+  // Compléter la note depuis le dialogue : les documents non transmis sont
+  // figés AVANT finalizeComplete (qui remet l'éditeur à zéro), puis le
+  // checkout s'ouvre sur le premier d'entre eux.
+  function completeNoteFromDialog() {
+    var docs = buildTransmissionDocs();
+    var pendingDocs = docs.filter(function(d) { return !(d.complete && d.transmitted); });
+    setFinalizeOpen(false);
+    finalizeComplete();
+    if (window.toast) window.toast(t('transmission.noteCompletee.toast'), { icon: 'check_circle' });
+    if (pendingDocs.length) {
+      setFrozenTxDocs(docs);
+      openTransmission(pendingDocs[0].id);
+    }
   }
 
   // Ajouts en attente (gabarit) — barre au-dessus du corps de la note et
@@ -875,7 +899,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   function reviewGateAcceptAllAndComplete() {
     if (editorRef.current) window.acceptAllChanges(editorRef.current);
     setReviewGate(false);
-    openTransmission(window.TX_NOTE_ITEM_ID);
+    setFinalizeOpen(true);
   }
 
   function reviewGateReview() {
@@ -895,8 +919,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setQuickSendCid(cid);
   }
 
-  // Finalisation réelle, déclenchée par la confirmation de l'item Note dans
-  // TransmissionModal (NoteActionPanel) :
+  // Finalisation réelle, déclenchée par le dialogue « Compléter la note »
+  // (NoteFinalizeDialog, voir completeNoteFromDialog) :
   // la note est sauvée et envoyée dans la liste.
   function finalizeComplete() {
     // Un ajout proposé par un gabarit et jamais accepté n'entre pas dans la note complétée.
@@ -1191,11 +1215,23 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           onSelect={handleToolSelect} />
       }
 
-      {/* Transmission des documents (checkout) — bottom sheet, point d'entrée
-          par défaut de « Compléter » (item Note présélectionné). */}
+      {/* Compléter la note — faire suivre + signature, avant le checkout. */}
+      {finalizeOpen &&
+        <window.NoteFinalizeDialog
+          noteInfo={{ title: (raison && raison.trim()) || t('noteEditor.noteClinique.tooltip'), date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
+          doctorName={doctorName}
+          institution={institution}
+          pendingDocs={buildTransmissionDocs().filter(function(d) { return !(d.complete && d.transmitted); })}
+          onFinalize={completeNoteFromDialog}
+          onCancel={function() { setFinalizeOpen(false); }} />
+      }
+
+      {/* Transmission des documents (checkout) — ouvert par ➤, par l'envoi
+          rapide (« Voir tous les documents ») ou après la complétion. */}
       {transmissionOpen &&
         <TransmissionModal
           docs={buildTransmissionDocs()}
+          initialFrozenDocs={frozenTxDocs}
           onPatch={patchTxState}
           onComplete={markDocComplete}
           doctorName={doctorName}
@@ -1203,9 +1239,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           initialSelectedId={transmissionOnlyId}
           showSuggestions={checkoutSuggestions}
           noteInfo={{ title: (raison && raison.trim()) || t('noteEditor.noteClinique.tooltip'), date: noteDate, time: noteTime, visitType: VISIT_TYPE_LABEL[visitType] || visitType }}
-          onFinalizeNote={function() { finalizeComplete(); }}
           onPatchArchivedNote={onPatchArchivedTx}
-          onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); }} />
+          onClose={function() { setTransmissionOpen(false); setTransmissionOnlyId(null); setFrozenTxDocs(null); }} />
       }
 
       {/* Envoi rapide d'un document individuel (« Prescrire »/« Transmettre »
@@ -1235,9 +1270,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {pendingGate &&
         <window.PendingCompleteDialog
           summary={pending}
-          onAcceptAllAndComplete={function() { resolvePending(true); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onAcceptAllAndComplete={function() { resolvePending(true); setPendingGate(false); setFinalizeOpen(true); }}
           onReview={function() { setPendingGate(false); reviewFirstPending(); }}
-          onCompleteWithout={function() { resolvePending(false); setPendingGate(false); openTransmission(window.TX_NOTE_ITEM_ID); }}
+          onCompleteWithout={function() { resolvePending(false); setPendingGate(false); setFinalizeOpen(true); }}
           onCancel={function() { setPendingGate(false); }} />
       }
 

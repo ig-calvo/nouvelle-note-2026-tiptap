@@ -2447,6 +2447,19 @@ function buildActionLog(docJson, events) {
 // requête de laboratoire, toutes les puces imagerie dans une requête
 // d'imagerie — comme l'Ordonnance regroupe les prescriptions. Sinon, un
 // document par puce (comportement d'origine).
+// Destinataires d'un document tant que personne n'y a touché (txState sans
+// `recipients`) : la pharmacie favorite au dossier du patient pour
+// l'ordonnance (maquette « Transmission générale »), sauf si le tweak
+// « Pharmacie favorite au dossier » est éteint (window.__PATIENT_PHARMACY).
+// Retirer cette pharmacie écrit `recipients: []`, qui reste vide.
+function defaultRecipients(docId, kind) {
+  var data = window.NOTE_DATA || {};
+  if (kind !== 'prescription' || window.__PATIENT_PHARMACY === false) return [];
+  var pid = data.PATIENT && data.PATIENT.pharmacyId;
+  var ph = (data.PHARMACIES || []).find(function(p) { return p.id === pid; });
+  return ph ? [Object.assign({}, ph, { id: 'r-' + docId + '-' + ph.id })] : [];
+}
+
 function buildTransmissionDocs(docStats, txState, opts) {
   var groupRequests = opts && opts.groupRequests !== undefined ? !!opts.groupRequests : !!window.__GROUP_REQUESTS;
   var ents = docStats.chips; // [{cid, entity}], dans l'ordre du document
@@ -2509,7 +2522,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
         (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(t('common.labelValue.text', { label: it.label, value: i.message })); });
         return acc;
       }, []),
-      recipients: st.recipients || [],
+      recipients: st.recipients || defaultRecipients(id, kind),
       complete: stale ? false : !!st.complete,
       transmitted: stale ? false : !!st.transmitted,
       comment: st.comment || '',
