@@ -2250,6 +2250,11 @@ const PATIENT = window.forPatient({ adulte: {
   pharmacyId: 'pjc-centre',
 } });
 
+// CRDS de la région de la clinique (Sherbrooke) : destinataire d'office d'une
+// référence en spécialité (D11 de PLAN-reference-specialite.md). Données fictives.
+const CRDS_REGIONAL = { id: 'crds-estrie', name: L('CRDS Estrie — Centre de répartition des demandes de service'),
+  address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fax: '819 780-2221', favorite: true };
+
 // Bottin des pharmacies à proximité, pour le destinataire de l'ordonnance au
 // checkout. Données SIMULÉES : distances fictives depuis la clinique, courriels
 // en exemple. `favorite` = favori du médecin (♡) ; la pharmacie du patient est
@@ -2338,7 +2343,7 @@ function visitReason(points) {
   return (points || []).map(function (p) { return p.short; }).join(' · ');
 }
 
-window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES,
+window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,

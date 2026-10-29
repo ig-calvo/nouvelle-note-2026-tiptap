@@ -75,3 +75,25 @@ test('raison à justifier : un texte à inscrire, requis', () => {
   assert.equal(D.crdsPrereqMissing('neuro-25', { [f.key]: '  ' }).length, 1);
   assert.equal(D.crdsPrereqMissing('neuro-25', { [f.key]: 'Larmoiement, rhinorrhée' }).length, 0);
 });
+
+// Checkout (lot 5) : la référence au CRDS de la région, « Céphalée » et sa
+// raison dans la sidebar, le détail de la requête avec les prérequis remplis.
+import { doc, H2 } from './harness.mjs';
+
+test('checkout : CRDS de la région d’office, détail de la requête avec les médicaments essayés', () => {
+  const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx'], { patient: 'adulte' });
+  const D = w.NOTE_DATA;
+  const chip = w.orderChipAttrs('ref', D.crdsRefItem(D.crdsReason('neuro-24')));
+  const build = (c, tx) => w.buildTransmissionDocs(w.scanDoc(doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [{ type: 'chip', attrs: c }] })), tx || {})
+    .find((d) => d.kind === 'referral');
+  const ref = build(chip);
+  assert.equal(ref.title, 'Céphalée');
+  assert.equal(ref.items[0].sub, 'Migraine');
+  assert.deepEqual(ref.recipients.map((r) => r.name), [D.CRDS_REGIONAL.name]);
+  const rd = ref.items[0].ref;
+  assert.equal(rd.specialty, w.TR('Neurologie'));
+  assert.deepEqual(rd.tags.map((x) => [x.label, x.value]), [[w.TR('Triptan'), w.TR('almotriptan')], [w.TR('Prophylaxie'), w.TR('candesartan')]]);
+  // Orientation vers un médecin désigné : pas de CRDS d'office.
+  const named = Object.assign({}, chip, { details: Object.assign({}, chip.details, { orientation: 'designe' }) });
+  assert.deepEqual(build(named).recipients, []);
+});

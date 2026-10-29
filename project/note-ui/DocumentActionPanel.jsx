@@ -293,6 +293,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   const [maxKm, setMaxKm] = React.useState(5);
   const [banner, setBanner] = React.useState('');
   const [previewZoom, setPreviewZoom] = React.useState(false);
+  const [fileQuery, setFileQuery] = React.useState(''); // « Rechercher au dossier » (référence)
   const [openContent, setOpenContent] = React.useState(true);
   const [openAttach, setOpenAttach] = React.useState(false);
   const [attachPickerOpen, setAttachPickerOpen] = React.useState(false);
@@ -338,6 +339,161 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
   const kmOptions = [1, 5, 10].map(function (k) { return { value: k, label: t('documentAction.distanceKm.text', { km: k }) }; })
     .concat([{ value: null, label: t('documentAction.touteDistance.text') }]);
   function comingSoon() { if (window.toast) window.toast(t('transmission.aVenir.toast'), { icon: 'info' }); }
+
+  const recipientsCol = (
+    <React.Fragment>
+      {/* Colonne 2 — destinataires (maquette « Transmission générale ») */}
+      <div style={dap.col}>
+        <div style={dap.recipHead}>
+          <span style={dap.recipTitle}>{t('documentAction.destinataire.label', { n: doc.recipients.length })}</span>
+          {!readOnly && doc.recipients.length > 0 &&
+            <button type="button" className="ds-icon-btn" style={{ color: 'var(--mat-sys-primary)' }}
+              title={t('documentAction.ajouterDestinataire.tooltip')} aria-label={t('documentAction.ajouterDestinataire.tooltip')}
+              aria-expanded={searchOpen} onClick={function () { setSearchOpen(!searchOpen); }}>
+              <span className="material-icons" style={{ fontSize: 22 }}>add</span>
+            </button>}
+          {!readOnly &&
+            <button type="button" className="ds-icon-btn" style={{ marginLeft: 'auto', color: 'var(--mat-sys-primary)' }}
+              title={t('documentAction.ajouterDepuisBottin.button')} aria-label={t('documentAction.ajouterDepuisBottin.button')}
+              onClick={comingSoon}>
+              <span className="material-icons-outlined" style={{ fontSize: 22 }}>contact_page</span>
+            </button>}
+        </div>
+  
+        {doc.recipients.length === 0 && readOnly &&
+          <div style={dap.emptyReadonly}>{t('documentAction.aucunDestinataireEteChoisi.text')}</div>
+        }
+  
+        {doc.recipients.map(function (r) {
+          return (
+            <DapRecipientCard key={r.id} r={r} readOnly={readOnly}
+              showStar={nearby}
+              isPatientPharmacy={!!patientPharmacy && r.name === patientPharmacy.name}
+              onRemove={function () { onRemoveRecipient(r.id); }}
+              onChannels={function (chs) { setChannels(r.id, chs); }} />
+          );
+        })}
+  
+        {showSearch &&
+          <div style={dap.searchBlock}>
+            <div style={dap.searchField}>
+              <span className="material-icons" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>search</span>
+              <input style={dap.searchInput} value={query} placeholder={t('documentAction.rechercheDestinataire.placeholder')}
+                aria-label={t('documentAction.rechercheDestinataire.placeholder')}
+                onChange={function (e) { setQuery(e.target.value); }} />
+              <button type="button" className="ds-icon-btn" onClick={comingSoon}
+                title={t('documentAction.carte.tooltip')} aria-label={t('documentAction.carte.tooltip')}>
+                <span className="material-icons-outlined" style={{ fontSize: 22 }}>map</span>
+              </button>
+            </div>
+            {nearby &&
+              <div style={dap.filterRow}>
+                <DapSelect value={maxKm} options={kmOptions} onChange={setMaxKm} />
+                <DapSelect value={banner} options={bannerOptions} onChange={setBanner} />
+              </div>}
+            {/* Le bottin est la base ; le tweak `checkoutSuggestions` n'y
+                ajoute que l'habillage ✨ (D-12). */}
+            {showSuggestions && !suggestHidden && directory.length > 0 &&
+              <div style={dap.suggestTitle}>
+                <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
+                {t('documentAction.suggestions.label', { n: directory.length })}
+                <button style={dap.suggestHideBtn} title={t('documentAction.masquerSuggestions.tooltip')}
+                  onClick={function () { setSuggestHidden(true); }}>
+                  <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
+                </button>
+              </div>}
+            {directory.length === 0
+              ? <div style={dap.emptyReadonly}>{t('documentAction.aucunResultat.text')}</div>
+              : directory.map(function (s) {
+                  return (
+                    <DapDirectoryCard key={s.id || s.name} s={s}
+                      onAdd={function () { onAddRecipient(s); setSearchOpen(false); setQuery(''); }} />
+                  );
+                })}
+          </div>}
+      </div>
+    </React.Fragment>);
+
+  // Référence en spécialité (Figma « Demande de consultation en médecine
+  // spécialisée », PLAN-reference-specialite.md, lot 5) : destinataire, détail
+  // de la requête, renseignements cliniques — proposés par l'assistant (✦) et
+  // retirables, ou ajoutés depuis le dossier.
+  if (doc.kind === 'referral') {
+    const rd = (doc.items[0] && doc.items[0].ref) || {};
+    const suggested = meta.attachmentsSuggested || [];
+    const lastNote = (window.PAST_NOTES || [])[0];
+    const attachSub = function (name) { return name === L('Dernière note clinique') && lastNote ? String(lastNote.date).replace(/\s+\d{1,2}:\d{2}.*$/, '').toLowerCase() : ''; };
+    const D = window.NOTE_DATA;
+    const dossier = attachRemaining
+      .concat((D.PATIENT_MEDS || []).map(function (m) { return (m.name + ' ' + (m.dose || '')).trim(); }))
+      .concat(((window.__SOMMAIRE_DX_BASE && window.__SOMMAIRE_DX_BASE.problems) || []).map(function (p) { return p.name; }))
+      .filter(function (n, i, all) { return attachments.indexOf(n) < 0 && all.indexOf(n) === i; })
+      .filter(function (n) { return fileQuery.trim() && dapNorm(n).indexOf(dapNorm(fileQuery).trim()) >= 0; });
+    return (
+      <React.Fragment>
+        <div style={dap.titleRow}>
+          <span className="material-symbols-outlined" style={dap.titleIcon}>{meta.icon}</span>
+          <h2 style={dap.docTitle}>{meta.docTitle || docTitle}</h2>
+          {(doc.complete || doc.transmitted) &&
+            <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeSent : {})}>
+              <span className="material-icons-outlined" style={{ fontSize: 16 }}>{doc.transmitted ? 'done_all' : 'check_circle'}</span>
+              {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.completee.text')}
+            </span>}
+        </div>
+        <div style={dap.cols3}>
+          <div style={dap.col}>{recipientsCol}</div>
+          <div style={dap.col}>
+            <div style={dap.colLabel}>{t('documentAction.refDetail.label')}</div>
+            <div style={dap.refCard}>
+              <div style={dap.refSpec}>{rd.specialty || doc.title}</div>
+              {rd.section && <div style={dap.refSection}>{rd.section}</div>}
+              {rd.reason && <div style={dap.refReason}>{rd.reason}</div>}
+              {(rd.tags || []).map(function (tg) {
+                return <span key={tg.label} style={dap.refTag}><b>{tg.label}</b> {tg.value}</span>;
+              })}
+              <div style={dap.refMeta}>{[rd.priority, rd.orientation === 'designe' ? t('popover.refOrientNamed.label') : t('popover.refOrientFirst.label')].filter(Boolean).join(' · ')}</div>
+              {rd.clinical && <div style={dap.refClinical}>{rd.clinical}</div>}
+            </div>
+          </div>
+          <div style={dap.col}>
+            <div style={dap.colLabel}>{t('documentAction.refClinical.label', { n: attachments.length })}</div>
+            {!readOnly &&
+            <div style={Object.assign({}, dap.searchField, { marginBottom: 8 })}>
+              <span className="material-icons" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>search</span>
+              <input style={dap.searchInput} value={fileQuery} placeholder={t('documentAction.refSearchFile.placeholder')}
+                aria-label={t('documentAction.refSearchFile.placeholder')} onChange={function (e) { setFileQuery(e.target.value); }} />
+            </div>}
+            {dossier.map(function (name) {
+              return (
+                <button key={name} type="button" style={dap.pickerRow}
+                  onClick={function () { setAttachments(attachments.concat([name])); setFileQuery(''); }}>
+                  <span className="material-icons" style={{ fontSize: 17, color: 'var(--mat-sys-primary)' }}>add</span>
+                  <span style={dap.pickerName}>{name}</span>
+                </button>);
+            })}
+            {attachments.map(function (name) {
+              const ai = suggested.indexOf(name) >= 0;
+              const sub = attachSub(name);
+              return (
+                <div key={name} style={dap.refAttach}>
+                  <span className="material-icons" aria-hidden={!ai} title={ai ? t('documentAction.refSuggested.tooltip') : undefined}
+                    style={{ fontSize: 18, color: ai ? 'light-dark(#5b54b8, #b3b0de)' : 'var(--mat-sys-on-surface-variant)' }}>{ai ? 'auto_awesome' : 'attach_file'}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={dap.refAttachName}>{name}</div>
+                    {sub && <div style={dap.refAttachSub}>{sub}</div>}
+                  </div>
+                  {!readOnly &&
+                    <button type="button" className="ds-icon-btn" title={t('documentAction.retirer.tooltip')} aria-label={t('documentAction.retirer.tooltip') + ' : ' + name}
+                      onClick={function () { setAttachments(attachments.filter(function (a) { return a !== name; })); }}>
+                      <span className="material-icons-outlined" style={{ fontSize: 20 }}>delete</span>
+                    </button>}
+                </div>);
+            })}
+          </div>
+        </div>
+      </React.Fragment>
+    );
+  }
 
   return (
     <React.Fragment>
@@ -415,76 +571,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         </div>
         }
 
-        {/* Colonne 2 — destinataires (maquette « Transmission générale ») */}
-        <div style={dap.col}>
-          <div style={dap.recipHead}>
-            <span style={dap.recipTitle}>{t('documentAction.destinataire.label', { n: doc.recipients.length })}</span>
-            {!readOnly && doc.recipients.length > 0 &&
-              <button type="button" className="ds-icon-btn" style={{ color: 'var(--mat-sys-primary)' }}
-                title={t('documentAction.ajouterDestinataire.tooltip')} aria-label={t('documentAction.ajouterDestinataire.tooltip')}
-                aria-expanded={searchOpen} onClick={function () { setSearchOpen(!searchOpen); }}>
-                <span className="material-icons" style={{ fontSize: 22 }}>add</span>
-              </button>}
-            {!readOnly &&
-              <button type="button" className="ds-icon-btn" style={{ marginLeft: 'auto', color: 'var(--mat-sys-primary)' }}
-                title={t('documentAction.ajouterDepuisBottin.button')} aria-label={t('documentAction.ajouterDepuisBottin.button')}
-                onClick={comingSoon}>
-                <span className="material-icons-outlined" style={{ fontSize: 22 }}>contact_page</span>
-              </button>}
-          </div>
-
-          {doc.recipients.length === 0 && readOnly &&
-            <div style={dap.emptyReadonly}>{t('documentAction.aucunDestinataireEteChoisi.text')}</div>
-          }
-
-          {doc.recipients.map(function (r) {
-            return (
-              <DapRecipientCard key={r.id} r={r} readOnly={readOnly}
-                showStar={nearby}
-                isPatientPharmacy={!!patientPharmacy && r.name === patientPharmacy.name}
-                onRemove={function () { onRemoveRecipient(r.id); }}
-                onChannels={function (chs) { setChannels(r.id, chs); }} />
-            );
-          })}
-
-          {showSearch &&
-            <div style={dap.searchBlock}>
-              <div style={dap.searchField}>
-                <span className="material-icons" style={{ fontSize: 22, color: 'var(--mat-sys-on-surface-variant)' }}>search</span>
-                <input style={dap.searchInput} value={query} placeholder={t('documentAction.rechercheDestinataire.placeholder')}
-                  aria-label={t('documentAction.rechercheDestinataire.placeholder')}
-                  onChange={function (e) { setQuery(e.target.value); }} />
-                <button type="button" className="ds-icon-btn" onClick={comingSoon}
-                  title={t('documentAction.carte.tooltip')} aria-label={t('documentAction.carte.tooltip')}>
-                  <span className="material-icons-outlined" style={{ fontSize: 22 }}>map</span>
-                </button>
-              </div>
-              {nearby &&
-                <div style={dap.filterRow}>
-                  <DapSelect value={maxKm} options={kmOptions} onChange={setMaxKm} />
-                  <DapSelect value={banner} options={bannerOptions} onChange={setBanner} />
-                </div>}
-              {/* Le bottin est la base ; le tweak `checkoutSuggestions` n'y
-                  ajoute que l'habillage ✨ (D-12). */}
-              {showSuggestions && !suggestHidden && directory.length > 0 &&
-                <div style={dap.suggestTitle}>
-                  <span className="material-icons" style={{ fontSize: 15, color: 'light-dark(#5b54b8, #b3b0de)' }}>auto_awesome</span>
-                  {t('documentAction.suggestions.label', { n: directory.length })}
-                  <button style={dap.suggestHideBtn} title={t('documentAction.masquerSuggestions.tooltip')}
-                    onClick={function () { setSuggestHidden(true); }}>
-                    <span className="material-icons-outlined" style={{ fontSize: 17 }}>visibility_off</span>
-                  </button>
-                </div>}
-              {directory.length === 0
-                ? <div style={dap.emptyReadonly}>{t('documentAction.aucunResultat.text')}</div>
-                : directory.map(function (s) {
-                    return (
-                      <DapDirectoryCard key={s.id || s.name} s={s}
-                        onAdd={function () { onAddRecipient(s); setSearchOpen(false); setQuery(''); }} />
-                    );
-                  })}
-            </div>}
-        </div>
+        {recipientsCol}
 
         <div style={dap.col}>
           <div style={dap.colLabel}>{t('documentAction.preview.label')}
@@ -519,6 +606,17 @@ const dap = {
   btnDisabled: { opacity: 0.42, cursor: 'not-allowed' },
   cols: { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr', gap: 22, alignItems: 'start' },
   colsTwo: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, alignItems: 'start' },
+  cols3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 22, alignItems: 'start' },
+  refCard: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, padding: 12, border: '1px solid var(--mat-sys-outline)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)' },
+  refSpec: { font: "500 16px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  refSection: { font: "600 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  refReason: { font: "400 13px/18px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' },
+  refTag: { font: "400 12.5px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', padding: '2px 6px', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 4 },
+  refMeta: { font: "400 12.5px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)' },
+  refClinical: { font: "400 12.5px/17px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', whiteSpace: 'pre-wrap', borderTop: '1px solid var(--mat-sys-outline-variant)', paddingTop: 6, alignSelf: 'stretch' },
+  refAttach: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 8px 8px 10px', marginBottom: 8, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 6, background: 'var(--mat-sys-surface-container-lowest)' },
+  refAttachName: { font: "600 14px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  refAttachSub: { font: "400 12px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface-variant)', marginTop: 2 },
   col: { minWidth: 0 },
   colLabel: {
     display: 'flex', alignItems: 'center', gap: 6,

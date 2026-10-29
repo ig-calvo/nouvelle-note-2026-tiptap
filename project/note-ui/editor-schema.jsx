@@ -2470,12 +2470,39 @@ function buildActionLog(docJson, events) {
 // l'ordonnance (maquette « Transmission générale »), sauf si le tweak
 // « Pharmacie favorite au dossier » est éteint (window.__PATIENT_PHARMACY).
 // Retirer cette pharmacie écrit `recipients: []`, qui reste vide.
-function defaultRecipients(docId, kind) {
+// Une référence va d'office au CRDS de la région (D11 de
+// PLAN-reference-specialite.md), sauf orientation vers un médecin désigné.
+function defaultRecipients(docId, kind, items) {
   var data = window.NOTE_DATA || {};
+  if (kind === 'referral') {
+    var ref = items && items[0] && items[0].ref;
+    return data.CRDS_REGIONAL && !(ref && ref.orientation === 'designe')
+      ? [Object.assign({}, data.CRDS_REGIONAL, { id: 'r-' + docId + '-' + data.CRDS_REGIONAL.id })] : [];
+  }
   if (kind !== 'prescription' || window.__PATIENT_PHARMACY === false) return [];
   var pid = data.PATIENT && data.PATIENT.pharmacyId;
   var ph = (data.PHARMACIES || []).find(function(p) { return p.id === pid; });
   return ph ? [Object.assign({}, ph, { id: 'r-' + docId + '-' + ph.id })] : [];
+}
+
+// « Détail de la requête » d'une référence au checkout (Figma) : spécialité,
+// section, raison, prérequis remplis (« Triptan almotriptan »), priorité.
+function refRequestDetail(d) {
+  var D = window.NOTE_DATA;
+  var tags = [];
+  if (d.crdsKey && D.crdsPrereqs) {
+    var vals = d.prereqs || {};
+    D.crdsPrereqs(d.crdsKey).forEach(function (f) {
+      if (f.kind === 'choices') {
+        var on = f.options.filter(function (o) { return (vals[f.key] || []).indexOf(o.key) >= 0; }).map(function (o) { return o.label; });
+        if (on.length) tags.push({ label: f.label, value: on.join(', ') });
+      } else if (f.kind === 'text' && String(vals[f.key] || '').trim()) {
+        tags.push({ label: f.label, value: String(vals[f.key]).trim() });
+      }
+    });
+  }
+  return { specialty: D.valueLabel(d.specialty), section: d.reason ? D.valueLabel(d.section) : '', reason: d.reason || '',
+    priority: D.priorityLabel(d.priority || 'Routine'), tags: tags, clinical: d.clinical || '', orientation: d.orientation || 'premier' };
 }
 
 function buildTransmissionDocs(docStats, txState, opts) {
@@ -2496,8 +2523,9 @@ function buildTransmissionDocs(docStats, txState, opts) {
       label = [window.NOTE_DATA.valueLabel(d.modality), window.NOTE_DATA.valueLabel(d.region)].filter(Boolean).join(' ') || ent.label;
       sub = [window.NOTE_DATA.valueLabel(d.views), window.NOTE_DATA.valueLabel(d.priority), (d.contrast && d.contrast !== 'Sans') ? window.t('data.withContrastLower.text') : ''].filter(Boolean).join(' · ');
     } else if (t === 'referral') {
-      label = window.NOTE_DATA.valueLabel(d.specialty) || ent.label;
-      sub = [d.reason, window.NOTE_DATA.priorityLabel(d.priority), d.question].filter(Boolean).join(' · ');
+      // Comme la puce : « Céphalée », puis la raison (D2 de PLAN-reference-specialite.md).
+      label = window.NOTE_DATA.valueLabel(d.section) || window.NOTE_DATA.valueLabel(d.specialty) || ent.label;
+      sub = d.reason || window.NOTE_DATA.priorityLabel(d.priority);
     } else if (t === 'exam') {
       label = d.exam || ent.label;
       sub = [window.NOTE_DATA.valueLabel(d.priority), d.question].filter(Boolean).join(' · ');
@@ -2515,7 +2543,9 @@ function buildTransmissionDocs(docStats, txState, opts) {
     // Mêmes états que sur la puce (chipIssues) : le checkout les montre, et un
     // état bloquant (prescription incomplète) empêche de compléter le document.
     var issues = chipIssues(ent);
-    return { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant, issues: issues };
+    var item = { id: e.cid, type: t, label: label, sub: sub, ceased: ceased, variant: variant, issues: issues };
+    if (t === 'referral') item.ref = refRequestDetail(d);
+    return item;
   }
 
   // Un document bundlant plusieurs items (l'Ordonnance) peut recevoir un
@@ -2540,7 +2570,7 @@ function buildTransmissionDocs(docStats, txState, opts) {
         (it.issues || []).forEach(function(i) { if (i.blocking) acc.push(t('common.labelValue.text', { label: it.label, value: i.message })); });
         return acc;
       }, []),
-      recipients: st.recipients || defaultRecipients(id, kind),
+      recipients: st.recipients || defaultRecipients(id, kind, items),
       complete: stale ? false : !!st.complete,
       transmitted: stale ? false : !!st.transmitted,
       comment: st.comment || '',
