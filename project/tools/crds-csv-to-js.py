@@ -64,6 +64,17 @@ TYPES = {
     'User action': 'action',
 }
 
+# Sections ajoutées à l'inventaire (PLAN-reference-specialite.md, D4) : le CRDS
+# ne range pas ces raisons de Neurologie, le Figma les regroupe sous
+# « Céphalée » (suggestions et libellé de la puce). Marquées `added` dans les
+# données, pour les distinguer des sections officielles.
+ADDED_PATH = {
+    ('neuro', 'Migraine'): ['Céphalée'],
+    ('neuro', 'Suspicion céphalée de Horton (Cluster)'): ['Céphalée'],
+    ('neuro', 'Névralgie du trijumeau'): ['Céphalée'],
+    ('neuro', 'Autre type de céphalée primaires'): ['Céphalée'],
+}
+
 COTE = re.compile(r'\s*\[([A-E])\]\s*$')
 SEE_NOTES = re.compile(r'\s*-?\s*\(?voir (?:la |les )?notes? [0-9][0-9 ,et]*\*?\)?', re.I)
 LEVELS = re.compile(r'\s+[-–]\s+')
@@ -111,6 +122,10 @@ def main(src):
         s = specs[key]
         del s['_by']
         for reason in s['reasons']:
+            extra = ADDED_PATH.get((key, reason['label']))
+            if extra and not reason['path']:
+                reason['path'] = list(extra)
+                reason['added'] = True
             if not reason['docs']:
                 del reason['docs']
             for d in reason.get('docs', []):

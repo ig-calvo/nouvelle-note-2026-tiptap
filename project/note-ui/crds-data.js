@@ -3329,7 +3329,9 @@ window.CRDS_DATA = {
 },
 {
 "id":"neuro-24",
-"path":[],
+"path":[
+"Céphalée"
+],
 "label":"Migraine",
 "cote":"D",
 "docs":[
@@ -3338,11 +3340,14 @@ window.CRDS_DATA = {
 "type":"profil",
 "auto":"Impossible"
 }
-]
+],
+"added":true
 },
 {
 "id":"neuro-25",
-"path":[],
+"path":[
+"Céphalée"
+],
 "label":"Suspicion céphalée de Horton (Cluster)",
 "cote":"C",
 "docs":[
@@ -3351,11 +3356,14 @@ window.CRDS_DATA = {
 "type":"saisie",
 "auto":"Impossible"
 }
-]
+],
+"added":true
 },
 {
 "id":"neuro-26",
-"path":[],
+"path":[
+"Céphalée"
+],
 "label":"Névralgie du trijumeau",
 "cote":"C",
 "docs":[
@@ -3364,11 +3372,14 @@ window.CRDS_DATA = {
 "type":"saisie",
 "auto":"Impossible"
 }
-]
+],
+"added":true
 },
 {
 "id":"neuro-27",
-"path":[],
+"path":[
+"Céphalée"
+],
 "label":"Autre type de céphalée primaires",
 "cote":"E",
 "docs":[
@@ -3377,7 +3388,8 @@ window.CRDS_DATA = {
 "type":"saisie",
 "auto":"Impossible"
 }
-]
+],
+"added":true
 }
 ]
 },

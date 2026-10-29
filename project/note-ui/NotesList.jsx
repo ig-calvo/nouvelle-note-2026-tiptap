@@ -1,5 +1,48 @@
 /* global React */
-const NOTE_ITEMS_TEMPLATE = [
+// Notes antérieures de démonstration, par patiente (patients.js).
+const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
+  {
+    date: L("14 MAI 2026 10:40"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Suivi migraine"),
+    icons: [],
+    diagnostics: [L("Migraine sans aura")],
+    episodeId: "ep-demo-migraine",
+    details: L("Motif : Suivi de migraine sous candesartan depuis 6 mois.\nSubjectif : Calendrier des céphalées : 9 jours de migraine par mois (12 avant le candesartan). Almotriptan efficace en 2 h dans 2 crises sur 3. Aucun abus de médicaments.\nObjectif : TA 124/78. Examen neurologique normal."),
+    conclusion: L("Impression : Migraine sans aura, réponse partielle au candesartan.\nPlan : Poursuivre candesartan 8 mg DIE et almotriptan au besoin. Calendrier des céphalées. Bilan rénal et électrolytes faits. Revoir dans 3 mois ; référer en neurologie si pas de gain."),
+    files: [],
+  },
+  {
+    date: L("20 NOVEMBRE 2025 15:05"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Céphalées plus fréquentes"),
+    icons: [],
+    diagnostics: [L("Migraine sans aura")],
+    episodeId: "ep-demo-migraine",
+    details: L("Motif : Céphalées plus fréquentes depuis 3 mois.\nSubjectif : Céphalées pulsatiles unilatérales, nausées, photophobie, 12 jours par mois. Naproxène peu efficace.\nObjectif : Examen neurologique normal. Aucun signe d'alarme."),
+    conclusion: L("Impression : Migraine sans aura à haute fréquence.\nPlan : Cesser le naproxène. Débuter almotriptan 12,5 mg au début de la crise et candesartan 8 mg DIE en prophylaxie. Calendrier des céphalées."),
+    files: [],
+  },
+  {
+    date: L("3 MARS 2025 09:30"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Suivi hypothyroïdie"),
+    icons: [],
+    diagnostics: [L("Hypothyroïdie")],
+    details: L("Motif : Suivi annuel d'hypothyroïdie.\nSubjectif : Asymptomatique. Prise régulière de la lévothyroxine.\nObjectif : TSH 3,1 mUI/L."),
+    conclusion: L("Impression : Hypothyroïdie bien contrôlée.\nPlan : Poursuivre lévothyroxine 75 mcg DIE. TSH dans 12 mois."),
+    files: [],
+  },
+], pediatrique: [
   {
     date: L("2 JUILLET 2026 13:45"),
     author: "%%DOCTOR%%",
@@ -99,7 +142,7 @@ const NOTE_ITEMS_TEMPLATE = [
       { name: L("Exempledocument.pdf"), size: "220KB" },
     ],
   },
-];
+] });
 
 // Notes antérieures lues par la colonne de suggestions (« Réutiliser ma
 // dernière conclusion », dxConclusionOptions) — la plus récente d'abord.

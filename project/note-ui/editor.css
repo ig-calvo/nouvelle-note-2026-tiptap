@@ -474,6 +474,8 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
    erreur = bordure error + icône ; interaction de haut risque = bordure 2 px
    et fond teinté ; avertissement = icône seulement. Commentaire = bulle. */
 .chip--rx.chip--error { border-color: var(--mat-sys-error); }
+/* Référence dont un prérequis CRDS manque (chipIssues, kind 'prereq') : contour en tirets, comme le Figma. */
+.chip--rx.chip--todo { border-style: dashed; border-color: var(--mat-sys-outline); }
 .chip--rx.chip--interaction { border-width: 2px; padding: 1px 7px; background: color-mix(in srgb, var(--mat-sys-error-container) 55%, var(--mat-sys-surface-container-lowest)); }
 .chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
 .chip-issue-icon--error { color: var(--mat-sys-error); }
@@ -537,6 +539,8 @@ html:not([data-pending-badge="on"]) .chip-status--pending { display: none; }
 .chip--rx .chip-rx-poso,
 .chip--rx .chip-rx-sig { font-weight: 500; font-size: 12px; color: var(--fg-3); }
 .chip--rx .chip-rx-sig:empty { display: none; }
+/* Raison CRDS d'une référence (« Céphalée · Migraine ») : tronquée, complète en info-bulle. */
+.chip--rx .chip-rx-reason { display: inline-block; max-width: 36ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 .chip--rx .chip-rx-poso > span { border-radius: 4px; padding: 1px 4px; }
 .chip--rx .chip-rx-poso > span[data-field] { cursor: pointer; transition: background 0.12s, color 0.12s, box-shadow 0.12s; }
 /* Indice « éditable » : surbrillance claire au survol des segments cliquables */
@@ -960,14 +964,29 @@ body.nsx-dragging-body * { cursor: grabbing !important; }
    pièces jointes requises dans le formulaire (RefFields, CrdsDocs).
    ============================================================ */
 .rx-status--cote { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
-.ref-docs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
-.ref-docs__item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-low); font: 400 13px/18px var(--font-body); color: var(--mat-sys-on-surface); }
-.ref-docs__item .material-symbols-outlined { font-size: 18px; flex-shrink: 0; color: var(--mat-sys-on-surface-variant); }
-.ref-docs__item.is-auto .material-symbols-outlined { color: light-dark(#2e7d5b, #a8e5d3); }
-.ref-docs__name { flex: 1; min-width: 0; }
-.ref-docs__note { color: var(--mat-sys-on-surface-variant); }
-.ref-docs__state { flex-shrink: 0; font-weight: 600; color: var(--mat-sys-on-surface-variant); }
-.ref-docs__item.is-auto .ref-docs__state { color: light-dark(#2e7d5b, #a8e5d3); }
+.ref-hint { margin-top: 4px; font: 400 12px/16px var(--font-body); color: var(--mat-sys-on-surface-variant); }
+/* Priorité d'une référence CRDS : boutons segmentés A à E (Figma). */
+.ref-cote { display: flex; border: 1px solid var(--mat-sys-outline); border-radius: var(--mat-sys-corner-small); overflow: hidden; }
+.ref-cote__btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; padding: 0 8px; border: 0; border-left: 1px solid var(--mat-sys-outline); background: transparent; color: var(--mat-sys-on-surface); font: 500 14px var(--font-body); cursor: pointer; }
+.ref-cote__btn:first-child { border-left: 0; }
+.ref-cote__btn.is-on { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ref-cote__btn .material-symbols-outlined, .ref-pill .material-symbols-outlined { font-size: 18px; }
+.ref-cote__btn:focus-visible, .ref-pill:focus-visible { outline: 2px solid var(--mat-sys-primary); outline-offset: -2px; }
+/* Prérequis CRDS : pastilles à cocher par groupe, pièces jointes et cases. */
+.ref-prereq { gap: 8px; }
+.ref-prereq__title { font: 600 13px var(--font-body); color: var(--mat-sys-on-surface); }
+.ref-prereq__group { display: flex; flex-direction: column; gap: 6px; }
+.ref-prereq__label { font: 400 12px var(--font-body); color: var(--mat-sys-on-surface-variant); }
+.ref-prereq__label.is-short { color: light-dark(#8a5300, #f0c27a); font-weight: 600; }
+.ref-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.ref-pill { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 12px; border: 1px solid var(--mat-sys-outline); border-radius: var(--mat-sys-corner-small); background: transparent; color: var(--mat-sys-on-surface); font: 400 14px var(--font-body); cursor: pointer; }
+.ref-pill.is-on { background: var(--mat-sys-secondary-container); border-color: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+.ref-doc { display: flex; align-items: flex-start; gap: 8px; padding: 6px 8px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-low); font: 400 13px/18px var(--font-body); color: var(--mat-sys-on-surface); cursor: pointer; }
+.ref-doc input { margin: 1px 0 0; width: 16px; height: 16px; accent-color: var(--mat-sys-primary); }
+.ref-doc .material-symbols-outlined { font-size: 18px; flex-shrink: 0; color: light-dark(#2e7d5b, #a8e5d3); }
+.ref-doc__name { flex: 1; min-width: 0; }
+.ref-doc__state { flex-shrink: 0; font-weight: 600; color: var(--mat-sys-on-surface-variant); }
+.ref-doc.is-auto .ref-doc__state { color: light-dark(#2e7d5b, #a8e5d3); }
 
 /* Ajout en lot par virgules (BatchList, menu de recherche « / »). */
 .rx-batch { margin: 8px 12px 4px; padding: 8px 10px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-surface-container-low); border: 1px solid var(--mat-sys-outline-variant); }

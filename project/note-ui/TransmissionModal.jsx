@@ -49,12 +49,17 @@ const TX_META = {
     ],
   },
   referral: {
-    icon: 'person_add', accent: '#c0693c', nounPhrase: t('transmission.txNounReferral.text'),
-    attachments: [L('Note clinique'), L('Liste de médicaments active')],
-    attachmentsOn: [L('Note clinique')],
+    icon: 'assignment', accent: '#c0693c', nounPhrase: t('transmission.txNounReferral.text'),
+    // Renseignements cliniques (Figma « Demande de consultation en médecine
+    // spécialisée ») : trois pièces proposées d'office par l'assistant (✦),
+    // retirables ; « Rechercher au dossier » ajoute le reste.
+    attachments: [L('Formulaire pharmacologique'), L('Dernière note clinique'), L('Feuille sommaire'), L('Liste de médicaments active'), L('Note clinique')],
+    attachmentsOn: [L('Formulaire pharmacologique'), L('Dernière note clinique'), L('Feuille sommaire')],
+    attachmentsSuggested: [L('Formulaire pharmacologique'), L('Dernière note clinique'), L('Feuille sommaire')],
     noteLabel: t('transmission.txNoteSpecialist.label'),
+    docTitle: t('documentAction.refDocTitle.title'),
     suggestions: [
-      { name: L('CRDS Estrie — Centre de répartition des demandes de service'), address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fax: '819 780-2221', favorite: true },
+      window.NOTE_DATA.CRDS_REGIONAL,
       { name: L('Cardiologie — CHUS'), address: L('3001 12e Avenue Nord, Sherbrooke (Québec) J1H 5N4'), phone: '819 346-1110', fax: '819 346-1113', favorite: false },
     ],
   },

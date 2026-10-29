@@ -53,7 +53,7 @@ function PatientBanner({ forceCollapsed, compactOnly, portalActive = true, clini
               <span style={pbStyles.collapsedExp}>{t('patientBanner.exp0328.text')}</span>
               <span style={pbStyles.collapsedFileChip}>
                 <span className="material-icons-outlined" style={{ fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)" }}>folder_open</span>
-                654189
+                {P.chart || '654189'}
               </span>
               <span style={pbStyles.collapsedLangChip}>FR</span>
             </div>
@@ -114,7 +114,7 @@ function PatientBanner({ forceCollapsed, compactOnly, portalActive = true, clini
           <div style={pbStyles.fileRow}>
             <span style={pbStyles.fileChip}>
               <span className="material-icons-outlined" style={{ fontSize: 16, color: "color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)" }}>folder_open</span>
-              654189
+              {P.chart || '654189'}
             </span>
             <span style={pbStyles.langChip}>FR</span>
           </div>
@@ -126,11 +126,11 @@ function PatientBanner({ forceCollapsed, compactOnly, portalActive = true, clini
         <div style={pbStyles.contactRow}>
           <span className="material-icons-outlined" style={pbStyles.contactIcon}>contact_phone</span>
           <span style={pbStyles.muted}>{t('patientBanner.cellulaire.text')}</span>
-          <span style={pbStyles.link}>819-555-0456</span>
+          <span style={pbStyles.link}>{P.cell || '819-555-0456'}</span>
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
         <div style={{ ...pbStyles.contactRow, paddingLeft: 30 }}>
-          <span style={pbStyles.email}>{t('patientBanner.genevieveTremblayTestExample.text')}</span>
+          <span style={pbStyles.email}>{P.email || t('patientBanner.genevieveTremblayTestExample.text')}</span>
           <span className="material-icons" style={pbStyles.greenCheck}>check_circle</span>
         </div>
       </div>

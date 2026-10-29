@@ -11,7 +11,7 @@ const ENTITY_TYPES = {
   instructions: { key: 'instructions', label: L('Consignes'),    icon: 'menu_book', summaryGroup: L('Consignes') },
   diagnostic:   { key: 'diagnostic',   label: L('Diagnostic'),   icon: 'local_hospital', summaryGroup: L('Diagnostics') },
   file:         { key: 'file',         label: L('Fichier'),       icon: 'attach_file',    summaryGroup: L('Fichiers') },
-  referral:     { key: 'referral',     label: L('Référence'),     icon: 'person_add',     summaryGroup: L('Références') },
+  referral:     { key: 'referral',     label: L('Référence'),     icon: 'assignment',     summaryGroup: L('Références') },
   // Requêtes ajoutées à la rencontre du 2026-10-27 (C2) : examen diagnostique et service.
   exam:         { key: 'exam',         label: L('Examen diagnostique'), icon: 'monitor_heart', summaryGroup: L('Résultats') },
   service:      { key: 'service',      label: L('Service'),       icon: 'medical_services', summaryGroup: L('Services') },
@@ -370,6 +370,13 @@ const MED_CATALOG = [
     details: { molecule: L('Fluticasone (nasal)'), dose: '50', unit: 'mcg', form: 'vaporisateur', route: 'Nasal',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: L('1 flacon'), refills: '0',
       indication: L('Sinusite, rhinite'), notes: L('2 vaporisations dans chaque narine.') } },
+  // Migraine (PLAN-reference-specialite.md, lot 2) : le triptan du texte rapide.
+  { key: 'sumatriptan50', stem: 'sumatriptan', brand: 'Imitrex', klass: L('Triptan'), din: '',
+    text: L('Sumatriptan 50 mg — 1 co au début de la crise, max. 4 co par 24 h'),
+    label: L('Sumatriptan 50 mg'),
+    details: { molecule: L('Sumatriptan'), dose: '50', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '6', refills: '2',
+      indication: L('Migraine'), notes: L('Au début de la crise ; répéter après 2 h au besoin.') } },
   { key: 'prednisone50', stem: 'prednisone', brand: 'Winpred', klass: L('Corticosteroide'), din: '',
     text: L('Prednisone 50 mg — 1 co DIE x 5 j'),
     label: L('Prednisone 50 mg'),
@@ -453,7 +460,36 @@ const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 // d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
 // profil garde le Tylenol et la nitrofurantoïne déjà au Sommaire.
 const MED_STATUS_LABEL = { active: t('data.medStatusActive.text'), echue: t('data.medStatusExpired.text'), 'cessée': t('data.medStatusCeased.text') };
-const PATIENT_MEDS = [
+const PATIENT_MEDS = window.forPatient({ adulte: [
+  // Micheline Lamontagne (patients.js) : le profil que reprend le Figma
+  // « Demande de consultation en médecine spécialisée » — almotriptan et
+  // candesartan cochés d'office dans les médicaments essayés de la référence.
+  { key: 'med-almotriptan', name: L('Almotriptan'), dose: '12,5 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    sig: L('1 co PO PRN'),
+    chipSig: L('1 co PO PRN'),
+    details: { molecule: L('Almotriptan'), dose: '12,5', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Migraine'), notes: L('Au début de la crise, max. 2 co par 24 h.') } },
+  { key: 'med-candesartan', name: L('Candesartan'), dose: '8 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    doseSteps: ['4', '8', '16'], // paliers d'exemple (mg), à valider
+    sig: L('1 co PO DIE'),
+    chipSig: L('1 co PO DIE'),
+    details: { molecule: L('Candesartan'), dose: '8', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Prophylaxie de la migraine'), notes: L('Profil actif au dossier.') } },
+  { key: 'med-levothyroxine', name: L('Lévothyroxine'), dose: '75 mcg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    sig: L('1 co PO DIE'),
+    chipSig: L('1 co PO DIE'),
+    details: { molecule: L('Lévothyroxine'), dose: '75', unit: 'mcg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Hypothyroïdie'), notes: L('Profil actif au dossier.') } },
+  { key: 'med-naproxene', name: L('Naproxène'), dose: '500 mg', med: true, medStatus: 'cessée', medDate: '11/2025', medStatusLabel: L('cessé (inefficace)'),
+    sig: L('1 co PO BID'),
+    chipSig: L('1 co PO BID'),
+    details: { molecule: L('Naproxène'), dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Migraine'), notes: L('Cessé 11/2025.') } },
+], pediatrique: [
   { key: 'med-tylenol-100', name: L('Tylenol'), dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
     sig: L('1 co PO PRN'),
@@ -473,7 +509,7 @@ const PATIENT_MEDS = [
     details: { molecule: L('Nitrofurantoïne'), dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '5', durationUnit: 'jours', quantity: '10', refills: '0',
       indication: L('Infection urinaire'), notes: L('Cessée 12/2025.') } },
-];
+] });
 
 // Boutons d'une ligne du menu /rx (RxMenu), dans l'ordre d'affichage. Une
 // médication déjà au dossier : renouveler, augmenter, diminuer, cesser (active ou
@@ -549,8 +585,10 @@ function applyRxFilter(r, f) {
 // classes et correspondances simulées, à valider cliniquement.
 const ALLERGEN_CLASSES = [
   { key: 'penicilline', allergy: /penicill|amoxicill|ampicill|cloxacill/, product: /penicill|amoxicill|ampicill|cloxacill|piperacill/ },
+  // Sulfamides antibactériens (2e patiente, RA-38) : le TMP-SMX (cat-45).
+  { key: 'sulfamides', allergy: /sulfam|sulfon/, product: /sulfamethox/ },
 ];
-let _patientAllergies = [L('Pénicilline')];
+let _patientAllergies = window.forPatient({ pediatrique: [L('Pénicilline')], adulte: [L('Sulfamides')] });
 let _showAllergens = false;
 function setPatientAllergies(names) { _patientAllergies = (names || []).filter(Boolean); }
 function getPatientAllergies() { return _patientAllergies.slice(); }
@@ -830,30 +868,45 @@ function labShortName(name) {
 // déjà faites, leur dernier résultat et sa tendance par rapport au résultat
 // précédent (décision D4). Repris des résultats du Sommaire
 // (sommaire/store.jsx) ; « Stable » sous 5 % d'écart, seuil fictif (Q-08).
-const LAB_ON_FILE = {
+const LAB_ON_FILE = window.forPatient({ adulte: {
+  fsc:   { date: '2026-05-12', value: L('Hb 128 g/L'), status: 'normal', prev: L('Hb 131 g/L'), trend: 'stable' },
+  creat: { date: '2026-05-12', value: L('78 µmol/L'), status: 'normal', prev: L('74 µmol/L'), trend: 'stable' },
+  ions:  { date: '2026-05-12', value: L('K 4,3 mmol/L'), status: 'normal' },
+  tsh:   { date: '2026-05-12', value: L('2,4 mUI/L'), status: 'normal', prev: L('3,1 mUI/L'), trend: 'down' },
+  hba1c: { date: '2026-05-12', value: '5,6 %', status: 'normal' }
+}, pediatrique: {
   fsc:   { date: '2025-09-28', value: L('Hb 135 g/L'), status: 'normal', prev: L('Hb 141 g/L'), trend: 'stable' },
   creat: { date: '2025-09-28', value: L('82 µmol/L'), status: 'normal', prev: L('79 µmol/L'), trend: 'stable' },
   ldl:   { date: '2025-09-28', value: L('3,4 mmol/L'), status: 'anormal', prev: L('3,7 mmol/L'), trend: 'down' },
   tsh:   { date: '2025-09-28', value: L('2,1 mUI/L'), status: 'normal', prev: L('1,8 mUI/L'), trend: 'up' },
   fer:   { date: '2025-09-28', value: L('18 µmol/L'), status: 'normal' }
-};
+} });
 function labOnFile(key) { return LAB_ON_FILE[key] || null; }
 // Prévention (RA-16 du prototype) et Suggérés selon les problèmes actifs du
 // Sommaire (RA-05) : la raison, la fréquence et l'échéance sur la 2e ligne.
 // Contenu fictif, validation clinique requise (Q-01, Q-10 du prototype).
-const LAB_PREVENTION = [
+const LAB_PREVENTION = window.forPatient({ adulte: [
+  { key: 'lipide', why: L('Dépistage de la dyslipidémie · aux 5 ans · dû depuis le 2026-03-01') },
+  { key: 'hba1c', why: L('Dépistage du diabète · aux 3 ans · fait le 2026-05-12') }
+], pediatrique: [
   { key: 'cguri', why: L('Dépistage des ITSS · selon les facteurs de risque') },
   { key: 'vih', why: L('Dépistage des ITSS · selon les facteurs de risque') },
   { key: 'syphilis', why: L('Dépistage des ITSS · selon les facteurs de risque') }
-];
-const LAB_SUGGESTED = [
+] });
+const LAB_SUGGESTED = window.forPatient({ adulte: [
+  { problem: L('Hypothyroïdie'), items: [
+    { key: 'tsh', why: L('Aux 12 mois · prochain le 2027-05-12') }] },
+  { problem: L('Migraine sans aura'), items: [
+    { key: 'creat', why: L('Suivi du candesartan · aux 12 mois · prochain le 2027-05-12') },
+    { key: 'ions', why: L('Suivi du candesartan · aux 12 mois · prochain le 2027-05-12') }] }
+], pediatrique: [
   { problem: L('Hypertension artérielle'), items: [
     { key: 'ions', why: L('Aux 12 mois · jamais fait') },
     { key: 'creat', why: L('Aux 12 mois · dû depuis le 2026-09-28') }] },
   { problem: L('Dyslipidémie'), items: [
     { key: 'lipide', why: L('Aux 12 mois · dû depuis le 2026-09-28') },
     { key: 'apob', why: L('Selon le risque cardiovasculaire · jamais fait') }] }
-];
+] });
 
 // Panneau de droite du menu /lab (RA-10 du prototype) : des vues, puis les
 // groupes du catalogue. Une vue filtre aussi la recherche en cours, comme le
@@ -995,13 +1048,104 @@ function crdsReasonsOf(specialty) {
 // raison et sa cote comme priorité (Routine si le formulaire n'en donne pas).
 function crdsRefDetails(r, base) {
   return Object.assign({ question: '', indication: '' }, base || {}, { specialty: r.specName, crdsKey: r.crds,
-    reason: r.name, reasonPath: r.path.slice(), priority: r.cote || 'Routine' });
+    reason: r.name, reasonPath: r.path.slice(), section: crdsSection(r), priority: r.cote || 'Routine', prereqs: crdsPrereqInit(r.crds) });
+}
+// Section d'une raison, ou sa spécialité quand le CRDS ne la range pas (D2) :
+// « Céphalée », « Cardiologie ».
+function crdsSection(r) { return (r && r.path && r.path[0]) || (r && r.specName) || ''; }
+
+// Formulaires qui vont à l'âge de la patiente : moins de 18 ans, la Pédiatrie
+// générale et les formulaires « adulte et enfant » ; sinon, tout sauf la
+// Pédiatrie générale (D3).
+function crdsFitsPatient(r) {
+  const s = CRDS_SPECS.find(function (x) { return x.key === r.spec; });
+  const form = _norm((s && s.form) || '');
+  if (PATIENT.ageYears < 18) return r.spec === 'pedia' || (/enfant|pediatrique/.test(form) && /adulte/.test(form));
+  return r.spec !== 'pedia';
+}
+// Raisons suggérées pour le diagnostic de la région où /ref est tapé (D1) : la
+// liste `ref` de son contexte (DX_CONTEXTS), selon l'âge de la patiente.
+let _refDx = null;
+function refSuggestionsFor(dx) {
+  const c = dx ? dxContextFor(dx) : null;
+  return ((c && c.ref) || []).map(crdsReason).filter(Boolean).filter(crdsFitsPatient);
+}
+
+// Prérequis d'une raison CRDS, à remplir dans le formulaire de la référence.
+// Migraine en Neurologie adulte (Figma, D5) : les « Médicaments essayés » en
+// pastilles par groupe, avec un minimum par groupe (1 triptan, 2 traitements
+// prophylactiques) ; cochés d'office d'après le profil médicamenteux (actifs ou
+// cessés : essayés). Liste d'exemple, à valider cliniquement. Les autres
+// raisons : leurs pièces jointes CRDS, rendues par type (D5b) — jointes
+// d'office (DSQ, dossier), texte à inscrire, action à faire, pièce à joindre.
+const CRDS_PREREQ_CHOICES = {
+  'neuro-24': { title: L('Médicaments essayés'), groups: [
+    { key: 'triptan', label: L('Triptan'), min: 1, options: [
+      { key: 'almotriptan', label: L('almotriptan'), match: /almotriptan/ },
+      { key: 'eletriptan', label: L('élétriptan'), match: /eletriptan/ },
+      { key: 'frovatriptan', label: L('frovatriptan'), match: /frovatriptan/ },
+      { key: 'naratriptan', label: L('naratriptan'), match: /naratriptan/ },
+      { key: 'rizatriptan', label: L('rizatriptan'), match: /rizatriptan/ },
+      { key: 'sumatriptan', label: L('sumatriptan'), match: /sumatriptan/ },
+      { key: 'zolmitriptan', label: L('zolmitriptan'), match: /zolmitriptan/ }] },
+    { key: 'prophylaxie', label: L('Prophylaxie'), min: 2, options: [
+      { key: 'tricycliques', label: L('tricycliques'), match: /amitriptyl|nortriptyl/ },
+      { key: 'beta-bloqueurs', label: L('bêta-bloqueurs'), match: /propranolol|metoprolol|nadolol/ },
+      { key: 'candesartan', label: L('candesartan'), match: /candesartan/ },
+      { key: 'topiramate', label: L('topiramate'), match: /topiramat/ },
+      { key: 'cgrp', label: L('anticorps CGRP'), match: /erenumab|galcanezumab|fremanezumab|eptinezumab/ }] }] },
+};
+// Pièces que le DSQ ou le dossier fournit : jointes d'office (colonne « Automatisable » du CRDS).
+const CRDS_AUTO_SOURCE = { DSQ: 'dsq', Facile: 'dossier' };
+// [{ key, kind: 'choices'|'auto'|'text'|'check'|'attach', label, … }]
+function crdsPrereqs(id) {
+  const r = crdsReason(id);
+  if (!r) return [];
+  const choice = CRDS_PREREQ_CHOICES[id];
+  const out = [];
+  const profil = r.docs.find(function (doc) { return doc.type === 'profil'; });
+  if (choice) choice.groups.forEach(function (g) {
+    out.push({ key: g.key, kind: 'choices', title: choice.title, hint: profil ? profil.name : '', label: g.label, min: g.min, options: g.options });
+  });
+  r.docs.forEach(function (doc, i) {
+    if (choice && doc === profil) return; // remplacé par les pastilles
+    const f = { key: 'doc' + i, label: doc.name, note: doc.note || '' };
+    const source = CRDS_AUTO_SOURCE[doc.auto];
+    if (source) out.push(Object.assign(f, { kind: 'auto', source: source }));
+    else if (doc.type === 'saisie') out.push(Object.assign(f, { kind: 'text', required: true }));
+    else if (doc.type === 'action') out.push(Object.assign(f, { kind: 'check', required: true }));
+    else out.push(Object.assign(f, { kind: 'attach', required: true }));
+  });
+  return out;
+}
+// Valeurs de départ : les pastilles du profil médicamenteux cochées, le reste vide.
+function crdsPrereqInit(id) {
+  const vals = {};
+  crdsPrereqs(id).forEach(function (f) {
+    if (f.kind === 'choices') {
+      vals[f.key] = f.options.filter(function (o) {
+        return PATIENT_MEDS.some(function (m) { return o.match.test(_hay((m.details && m.details.molecule) || m.name)); });
+      }).map(function (o) { return o.key; });
+    } else if (f.kind === 'text') vals[f.key] = '';
+    else if (f.kind === 'check' || f.kind === 'attach') vals[f.key] = false;
+  });
+  return vals;
+}
+// Les prérequis qui manquent encore (puce « à faire », lot 3).
+function crdsPrereqMissing(id, vals) {
+  const v = vals || {};
+  return crdsPrereqs(id).filter(function (f) {
+    if (f.kind === 'choices') return (v[f.key] || []).length < f.min;
+    if (f.kind === 'text') return !String(v[f.key] || '').trim();
+    if (f.kind === 'check' || f.kind === 'attach') return !v[f.key];
+    return false;
+  });
 }
 // Item à insérer pour une raison choisie dans le menu : la puce porte le nom
 // de la spécialité, la raison et la priorité vont dans sa 2e ligne.
 function crdsRefItem(r) {
   const details = crdsRefDetails(r);
-  return { key: r.key, name: L(r.specName), dose: '', chipSig: deriveRefRx(details).sig, details: details };
+  return { key: r.key, name: L(crdsSection(r)), dose: '', chipSig: deriveRefRx(details).sig, details: details };
 }
 
 // Menu /ref : un panneau de droite comme celui de /lab — Tout, Favoris, puis
@@ -1026,7 +1170,9 @@ function refViews(q, favSet) {
       return sec('r:' + it.key, it.name, reasons.filter(function (r) { return r.spec === it.key; }).slice(0, REF_PER_SPEC));
     }));
   } else {
+    const sugg = refSuggestionsFor(_refDx).map(function (r) { return Object.assign({}, r, { sig: [r.specName].concat(r.path).join(' › ') }); });
     v.tout = [
+      sec('suggeres', _refDx ? t('data.sectionRefSuggested.title', { dx: _refDx.name }) : '', sugg),
       sec('favoris', t('data.sectionFavorites.title'), REF_ITEMS.filter(function (it) { return favSet.has(it.key); })),
       sec('freq', t('data.sectionRefFrequent.title'), REF_ITEMS.filter(function (it) { return it.freq && !favSet.has(it.key); })),
       sec('autres', t('data.sectionRefOther.title'), REF_ITEMS.filter(function (it) { return !it.freq && !favSet.has(it.key); }))
@@ -1189,7 +1335,7 @@ const ORDER_DEFS = {
   img: { kbd: 'img', type: 'imaging',      icon: 'radiology',  glyph: null, verb: t('data.orderVerb.text'),  emptyNoun: t('data.imagingNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionImgFrequent.title'), t('data.sectionImgOther.title')],
          favs: IMG_FAVS, items: function () { return IMG_ITEMS; }, search: function (q, favs) { return _searchList(IMG_ITEMS, favs || IMG_FAVS, q); } },
-  ref: { kbd: 'ref', type: 'referral',     icon: 'person_add', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
+  ref: { kbd: 'ref', type: 'referral',     icon: 'assignment', glyph: null, verb: t('data.refVerb.text'),   emptyNoun: t('data.specialtyNoun.text'),
          sections: [t('data.sectionFavorites.title'), t('data.sectionRefFrequent.title'), t('data.sectionRefOther.title')],
          favs: REF_FAVS, items: function () { return REF_ITEMS; }, search: function (q, favs) { return searchRef(q, favs || REF_FAVS); } },
   exam: { kbd: 'exam', type: 'exam',       icon: 'monitor_heart', glyph: null, verb: t('data.orderVerb.text'), emptyNoun: t('data.examNoun.text'),
@@ -1264,6 +1410,13 @@ const DX_CONTEXTS = [
   { key: 'db2', cim10: ['E11'], snomed: [],
     words: ['diabète de type 2', 'diabete de type 2', 'diabète type 2', 'type 2 diabetes', 'db2'],
     rx: ['cat-15', 'cat-17', 'cat-16'], lab: ['hba1c', 'microalb', 'creat'], img: [], label: L('Diabète de type 2') },
+  // Migraine (PLAN-reference-specialite.md, lot 2) : `ref`, les raisons CRDS
+  // suggérées dans /ref, gardées selon l'âge (crdsFitsPatient) — Neurologie
+  // adulte, ou Pédiatrie générale › Céphalée.
+  { key: 'migraine', cim10: ['G43', 'G44'], snomed: ['37796009'],
+    words: ['migraine', 'céphalée', 'cephalee', 'céphalées', 'headache'],
+    rx: [], lab: [], img: [], ref: ['neuro-24', 'neuro-25', 'neuro-26', 'neuro-27', 'pedia-12', 'pedia-11', 'pedia-13'],
+    label: L('Migraine') },
 ];
 
 // Textes rapides (PLAN-textes-rapides.md, PLAN-gabarits-conclusion.md). Un
@@ -1374,6 +1527,9 @@ const QUICK_TEXTS = [
       microalb: { kind: 'lab', key: 'microalb' },
       creat: { kind: 'lab', key: 'creat' },
       metf: { kind: 'rx', key: 'cat-15' } } },
+  { key: 'migraine', kind: 'omnimed', dx: ['migraine'], name: L('Migraine'),
+    content: L('Impression : migraine sans aura.\nCrise : {triptan}\nProphylaxie si 4 jours de migraine ou plus par mois.\nCalendrier des céphalées.\nRéférer en neurologie si échec d’un triptan et de 2 traitements prophylactiques.\nRevoir dans 3 mois.'),
+    tiles: { triptan: { kind: 'rx', key: 'sumatriptan50' } } },
 ];
 
 // Attributs d'un diagnostic (name, code) → son contexte, ou null. Le code
@@ -1737,7 +1893,9 @@ let _favFreeze = {};
 function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
-  if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
+  // /ref : le diagnostic de la région donne « Suggérés pour … » en tête de Tout (refViews).
+  if (kind === 'ref') _refDx = dx || null;
+  if (dx && kind !== 'ref' && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
     if (ctx.length) {
       const res = { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
@@ -1832,10 +1990,13 @@ function deriveImgRx(d) {
 }
 // Priorité affichée : une cote CRDS (A à E) se lit « Priorité B ».
 function priorityLabel(p) { return /^[A-E]$/.test(p || '') ? t('data.crdsPriority.text', { cote: p }) : valueLabel(p); }
-// La raison CRDS précède la priorité.
+// Puce d'une raison CRDS : « Section · raison » (D2 de PLAN-reference-specialite.md),
+// sans spécialité ni cote — le texte copié et imprimé les garde (chipPrintText).
+// Sans raison : la spécialité et la priorité.
 function deriveRefRx(d) {
+  if (d.reason) return { name: valueLabel(d.section) || valueLabel(d.specialty) || t('data.referralSpecialist.text'), dose: '', sig: d.reason, kind: 'ref' };
   const name = valueLabel(d.specialty) || t('data.referralSpecialist.text');
-  return { name: name, dose: '', sig: [d.reason, priorityLabel(d.priority || 'Routine')].filter(Boolean).join(' · '), kind: 'ref' };
+  return { name: name, dose: '', sig: priorityLabel(d.priority || 'Routine'), kind: 'ref' };
 }
 function deriveExamRx(d) {
   return { name: d.exam || t('data.examRequest.text'), dose: '', sig: valueLabel(d.priority || 'Routine'), kind: 'exam' };
@@ -1898,9 +2059,9 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'imaging', label: L("Demande d'imagerie"), text: L("Demande d'imagerie"),
       details: { modality: 'Radiographie', region: '', views: '', priority: 'Routine', context: '', contrast: 'Sans' } } },
-  { key: 'referral', section: L('Fonctions'), icon: 'person_add', title: L('Référence spécialiste'), desc: L('Cardio, ortho, derm…'), kbd: 'ref',
+  { key: 'referral', section: L('Fonctions'), icon: 'assignment', title: L('Référence en spécialité'), desc: L('Demande de consultation'), kbd: 'ref',
     orderSearch: true,
-    template: { type: 'referral', label: L('Référence spécialiste'), text: L('Référence spécialiste'),
+    template: { type: 'referral', label: L('Référence en spécialité'), text: L('Référence en spécialité'),
       details: { specialty: '', question: '', indication: '', priority: 'Routine', crds: '' } } },
   { key: 'exam', section: L('Fonctions'), icon: 'monitor_heart', title: L('Examen diagnostique'), desc: L('ECG, Holter, MAPA…'), kbd: 'exam',
     orderSearch: true,
@@ -2056,10 +2217,28 @@ const NOTE_TEMPLATES = [
   },
 ];
 
-const PATIENT = {
+const PATIENT = window.forPatient({ adulte: {
+  // Micheline Lamontagne : l'exemple du Figma « Demande de consultation en
+  // médecine spécialisée » (patients.js). Données fictives.
+  initials: 'ML',
+  name: 'Micheline Lamontagne',
+  age: L('47 ans'),
+  ageYears: 47,
+  sex: 'F',
+  dob: L('05 décembre 1978'),
+  ramq: 'LAMM 7862 0512',
+  phone: '819 555 0273',
+  cell: '819-555-0273',
+  email: 'micheline.lamontagne.test@example.com',
+  chart: '702415',
+  reason: L('Migraine sans aura'),
+  status: L('En consultation'),
+  pharmacyId: 'pjc-centre',
+}, pediatrique: {
   initials: 'GT',
   name: 'Geneviève Tremblay',
   age: L('15 ans'),
+  ageYears: 15,
   sex: 'F',
   dob: L('03 mai 2011'),
   ramq: 'TREG 1155 0301',
@@ -2069,7 +2248,12 @@ const PATIENT = {
   // Pharmacie favorite au dossier : préremplie comme destinataire de
   // l'ordonnance au checkout (maquette « Transmission générale »).
   pharmacyId: 'pjc-centre',
-};
+} });
+
+// CRDS de la région de la clinique (Sherbrooke) : destinataire d'office d'une
+// référence en spécialité (D11 de PLAN-reference-specialite.md). Données fictives.
+const CRDS_REGIONAL = { id: 'crds-estrie', name: L('CRDS Estrie — Centre de répartition des demandes de service'),
+  address: L('300 rue King Est, Sherbrooke (Québec) J1G 1B1'), phone: '819 780-2220', fax: '819 780-2221', favorite: true };
 
 // Bottin des pharmacies à proximité, pour le destinataire de l'ordonnance au
 // checkout. Données SIMULÉES : distances fictives depuis la clinique, courriels
@@ -2124,10 +2308,12 @@ function templatesForReason(text, max) {
 // résultat, un problème au dossier — et un gabarit de début de note suggéré
 // selon ces choix. Données SIMULÉES : le rendez-vous du jour (sans rendez-vous,
 // scénario infection urinaire des tests) et un résultat à suivre.
-const VISIT_APPOINTMENT = { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception') };
-const RESULTS_TO_FOLLOW = [
+const VISIT_APPOINTMENT = window.forPatient({
+  pediatrique: { time: '08:30', type: L('Sans rendez-vous'), reason: L('Brûlures mictionnelles depuis 3 jours'), bookedBy: L('Prise par la réception') },
+  adulte: { time: '10:15', type: L('Rendez-vous de suivi'), reason: L('Céphalées plus fréquentes depuis 4 mois'), bookedBy: L('Pris par la patiente en ligne') } });
+const RESULTS_TO_FOLLOW = window.forPatient({ adulte: [], pediatrique: [
   { id: 'res-a1c', name: L('HbA1c'), value: L('6,4 %'), flag: L('À la limite'), date: L('20 octobre 2026') },
-];
+] });
 
 // ctx = { appointment, results, sommaire (lignes de getSommaireDiagnostics) }
 // → [{ id, kind: 'raison'|'resultat'|'probleme', label, detail, text, short, target? }].
@@ -2157,13 +2343,13 @@ function visitReason(points) {
   return (points || []).map(function (p) { return p.short; }).join(' · ');
 }
 
-window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES,
+window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
-  CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, searchRef, refRail, refViewKeys, setRefView, getRefView,
+  CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

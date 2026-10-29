@@ -424,7 +424,16 @@ function diagDocMenuItems(ctx) {
 // Les champs suivent SECTION_CFG / data.problems / data.history de
 // Summary.jsx (le seul Sommaire réellement monté, voir NoteEditor.jsx).
 // ---------------------------------------------------------
-const DX_SOMMAIRE_SEED = {
+const DX_SOMMAIRE_SEED = window.forPatient({ adulte: {
+  // Micheline Lamontagne (patients.js) : migraine suivie, référence en neurologie.
+  problems: [
+    { id: 'som-migraine', name: L('Migraine sans aura'), code: 'G43.0', since: '2006' },
+    { id: 'som-hypothyroidie', name: L('Hypothyroïdie'), code: 'E03.9', since: '2015' },
+  ],
+  history: [
+    { id: 'som-lithiase-biliaire', name: L('Lithiase biliaire'), code: 'K80.2', status: 'resolu', resolvedOn: '14/03/2019' },
+  ],
+}, pediatrique: {
   problems: [
     { id: 'som-asthme', name: L('Asthme léger'), code: 'J45.9', since: '2018' },
     { id: 'som-rhinite', name: L('Rhinite allergique'), code: 'J30.4', since: '2019' },
@@ -433,7 +442,7 @@ const DX_SOMMAIRE_SEED = {
     { id: 'som-colique', name: L('Colique néphrétique'), code: 'N23', status: 'resolu', resolvedOn: '02/07/2026' },
     { id: 'som-cystite', name: L('Cystite aiguë non compliquée'), code: 'N30.0', status: 'resolu', resolvedOn: '08/12/2025' },
   ],
-};
+} });
 function sommaireDxSeed() { return JSON.parse(JSON.stringify(DX_SOMMAIRE_SEED)); }
 
 function dxFindRow(base, id) {
