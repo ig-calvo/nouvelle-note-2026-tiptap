@@ -150,9 +150,7 @@ function DapRecipientCard({ r, readOnly, onRemove, onChannel }) {
 }
 
 function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, showSuggestions, readOnly,
-  onAddRecipient, onRemoveRecipient, onComplete, onCompleteAndPrint, onCompleteAndFax,
-  onQuickPrint, onQuickSend }) {
-  const [menuOpen, setMenuOpen] = React.useState(false);
+  onAddRecipient, onRemoveRecipient, onQuickPrint }) {
   const [recipientPickerOpen, setRecipientPickerOpen] = React.useState(false);
   const [previewZoom, setPreviewZoom] = React.useState(false);
   const [openContent, setOpenContent] = React.useState(true);
@@ -180,74 +178,20 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
     }) });
   }
 
-  // Deux boutons persistants plutôt qu'un split qui disparaît une fois le
-  // document complété (plan V7 §B1) : « Compléter » se grise, « Transmettre »
-  // devient primaire. Le médecin voit donc toujours les deux gestes et où il
-  // en est, au lieu de voir l'un remplacer l'autre.
-  const noRecipient = doc.recipients.length === 0;
-  // Un item incomplet (prescription sans voie, p. ex.) empêche de compléter.
-  const blocked = !doc.complete && (doc.blocking || []).length > 0;
-  const completeDisabled = doc.complete || noRecipient || blocked;
-  const transmitDisabled = !doc.complete || noRecipient || doc.transmitted;
-  const completeTitle = doc.complete
-    ? t('documentAction.alreadyCompleted.tooltip')
-    : blocked ? (doc.blocking || []).join('\n')
-    : (noRecipient ? t('documentAction.noRecipient.tooltip') : undefined);
-  const transmitTitle = doc.transmitted
-    ? t('documentAction.alreadyTransmitted.tooltip')
-    : [!doc.complete ? t('documentAction.notCompleted.tooltip', { title: doc.title }) : '', noRecipient ? t('documentAction.noRecipient.tooltip') : '']
-        .filter(Boolean).join('\n') || undefined;
-
   return (
     <React.Fragment>
-      <div style={dap.statusBar}>
-        <span className="material-icons-outlined" style={{ fontSize: 21, color: meta.accent, flexShrink: 0 }}>{meta.icon}</span>
-        <span style={dap.docTitle}>{docTitle}</span>
-        <span style={Object.assign({}, dap.statusBadge, doc.complete ? dap.statusBadgeOn : {})}>
-          {doc.complete ? t('documentAction.completee.text') : t('documentAction.nonCompletee.text')}
-        </span>
-        <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeOn : {})}>
-          {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.nonTransmise.text')}
-        </span>
-        <div style={{ flex: 1 }} />
-        {!readOnly &&
-        <React.Fragment>
-        <button
-          title={doc.complete ? t('documentAction.imprimer.tooltip') : t('documentAction.completerDocumentAvantImpression.tooltip')}
-          style={Object.assign({}, dap.iconBtn, !doc.complete ? dap.btnDisabled : {})}
-          disabled={!doc.complete}
-          onClick={onQuickPrint}>
-          <span className="material-icons-outlined" style={{ fontSize: 20 }}>print</span>
-        </button>
-        <div style={{ position: 'relative' }}>
-          <button
-            title={completeTitle}
-            style={Object.assign({}, dap.splitBtn, completeDisabled ? dap.btnDisabled : {})}
-            disabled={completeDisabled}
-            onClick={function () { setMenuOpen(!menuOpen); }}>
-            {t('documentAction.complete.button', { noun: meta.nounPhrase })}
-            <span className="material-icons" style={{ fontSize: 20 }}>arrow_drop_down</span>
-          </button>
-          {menuOpen && !completeDisabled &&
-            <React.Fragment>
-              <div style={dap.ddScrim} onMouseDown={function () { setMenuOpen(false); }} />
-              <div style={dap.splitMenu}>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onComplete(); }}>{t('documentAction.completer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndPrint(); }}>{t('documentAction.completerImprimer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(true); }}>{t('documentAction.completerFaxer.button')}</button>
-                <button style={dap.splitMenuItem} onClick={function () { setMenuOpen(false); onCompleteAndFax(false); }}>{t('documentAction.completerFaxer2.button')}</button>
-              </div>
-            </React.Fragment>
-          }
-        </div>
-        <button
-          title={transmitTitle}
-          style={Object.assign({}, dap.transmitBtn, transmitDisabled ? dap.btnDisabled : {})}
-          disabled={transmitDisabled}
-          onClick={onQuickSend}>
-          {t('documentAction.transmit.button', { noun: meta.nounPhrase })}
-        </button>
-        </React.Fragment>}
+      {/* Titre du document (maquette « Transmission générale ») : grand titre
+          et un seul badge, une fois le document complété ou transmis. Les
+          gestes Compléter / Transmettre sont dans le pied du checkout
+          (TransmissionModal). */}
+      <div style={dap.titleRow}>
+        <span className="material-symbols-outlined" style={dap.titleIcon}>{meta.icon}</span>
+        <h2 style={dap.docTitle}>{docTitle}</h2>
+        {(doc.complete || doc.transmitted) &&
+          <span style={Object.assign({}, dap.statusBadge, doc.transmitted ? dap.statusBadgeSent : {})}>
+            <span className="material-icons-outlined" style={{ fontSize: 16 }}>{doc.transmitted ? 'done_all' : 'check_circle'}</span>
+            {doc.transmitted ? t('documentAction.transmise.text') : t('documentAction.completee.text')}
+          </span>}
       </div>
 
       <div style={hasContent ? dap.cols : dap.colsTwo}>
@@ -381,6 +325,12 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 
         <div style={dap.col}>
           <div style={dap.colLabel}>{t('documentAction.preview.label')}
+            {!readOnly &&
+              <button style={Object.assign({}, dap.zoomBtn, !doc.complete ? dap.btnDisabled : {})}
+                disabled={!doc.complete} onClick={onQuickPrint}
+                title={doc.complete ? t('documentAction.imprimer.tooltip') : t('documentAction.completerDocumentAvantImpression.tooltip')}>
+                <span className="material-icons-outlined" style={{ fontSize: 17 }}>print</span>
+              </button>}
             <button style={dap.zoomBtn} onClick={function () { setPreviewZoom(!previewZoom); }} title={t('documentAction.agrandir.tooltip')}>
               <span className="material-icons-outlined" style={{ fontSize: 17 }}>{previewZoom ? 'close_fullscreen' : 'open_in_full'}</span>
             </button>
@@ -395,43 +345,15 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 }
 
 const dap = {
-  statusBar: { display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18, position: 'relative', flexWrap: 'wrap' },
+  titleRow: { display: 'flex', alignItems: 'center', gap: 10, marginBottom: 22 },
+  titleIcon: { fontSize: 26, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 70%, transparent)', flexShrink: 0 },
+  docTitle: { margin: 0, fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 26, lineHeight: 1.2, color: 'var(--mat-sys-on-surface)' },
   statusBadge: {
-    fontSize: 12, fontWeight: 700, borderRadius: 7, padding: '5px 10px',
-    background: 'var(--mat-sys-surface-container)', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)',
+    display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, borderRadius: 6, padding: '4px 10px',
+    background: 'color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface-container-lowest))', color: 'var(--mat-sys-primary)',
   },
-  statusBadgeOn: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
-  iconBtn: {
-    width: 36, height: 36, borderRadius: 8, border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)',
-    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 60%, transparent)',
-  },
-  splitBtn: {
-    display: 'inline-flex', alignItems: 'center', gap: 4, border: 0, borderRadius: 9,
-    background: '#25245E', color: '#fff', font: "600 13.5px 'Inter',sans-serif",
-    padding: '9px 8px 9px 16px', cursor: 'pointer', whiteSpace: 'nowrap',
-  },
-  transmitBtn: {
-    display: 'inline-flex', alignItems: 'center', border: 0, borderRadius: 9,
-    background: '#1F4FD8', color: '#fff', font: "600 13.5px 'Inter',sans-serif",
-    padding: '9px 16px', cursor: 'pointer', whiteSpace: 'nowrap',
-  },
+  statusBadgeSent: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
   btnDisabled: { opacity: 0.42, cursor: 'not-allowed' },
-  ddScrim: { position: 'fixed', inset: 0, zIndex: 10 },
-  splitMenu: {
-    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 11, minWidth: 220,
-    background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10,
-    boxShadow: '0 10px 28px rgba(20,20,50,0.18)', padding: '5px 0',
-  },
-  splitMenuItem: {
-    display: 'block', width: '100%', textAlign: 'left', border: 0, background: 'transparent',
-    padding: '10px 14px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer',
-  },
-
-  docTitle: {
-    fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: 16,
-    color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)', marginRight: 4, whiteSpace: 'nowrap',
-    overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 320,
-  },
   cols: { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr', gap: 22, alignItems: 'start' },
   colsTwo: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, alignItems: 'start' },
   col: { minWidth: 0 },

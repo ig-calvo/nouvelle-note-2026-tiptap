@@ -3,8 +3,8 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1355,
-    "donnees": 938
+    "interface": 1353,
+    "donnees": 936
   },
   "interface": {
     "actionLog.cancelledOn.label": {
@@ -1897,7 +1897,7 @@
       "fichiers": [
         "note-ui/ClinicalTool.jsx:103",
         "note-ui/ClinicalTool.jsx:89",
-        "note-ui/DocumentActionPanel.jsx:170",
+        "note-ui/DocumentActionPanel.jsx:168",
         "note-ui/editor-schema.jsx:135",
         "note-ui/editor-schema.jsx:2504",
         "note-ui/editor-schema.jsx:338",
@@ -2534,7 +2534,7 @@
       "empreinte": "b5c06a1a1dc5",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:332"
+        "note-ui/DocumentActionPanel.jsx:276"
       ]
     },
     "documentAction.agrandir.tooltip": {
@@ -2542,7 +2542,7 @@
       "empreinte": "0811e108abbd",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:384"
+        "note-ui/DocumentActionPanel.jsx:334"
       ]
     },
     "documentAction.ajouter.tooltip": {
@@ -2558,7 +2558,7 @@
       "empreinte": "f318f1bbc49f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:335"
+        "note-ui/DocumentActionPanel.jsx:279"
       ]
     },
     "documentAction.ajouterDestinataire.text": {
@@ -2566,7 +2566,7 @@
       "empreinte": "a1e13eb790d0",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:364"
+        "note-ui/DocumentActionPanel.jsx:308"
       ]
     },
     "documentAction.ajouterDestinataire.tooltip": {
@@ -2574,7 +2574,7 @@
       "empreinte": "a1e13eb790d0",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:317"
+        "note-ui/DocumentActionPanel.jsx:261"
       ]
     },
     "documentAction.alreadyCompleted.tooltip": {
@@ -2582,7 +2582,7 @@
       "empreinte": "fd3cf9a6aec5",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:193"
+        "note-ui/TransmissionModal.jsx:377"
       ]
     },
     "documentAction.alreadyTransmitted.tooltip": {
@@ -2590,8 +2590,8 @@
       "empreinte": "94ba984dfa76",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:197",
-        "note-ui/QuickSendModal.jsx:64"
+        "note-ui/QuickSendModal.jsx:64",
+        "note-ui/TransmissionModal.jsx:381"
       ]
     },
     "documentAction.aucunDestinataire.text": {
@@ -2599,7 +2599,7 @@
       "empreinte": "72efbe9121c3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:330"
+        "note-ui/DocumentActionPanel.jsx:274"
       ]
     },
     "documentAction.aucunDestinataireEteChoisi.text": {
@@ -2607,7 +2607,7 @@
       "empreinte": "155244992218",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:324"
+        "note-ui/DocumentActionPanel.jsx:268"
       ]
     },
     "documentAction.aucunePieceJointe.text": {
@@ -2615,7 +2615,7 @@
       "empreinte": "7a2abc76f470",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:279"
+        "note-ui/DocumentActionPanel.jsx:223"
       ]
     },
     "documentAction.complete.button": {
@@ -2623,7 +2623,7 @@
       "empreinte": "a54ead538c35",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:228"
+        "note-ui/TransmissionModal.jsx:516"
       ]
     },
     "documentAction.completee.text": {
@@ -2631,15 +2631,7 @@
       "empreinte": "67f9e8d80427",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:207"
-      ]
-    },
-    "documentAction.completer.button": {
-      "fr": "Compléter",
-      "empreinte": "449b5006156f",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:235"
+        "note-ui/DocumentActionPanel.jsx:193"
       ]
     },
     "documentAction.completerDocumentAvantImpression.tooltip": {
@@ -2647,31 +2639,7 @@
       "empreinte": "f88bb2273f1d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:216"
-      ]
-    },
-    "documentAction.completerFaxer.button": {
-      "fr": "Compléter et faxer",
-      "empreinte": "b8aecd530ba1",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:237"
-      ]
-    },
-    "documentAction.completerFaxer2.button": {
-      "fr": "Compléter et faxer à",
-      "empreinte": "ace8df884094",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:238"
-      ]
-    },
-    "documentAction.completerImprimer.button": {
-      "fr": "Compléter et imprimer",
-      "empreinte": "c2f0e4f3202a",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:236"
+        "note-ui/DocumentActionPanel.jsx:331"
       ]
     },
     "documentAction.details.label": {
@@ -2679,7 +2647,7 @@
       "empreinte": "aaa029e6a255",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:261"
+        "note-ui/DocumentActionPanel.jsx:205"
       ]
     },
     "documentAction.imprimer.tooltip": {
@@ -2687,7 +2655,7 @@
       "empreinte": "5382c09d3fd3",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:216"
+        "note-ui/DocumentActionPanel.jsx:331"
       ]
     },
     "documentAction.masquerSuggestions.tooltip": {
@@ -2695,7 +2663,7 @@
       "empreinte": "d11985674d77",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:359"
+        "note-ui/DocumentActionPanel.jsx:303"
       ]
     },
     "documentAction.modifier.tooltip": {
@@ -2711,25 +2679,9 @@
       "empreinte": "5c12481d1d0c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:195",
-        "note-ui/DocumentActionPanel.jsx:198",
-        "note-ui/QuickSendModal.jsx:66"
-      ]
-    },
-    "documentAction.nonCompletee.text": {
-      "fr": "Non complétée",
-      "empreinte": "f9ae195d2624",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:207"
-      ]
-    },
-    "documentAction.nonTransmise.text": {
-      "fr": "Non transmise",
-      "empreinte": "24303a19b65c",
-      "contexte": "texte",
-      "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:210"
+        "note-ui/QuickSendModal.jsx:66",
+        "note-ui/TransmissionModal.jsx:379",
+        "note-ui/TransmissionModal.jsx:382"
       ]
     },
     "documentAction.notCompleted.tooltip": {
@@ -2737,7 +2689,7 @@
       "empreinte": "e59b76a3e31d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:198"
+        "note-ui/TransmissionModal.jsx:382"
       ]
     },
     "documentAction.piecesJointes.label": {
@@ -2745,7 +2697,7 @@
       "empreinte": "98d89a25004b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:273"
+        "note-ui/DocumentActionPanel.jsx:217"
       ]
     },
     "documentAction.prescriptions.label": {
@@ -2753,7 +2705,7 @@
       "empreinte": "d7d1c0636806",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:261"
+        "note-ui/DocumentActionPanel.jsx:205"
       ]
     },
     "documentAction.preview.label": {
@@ -2761,7 +2713,7 @@
       "empreinte": "f8141f9629c6",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:383"
+        "note-ui/DocumentActionPanel.jsx:327"
       ]
     },
     "documentAction.recipients.label": {
@@ -2769,7 +2721,7 @@
       "empreinte": "800c2dfde9f9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:315"
+        "note-ui/DocumentActionPanel.jsx:259"
       ]
     },
     "documentAction.retirer.tooltip": {
@@ -2777,7 +2729,7 @@
       "empreinte": "54ec24a19c21",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:286",
+        "note-ui/DocumentActionPanel.jsx:230",
         "note-ui/DocumentActionPanel.jsx:93"
       ]
     },
@@ -2826,7 +2778,7 @@
       "empreinte": "f9fe3b4fd405",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:358"
+        "note-ui/DocumentActionPanel.jsx:302"
       ]
     },
     "documentAction.transmise.text": {
@@ -2834,7 +2786,7 @@
       "empreinte": "bead84ab0c20",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:210"
+        "note-ui/DocumentActionPanel.jsx:193"
       ]
     },
     "documentAction.transmit.button": {
@@ -2842,7 +2794,7 @@
       "empreinte": "1834175109ba",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:248"
+        "note-ui/TransmissionModal.jsx:522"
       ]
     },
     "documentPreview.apercuDocumentNonComplete.text": {
@@ -2932,7 +2884,7 @@
       "fichiers": [
         "note-ui/DocumentPreview.jsx:103",
         "note-ui/DocumentPreview.jsx:55",
-        "note-ui/TransmissionModal.jsx:144"
+        "note-ui/TransmissionModal.jsx:150"
       ]
     },
     "documentPreview.nam.text": {
@@ -3717,7 +3669,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/FaxScreen.jsx:49",
-        "note-ui/TransmissionModal.jsx:145"
+        "note-ui/TransmissionModal.jsx:151"
       ]
     },
     "fax.faxer.button": {
@@ -4891,8 +4843,8 @@
       "empreinte": "dafd501364a8",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:158",
-        "note-ui/PatientBanner.jsx:60"
+        "note-ui/PatientBanner.jsx:162",
+        "note-ui/PatientBanner.jsx:63"
       ]
     },
     "patientBanner.bornFemale.text": {
@@ -4900,8 +4852,7 @@
       "empreinte": "5ff6be055082",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12",
-        "note-ui/TransmissionModal.jsx:283"
+        "note-ui/PatientBanner.jsx:15"
       ]
     },
     "patientBanner.bornMale.text": {
@@ -4909,8 +4860,7 @@
       "empreinte": "3f88e32511a7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:12",
-        "note-ui/TransmissionModal.jsx:283"
+        "note-ui/PatientBanner.jsx:15"
       ]
     },
     "patientBanner.cellulaire.text": {
@@ -4918,7 +4868,7 @@
       "empreinte": "6941c85e3f6f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:124"
+        "note-ui/PatientBanner.jsx:128"
       ]
     },
     "patientBanner.consentementValide.aria": {
@@ -4926,7 +4876,7 @@
       "empreinte": "effcc928b036",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:72"
+        "note-ui/PatientBanner.jsx:75"
       ]
     },
     "patientBanner.consentementValide.text": {
@@ -4934,7 +4884,7 @@
       "empreinte": "26c806adad4b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:176"
+        "note-ui/PatientBanner.jsx:180"
       ]
     },
     "patientBanner.documents.aria": {
@@ -4942,8 +4892,8 @@
       "empreinte": "ec96667ac8c5",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:164",
-        "note-ui/PatientBanner.jsx:82"
+        "note-ui/PatientBanner.jsx:168",
+        "note-ui/PatientBanner.jsx:85"
       ]
     },
     "patientBanner.etendre.aria": {
@@ -4951,7 +4901,7 @@
       "empreinte": "4affabe7e837",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:85"
+        "note-ui/PatientBanner.jsx:89"
       ]
     },
     "patientBanner.exp0328.text": {
@@ -4959,8 +4909,8 @@
       "empreinte": "564e805e1b3c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:108",
-        "note-ui/PatientBanner.jsx:50"
+        "note-ui/PatientBanner.jsx:112",
+        "note-ui/PatientBanner.jsx:53"
       ]
     },
     "patientBanner.genevieveTremblayTestExample.text": {
@@ -4968,7 +4918,7 @@
       "empreinte": "16e31ce322d7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:129"
+        "note-ui/PatientBanner.jsx:133"
       ]
     },
     "patientBanner.imprimer.aria": {
@@ -4976,8 +4926,8 @@
       "empreinte": "f50668cd01a6",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:161",
-        "note-ui/PatientBanner.jsx:79"
+        "note-ui/PatientBanner.jsx:165",
+        "note-ui/PatientBanner.jsx:82"
       ]
     },
     "patientBanner.inscriptionGroupe.text": {
@@ -4985,7 +4935,7 @@
       "empreinte": "7c18cf5f1a7c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:140"
+        "note-ui/PatientBanner.jsx:144"
       ]
     },
     "patientBanner.medecin.aria": {
@@ -4993,7 +4943,7 @@
       "empreinte": "a6702e111947",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:66"
+        "note-ui/PatientBanner.jsx:69"
       ]
     },
     "patientBanner.notes.aria": {
@@ -5001,7 +4951,7 @@
       "empreinte": "3add7b961210",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:63"
+        "note-ui/PatientBanner.jsx:66"
       ]
     },
     "patientBanner.pharmacie.aria": {
@@ -5009,7 +4959,7 @@
       "empreinte": "ef21f1b60d4a",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:69"
+        "note-ui/PatientBanner.jsx:72"
       ]
     },
     "patientBanner.pjcJeanCoutuCentre.text": {
@@ -5017,7 +4967,7 @@
       "empreinte": "120280dd30c9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:146"
+        "note-ui/PatientBanner.jsx:150"
       ]
     },
     "patientBanner.portailPatientActif.aria": {
@@ -5025,7 +4975,7 @@
       "empreinte": "5d7ea9910b3f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:76"
+        "note-ui/PatientBanner.jsx:79"
       ]
     },
     "patientBanner.portailPatientActif.text": {
@@ -5033,7 +4983,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:181"
+        "note-ui/PatientBanner.jsx:185"
       ]
     },
     "patientBanner.portailPatientActif.tooltip": {
@@ -5041,7 +4991,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:76"
+        "note-ui/PatientBanner.jsx:79"
       ]
     },
     "patientBanner.reduire.aria": {
@@ -5049,7 +4999,7 @@
       "empreinte": "ba986755f96f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/PatientBanner.jsx:167"
+        "note-ui/PatientBanner.jsx:171"
       ]
     },
     "picker.none.text": {
@@ -10581,12 +10531,20 @@
         "note-ui/TopBar.jsx:18"
       ]
     },
+    "transmission.aVenir.toast": {
+      "fr": "À venir",
+      "empreinte": "5ae4e5874c90",
+      "contexte": "notification",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:395"
+      ]
+    },
     "transmission.ajoutDocumentVenir.toast": {
       "fr": "Ajout de document — à venir",
       "empreinte": "25c2d8a26161",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:455"
+        "note-ui/TransmissionModal.jsx:475"
       ]
     },
     "transmission.ajouterDocument.button": {
@@ -10594,7 +10552,7 @@
       "empreinte": "166900369afc",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:458"
+        "note-ui/TransmissionModal.jsx:478"
       ]
     },
     "transmission.aucunDestinataire.text": {
@@ -10602,7 +10560,7 @@
       "empreinte": "72efbe9121c3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:534"
+        "note-ui/TransmissionModal.jsx:571"
       ]
     },
     "transmission.autresDocuments.tooltip": {
@@ -10610,7 +10568,7 @@
       "empreinte": "ec9183b57fc6",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:275"
+        "note-ui/TransmissionModal.jsx:283"
       ]
     },
     "transmission.completerNote.button": {
@@ -10618,7 +10576,7 @@
       "empreinte": "bcbd6c13a269",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:228"
+        "note-ui/TransmissionModal.jsx:234"
       ]
     },
     "transmission.consignes.tooltip": {
@@ -10629,12 +10587,28 @@
         "note-ui/TransmissionModal.jsx:112"
       ]
     },
+    "transmission.documentPrecedent.button": {
+      "fr": "Document précédent",
+      "empreinte": "62872681f41f",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:529"
+      ]
+    },
+    "transmission.documentSuivant.button": {
+      "fr": "Document suivant",
+      "empreinte": "dc5e93e187d0",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:534"
+      ]
+    },
     "transmission.documentTransmis.toast": {
       "fr": "Document transmis",
       "empreinte": "502a24794aaf",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:339"
+        "note-ui/TransmissionModal.jsx:332"
       ]
     },
     "transmission.documentsNote.text": {
@@ -10642,7 +10616,18 @@
       "empreinte": "cd5c4dd1dd15",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:407"
+        "note-ui/TransmissionModal.jsx:416"
+      ]
+    },
+    "transmission.elementsPartages.label": {
+      "fr": {
+        "one": "{n} élément partagé",
+        "other": "{n} éléments partagés"
+      },
+      "empreinte": "d7c118ee87f6",
+      "contexte": "libellé",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:436"
       ]
     },
     "transmission.etablissement.text": {
@@ -10650,7 +10635,7 @@
       "empreinte": "e2d294e40fb4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:221"
+        "note-ui/TransmissionModal.jsx:227"
       ]
     },
     "transmission.faireSuivreNote.text": {
@@ -10658,7 +10643,7 @@
       "empreinte": "aeb5d14ea254",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:209"
+        "note-ui/TransmissionModal.jsx:215"
       ]
     },
     "transmission.faireSuivreSigner.text": {
@@ -10666,15 +10651,7 @@
       "empreinte": "df73e45aaddb",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:439"
-      ]
-    },
-    "transmission.faxEnvoye.toast": {
-      "fr": "Fax envoyé",
-      "empreinte": "5822abb56476",
-      "contexte": "notification",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:372"
+        "note-ui/TransmissionModal.jsx:459"
       ]
     },
     "transmission.fermer.aria": {
@@ -10682,7 +10659,7 @@
       "empreinte": "5ab4ec640d65",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:416"
+        "note-ui/TransmissionModal.jsx:444"
       ]
     },
     "transmission.medecin.text": {
@@ -10690,7 +10667,7 @@
       "empreinte": "f569ce3bcd51",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:217"
+        "note-ui/TransmissionModal.jsx:223"
       ]
     },
     "transmission.noteClinique.text": {
@@ -10698,8 +10675,8 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:193",
-        "note-ui/TransmissionModal.jsx:438"
+        "note-ui/TransmissionModal.jsx:199",
+        "note-ui/TransmissionModal.jsx:458"
       ]
     },
     "transmission.noteCompletee.toast": {
@@ -10707,7 +10684,7 @@
       "empreinte": "ad268aa92811",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:360"
+        "note-ui/TransmissionModal.jsx:353"
       ]
     },
     "transmission.ordonnance.tooltip": {
@@ -10734,7 +10711,31 @@
       "empreinte": "5e518ba15a91",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:203"
+        "note-ui/TransmissionModal.jsx:209"
+      ]
+    },
+    "transmission.portailPatient.text": {
+      "fr": "Portail patient",
+      "empreinte": "cc316ac5b713",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:435"
+      ]
+    },
+    "transmission.preFacturation.text": {
+      "fr": "Pré-facturation",
+      "empreinte": "0810877dbac6",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:440"
+      ]
+    },
+    "transmission.preFacturationMontant.text": {
+      "fr": "150,00 $",
+      "empreinte": "e61d91f2fc8d",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/TransmissionModal.jsx:441"
       ]
     },
     "transmission.prescriptions.label": {
@@ -10745,18 +10746,7 @@
       "empreinte": "de94c1473a68",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:521"
-      ]
-    },
-    "transmission.ready.label": {
-      "fr": {
-        "one": "{n} document prêt à transmettre",
-        "other": "{n} documents prêts à transmettre"
-      },
-      "empreinte": "ffd0451eda25",
-      "contexte": "libellé",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:489"
+        "note-ui/TransmissionModal.jsx:558"
       ]
     },
     "transmission.requetes.tooltip": {
@@ -10772,7 +10762,7 @@
       "empreinte": "42b85210c46e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:478"
+        "note-ui/TransmissionModal.jsx:501"
       ]
     },
     "transmission.sent.toast": {
@@ -10783,7 +10773,7 @@
       "empreinte": "5f529d873568",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:350"
+        "note-ui/TransmissionModal.jsx:343"
       ]
     },
     "transmission.signature.text": {
@@ -10791,7 +10781,7 @@
       "empreinte": "2f32be1dc741",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:214"
+        "note-ui/TransmissionModal.jsx:220"
       ]
     },
     "transmission.statusDone.text": {
@@ -10818,20 +10808,12 @@
         "note-ui/TransmissionModal.jsx:132"
       ]
     },
-    "transmission.transmettreDocumentPret.button": {
-      "fr": "Transmettre le document prêt",
-      "empreinte": "e49f915877e8",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:497"
-      ]
-    },
     "transmission.transmissionDocuments.text": {
       "fr": "Transmission des documents",
       "empreinte": "b2dd47025606",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:407"
+        "note-ui/TransmissionModal.jsx:416"
       ]
     },
     "transmission.transmitAll.button": {
@@ -10839,7 +10821,8 @@
       "empreinte": "e9f25e7d87c6",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/TransmissionModal.jsx:503"
+        "note-ui/TransmissionModal.jsx:538",
+        "note-ui/TransmissionModal.jsx:539"
       ]
     },
     "transmission.txNoteExam.label": {
@@ -11104,15 +11087,6 @@
   },
   "donnees": [
     {
-      "fr": "03 mai 2011",
-      "empreinte": "d48259d6e29c",
-      "contexte": "donnée de démonstration",
-      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age |",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:283"
-      ]
-    },
-    {
       "fr": "03 mai 2011",
       "empreinte": "a063becf7717",
       "contexte": "donnée de démonstration",
@@ -11321,15 +11295,6 @@
       "extrait": "L('3 jours R0'), L('5 jours R0'), L('7 jours R0'), L('10 jours R0'), L('14 jours R0'),",
       "fichiers": [
         "note-ui/NoteEditor.jsx:1346"
-      ]
-    },
-    {
-      "fr": "15 ans",
-      "empreinte": "ef022374f11d",
-      "contexte": "donnée de démonstration",
-      "extrait": "const patientSub = (P.sex === 'M' ? t('patientBanner.bornMale.text') : t('patientBanner.bornFemale.text')) + ' ' + (P.dob || L('03 mai 2011')) + ' (' + (P.age |",
-      "fichiers": [
-        "note-ui/TransmissionModal.jsx:283"
       ]
     },
     {
