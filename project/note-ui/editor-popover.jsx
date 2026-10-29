@@ -951,6 +951,9 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   const checkedKeys = checked || [];
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
   const noFav = (it) => !!it.profile; // un profil n'a pas de favori
+  // Tous les résultats de la recherche sont des allergènes masqués : la
+  // bannière le dit seule, sans le « Aucun produit trouvé » qui la contredirait.
+  const allMasked = total === 0 && !!query && !!results.allergy && !results.allergy.shown;
 
   return (
     <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (isLab ? ' rx-menu--lab' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
@@ -963,12 +966,14 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
             <span className="material-icons-outlined" aria-hidden="true">{results.allergy.shown ? 'warning' : 'visibility_off'}</span>
             <span className="rx-allergy__text">{results.allergy.shown
               ? tn('popover.allergyShown.text', results.allergy.count, { names: results.allergy.names.join(', ') })
-              : tn('popover.allergyHidden.text', results.allergy.count, { names: results.allergy.names.join(', ') })}</span>
+              : allMasked
+                ? tn('popover.allergyOnly.text', results.allergy.count, { query: query, names: results.allergy.names.join(', ') })
+                : tn('popover.allergyHidden.text', results.allergy.count, { names: results.allergy.names.join(', ') })}</span>
             <button type="button" className="rx-allergy__btn" onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleAllergens && onToggleAllergens()}>
               {results.allergy.shown ? t('popover.allergyHide.button') : t('popover.allergyShow.button')}
             </button>
           </div>}
-        {total === 0 &&
+        {total === 0 && !allMasked &&
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
         {sections.map(([ttl, list, secKey]) => { if (list.length === 0) return null; return (

@@ -18,18 +18,26 @@
 // sans option de test ni piste qui change d'une séance à l'autre. Appliqués
 // par-dessus les valeurs par défaut ET les écarts locaux (localStorage) des
 // Tweaks, pour que la démo soit la même d'une machine à l'autre.
+// Tous les réglages d'affichage y sont, pour qu'aucun écart local ne change
+// ce que voit l'auditoire (complété le 2026-10-28) ; seuls les noms
+// (utilisateur, clinique) et la langue restent ceux du présentateur.
 const PRESENTATION_TWEAKS = {
   showClinicalTools: true,
   portalActive: true,
-  startPoints: false,
+  noteWide: false,
+  ftBarPosition: 'haut',
   reviewingMode: false,
   checkoutSuggestions: false,
   simulateTxFailure: false,
   groupRequests: false,
+  templateDraftLines: true,
   templateTextProposed: false,
+  suggestionStyle: 'tirets',
+  pendingBadge: true,
   aiProposals: false,
   summaryAddToNote: false,
-  suggestionsPlacement: 'aucune',
+  suggestionsOn: false,
+  suggestionsPlacement: 'curseur',
   visitStart: false,
   inlineFieldEdit: true,
   formOpenMode: 'auto',

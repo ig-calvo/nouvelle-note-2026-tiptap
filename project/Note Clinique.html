@@ -63,6 +63,9 @@
     background: var(--mat-sys-surface);
     align-items: stretch;
   }
+  /* Tweak « Note plus large » : marges extérieures réduites (voir aussi
+     editor.css et neStyles.cardWide, NoteEditor.jsx). */
+  html[data-note-wide="on"] .content { padding-left: 8px; padding-right: 8px; gap: 8px; }
   /* Colonne centrale : bannière patient épinglée + zone défilante.
      La bannière vit HORS du conteneur scrollable pour éviter le bug de
      compositing (sticky + z-index dans overflow:auto passe au-dessus des
@@ -332,8 +335,6 @@
     'note-ui/SuggestionsColumn.jsx',
     'note-ui/VisitStartPanel.jsx',
     'note-ui/NoteEditor.jsx',
-    'note-ui/NoteStartCards.jsx',
-    'note-ui/SmartNoteModal.jsx',
     'note-ui/NotesList.jsx',
     'note-ui/FloatingToolbar.jsx',
     'note-ui/SummaryModals.jsx',
@@ -374,11 +375,9 @@
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
   "clinicName": "Clinique du Centre-ville",
-  "diagStyle": "actuel",
   "showClinicalTools": true,
   "portalActive": true,
-  "startPoints": false,
-  "ftBarStyle": "flottant",
+  "noteWide": false,
   "ftBarPosition": "haut",
   "reviewingMode": false,
   "reviewAuthor": "me",
@@ -393,7 +392,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "inlineFieldEdit": true,
   "aiProposals": false,
   "summaryAddToNote": false,
-  "suggestionsPlacement": "aucune",
+  "suggestionsOn": false,
+  "suggestionsPlacement": "curseur",
   "visitStart": false,
   "themeMode": "clair"
 } /*EDITMODE-END*/;
@@ -501,8 +501,6 @@ function App() {
   }, []);
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [bannerCollapsed, setBannerCollapsed] = React.useState(false);
-  const [smartModal, setSmartModal] = React.useState(false);
-  const [smartActive, setSmartActive] = React.useState(false);
   const [completedNotes, setCompletedNotes] = React.useState([]);
   const [docStatusSummary, setDocStatusSummary] = React.useState([]);
   const noteCompleteRef = React.useRef(null);
@@ -527,15 +525,6 @@ function App() {
     if (noteOpen) return;
     setNoteOpen(true);
     setTimeout(() => setBannerCollapsed(true), 260);
-  }
-  // « Depuis la dernière note » lie les deux notes au même épisode de soin —
-  // si la dernière note n'en avait pas encore, on lui en assigne un ici (elle
-  // garde son propre timestamp ; seule la liste affiche le lien — NotesList.jsx).
-  function handleLinkEpisode(epId) {
-    setCompletedNotes(prev => {
-      if (!prev.length || prev[0].episodeId) return prev;
-      return prev.map((n, i) => i === 0 ? { ...n, episodeId: epId } : n);
-    });
   }
   // Complète une note archive un instantané figé (txState) — mais le
   // checkout peut continuer sur ses documents restants (ex. l'ordonnance)
@@ -570,7 +559,6 @@ function App() {
       conclusion: '',
       files: [],
       doc: data.doc || window.DEFAULT_DOC(),
-      episodeId: data.episodeId || null,
       // Jamais lu par un rendu « autre intervenant » (ex. NotesList pour les
       // notes d'un autre auteur) : seul l'auteur (author, ci-dessus) y a accès.
       confidential: data.confidential || null,
@@ -581,11 +569,10 @@ function App() {
     };
     setCompletedNotes(prev => [newNote, ...prev]);
     setNoteOpen(false);
-    setSmartActive(false);
     setBannerCollapsed(false);
   }
   return (
-    <div className={"app diag-style-" + (t.diagStyle || 'actuel') + (presenting ? ' presentation' : '')}>
+    <div className={"app diag-style-actuel" + (presenting ? ' presentation' : '')}>
       <TopBar user={t.doctorName} clinic={t.clinicName} onMenuClick={() => setNavCollapsed((v) => !v)} />
       <div className="main-row">
         <SideNav collapsed={navCollapsed} presenting={presenting} onTogglePresentation={togglePresentation} />
@@ -601,15 +588,9 @@ function App() {
               completeRef={noteCompleteRef}
               doctorName={t.doctorName}
               institution={t.clinicName}
-              smartActive={smartActive}
               showClinicalTools={t.showClinicalTools}
-              startPoints={t.startPoints}
-              lastNote={completedNotes[0] || null}
-              onLinkEpisode={handleLinkEpisode}
-              onSmartPick={() => setSmartModal(true)}
               saveDraftRef={noteSaveDraftRef}
-              ftBarStyle={t.ftBarStyle || 'haut'}
-              ftBarPosition={t.ftBarPosition || 'haut'}
+              noteWide={t.noteWide === true}
               reviewingMode={t.reviewingMode === true}
               reviewAuthor={t.reviewAuthor || 'me'}
               checkoutSuggestions={t.checkoutSuggestions === true}
@@ -622,7 +603,7 @@ function App() {
               inlineFieldEdit={t.inlineFieldEdit !== false}
               pendingBadge={t.pendingBadge !== false}
               aiProposals={t.aiProposals === true}
-              suggestionsPlacement={t.suggestionsPlacement || 'aucune'}
+              suggestionsPlacement={t.suggestionsOn === true ? (t.suggestionsPlacement || 'curseur') : 'aucune'}
               visitStart={t.visitStart === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
@@ -662,13 +643,8 @@ function App() {
         </div>
       </div>
 
-      {(t.ftBarStyle || 'haut') === 'flottant' && <FloatingToolbar position={t.ftBarPosition || 'haut'} />}
+      <FloatingToolbar position={t.ftBarPosition || 'haut'} />
       <ToastHost />
-      {smartModal &&
-        <SmartNoteModal
-          onCancel={() => setSmartModal(false)}
-          onConfirm={() => { setSmartModal(false); setSmartActive(true); handleNoteOpen(); }} />
-      }
       {presenting && <PresentationMode noteOpen={noteOpen} onOpenNote={handleNoteOpen} />}
       {!presenting &&
       <TweaksPanel title="Tweaks">
@@ -698,18 +674,10 @@ function App() {
                        onChange={(v) => setTweak('showClinicalTools', v)} />
           <TweakToggle label="Portail patient actif" value={t.portalActive !== false}
                        onChange={(v) => setTweak('portalActive', v)} />
-          <TweakToggle label="Points de départ" value={t.startPoints === true}
-                       onChange={(v) => setTweak('startPoints', v)} />
-          <TweakRadio label="Barre de mise en forme"
-                      value={t.ftBarStyle || 'haut'}
-                      options={[
-                        { value: 'haut', label: 'Haut de note' },
-                        { value: 'flottant', label: 'Flottante' },
-                      ]}
-                      onChange={(v) => setTweak('ftBarStyle', v)} />
-          {/* "Haut de note" : bas = après le corps de la note (avant les outils
-              cliniques) plutôt qu'avant. "Flottante" : bas = sous la sélection
-              plutôt qu'au-dessus. */}
+          <TweakToggle label="Note plus large (marges réduites)" value={t.noteWide === true}
+                       onChange={(v) => setTweak('noteWide', v)} />
+          {/* Barre de mise en forme flottante (seule retenue) : bas = sous la
+              sélection plutôt qu'au-dessus. */}
           <TweakRadio label="Position de la barre"
                       value={t.ftBarPosition || 'haut'}
                       options={[
@@ -748,15 +716,18 @@ function App() {
                        onChange={(v) => setTweak('pendingBadge', v)} />
         </TweakSection>
         <TweakSection label="Pistes (vision)">
-          <TweakRadio label="Suggestions"
-                      value={t.suggestionsPlacement || 'aucune'}
+          {/* Suggestions éteintes par défaut ; allumées, la barre sous le texte
+              (« curseur ») est l'emplacement par défaut (décision 2026-10-28). */}
+          <TweakToggle label="Suggestions" value={t.suggestionsOn === true}
+                       onChange={(v) => setTweak('suggestionsOn', v)} />
+          <TweakRadio label="Emplacement des suggestions"
+                      value={t.suggestionsPlacement && t.suggestionsPlacement !== 'aucune' ? t.suggestionsPlacement : 'curseur'}
                       options={[
-                        { value: 'aucune', label: 'Aucune' },
+                        { value: 'curseur', label: 'Barre' },
                         { value: 'colonne', label: 'Colonne' },
-                        { value: 'curseur', label: 'En ligne' },
                         { value: 'les-deux', label: 'Les deux' },
                       ]}
-                      onChange={(v) => setTweak('suggestionsPlacement', v)} />
+                      onChange={(v) => setTweak({ suggestionsOn: true, suggestionsPlacement: v })} />
           <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
                        onChange={(v) => setTweak('visitStart', v)} />
           <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}
@@ -784,17 +755,6 @@ function App() {
                       value={t.reviewAuthor || 'me'}
                       options={(window.reviewHumanAuthors ? window.reviewHumanAuthors(t.doctorName) : []).map((a) => ({ value: a.id, label: a.name }))}
                       onChange={(v) => setTweak('reviewAuthor', v)} />
-        </TweakSection>
-        <TweakSection label="Diagnostics">
-          <TweakRadio label="Style de région"
-                      value={t.diagStyle || 'actuel'}
-                      options={[
-                        { value: 'numbered', label: 'Numéroté' },
-                        { value: 'actuel', label: 'Actuel' },
-                        { value: 'carte', label: 'Carte' },
-                        { value: 'etiquette', label: 'Étiquette' },
-                      ]}
-                      onChange={(v) => setTweak('diagStyle', v)} />
         </TweakSection>
       </TweaksPanel>}
     </div>);

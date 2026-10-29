@@ -238,8 +238,6 @@ test('français : les pluriels écrits à la main donnent les mêmes phrases qu�
     [fr.tn('document.pill.aria', 2, { kind: 'Ordonnance', total: 3 }), `Ordonnance${NB}: 2 sur 3 complétés`],
     [fr.tn('portal.pill.label', 1), `Portail patient${NB}: 1 élément partagé`],
     [fr.tn('portal.pill.label', 3), `Portail patient${NB}: 3 éléments partagés`],
-    [fr.tn('noteStart.drafts.label', 1), 'Brouillon'],
-    [fr.tn('noteStart.drafts.label', 2), '2 brouillons'],
     [fr.tn('quickSend.summary.text', 1), '1 document · 1 destination'],
     [fr.tn('quickSend.summary.text', 2), '1 document · 2 destinations'],
     [fr.tn('transmission.sent.toast', 1), '1 document transmis'],

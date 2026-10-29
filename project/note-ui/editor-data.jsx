@@ -1426,13 +1426,6 @@ function deriveServRx(d) {
   return { name: d.service || t('data.serviceRequest.text'), dose: '', sig: sig, kind: 'serv' };
 }
 
-// Suggestions de médicaments en prose DÉSACTIVÉES : les suggestions
-// n'apparaissent désormais que via la fonction « /rx ». Avec le catalogue
-// élargi, des mots courants (« mo », « me », « na »…) déclenchaient le menu
-// pendant la frappe normale. Pour réactiver, rétablir le recognizer ci-dessous
-// (idéalement avec un préfixe minimal de 4+ lettres).
-const RECOGNIZERS = [];
-
 const SLASH_ITEMS = [
   // ── STRUCTURE ────────────────────────────────────────────
   { key: 'outils-cliniques', section: L('Structure'), icon: 'handyman', title: L('Outils cliniques'), desc: L('Score, calculatrice, outil clinique…'), kbd: '',
@@ -1655,43 +1648,6 @@ const PATIENT = {
   status: L('En consultation'),
 };
 
-const VITALS = [
-  { ic: 'thermostat',    lbl: L('Température'), val: '38,1 °C' },
-  { ic: 'favorite',      lbl: L('FC'),            val: '84 bpm' },
-  { ic: 'monitor_heart', lbl: L('TA'),            val: '118/72' },
-  { ic: 'air',           lbl: L('SpO₂'),     val: '98 %' },
-  { ic: 'scale',         lbl: L('Poids'),         val: '64 kg' },
-];
-
-const RESULTS_RECENT = [
-  { id: 'r1', ttl: L('FSC — 17 mars 2026'), meta: L('Hb 128 g/L · Leuco 9,2'), sev: 'ok', sevLbl: L('Normal') },
-  { id: 'r2', ttl: L('TSH — 12 janv 2026'), meta: L('2,1 mUI/L'), sev: 'ok', sevLbl: L('Normal') },
-];
-
-const SCENARIOS = [
-  { key: 'empty',  name: L('Note vierge'), desc: L('Commencer à zéro'),
-    detail: '', conclusion: '', hint: null },
-  { key: 'rx',     name: L('Démo — prescription'), desc: L('Tapez « mét » pour voir la liste'),
-    detail: L("Motif de consultation\nPatiente enceinte de 22 sem consulte pour otalgie droite depuis 48 h, accompagnée d'un écoulement clair intermittent et d'une sensation d'oreille bouchée. Pas de vertiges, pas d'acouphènes, pas de fièvre frissonnante.\n\nAntécédents\nAsthme léger bien contrôlé sous Ventolin PRN. Grossesse actuelle sans complication, suivie en GARE. Allergie légère à la pénicilline documentée en 2019 — éruption maculopapuleuse seulement, pas d'œdème ni d'urticaire.\n\nExamen physique\nTempérature 38,1 °C, TA 118/72, FC 84 régulière, SpO₂ 98 % à l'air ambiant. Patiente alerte, confortable.\nOtoscopie droite : tympan bombé, érythémateux, opaque, perte du triangle lumineux. Otoscopie gauche : tympan nacré, mobile à l'insufflation, reliefs normaux.\nAuscultation pulmonaire claire, pas de râles ni de sibilances. Pharynx sans érythème. Adénopathies cervicales non palpables.\n\nRevue des systèmes\nPas de céphalées, pas de nausées, pas d'éruption cutanée. Mouvements fœtaux perçus, pas de contractions.."),
-    conclusion: L('Impression\nInfection bactérienne — plan de traitement à venir.\n\nPlan\nAntibiothérapie: mét'),
-    hint: L('Le curseur est placé après « mét ». Continuez à taper pour filtrer la liste. ↑ ↓ pour naviguer, Entrée / Tab pour choisir.') },
-  { key: 'composed', name: L('Note avancée'), desc: L('Plusieurs items confirmés'),
-    detail: L('Bilan annuel. HTA et dyslipidémie suivis. Pas de plainte.\nTA 138/86, FC 72 rég. Auscultation normale.'),
-    conclusion: L('Bilan stable. Renouvellement atorvastatine. Bilan lipidique annuel à jeun. Suivi 3 mois.'),
-    preChips: [
-      { slot: 'conclusion', entity: { type: 'prescription', label: L('Atorvastatine 20 mg'),
-        text: L('Atorvastatine 20 mg — HS × 90 jours'),
-        details: { molecule: L('Atorvastatine'), dose: '20', unit: 'mg', form: 'comprimé',
-          route: 'PO', frequency: 'HS', duration: '90', durationUnit: 'jours',
-          quantity: '90', refills: '3', indication: L('Dyslipidémie'), notes: L('Surveiller CK.') } } },
-      { slot: 'conclusion', entity: { type: 'lab', label: L('Bilan lipidique'),
-        text: L('Bilan lipidique + ALT + créat'),
-        details: { tests: [L('Chol total'), L('HDL'), L('LDL'), L('TG'), L('ALT'), L('Créat')], priority: 'Routine',
-          fasting: true, context: L('Suivi statine'), collection: L('Au CH') } } },
-    ],
-    hint: L('Cliquez sur un chip pour modifier les détails.') },
-];
-
 // Gabarits de note suggérés selon la raison de consultation (colonne de
 // suggestions, rencontre vision 2026-10-27) : mots de la raison, dans les deux
 // langues, qui appellent chaque gabarit. Au plus `max` gabarits, dans l'ordre
@@ -1752,7 +1708,7 @@ function visitReason(points) {
   return (points || []).map(function (p) { return p.short; }).join(' · ');
 }
 
-window.NOTE_DATA = { ENTITY_TYPES, RECOGNIZERS, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, VITALS, RESULTS_RECENT, SCENARIOS,
+window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,

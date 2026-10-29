@@ -2,7 +2,7 @@
 // =========================================================
 // VisitStartPanel.jsx — points de départ de la visite (rencontre vision
 // 2026-10-27, réglage « Points de départ de la visite »), affichés avant
-// l'ouverture de la note à la place des cartes de NoteStartCards :
+// l'ouverture de la note :
 //   1. le contexte du rendez-vous (heure, type, raison prise à l'accueil) ;
 //   2. un ou plusieurs points de départ : la raison du rendez-vous, le suivi
 //      d'un résultat, un problème au dossier (visitStartPoints) ;

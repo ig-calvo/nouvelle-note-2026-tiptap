@@ -141,21 +141,6 @@ test('prepareDiagDoc migre promotedAt/promotedBy puis les retire', () => {
   assert.equal('promotedBy' in a, false);
 });
 
-test('rebaseDiagDocForNewNote relie par code, efface replaces et les horodatages', () => {
-  const w2 = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx']);
-  const base = w2.sommaireDxSeed();
-  const src = doc(DX({
-    id: 'd1', dxKey: 'n:d1', name: 'Asthme leger', code: 'J45.9', sommaireId: null,
-    documentAs: 'probleme', documentedAt: 't0', documentedBy: 'moi', replaces: { name: 'X', code: 'X1' },
-  }));
-  const out = w2.rebaseDiagDocForNewNote(src, base);
-  const a = out.content[0].attrs;
-  assert.equal(a.sommaireId, 'som-asthme');
-  assert.equal(a.replaces, null);
-  assert.equal(a.documentedAt, null);
-  assert.equal(a.documentedBy, null);
-});
-
 // ---------------------------------------------------------------------------
 // makeDiagRegionAttrs — le seul constructeur de région
 // ---------------------------------------------------------------------------
