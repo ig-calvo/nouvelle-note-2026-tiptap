@@ -483,10 +483,17 @@ function TransmissionModal({ docs, initialFrozenDocs, onPatch, onComplete, docto
                   <span className="material-icons" style={{ fontSize: 20 }}>add</span>
                 </button>}
             </div>
-            {sideGroups.map(function (g) {
+            {sideGroups.filter(function (g) { return g.docs.length > 0; }).map(function (g) {
+              // Tout ce que contient la section est transmis : coche verte.
+              const allSent = g.docs.every(function (d) { return txStatus(d) === 'done'; });
               return (
                 <div key={g.title} style={tx.sideGroup}>
-                  <div style={tx.sideGroupTitle}>{g.title} {g.docs.length}</div>
+                  <div style={tx.sideGroupTitle}>
+                    {g.title} {g.docs.length}
+                    {allSent &&
+                      <span className="material-icons" role="img" title={TX_STATUS_LABEL.done} aria-label={TX_STATUS_LABEL.done}
+                        style={tx.sideGroupCheck}>check_circle</span>}
+                  </div>
                   {g.docs.map(function (d) { return renderSideRow(d); })}
                 </div>
               );
@@ -639,6 +646,7 @@ const tx = {
   },
   sideAddBtn: { color: 'var(--mat-sys-on-surface)' },
   sideGroup: { display: 'flex', flexDirection: 'column', gap: 4 },
+  sideGroupCheck: { fontSize: 18, verticalAlign: 'middle', marginLeft: 6, color: 'light-dark(#1e7e34, #6fcf8a)' },
   sideGroupTitle: { fontSize: 13, fontWeight: 500, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', padding: '0 12px' },
   sideRow: {
     display: 'flex', alignItems: 'flex-start', gap: 8, width: '100%',
