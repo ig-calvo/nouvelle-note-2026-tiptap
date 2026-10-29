@@ -370,6 +370,13 @@ const MED_CATALOG = [
     details: { molecule: L('Fluticasone (nasal)'), dose: '50', unit: 'mcg/vap.', form: 'vaporisateur', route: 'Nasal',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: L('1 flacon'), refills: '0',
       indication: L('Sinusite, rhinite'), notes: L('2 vaporisations dans chaque narine.') } },
+  // Migraine (PLAN-reference-specialite.md, lot 2) : le triptan du texte rapide.
+  { key: 'sumatriptan50', stem: 'sumatriptan', brand: 'Imitrex', klass: L('Triptan'), din: '',
+    text: L('Sumatriptan 50 mg — 1 co au début de la crise, max. 4 co par 24 h'),
+    label: L('Sumatriptan 50 mg'),
+    details: { molecule: L('Sumatriptan'), dose: '50', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'PRN', duration: '', durationUnit: '', quantity: '6', refills: '2',
+      indication: L('Migraine'), notes: L('Au début de la crise ; répéter après 2 h au besoin.') } },
   { key: 'prednisone50', stem: 'prednisone', brand: 'Winpred', klass: L('Corticosteroide'), din: '',
     text: L('Prednisone 50 mg — 1 co DIE x 5 j'),
     label: L('Prednisone 50 mg'),
@@ -1041,7 +1048,98 @@ function crdsReasonsOf(specialty) {
 // raison et sa cote comme priorité (Routine si le formulaire n'en donne pas).
 function crdsRefDetails(r, base) {
   return Object.assign({ question: '', indication: '' }, base || {}, { specialty: r.specName, crdsKey: r.crds,
-    reason: r.name, reasonPath: r.path.slice(), priority: r.cote || 'Routine' });
+    reason: r.name, reasonPath: r.path.slice(), priority: r.cote || 'Routine', prereqs: crdsPrereqInit(r.crds) });
+}
+// Section d'une raison, ou sa spécialité quand le CRDS ne la range pas (D2) :
+// « Céphalée », « Cardiologie ».
+function crdsSection(r) { return (r && r.path && r.path[0]) || (r && r.specName) || ''; }
+
+// Formulaires qui vont à l'âge de la patiente : moins de 18 ans, la Pédiatrie
+// générale et les formulaires « adulte et enfant » ; sinon, tout sauf la
+// Pédiatrie générale (D3).
+function crdsFitsPatient(r) {
+  const s = CRDS_SPECS.find(function (x) { return x.key === r.spec; });
+  const form = _norm((s && s.form) || '');
+  if (PATIENT.ageYears < 18) return r.spec === 'pedia' || (/enfant|pediatrique/.test(form) && /adulte/.test(form));
+  return r.spec !== 'pedia';
+}
+// Raisons suggérées pour le diagnostic de la région où /ref est tapé (D1) : la
+// liste `ref` de son contexte (DX_CONTEXTS), selon l'âge de la patiente.
+let _refDx = null;
+function refSuggestionsFor(dx) {
+  const c = dx ? dxContextFor(dx) : null;
+  return ((c && c.ref) || []).map(crdsReason).filter(Boolean).filter(crdsFitsPatient);
+}
+
+// Prérequis d'une raison CRDS, à remplir dans le formulaire de la référence.
+// Migraine en Neurologie adulte (Figma, D5) : les « Médicaments essayés » en
+// pastilles par groupe, avec un minimum par groupe (1 triptan, 2 traitements
+// prophylactiques) ; cochés d'office d'après le profil médicamenteux (actifs ou
+// cessés : essayés). Liste d'exemple, à valider cliniquement. Les autres
+// raisons : leurs pièces jointes CRDS, rendues par type (D5b) — jointes
+// d'office (DSQ, dossier), texte à inscrire, action à faire, pièce à joindre.
+const CRDS_PREREQ_CHOICES = {
+  'neuro-24': { title: L('Médicaments essayés'), groups: [
+    { key: 'triptan', label: L('Triptan'), min: 1, options: [
+      { key: 'almotriptan', label: L('almotriptan'), match: /almotriptan/ },
+      { key: 'eletriptan', label: L('élétriptan'), match: /eletriptan/ },
+      { key: 'frovatriptan', label: L('frovatriptan'), match: /frovatriptan/ },
+      { key: 'naratriptan', label: L('naratriptan'), match: /naratriptan/ },
+      { key: 'rizatriptan', label: L('rizatriptan'), match: /rizatriptan/ },
+      { key: 'sumatriptan', label: L('sumatriptan'), match: /sumatriptan/ },
+      { key: 'zolmitriptan', label: L('zolmitriptan'), match: /zolmitriptan/ }] },
+    { key: 'prophylaxie', label: L('Prophylaxie'), min: 2, options: [
+      { key: 'tricycliques', label: L('tricycliques'), match: /amitriptyl|nortriptyl/ },
+      { key: 'beta-bloqueurs', label: L('bêta-bloqueurs'), match: /propranolol|metoprolol|nadolol/ },
+      { key: 'candesartan', label: L('candesartan'), match: /candesartan/ },
+      { key: 'topiramate', label: L('topiramate'), match: /topiramat/ },
+      { key: 'cgrp', label: L('anticorps CGRP'), match: /erenumab|galcanezumab|fremanezumab|eptinezumab/ }] }] },
+};
+// Pièces que le DSQ ou le dossier fournit : jointes d'office (colonne « Automatisable » du CRDS).
+const CRDS_AUTO_SOURCE = { DSQ: 'dsq', Facile: 'dossier' };
+// [{ key, kind: 'choices'|'auto'|'text'|'check'|'attach', label, … }]
+function crdsPrereqs(id) {
+  const r = crdsReason(id);
+  if (!r) return [];
+  const choice = CRDS_PREREQ_CHOICES[id];
+  const out = [];
+  const profil = r.docs.find(function (doc) { return doc.type === 'profil'; });
+  if (choice) choice.groups.forEach(function (g) {
+    out.push({ key: g.key, kind: 'choices', title: choice.title, hint: profil ? profil.name : '', label: g.label, min: g.min, options: g.options });
+  });
+  r.docs.forEach(function (doc, i) {
+    if (choice && doc === profil) return; // remplacé par les pastilles
+    const f = { key: 'doc' + i, label: doc.name, note: doc.note || '' };
+    const source = CRDS_AUTO_SOURCE[doc.auto];
+    if (source) out.push(Object.assign(f, { kind: 'auto', source: source }));
+    else if (doc.type === 'saisie') out.push(Object.assign(f, { kind: 'text', required: true }));
+    else if (doc.type === 'action') out.push(Object.assign(f, { kind: 'check', required: true }));
+    else out.push(Object.assign(f, { kind: 'attach', required: true }));
+  });
+  return out;
+}
+// Valeurs de départ : les pastilles du profil médicamenteux cochées, le reste vide.
+function crdsPrereqInit(id) {
+  const vals = {};
+  crdsPrereqs(id).forEach(function (f) {
+    if (f.kind === 'choices') {
+      vals[f.key] = f.options.filter(function (o) {
+        return PATIENT_MEDS.some(function (m) { return o.match.test(_hay((m.details && m.details.molecule) || m.name)); });
+      }).map(function (o) { return o.key; });
+    } else if (f.kind === 'text') vals[f.key] = '';
+    else if (f.kind === 'check' || f.kind === 'attach') vals[f.key] = false;
+  });
+  return vals;
+}
+// Les prérequis qui manquent encore (puce « à faire », lot 3).
+function crdsPrereqMissing(id, vals) {
+  const v = vals || {};
+  return crdsPrereqs(id).filter(function (f) {
+    if (f.kind === 'choices') return (v[f.key] || []).length < f.min;
+    if (f.kind === 'text') return !String(v[f.key] || '').trim();
+    if (f.kind === 'check' || f.kind === 'attach') return !v[f.key];
+    return false;
+  });
 }
 // Item à insérer pour une raison choisie dans le menu : la puce porte le nom
 // de la spécialité, la raison et la priorité vont dans sa 2e ligne.
@@ -1072,7 +1170,9 @@ function refViews(q, favSet) {
       return sec('r:' + it.key, it.name, reasons.filter(function (r) { return r.spec === it.key; }).slice(0, REF_PER_SPEC));
     }));
   } else {
+    const sugg = refSuggestionsFor(_refDx).map(function (r) { return Object.assign({}, r, { sig: [r.specName].concat(r.path).join(' › ') }); });
     v.tout = [
+      sec('suggeres', _refDx ? t('data.sectionRefSuggested.title', { dx: _refDx.name }) : '', sugg),
       sec('favoris', t('data.sectionFavorites.title'), REF_ITEMS.filter(function (it) { return favSet.has(it.key); })),
       sec('freq', t('data.sectionRefFrequent.title'), REF_ITEMS.filter(function (it) { return it.freq && !favSet.has(it.key); })),
       sec('autres', t('data.sectionRefOther.title'), REF_ITEMS.filter(function (it) { return !it.freq && !favSet.has(it.key); }))
@@ -1310,6 +1410,13 @@ const DX_CONTEXTS = [
   { key: 'db2', cim10: ['E11'], snomed: [],
     words: ['diabète de type 2', 'diabete de type 2', 'diabète type 2', 'type 2 diabetes', 'db2'],
     rx: ['cat-15', 'cat-17', 'cat-16'], lab: ['hba1c', 'microalb', 'creat'], img: [], label: L('Diabète de type 2') },
+  // Migraine (PLAN-reference-specialite.md, lot 2) : `ref`, les raisons CRDS
+  // suggérées dans /ref, gardées selon l'âge (crdsFitsPatient) — Neurologie
+  // adulte, ou Pédiatrie générale › Céphalée.
+  { key: 'migraine', cim10: ['G43', 'G44'], snomed: ['37796009'],
+    words: ['migraine', 'céphalée', 'cephalee', 'céphalées', 'headache'],
+    rx: [], lab: [], img: [], ref: ['neuro-24', 'neuro-25', 'neuro-26', 'neuro-27', 'pedia-12', 'pedia-11', 'pedia-13'],
+    label: L('Migraine') },
 ];
 
 // Textes rapides (PLAN-textes-rapides.md, PLAN-gabarits-conclusion.md). Un
@@ -1420,6 +1527,9 @@ const QUICK_TEXTS = [
       microalb: { kind: 'lab', key: 'microalb' },
       creat: { kind: 'lab', key: 'creat' },
       metf: { kind: 'rx', key: 'cat-15' } } },
+  { key: 'migraine', kind: 'omnimed', dx: ['migraine'], name: L('Migraine'),
+    content: L('Impression : migraine sans aura.\nCrise : {triptan}\nProphylaxie si 4 jours de migraine ou plus par mois.\nCalendrier des céphalées.\nRéférer en neurologie si échec d’un triptan et de 2 traitements prophylactiques.\nRevoir dans 3 mois.'),
+    tiles: { triptan: { kind: 'rx', key: 'sumatriptan50' } } },
 ];
 
 // Attributs d'un diagnostic (name, code) → son contexte, ou null. Le code
@@ -1751,7 +1861,9 @@ let _favFreeze = {};
 function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
-  if (dx && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
+  // /ref : le diagnostic de la région donne « Suggérés pour … » en tête de Tout (refViews).
+  if (kind === 'ref') _refDx = dx || null;
+  if (dx && kind !== 'ref' && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
     if (ctx.length) {
       const res = { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
@@ -2076,6 +2188,7 @@ const PATIENT = window.forPatient({ adulte: {
   initials: 'ML',
   name: 'Micheline Lamontagne',
   age: L('47 ans'),
+  ageYears: 47,
   sex: 'F',
   dob: L('05 décembre 1978'),
   ramq: 'LAMM 7862 0512',
@@ -2090,6 +2203,7 @@ const PATIENT = window.forPatient({ adulte: {
   initials: 'GT',
   name: 'Geneviève Tremblay',
   age: L('15 ans'),
+  ageYears: 15,
   sex: 'F',
   dob: L('03 mai 2011'),
   ramq: 'TREG 1155 0301',
@@ -2195,7 +2309,7 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
-  CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, searchRef, refRail, refViewKeys, setRefView, getRefView,
+  CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, QUICK_TEXTS, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

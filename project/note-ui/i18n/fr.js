@@ -635,6 +635,7 @@
   'data.crdsPriority.text': 'Priorité {cote}',
   'data.sectionRefSpecialties.title': 'Spécialités',
   'data.sectionRefNoReason.title': 'Sans raison précise',
+  'data.sectionRefSuggested.title': 'Suggérés pour {dx}',
   'data.sectionRefOtherReasons.title': 'Autres raisons',
   'popover.commentaireSpecialiste.label': 'Commentaire au spécialiste',
   'popover.echap.text': 'Échap',

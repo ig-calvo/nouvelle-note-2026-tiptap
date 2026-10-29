@@ -694,6 +694,7 @@
   'data.crdsPriority.text': 'Priority {cote}',
   'data.sectionRefSpecialties.title': 'Specialties',
   'data.sectionRefNoReason.title': 'No specific reason',
+  'data.sectionRefSuggested.title': 'Suggested for {dx}',
   'data.sectionRefOtherReasons.title': 'Other reasons',
   'popover.decreaseDose.tooltip': 'Decrease dose: {from} → {to} {unit}',
   'popover.dejaDossier.tooltip': 'Already on record',
