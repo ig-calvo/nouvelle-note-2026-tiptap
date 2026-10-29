@@ -123,6 +123,11 @@ function chipIssues(a) {
     if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, missing: missing,
       message: t('schema.rxIncomplete.text', { fields: missing.map(function (m) { return m.word; }).join(', ') }) });
     if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || t('schema.interactionHautRisque.text') });
+    // Allergie au dossier (même règle que la recherche /rx, rxAllergyOf) : une
+    // ordonnance posée malgré tout, par un texte rapide ou « Afficher », la garde visible.
+    const allergy = window.NOTE_DATA && window.NOTE_DATA.rxAllergyOf && !(a.rx && (a.rx.renewal || a.rx.adjust))
+      ? window.NOTE_DATA.rxAllergyOf({ name: (a.rx && a.rx.name) || a.label || '', details: d }) : null;
+    if (allergy) out.push({ level: 'error', kind: 'allergy', message: t('schema.allergy.text', { name: allergy }) });
   }
   if (a.type === 'referral' && blank(d.question)) out.push({ level: 'warning', kind: 'missing-info', message: t('schema.questionCliniquePreciser.text') });
   return out;
@@ -2878,16 +2883,39 @@ function buildTemplateBlocks(tpl, opts) {
 // dernière conclusion, mon gabarit, gabarit Omnimed) → paragraphes à placer
 // DANS la région du diagnostic (qui n'accepte que des paragraphes). Comme
 // buildTemplateBlocks : les ajouts proposés arrivent en attente, signés par
-// `opt.source`, sur une ligne à eux ; opts.proposeText met aussi le texte en
-// suggestion.
+// `opt.source` ; opts.proposeText met aussi le texte en suggestion.
+// Tuiles dans le texte (PLAN-gabarits-conclusion.md) : un jeton `{clé}` du
+// texte devient, à sa place, la puce de `opt.tiles[clé]`. Les ajouts de
+// `opt.proposals` qu'aucun jeton ne place vont sur une ligne à eux, à la fin.
+// Un jeton sans tuile reste du texte ; une tuile absente du catalogue disparaît.
+const TILE_TOKEN = /\{([A-Za-z][\w-]*)\}/g;
 function buildConclusionBlocks(opt, opts) {
   if (!opt) return [];
   const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
+  const tiles = opt.tiles || {};
+  const placed = [];
+  const text = function (s) {
+    const node = { type: 'text', text: s };
+    return proposeText ? window.markBlocksAsInsertion([node], TEMPLATE_AUTHOR)[0] : node;
+  };
   let blocks = (opt.content || '').split('\n').map(function (line) {
-    return line ? { type: 'paragraph', content: [{ type: 'text', text: line }] } : { type: 'paragraph' };
+    const content = [];
+    let last = 0;
+    line.replace(TILE_TOKEN, function (token, key, at) {
+      const tile = tiles[key];
+      if (!tile) return token;
+      if (at > last) content.push(text(line.slice(last, at)));
+      const chip = buildTemplateChipNode(tile, opt.source);
+      if (chip) content.push(chip);
+      placed.push(tile);
+      last = at + token.length;
+      return token;
+    });
+    if (last < line.length) content.push(text(line.slice(last)));
+    return content.length ? { type: 'paragraph', content: content } : { type: 'paragraph' };
   });
-  if (proposeText) blocks = blocks.map(function (b) { return b.content ? window.markBlocksAsInsertion([b], TEMPLATE_AUTHOR)[0] : b; });
-  const nodes = (opt.proposals || []).map(function (p) { return buildTemplateChipNode(p, opt.source); }).filter(Boolean);
+  const nodes = (opt.proposals || []).filter(function (p) { return placed.indexOf(p) < 0; })
+    .map(function (p) { return buildTemplateChipNode(p, opt.source); }).filter(Boolean);
   if (nodes.length) {
     const inline = [];
     nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });

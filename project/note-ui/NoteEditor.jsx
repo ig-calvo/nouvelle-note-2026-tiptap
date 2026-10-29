@@ -370,14 +370,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.addEventListener('note:apply-dx-template', onApplyDxTemplate);
     // Diagnostic suggéré par le gabarit de début (flux de Sacha) : la région
     // à la fin de la conclusion, déjà remplie de son gabarit de conclusion en
-    // attente — mon gabarit s'il existe, sinon celui d'Omnimed.
+    // attente — le premier de mes textes rapides, sinon d'Omnimed, sans
+    // conflit d'allergie s'il y en a un (dxConclusionOptions les classe).
     function onAddSuggestedDx(e) {
       var editor = editorRef.current, d = e.detail;
       if (!editor || !d) return;
       var attrs = window.makeDiagRegionAttrs({ action: 'nouveau', pick: { source: 'cim10', name: d.name, code: d.code } },
         { id: window.newDiagId(), now: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
       var opts = window.NOTE_DATA.dxConclusionOptions(attrs, window.dxConclusionContext());
-      var opt = opts.find(function(o) { return o.id === 'mine'; }) || opts.find(function(o) { return o.id === 'omnimed'; });
+      var opt = opts.find(function(o) { return o.kind !== 'last'; });
       var body = window.buildConclusionBlocks(opt, { proposeText: templateTextProposedRef.current });
       var end = editor.state.doc.content.size;
       editor.chain().focus().insertContentAt(end, { type: 'diagnosticRegion', attrs: attrs, content: body.length ? body : [{ type: 'paragraph' }] }).run();

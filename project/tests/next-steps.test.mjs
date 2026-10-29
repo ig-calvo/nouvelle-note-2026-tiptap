@@ -14,16 +14,16 @@ const NO_CTX = { notes: [], sommaire: [] };
 
 test('un diagnostic ajouté : son gabarit de conclusion, puis ses prescriptions et requêtes', () => {
   const s = D.nextStepSuggestions({ region: ITU, ctx: NO_CTX });
-  assert.deepEqual(ids(s), ['tpl:mine', 'order:rx:cat-44', 'order:rx:cat-46', 'order:rx:cat-45', 'order:lab:srum']);
+  assert.deepEqual(ids(s), ['tpl:itu-mine', 'order:rx:cat-44', 'order:rx:cat-46', 'order:rx:cat-45', 'order:lab:srum']);
   assert.equal(s[0].regionId, 'd1');
 });
 
 test('déjà sous le diagnostic : ni l’ordonnance ajoutée, ni le gabarit appliqué, ni l’analyse déjà demandée', () => {
   const rx = w.orderChipAttrs('rx', item('rx', 'cat-44'));
   const lab = w.buildRequestChips([item('lab', 'srum')], 'lab')[0];
-  const mine = D.dxConclusionOptions(ITU, NO_CTX).find((o) => o.id === 'mine');
+  const mine = D.dxConclusionOptions(ITU, NO_CTX).find((o) => o.kind === 'mine');
   const s = D.nextStepSuggestions({ region: ITU, present: [rx, lab], sources: [mine.source], ctx: NO_CTX });
-  assert.deepEqual(ids(s), ['tpl:omnimed', 'order:rx:cat-46', 'order:rx:cat-45']);
+  assert.deepEqual(ids(s), ['tpl:itu', 'order:rx:cat-46', 'order:rx:cat-45']);
 });
 
 test('une ligne à compléter compte comme déjà là', () => {

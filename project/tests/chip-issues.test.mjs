@@ -15,8 +15,22 @@ const tablet = w.RX_TEXT.qtyLabel({ form: 'comprimé' });
 const days7 = w.RX_TEXT.durationShort({ duration: '7', durationUnit: 'jours' });
 
 test('une prescription complète n’a aucun état', () => {
-  const a = attrsFor('rx', item('rx', (it) => it.key === 'amox500'));
+  const a = attrsFor('rx', item('rx', (it) => it.key === 'vento100'));
   assert.deepEqual(w.chipIssues(a), []);
+});
+
+test('allergie au dossier : erreur non bloquante sur l’ordonnance, jamais sur un renouvellement', () => {
+  const a = attrsFor('rx', item('rx', (it) => it.key === 'amox500'));
+  const issues = w.chipIssues(a);
+  assert.deepEqual(kinds(issues), ['allergy']);
+  assert.equal(issues[0].blocking, undefined);
+  assert.equal(issues[0].message, w.t('schema.allergy.text', { name: w.L('Pénicilline') }));
+  assert.deepEqual(w.chipIssues(Object.assign({}, a, { rx: Object.assign({}, a.rx, { renewal: true }) })), []);
+  const before = w.NOTE_DATA.getPatientAllergies();
+  try {
+    w.NOTE_DATA.setPatientAllergies([]);
+    assert.deepEqual(w.chipIssues(a), [], 'sans allergie au dossier');
+  } finally { w.NOTE_DATA.setPatientAllergies(before); }
 });
 
 test('sans fréquence : incomplète, bloquante, et le message nomme le champ', () => {
@@ -64,7 +78,7 @@ test('une prescription cessée n’est jamais « incomplète »', () => {
 });
 
 test('checkout : l’ordonnance porte le message bloquant de son item incomplet, les items leurs états', () => {
-  const ok = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.key === 'amox500')) };
+  const ok = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.key === 'vento100')) };
   const incomplete = { type: 'chip', attrs: attrsFor('rx', item('rx', (it) => it.name === w.TR('Warfarine'))) };
   const d = doc(H2(w.TR('Conclusion')), { type: 'paragraph', content: [ok, incomplete] });
   const rx = w.buildTransmissionDocs(w.scanDoc(d), {}).find((x) => x.id === 'rx');

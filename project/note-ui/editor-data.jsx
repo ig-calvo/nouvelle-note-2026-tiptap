@@ -321,7 +321,28 @@ const MED_CATALOG = [
     label: L('Cephalexine 500 mg'),
     details: { molecule: L('Cephalexine'), dose: '500', unit: 'mg', form: 'gélule', route: 'PO',
       frequency: 'QID', duration: '', durationUnit: '', quantity: '', refills: '',
-      indication: L('UTI (grossesse, alternative)'), notes: L('Antibiotique') } }
+      indication: L('UTI (grossesse, alternative)'), notes: L('Antibiotique') } },
+  // Ajouts pour les textes rapides de pneumonie (PLAN-gabarits-conclusion.md),
+  // hors de medicaments.json : posologies usuelles de l'adulte, SIMULÉES, à
+  // valider cliniquement. DIN laissé vide plutôt qu'inventé.
+  { stem: 'amoxicilline', brand: 'Amoxil', klass: L('Antibiotique'), din: '',
+    text: L('Amoxicilline 1 g — 2 caps TID x 5 j'),
+    label: L('Amoxicilline 1 g'),
+    details: { molecule: L('Amoxicilline'), dose: '1', unit: 'g', form: 'gélule', route: 'PO',
+      frequency: 'TID', duration: '5', durationUnit: 'jours', quantity: '30', refills: '0',
+      indication: L('Pneumonie acquise en communauté'), notes: L('Antibiotique') } },
+  { stem: 'doxycycline', brand: 'Vibra-Tabs', klass: L('Antibiotique'), din: '',
+    text: L('Doxycycline 100 mg — 1 co BID x 5 j'),
+    label: L('Doxycycline 100 mg'),
+    details: { molecule: L('Doxycycline'), dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'BID', duration: '5', durationUnit: 'jours', quantity: '10', refills: '0',
+      indication: L('Pneumonie acquise en communauté'), notes: L('Prendre avec un grand verre d’eau, rester debout 30 min.') } },
+  { stem: 'azithromycine', brand: 'Zithromax', klass: L('Antibiotique'), din: '',
+    text: L('Azithromycine 250 mg — 2 co J1 puis 1 co DIE J2 à J5'),
+    label: L('Azithromycine 250 mg'),
+    details: { molecule: L('Azithromycine'), dose: '250', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '5', durationUnit: 'jours', quantity: '6', refills: '0',
+      indication: L('Pneumonie acquise en communauté'), notes: L('500 mg (2 co) le jour 1, puis 250 mg DIE les jours 2 à 5.') } }
 ];
 
 function _norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
@@ -1163,48 +1184,68 @@ const ORDER_DEFS = {
 // TMP-SMX, cat-46 Fosfomycine, cat-48 Amoxicilline-clavulanate.
 // `cim10` : préfixes de code ; `snomed` : codes exacts ; `words` : mots du
 // libellé (les deux langues), pour un diagnostic saisi en texte libre.
-// `conclusion` : gabarit de conclusion Omnimed du diagnostic — des lignes de
-// texte et des ajouts proposés ({ kind, key, details? }, comme `proposals`
-// dans NOTE_TEMPLATES), appliqués EN ATTENTE sous le diagnostic
-// (buildConclusionBlocks, editor-schema.jsx). `mine` : le gabarit que le
-// médecin s'est fait pour ce diagnostic, même forme (simulé).
+// `label` : le nom du diagnostic à suggérer quand aucun gabarit de note n'en
+// donne un (dxSuggestionFor). Ses gabarits de conclusion sont des textes
+// rapides (QUICK_TEXTS, plus bas).
 const DX_CONTEXTS = [
   { key: 'itu', cim10: ['N30', 'N39.0'], snomed: ['68566005', '38822007'],
     words: ['infection urinaire', 'cystite', 'itu', 'urinary tract infection', 'cystitis', 'uti'],
-    rx: ['cat-44', 'cat-46', 'cat-45'], lab: ['srum'], img: [],
-    conclusion: { name: L('Infection urinaire non compliquée'),
-      content: L('Plan : antibiothérapie 5 jours, hydratation.\nConsulter si fièvre ou douleur lombaire.'),
-      proposals: [{ kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } }, { kind: 'lab', key: 'srum' }] },
-    mine: { name: L('Cystite — dose unique'),
-      content: L('Plan : fosfomycine dose unique, culture d’urine.\nRevoir si symptômes persistent après 72 h.'),
-      proposals: [{ kind: 'rx', key: 'cat-46' }, { kind: 'lab', key: 'srum' }] } },
+    rx: ['cat-44', 'cat-46', 'cat-45'], lab: ['srum'], img: [], label: L('Infection urinaire non compliquée') },
   { key: 'asthme', cim10: ['J45', 'J46'], snomed: ['195967001'],
     words: ['asthme', 'asthma'],
-    rx: ['vento100', 'cat-35', 'cat-37', 'cat-39'], lab: ['efr'], img: ['rxpoumon'],
-    conclusion: { name: L('Asthme léger'),
-      content: L('Plan : bronchodilatateur au besoin, revoir la technique d’inhalation.\nPlan d’action écrit remis.'),
-      proposals: [{ kind: 'rx', key: 'vento100' }] },
-    mine: { name: L('Asthme — palier 2'),
-      content: L('Plan : corticostéroïde inhalé quotidien, bronchodilatateur au besoin.\nRéévaluation du contrôle dans 3 mois.'),
-      proposals: [{ kind: 'rx', key: 'vento100' }, { kind: 'rx', key: 'cat-35' }] } },
+    rx: ['vento100', 'cat-35', 'cat-37', 'cat-39'], lab: ['efr'], img: ['rxpoumon'], label: L('Asthme léger') },
+  // cat-50 Amoxicilline 1 g, cat-51 Doxycycline, cat-52 Azithromycine.
   { key: 'pneumonie', cim10: ['J12', 'J13', 'J14', 'J15', 'J16', 'J17', 'J18'], snomed: ['233604007'],
     words: ['pneumonie', 'pneumonia'],
-    rx: ['amox500', 'cat-48', 'cat-40'], lab: ['fsc'], img: ['rxpoumon'],
-    conclusion: { name: L('Pneumonie (suspicion)'),
-      content: L('Plan : radiographie pulmonaire, antibiothérapie.\nRevoir dans 48 à 72 h.'),
-      proposals: [{ kind: 'img', key: 'rxpoumon' }, { kind: 'lab', key: 'fsc' }, { kind: 'rx', key: 'cat-48', details: { frequency: '' } }] } },
+    rx: ['cat-50', 'cat-51', 'cat-48', 'cat-52', 'cat-40'], lab: ['fsc', 'crp'], img: ['rxpoumon'], label: L('Pneumonie (suspicion)') },
   { key: 'otite', cim10: ['H65', 'H66'], snomed: ['65363002'],
     words: ['otite', 'otitis'],
-    rx: ['amox500', 'cat-48', 'cat-40', 'cat-41'], lab: [], img: [],
-    conclusion: { name: L('Otite moyenne aiguë'),
-      content: L('Plan : analgésie, antibiothérapie.\nRevoir si pas d’amélioration en 48 h.'),
-      proposals: [{ kind: 'rx', key: 'amox500' }, { kind: 'rx', key: 'cat-40' }] } },
+    rx: ['amox500', 'cat-48', 'cat-40', 'cat-41'], lab: [], img: [], label: L('Otite moyenne aiguë') },
   { key: 'ivrs', cim10: ['J00', 'J01', 'J02', 'J03', 'J04', 'J05', 'J06', 'J10', 'J11'], snomed: [],
     words: ['ivrs', 'syndrome viral', 'rhume', 'grippe', 'common cold', 'viral syndrome', 'influenza', 'uri'],
-    rx: ['cat-40', 'cat-41', 'cat-38'], lab: [], img: [],
-    conclusion: { name: L('Syndrome viral / IVRS'),
-      content: L('Plan : traitement symptomatique, hydratation, repos.\nConsulter si dyspnée ou fièvre au-delà de 5 jours.'),
-      proposals: [{ kind: 'rx', key: 'cat-40' }] } },
+    rx: ['cat-40', 'cat-41', 'cat-38'], lab: [], img: [], label: L('Syndrome viral / IVRS') },
+];
+
+// Textes rapides (PLAN-textes-rapides.md, PLAN-gabarits-conclusion.md). Un
+// gabarit de conclusion est un texte rapide lié à des diagnostics (`dx`, clés
+// de DX_CONTEXTS), appliqué EN ATTENTE sous le diagnostic
+// (buildConclusionBlocks, editor-schema.jsx). `kind` : 'omnimed' (fourni) ou
+// 'mine' (celui que le médecin s'est fait, simulé). `content` : des lignes où
+// `{clé}` place, à même le texte, la tuile `tiles[clé]` ({ kind, key,
+// details? }, comme `proposals` dans NOTE_TEMPLATES) ; `proposals` : des
+// ajouts sans place dans le texte, sur une ligne à la fin. Une variante d'un
+// diagnostic (comorbidités, allergie) est un texte à part. Le délai de suivi
+// est sur sa propre ligne (une tuile « rendez-vous » viendra plus tard).
+// Contenu SIMULÉ, à valider cliniquement.
+const QUICK_TEXTS = [
+  { key: 'itu', kind: 'omnimed', dx: ['itu'], name: L('Infection urinaire non compliquée'),
+    content: L('Plan : antibiothérapie 5 jours, hydratation.\nConsulter si fièvre ou douleur lombaire.'),
+    proposals: [{ kind: 'rx', key: 'cat-44', details: { duration: '5', durationUnit: 'jours' } }, { kind: 'lab', key: 'srum' }] },
+  { key: 'itu-mine', kind: 'mine', dx: ['itu'], name: L('Cystite — dose unique'),
+    content: L('Plan : fosfomycine dose unique, culture d’urine.\nRevoir si symptômes persistent après 72 h.'),
+    proposals: [{ kind: 'rx', key: 'cat-46' }, { kind: 'lab', key: 'srum' }] },
+  { key: 'asthme', kind: 'omnimed', dx: ['asthme'], name: L('Asthme léger'),
+    content: L('Plan : bronchodilatateur au besoin, revoir la technique d’inhalation.\nPlan d’action écrit remis.'),
+    proposals: [{ kind: 'rx', key: 'vento100' }] },
+  { key: 'asthme-mine', kind: 'mine', dx: ['asthme'], name: L('Asthme — palier 2'),
+    content: L('Plan : corticostéroïde inhalé quotidien, bronchodilatateur au besoin.\nRéévaluation du contrôle dans 3 mois.'),
+    proposals: [{ kind: 'rx', key: 'vento100' }, { kind: 'rx', key: 'cat-35' }] },
+  { key: 'pac-ambu', kind: 'omnimed', dx: ['pneumonie'], name: L('PAC ambulatoire'),
+    content: L('Impression : pneumonie acquise en communauté, CRB-65 à 0, prise en charge ambulatoire.\nAntibiotique : {abx}\nRadiographie pulmonaire si non faite : {img}\nFièvre ou douleur : {analg}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée, confusion ou fièvre au-delà de 72 h.'),
+    tiles: { abx: { kind: 'rx', key: 'cat-50' }, img: { kind: 'img', key: 'rxpoumon' }, analg: { kind: 'rx', key: 'cat-40' } } },
+  { key: 'pac-comorb', kind: 'omnimed', dx: ['pneumonie'], name: L('PAC avec comorbidités'),
+    content: L('Impression : pneumonie acquise en communauté avec comorbidités (MPOC, diabète, insuffisance cardiaque…).\nAntibiotiques : {abx} et {macro}\nBilan : {img} {fsc} {crp}\nRevoir dans 48 h.\nConsulter si dyspnée, confusion ou fièvre au-delà de 72 h.'),
+    tiles: { abx: { kind: 'rx', key: 'cat-48', details: { duration: '5', durationUnit: 'jours', quantity: '10', refills: '0' } },
+      macro: { kind: 'rx', key: 'cat-52' }, img: { kind: 'img', key: 'rxpoumon' }, fsc: { kind: 'lab', key: 'fsc' }, crp: { kind: 'lab', key: 'crp' } } },
+  { key: 'pac-allergie', kind: 'omnimed', dx: ['pneumonie'], name: L('PAC, allergie à la pénicilline'),
+    content: L('Impression : pneumonie acquise en communauté, allergie à la pénicilline.\nAntibiotique : {abx}\nRadiographie pulmonaire si non faite : {img}\nFièvre ou douleur : {analg}\nRevoir dans 48 à 72 h.\nConsulter si dyspnée, confusion ou fièvre au-delà de 72 h.'),
+    tiles: { abx: { kind: 'rx', key: 'cat-51' }, img: { kind: 'img', key: 'rxpoumon' }, analg: { kind: 'rx', key: 'cat-40' } } },
+  { key: 'otite', kind: 'omnimed', dx: ['otite'], name: L('Otite moyenne aiguë'),
+    content: L('Plan : analgésie, antibiothérapie.\nRevoir si pas d’amélioration en 48 h.'),
+    proposals: [{ kind: 'rx', key: 'amox500' }, { kind: 'rx', key: 'cat-40' }] },
+  { key: 'ivrs', kind: 'omnimed', dx: ['ivrs'], name: L('Syndrome viral / IVRS'),
+    content: L('Plan : traitement symptomatique, hydratation, repos.\nConsulter si dyspnée ou fièvre au-delà de 5 jours.'),
+    proposals: [{ kind: 'rx', key: 'cat-40' }] },
 ];
 
 // Attributs d'un diagnostic (name, code) → son contexte, ou null. Le code
@@ -1232,8 +1273,9 @@ function noteDayLabel(date) {
 
 // Gabarits de conclusion offerts sous un diagnostic, dans l'ordre de la
 // rencontre vision (2026-10-27) : réutiliser la dernière conclusion, mon
-// gabarit, le gabarit Omnimed. Chaque option : { id, kind, name, content,
-// proposals, source, date?, author? } ; `source` signe ses ajouts en attente.
+// gabarit, le gabarit Omnimed — mes textes rapides et ceux d'Omnimed liés au
+// diagnostic. Chaque option : { id, kind, name, content, tiles?, proposals,
+// source, allergy, date?, author? } ; `source` signe ses ajouts en attente.
 // « Dernière conclusion » : seulement si le problème est au dossier
 // (`ctx.sommaire`, lignes de getSommaireDiagnostics) ET qu'une note
 // antérieure (`ctx.notes`, la plus récente d'abord) le conclut — son texte et
@@ -1252,9 +1294,39 @@ function dxConclusionOptions(dx, ctx) {
     out.push({ id: 'last', kind: 'last', name: t('suggest.derniereConclusion.title'), date: date, author: note.author,
       content: note.conclusion, proposals: note.reuse || [], source: t('template.lastConclusion.label', { date: date }) });
   }
-  if (c.mine) out.push(Object.assign({ id: 'mine', kind: 'mine', source: t('template.source.label', { name: c.mine.name }) }, c.mine));
-  if (c.conclusion) out.push(Object.assign({ id: 'omnimed', kind: 'omnimed', source: t('template.source.label', { name: c.conclusion.name }) }, c.conclusion));
-  return out;
+  ['mine', 'omnimed'].forEach(function (kind) {
+    QUICK_TEXTS.forEach(function (q) { if (q.kind === kind && q.dx.indexOf(c.key) >= 0) out.push(quickTextOption(q)); });
+  });
+  out.forEach(function (o) { o.allergy = optionAllergy(o); });
+  // Allergie au dossier (PLAN-gabarits-conclusion.md, Q7) : les options sans
+  // conflit d'abord, l'ordre ci-dessus gardé sinon.
+  return out.filter(function (o) { return !o.allergy; }).concat(out.filter(function (o) { return !!o.allergy; }));
+}
+
+// Texte rapide → option de conclusion. `proposals` : tous ses ajouts — les
+// tuiles dans l'ordre où le texte les place, puis ceux sans place.
+function quickTextOption(q) {
+  const tiles = q.tiles || {};
+  const keys = [];
+  (q.content || '').replace(/\{([A-Za-z][\w-]*)\}/g, function (token, k) { if (tiles[k] && keys.indexOf(k) < 0) keys.push(k); return token; });
+  Object.keys(tiles).forEach(function (k) { if (keys.indexOf(k) < 0) keys.push(k); });
+  return Object.assign({}, q, { id: q.key, proposals: keys.map(function (k) { return tiles[k]; }).concat(q.proposals || []),
+    source: t('template.source.label', { name: q.name }) });
+}
+
+// Conflit d'une option avec une allergie au dossier (rxAllergyOf) :
+// { names, items } — les allergies et les produits en cause —, ou null.
+function optionAllergy(opt) {
+  const names = [], items = [];
+  (opt.proposals || []).forEach(function (p) {
+    if (p.kind !== 'rx') return;
+    const it = RX_ALL.find(function (x) { return x.key === p.key; });
+    const a = it && rxAllergyOf(it);
+    if (!a) return;
+    if (names.indexOf(a) < 0) names.push(a);
+    if (items.indexOf(it.name) < 0) items.push(it.name);
+  });
+  return names.length ? { names: names, items: items } : null;
 }
 
 // Gabarit de note sans son outil clinique (réglage « Outils cliniques »
@@ -1332,7 +1404,7 @@ function dxSuggestionFor(c) {
     found = (tpl.dxSuggestions || []).find(function (d) { const o = dxContextFor(d); return o && o.key === c.key; }) || null;
     return !!found;
   });
-  return found || { name: c.conclusion.name, code: c.cim10[0] };
+  return found || { name: c.label, code: c.cim10[0] };
 }
 
 const NEXT_TEMPLATE_ICON = { last: 'history', mine: 'person', omnimed: 'library_add' };
@@ -1355,7 +1427,11 @@ function nextStepSuggestions(a) {
   let except = null;
   if (dx) {
     const opt = dxConclusionOptions(dx, a.ctx).filter(function (o) { return sources.indexOf(o.source) < 0; })[0];
-    if (opt) out.push({ id: 'tpl:' + opt.id, kind: 'template', icon: NEXT_TEMPLATE_ICON[opt.kind], label: opt.name, option: opt, regionId: dx.id });
+    // Tous en conflit d'allergie (dxConclusionOptions met les autres d'abord) :
+    // la pastille le dit, par son icône et son info-bulle.
+    const warn = opt && opt.allergy && t('suggest.allergieGabarit.text', { name: opt.allergy.names.join(', '), items: opt.allergy.items.join(', ') });
+    if (opt) out.push({ id: 'tpl:' + opt.id, kind: 'template', icon: warn ? 'warning' : NEXT_TEMPLATE_ICON[opt.kind], label: opt.name,
+      desc: warn || undefined, option: opt, regionId: dx.id });
   } else {
     except = orderItemForChip(a.chip);
     const c = except && DX_CONTEXTS.find(function (x) { return (x[except.kind] || []).indexOf(except.item.key) >= 0; });
@@ -1365,7 +1441,8 @@ function nextStepSuggestions(a) {
     const inNote = (a.diagnoses || []).some(function (n) { const o = dxContextFor(n); return o && o.key === c.key; });
     if (!inNote) out.push({ id: 'dx:' + d.code, kind: 'dx', icon: 'local_hospital', label: d.name, desc: d.code, dx: d });
   }
-  const orders = contextResultsFor(dx, 'rx').map(function (it) { return { kind: 'rx', item: it }; })
+  // Pas de produit allergène pour ce patient (comme la recherche /rx, qui les masque).
+  const orders = contextResultsFor(dx, 'rx').filter(function (it) { return !rxAllergyOf(it); }).map(function (it) { return { kind: 'rx', item: it }; })
     .concat(contextResultsFor(dx, 'req').map(function (it) { return { kind: 'req', item: it }; }));
   orders.forEach(function (o) {
     if (except && except.item.key === o.item.key) return;
@@ -1899,5 +1976,5 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
-  dxConclusionOptions, noteDayLabel, templateWithoutTool,
+  dxConclusionOptions, QUICK_TEXTS, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };
