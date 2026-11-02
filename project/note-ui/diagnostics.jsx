@@ -425,8 +425,10 @@ function diagDocMenuItems(ctx) {
 // Summary.jsx (le seul Sommaire réellement monté, voir NoteEditor.jsx).
 // ---------------------------------------------------------
 const DX_SOMMAIRE_SEED = window.forPatient({ adulte: {
-  // Micheline Lamontagne (patients.js) : migraine suivie, référence en neurologie.
+  // Micheline Lamontagne (patients.js) : migraine suivie, référence en neurologie ;
+  // diabète de type 2 pour la conduite précédente (PLAN-conduite-precedente.md, Q1).
   problems: [
+    { id: 'som-diabete', name: L('Diabète de type 2'), code: 'E11.9', since: '2021' },
     { id: 'som-migraine', name: L('Migraine sans aura'), code: 'G43.0', since: '2006' },
     { id: 'som-hypothyroidie', name: L('Hypothyroïdie'), code: 'E03.9', since: '2015' },
   ],
@@ -617,7 +619,40 @@ function sommaireDxPatchDate(base, section, id, value) {
   return out;
 }
 
+// ---------------------------------------------------------
+// Réordonner (PLAN-conduite-precedente.md, partie B) — calculs purs. Une
+// ligne ne sort jamais de sa région (Q4) ; un diagnostic se déplace parmi
+// ceux de sa zone, la ligne Détails / Conclusion est une borne (Q5). Le
+// contenu entre deux régions (texte libre, outil clinique) reste à sa place.
+// Le numéro suit l'ordre sans rien faire (R3) : dxNumberingPlugin le
+// recalcule à chaque transaction.
+// ---------------------------------------------------------
+// `types` : les types des blocs de premier niveau, dans l'ordre. → les index
+// des régions de la même zone que le bloc `index`, dans l'ordre.
+function dxZoneRegionSlots(types, index) {
+  let lo = index, hi = index;
+  while (lo > 0 && types[lo - 1] !== 'sectionSplit') lo--;
+  while (hi < types.length - 1 && types[hi + 1] !== 'sectionSplit') hi++;
+  const out = [];
+  for (let i = lo; i <= hi; i++) if (types[i] === 'diagnosticRegion') out.push(i);
+  return out;
+}
+// La liste avec l'élément `from` déplacé au rang `to` (nouvelle liste).
+function dxMoveInList(list, from, to) {
+  const out = list.slice();
+  const item = out.splice(from, 1)[0];
+  out.splice(to, 0, item);
+  return out;
+}
+// Rang d'arrivée d'un glisser-déposer : `slot` est la fente visée (0 = avant
+// le premier élément, n = après le dernier) ; -1 si l'élément ne bouge pas.
+function dxDropRank(from, slot) {
+  const to = slot > from ? slot - 1 : slot;
+  return to === from ? -1 : to;
+}
+
 Object.assign(window, {
+  dxZoneRegionSlots: dxZoneRegionSlots, dxMoveInList: dxMoveInList, dxDropRank: dxDropRank,
   sommaireDxDateField: sommaireDxDateField, sommaireDxValidDate: sommaireDxValidDate, sommaireDxPatchDate: sommaireDxPatchDate,
   newDiagId: newDiagId, diagnosticThreads: diagnosticThreads, listDiagnostics: listDiagnostics,
   diagPlacement: diagPlacement, dxSommaireTargetId: dxSommaireTargetId, normalizeDiagAttrs: normalizeDiagAttrs,

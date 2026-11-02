@@ -151,6 +151,9 @@ function adjustTitle(rx) {
 //   renewal    icône ⟳ — renouvellement d'un médicament au dossier (rx.renewal)
 //   adjust     icône ↑ / ↓ — dose augmentée ou diminuée d'un palier (rx.adjust) ; remplace ⟳
 //   incomplete « Incomplet » — champs requis vides (chipIssues)
+//   warn       icône ⚠ — ajout en attente repris d'une ancienne conduite qui
+//              ne correspond plus au dossier (cessé, dose changée, allergie —
+//              PLAN-conduite-precedente.md C6) ; le message est l'infobulle
 //   pending    « En suspens » — ajout proposé, pas encore accepté (Q-26 : sens
 //              à confirmer ; masqué par le tweak « Badge En suspens »)
 // Une puce annulée n'en a pas (son badge « Annulée » vient de decorateSentChip).
@@ -166,6 +169,7 @@ function chipStatusBadges(a) {
   }
   const incomplete = chipIssues(a).filter(function (i) { return i.kind === 'incomplete'; })[0];
   if (incomplete) out.push({ kind: 'incomplete', text: t('schema.incomplet.text'), title: incomplete.message });
+  if (a.pending && a.warn) out.push({ kind: 'warn', icon: 'warning', title: a.warn });
   if (a.pending) out.push({ kind: 'pending', text: t('schema.suspens.text'), title: a.proposedBy ? t('schema.proposedBy.tooltip', { who: a.proposedBy }) : t('schema.proposed.tooltip') });
   return out;
 }
@@ -632,6 +636,9 @@ function makeChipNode() { return window.Tiptap.Node.create({
       transmitError: { default: null },
       // Qui propose un ajout en attente (« Gabarit « Otite moyenne aiguë » »).
       proposedBy: { default: null },
+      // Avertissement d'un ajout en attente repris d'une ancienne conduite
+      // (PLAN-conduite-precedente.md C6) : effacé à l'acceptation.
+      warn: { default: null },
       // Ligne à compléter (état 1) : { kind, term } — la recherche à rouvrir
       // (« rx », « Nitrofurantoïne »). Toujours `pending` aussi.
       draft: { default: null }
@@ -1236,7 +1243,15 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
         if (region.childCount !== 1) return false;
         const regionPos = $from.before(regionDepth);
         return editor.chain().deleteRange({ from: regionPos, to: regionPos + region.nodeSize }).run();
-      }
+      },
+      // Réordonner (PLAN-conduite-precedente.md, B2) : Alt + ↑ / ↓ déplace la
+      // ligne du curseur dans sa région (Q6), Alt + Maj + ↑ / ↓ le diagnostic
+      // entier parmi ceux de sa zone. Aux bornes, rien ne bouge, mais la
+      // touche est consommée dans une région ; hors région, comportement natif.
+      'Alt-ArrowUp': () => moveDxLineBy(this.editor, -1),
+      'Alt-ArrowDown': () => moveDxLineBy(this.editor, 1),
+      'Alt-Shift-ArrowUp': () => moveDxRegionBy(this.editor, -1),
+      'Alt-Shift-ArrowDown': () => moveDxRegionBy(this.editor, 1)
     };
   },
   // Garde d'hygiène des ids/dxKey — recale newDiagId() et sépare deux
@@ -1266,7 +1281,8 @@ function makeDiagnosticRegionNode() { return window.Tiptap.Node.create({
           return changed ? tr : null;
         }
       }),
-      dxNumberingPlugin()
+      dxNumberingPlugin(),
+      dxDragPlugin(this.editor)
     ];
   }
 }); }
@@ -1295,6 +1311,229 @@ function patchDiagRegions(editor, patches) {
     return changed;
   }).run();
   return changed;
+}
+
+// ---------------------------------------------------------
+// Réordonner (PLAN-conduite-precedente.md, partie B) sur le doc vivant : les
+// lignes d'une région, les régions d'une zone. Une transaction par geste (un
+// seul Ctrl+Z). Les bornes et la liste viennent des calculs purs de
+// diagnostics.jsx (dxZoneRegionSlots, dxMoveInList).
+// ---------------------------------------------------------
+// Région du curseur : { pos, node, line } (line = rang du paragraphe du
+// curseur), ou null hors d'une région de premier niveau.
+function dxRegionOfCursor(state) {
+  const sel = state.selection;
+  if (sel.node && sel.node.type.name === 'diagnosticRegion') return { pos: sel.from, node: sel.node, line: -1 };
+  const $from = sel.$from;
+  for (let d = $from.depth; d > 0; d--) {
+    if ($from.node(d).type.name !== 'diagnosticRegion') continue;
+    return d === 1 ? { pos: $from.before(d), node: $from.node(d), line: $from.index(d) } : null;
+  }
+  return null;
+}
+// Les régions de la zone de la région à `regionPos` : { slots (index de
+// premier niveau), offsets (position de chaque bloc), rank } ou null.
+function dxZoneOf(doc, regionPos) {
+  const types = [], offsets = [];
+  doc.forEach(function (n, off) { types.push(n.type.name); offsets.push(off); });
+  const index = offsets.indexOf(regionPos);
+  if (index < 0 || types[index] !== 'diagnosticRegion') return null;
+  const slots = window.dxZoneRegionSlots(types, index);
+  return { slots: slots, offsets: offsets, rank: slots.indexOf(index) };
+}
+// Peut-on monter / descendre la région à `regionPos` ? (menu de l'en-tête)
+// `rank` : son rang dans sa zone, pour moveDxRegion.
+function dxRegionMoves(editor, regionPos) {
+  const z = dxZoneOf(editor.state.doc, regionPos);
+  return { up: !!z && z.rank > 0, down: !!z && z.rank < z.slots.length - 1, rank: z ? z.rank : -1 };
+}
+// Déplace la ligne `from` de la région à `regionPos` au rang `to`. Le curseur
+// suit la ligne déplacée.
+function moveDxLine(editor, regionPos, from, to) {
+  const region = editor.state.doc.nodeAt(regionPos);
+  if (!region || region.type.name !== 'diagnosticRegion' || from === to || to < 0 || to >= region.childCount) return false;
+  const kids = [];
+  region.forEach(function (c) { kids.push(c); });
+  const next = window.dxMoveInList(kids, from, to);
+  const start = regionPos + 1;
+  const sizeBefore = function (list, n) { let s = 0; for (let i = 0; i < n; i++) s += list[i].nodeSize; return s; };
+  const oldStart = start + sizeBefore(kids, from), newStart = start + sizeBefore(next, to);
+  const sel = editor.state.selection;
+  const inside = sel.from >= oldStart && sel.to <= oldStart + kids[from].nodeSize;
+  return editor.chain().focus().command(function (props) {
+    props.tr.replaceWith(start, regionPos + region.nodeSize - 1, next);
+    return true;
+  }).setTextSelection(inside ? { from: sel.from - oldStart + newStart, to: sel.to - oldStart + newStart } : newStart + 1)
+    .scrollIntoView().run();
+}
+// Déplace la région à `regionPos` au rang `to` parmi celles de sa zone ; ce
+// qui sépare les régions reste à sa place. Le curseur suit la région.
+function moveDxRegion(editor, regionPos, to) {
+  const doc = editor.state.doc;
+  const z = dxZoneOf(doc, regionPos);
+  if (!z || to === z.rank || to < 0 || to >= z.slots.length) return false;
+  const regions = z.slots.map(function (i) { return doc.child(i); });
+  const next = window.dxMoveInList(regions, z.rank, to);
+  const first = z.slots[0], last = z.slots[z.slots.length - 1];
+  const nodes = [];
+  let newPos = z.offsets[first];
+  for (let i = first, seen = false; i <= last; i++) {
+    const k = z.slots.indexOf(i);
+    const n = k >= 0 ? next[k] : doc.child(i);
+    if (k === to) seen = true;
+    if (!seen) newPos += n.nodeSize;
+    nodes.push(n);
+  }
+  const sel = editor.state.selection;
+  const size = doc.child(z.slots[z.rank]).nodeSize;
+  const rel = sel.from > regionPos && sel.to < regionPos + size ? { from: sel.from - regionPos, to: sel.to - regionPos } : { from: 2, to: 2 };
+  return editor.chain().focus().command(function (props) {
+    props.tr.replaceWith(z.offsets[first], z.offsets[last] + doc.child(last).nodeSize, nodes);
+    return true;
+  }).setTextSelection({ from: newPos + rel.from, to: newPos + rel.to }).scrollIntoView().run();
+}
+// Un cran vers le haut (-1) ou le bas (1), depuis le curseur (raccourcis).
+// true dès que le curseur est dans une région, même à la borne (Q4).
+function moveDxLineBy(editor, dir) {
+  const r = dxRegionOfCursor(editor.state);
+  if (!r) return false;
+  if (r.line < 0) return moveDxRegionBy(editor, dir);
+  moveDxLine(editor, r.pos, r.line, r.line + dir);
+  return true;
+}
+function moveDxRegionBy(editor, dir) {
+  const r = dxRegionOfCursor(editor.state);
+  if (!r) return false;
+  const z = dxZoneOf(editor.state.doc, r.pos);
+  if (z) moveDxRegion(editor, r.pos, z.rank + dir);
+  return true;
+}
+
+// Poignée à glisser (B4) : ⋮⋮ au survol d'une ligne de région ou de l'en-tête
+// d'une région. Le glisser est fait à la main (pointeur), pas par le
+// glisser-déposer natif : les nodes restent draggable: false et la sélection
+// de texte n'est pas touchée. Dépôt limité à la même région (une ligne) ou à
+// la même zone (un diagnostic) ; une barre montre la fente visée. La poignée
+// est cachée aux lecteurs d'écran : le clavier (Alt + ↑ / ↓) et le menu de
+// l'en-tête font la même chose.
+function dxDragPlugin(editor) {
+  return new window.Tiptap.pm.Plugin({
+    view: function (view) {
+      const handle = document.createElement('div');
+      handle.className = 'dxr-drag';
+      handle.setAttribute('aria-hidden', 'true');
+      handle.title = t('schema.glisserDeplacer.tooltip');
+      const glyph = document.createElement('span');
+      glyph.className = 'material-symbols-outlined';
+      glyph.textContent = 'drag_indicator';
+      handle.appendChild(glyph);
+      const bar = document.createElement('div');
+      bar.className = 'dxr-drop';
+      document.body.appendChild(handle);
+      document.body.appendChild(bar);
+      let hover = null, drag = null, hideTimer = null;
+
+      function regionPosOf(dxr) {
+        let pos = -1;
+        view.state.doc.forEach(function (n, off) { if (pos < 0 && view.nodeDOM(off) === dxr) pos = off; });
+        return pos;
+      }
+      // Les éléments entre lesquels on peut déposer, dans l'ordre.
+      function targets(h) {
+        if (h.kind === 'line') {
+          const dom = view.nodeDOM(h.regionPos);
+          const body = dom && dom.querySelector('.dxr-body');
+          return body ? Array.prototype.slice.call(body.children) : [];
+        }
+        const z = dxZoneOf(view.state.doc, h.regionPos);
+        return z ? z.slots.map(function (i) { return view.nodeDOM(z.offsets[i]); }) : [];
+      }
+      function hide() { handle.classList.remove('is-on'); hover = null; }
+      function show(h, rect, dxrRect) {
+        hover = h;
+        handle.style.left = (dxrRect.left - 24) + 'px';
+        handle.style.top = (rect.top + Math.min(rect.height, 24) / 2 - 10) + 'px';
+        handle.classList.add('is-on');
+      }
+      function onMove(e) {
+        if (drag || !editor.isEditable) return;
+        clearTimeout(hideTimer);
+        const el = e.target && e.target.closest ? e.target : null;
+        const dxr = el && el.closest('.dxr');
+        if (!dxr || !view.dom.contains(dxr)) { hideTimer = setTimeout(hide, 200); return; }
+        const regionPos = regionPosOf(dxr);
+        if (regionPos < 0) return;
+        const head = el.closest('.dxr-head');
+        const body = dxr.querySelector('.dxr-body');
+        const line = !head && body ? Array.prototype.find.call(body.children, function (c) { return c.contains(el); }) : null;
+        const dxrRect = dxr.getBoundingClientRect();
+        if (head || !line) show({ kind: 'region', regionPos: regionPos }, dxr.querySelector('.dxr-head').getBoundingClientRect(), dxrRect);
+        else show({ kind: 'line', regionPos: regionPos, index: Array.prototype.indexOf.call(body.children, line) }, line.getBoundingClientRect(), dxrRect);
+      }
+      function onLeave() { if (!drag) hideTimer = setTimeout(hide, 200); }
+      function slotAt(items, y) {
+        for (let i = 0; i < items.length; i++) {
+          const r = items[i].getBoundingClientRect();
+          if (y < r.top + r.height / 2) return i;
+        }
+        return items.length;
+      }
+      function onDragMove(e) {
+        e.preventDefault();
+        const items = drag.items;
+        drag.slot = slotAt(items, e.clientY);
+        const ref = drag.slot < items.length ? items[drag.slot].getBoundingClientRect() : items[items.length - 1].getBoundingClientRect();
+        const y = drag.slot < items.length ? ref.top - 2 : ref.bottom + 1;
+        bar.style.left = ref.left + 'px';
+        bar.style.width = ref.width + 'px';
+        bar.style.top = y + 'px';
+        bar.classList.toggle('is-on', window.dxDropRank(drag.from, drag.slot) >= 0);
+      }
+      function onDragEnd() {
+        document.removeEventListener('mousemove', onDragMove);
+        document.removeEventListener('mouseup', onDragEnd);
+        document.documentElement.classList.remove('dxr-dragging');
+        bar.classList.remove('is-on');
+        const d = drag;
+        drag = null;
+        hide();
+        const to = d && d.slot != null ? window.dxDropRank(d.from, d.slot) : -1;
+        if (to < 0) return;
+        if (d.kind === 'line') moveDxLine(editor, d.regionPos, d.from, to);
+        else moveDxRegion(editor, d.regionPos, to);
+      }
+      function onDown(e) {
+        if (!hover || e.button !== 0) return;
+        e.preventDefault();
+        const items = targets(hover);
+        if (items.length < 2) return;
+        const from = hover.kind === 'line' ? hover.index : dxZoneOf(view.state.doc, hover.regionPos).rank;
+        drag = { kind: hover.kind, regionPos: hover.regionPos, from: from, items: items, slot: null };
+        document.documentElement.classList.add('dxr-dragging');
+        document.addEventListener('mousemove', onDragMove);
+        document.addEventListener('mouseup', onDragEnd);
+      }
+      function onEnterHandle() { clearTimeout(hideTimer); }
+      view.dom.addEventListener('mousemove', onMove);
+      view.dom.addEventListener('mouseleave', onLeave);
+      handle.addEventListener('mouseenter', onEnterHandle);
+      handle.addEventListener('mouseleave', onLeave);
+      handle.addEventListener('mousedown', onDown);
+      window.addEventListener('scroll', hide, true);
+      return {
+        update: function (v, prev) { if (!drag && !v.state.doc.eq(prev.doc)) hide(); },
+        destroy: function () {
+          view.dom.removeEventListener('mousemove', onMove);
+          view.dom.removeEventListener('mouseleave', onLeave);
+          window.removeEventListener('scroll', hide, true);
+          document.removeEventListener('mousemove', onDragMove);
+          document.removeEventListener('mouseup', onDragEnd);
+          handle.remove();
+          bar.remove();
+        }
+      };
+    }
+  });
 }
 
 // getDiagModel — les fils du document VIVANT de l'éditeur. Lit le state du
@@ -2884,9 +3123,10 @@ function buildPendingChipNode(proposal, source) {
     return prof ? { type: 'chip', attrs: Object.assign(buildRequestChips([prof], 'lab')[0], { pending: true, proposedBy: source || null }) } : null;
   }
   const def = window.NOTE_DATA.ORDER_DEFS[proposal.kind];
-  const item = def && def.items().find(function (it) { return it.key === proposal.key; });
+  const item = def && proposalItem(proposal, def);
   if (!item) return null;
   const attrs = Object.assign(orderChipAttrs(proposal.kind, item), { pending: true, proposedBy: source || null });
+  if (proposal.warn) attrs.warn = proposal.warn;
   if (proposal.details) {
     attrs.details = Object.assign({}, attrs.details, proposal.details);
     if (proposal.kind === 'rx') {
@@ -2919,13 +3159,20 @@ function buildAntecedentRegions(items, opts) {
 // Ligne à compléter (état 1) pour un ajout de gabarit : la fonction et le
 // terme seulement, sans item choisi (buildDraftChipDom). Un profil se
 // cherche dans /lab. Mêmes ajouts que buildPendingChipNode.
+// L'item d'un ajout proposé : au catalogue, ou, pour une prescription, une
+// médication du profil (une conduite reprise poursuit souvent un médicament
+// au dossier — PLAN-conduite-precedente.md).
+function proposalItem(proposal, def) {
+  const same = function (it) { return it.key === proposal.key; };
+  return def.items().find(same) || (proposal.kind === 'rx' ? (window.NOTE_DATA.PATIENT_MEDS || []).find(same) : null) || null;
+}
 function buildDraftChipNode(proposal, source) {
   const kind = proposal.kind === 'profile' ? 'lab' : proposal.kind;
   const def = window.NOTE_DATA.ORDER_DEFS[kind];
   if (!def) return null;
   const item = proposal.kind === 'profile'
     ? (window.NOTE_DATA.LAB_PROFILES || []).find(function (p) { return p.key === proposal.key; })
-    : def.items().find(function (it) { return it.key === proposal.key; });
+    : proposalItem(proposal, def);
   if (!item) return null;
   return { type: 'chip', attrs: {
     cid: newChipId(), type: def.type, label: item.name, icon: def.icon, text: item.name, rx: null, details: null,
@@ -2982,6 +3229,10 @@ function buildConclusionBlocks(opt, opts) {
   const proposeText = !!(opts && opts.proposeText) && typeof window.markBlocksAsInsertion === 'function';
   const tiles = opt.tiles || {};
   const placed = [];
+  // Une conduite déjà écrite (dernière conclusion, PLAN-conduite-precedente.md)
+  // reprend des produits précis : des puces en attente, jamais des lignes à
+  // compléter (réglage « Gabarit : lignes à compléter »).
+  const chipOf = opt.kind === 'last' ? buildPendingChipNode : buildTemplateChipNode;
   const text = function (s) {
     const node = { type: 'text', text: s };
     return proposeText ? window.markBlocksAsInsertion([node], TEMPLATE_AUTHOR)[0] : node;
@@ -2993,7 +3244,7 @@ function buildConclusionBlocks(opt, opts) {
       const tile = tiles[key];
       if (!tile) return token;
       if (at > last) content.push(text(line.slice(last, at)));
-      const chip = buildTemplateChipNode(tile, opt.source);
+      const chip = chipOf(tile, opt.source);
       if (chip) content.push(chip);
       placed.push(tile);
       last = at + token.length;
@@ -3003,7 +3254,7 @@ function buildConclusionBlocks(opt, opts) {
     return content.length ? { type: 'paragraph', content: content } : { type: 'paragraph' };
   });
   const nodes = (opt.proposals || []).filter(function (p) { return placed.indexOf(p) < 0; })
-    .map(function (p) { return buildTemplateChipNode(p, opt.source); }).filter(Boolean);
+    .map(function (p) { return chipOf(p, opt.source); }).filter(Boolean);
   if (nodes.length) {
     const inline = [];
     nodes.forEach(function (n) { inline.push(n, { type: 'text', text: ' ' }); });
@@ -3032,9 +3283,44 @@ function buildVisitStartDoc(points, tplKey, opts) {
   const now = new Date().toISOString();
   (points || []).filter(function (p) { return p.kind === 'probleme' && p.target; }).forEach(function (p) {
     const attrs = window.makeDiagRegionAttrs({ action: 'reprendre', target: p.target }, { id: window.newDiagId(), now: now });
-    if (attrs) doc.content.push({ type: 'diagnosticRegion', attrs: attrs, content: [{ type: 'paragraph' }] });
+    // En Conclusion, une seule fois par fil : sa dernière conduite (C1, C7).
+    if (attrs) doc.content.push({ type: 'diagnosticRegion', attrs: attrs, content: autoConductBlocks(attrs) || [{ type: 'paragraph' }] });
   });
   return doc;
+}
+
+// ---------------------------------------------------------
+// Conduite précédente (PLAN-conduite-precedente.md, A4). Une région diagnostic
+// reliée à un problème du dossier qui arrive en Conclusion reçoit ma dernière
+// conduite pour ce problème, texte et tuiles en attente (C1, C2, C7, C8).
+// Une seule fois par fil et par note (Q3) : `_conductServed` retient les dxKey
+// déjà servis HORS du document, pour qu'effacer la conduite ne la fasse pas
+// revenir ; elle reste offerte dans la colonne de suggestions. Réglage
+// « Conduite précédente automatique » éteint (window.__AUTO_CONDUCT === false,
+// Q7) : rien d'inséré, la colonne la propose en tête.
+// ---------------------------------------------------------
+let _conductServed = new Set();
+function resetConductServed() { _conductServed = new Set(); }
+// → les paragraphes à mettre dans la région, ou null.
+function autoConductBlocks(attrs, opts) {
+  if (window.__AUTO_CONDUCT === false || !attrs || !attrs.dxKey || _conductServed.has(attrs.dxKey)) return null;
+  const ctx = (opts && opts.ctx) || (window.dxConclusionContext ? window.dxConclusionContext() : { notes: window.PAST_NOTES || [] });
+  const mine = window.NOTE_DATA.lastConduct(attrs, ctx).mine;
+  const blocks = mine ? buildConclusionBlocks(mine, { proposeText: !(opts && opts.proposeText === false) }) : [];
+  if (!blocks.length) return null;
+  _conductServed.add(attrs.dxKey);
+  return blocks;
+}
+// Une région insérée à `pos` dans le doc vivant tombe-t-elle en Conclusion,
+// sans autre occurrence du fil `dxKey` déjà en Conclusion (C7) ?
+function conductSlotFree(doc, pos, dxKey) {
+  let zone = 'details', target = null, taken = false;
+  doc.forEach(function (node, offset) {
+    if (node.type.name === 'sectionSplit') zone = 'conclusion';
+    if (target == null && offset + node.nodeSize > pos) target = zone;
+    if (zone === 'conclusion' && node.type.name === 'diagnosticRegion' && node.attrs.dxKey === dxKey) taken = true;
+  });
+  return (target || zone) === 'conclusion' && !taken;
 }
 
 function acceptPendingChip(editor, cid) {
@@ -3042,7 +3328,7 @@ function acceptPendingChip(editor, cid) {
   if (pos < 0) return;
   editor.chain().focus().command(function (props) {
     props.tr.setNodeMarkup(pos, undefined, Object.assign({}, props.tr.doc.nodeAt(pos).attrs, {
-      pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
+      pending: false, warn: null, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null
     }));
     return true;
   }).run();
@@ -3094,18 +3380,21 @@ function pendingSummary(docJson) {
 // Tout accepter / tout refuser les ajouts en attente, en UNE transaction
 // (un seul Ctrl+Z). `reviewAction` : le traqueur du mode révision l'ignore.
 // Une ligne à compléter (`draft`) ne s'accepte pas : elle attend le choix du
-// médecin ; refuser la retire comme les autres.
-function resolveAllPending(editor, accept) {
+// médecin ; refuser la retire comme les autres. `range` ({ from, to },
+// facultatif) : seulement ce qui s'y trouve — ex. la région d'un diagnostic
+// (PLAN-conduite-precedente.md, A4).
+function resolveAllPending(editor, accept, range) {
   const doc = editor.state.doc;
   const ops = [];
+  const inside = function (from, to) { return !range || (from >= range.from && to <= range.to); };
   doc.descendants(function (node, pos) {
-    if (node.type.name === 'chip' && node.attrs.pending && !(accept && node.attrs.draft)) ops.push({ chip: node, from: pos });
+    if (node.type.name === 'chip' && node.attrs.pending && !(accept && node.attrs.draft) && inside(pos, pos + node.nodeSize)) ops.push({ chip: node, from: pos });
   });
   (window.scanReviewChanges ? window.scanReviewChanges(doc) : []).forEach(function (c) {
-    if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id) ops.push({ from: c.from, to: c.to });
+    if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id && inside(c.from, c.to)) ops.push({ from: c.from, to: c.to });
   });
   if (!ops.length) return;
-  const stamp = { pending: false, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+  const stamp = { pending: false, warn: null, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
   editor.chain().focus().command(function (props) {
     const tr = props.tr;
     tr.setMeta('reviewAction', true);
@@ -3139,7 +3428,7 @@ function resolvePendingInDoc(docJson, accept) {
         // Une ligne à compléter acceptée reste ce que le gabarit voulait dire,
         // en texte : rien n'est prescrit sans choix.
         if (accept && c.attrs.draft) content.push({ type: 'text', text: c.attrs.draft.term });
-        else if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false }) }));
+        else if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false, warn: null }) }));
         else {
           const prev = content[content.length - 1];
           dropSpace = !prev || (prev.type === 'text' && /\s$/.test(prev.text));
@@ -3187,6 +3476,9 @@ Object.assign(window, {
   buildTemplateBlocks,
   buildConclusionBlocks,
   buildVisitStartDoc,
+  autoConductBlocks,
+  resetConductServed,
+  conductSlotFree,
   acceptPendingChip,
   rejectPendingChip,
   pendingSummary,
@@ -3227,5 +3519,8 @@ Object.assign(window, {
   formatChipStamp,
   updateChipEntity,
   patchDiagRegions,
-  getDiagModel
+  getDiagModel,
+  dxRegionMoves,
+  moveDxRegion,
+  moveDxLine
 });

@@ -59,7 +59,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   const [tplMenu, setTplMenu] = useStateE(null); // { rect } — sous-menu « Gabarits de note »
   const [quickMenu, setQuickMenu] = useStateE(null); // { rect, region, pos } — sous-menu « Textes rapides »
   const [diagRefMenu, setDiagRefMenu] = useStateE(null); // { rect, diagnostics } — sous-menu « Renvoi à un diagnostic »
-  const [diagDocMenu, setDiagDocMenu] = useStateE(null); // { dxKey, number, rect, ctx } — menu « Documenter comme »
+  const [diagDocMenu, setDiagDocMenu] = useStateE(null); // { dxKey, regionId, number, rect, ctx } — menu « Documenter comme »
 
   // Section du Sommaire (base, hors superposition de la note) où vit une
   // ligne liée — pour le libellé « Déjà aux problèmes… » vs « Ajouté aux… »
@@ -326,6 +326,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
   // diagnostic à la position de « /dx query » : en-tête + un paragraphe de
   // corps vide, curseur placé dans ce paragraphe. makeDiagRegionAttrs
   // (diagnostics.jsx) est le seul endroit qui construit ses attributs.
+  // Un problème du dossier repris en Conclusion arrive avec sa dernière
+  // conduite en attente (autoConductBlocks, PLAN-conduite-precedente.md) ;
+  // le curseur va alors à la fin de ce texte.
   function runDiagnosticCommand(editor, range, props) {
     const now = new Date().toISOString();
     const attrs = window.makeDiagRegionAttrs(props, { id: window.newDiagId(), now: now, author: window.__CURRENT_AUTHOR || null });
@@ -336,10 +339,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }
     window.__DX_DOCUMENT_AS = null;
     const diagId = attrs.id;
+    const conduct = window.conductSlotFree(editor.state.doc, range.from, attrs.dxKey) ? window.autoConductBlocks(attrs) : null;
     const diagnosticContent = {
       type: 'diagnosticRegion',
       attrs: attrs,
-      content: [{ type: 'paragraph' }]
+      content: conduct || [{ type: 'paragraph' }]
     };
     // Si « /dx query » occupe tout le paragraphe courant (ligne vide avant
     // la commande), on remplace ce paragraphe en entier plutôt que la simple
@@ -353,12 +357,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // La position exacte de la région dépend de la façon dont ProseMirror l'a
     // placée — on la retrouve plutôt que de calculer depuis insertRange.from,
     // pour placer le curseur dans le paragraphe de corps, pas à la frontière de la région.
-    let regionPos = null;
+    let regionPos = null, regionSize = 0;
     editor.state.doc.descendants(function(node, pos) {
       if (regionPos != null) return false;
-      if (node.type.name === 'diagnosticRegion' && node.attrs.id === diagId) { regionPos = pos; return false; }
+      if (node.type.name === 'diagnosticRegion' && node.attrs.id === diagId) { regionPos = pos; regionSize = node.nodeSize; return false; }
     });
-    if (regionPos != null) editor.chain().setTextSelection(regionPos + 2).run();
+    if (regionPos != null) editor.chain().setTextSelection(conduct ? regionPos + regionSize - 2 : regionPos + 2).run();
   }
 
   // Exécute l'action d'un item choisi. Reçoit {editor, range, props} du
@@ -799,6 +803,43 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }, 1800);
   }
 
+  // Actions sur UNE région, sous « Documenter comme » dans le menu de son
+  // en-tête (PLAN-conduite-precedente.md) : monter / descendre parmi les
+  // diagnostics de sa zone (B3), et, si elle a des ajouts en attente (une
+  // conduite reprise, un gabarit), tout accepter / tout retirer dans cette
+  // région seulement (A4).
+  function regionPosById(editor, id) {
+    let found = -1;
+    editor.state.doc.forEach(function (node, offset) { if (found < 0 && node.type.name === 'diagnosticRegion' && node.attrs.id === id) found = offset; });
+    return found;
+  }
+  function diagRegionActions(regionId) {
+    const editor = editorRef.current;
+    const pos = editor ? regionPosById(editor, regionId) : -1;
+    if (pos < 0) return [];
+    const moves = window.dxRegionMoves(editor, pos);
+    const out = [
+      { value: 'up', icon: 'arrow_upward', label: t('field.dxMonter.text'), disabled: !moves.up },
+      { value: 'down', icon: 'arrow_downward', label: t('field.dxDescendre.text'), disabled: !moves.down },
+    ];
+    if (window.pendingSummary(editor.state.doc.nodeAt(pos).toJSON()).count > 0) {
+      out.push({ value: 'accept', icon: 'done_all', label: t('field.dxToutAccepter.text') },
+        { value: 'reject', icon: 'remove_done', label: t('field.dxToutRetirer.text') });
+    }
+    return out;
+  }
+  function runDiagRegionAction(regionId, value) {
+    const editor = editorRef.current;
+    const pos = editor ? regionPosById(editor, regionId) : -1;
+    if (pos < 0) return;
+    if (value === 'up' || value === 'down') {
+      window.moveDxRegion(editor, pos, window.dxRegionMoves(editor, pos).rank + (value === 'up' ? -1 : 1));
+      return;
+    }
+    const node = editor.state.doc.nodeAt(pos);
+    window.resolveAllPending(editor, value === 'accept', { from: pos, to: pos + node.nodeSize });
+  }
+
   // Position (avant-nœud) de la région diagnostic la plus proche englobant
   // un nœud DOM donné — utilisé pour retrouver le node depuis un clic sur
   // son en-tête (.dxr-name/.dxr-refine/.dxr-doc), non géré par le
@@ -1009,7 +1050,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           if (thread) {
             const e2 = thread.effective;
             setDiagDocMenu({
-              dxKey: thread.dxKey, number: thread.number, rect: docEl.getBoundingClientRect(),
+              dxKey: thread.dxKey, regionId: node.attrs.id, number: thread.number, rect: docEl.getBoundingClientRect(),
               ctx: { documentAs: e2.documentAs, ceased: e2.status === 'cesse', linked: !!e2.sommaireId, baseKind: dxBaseKindFor(e2.sommaireId) }
             });
           }
@@ -1549,11 +1590,17 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           anchorRect={diagDocMenu.rect}
           number={diagDocMenu.number}
           items={window.diagDocMenuItems(diagDocMenu.ctx)}
+          actions={diagRegionActions(diagDocMenu.regionId)}
           onClose={() => setDiagDocMenu(null)}
           onSelect={function (value) {
             const dxKey = diagDocMenu.dxKey;
             setDiagDocMenu(null);
             commitDiagDocumentation(dxKey, value);
+          }}
+          onAction={function (value) {
+            const regionId = diagDocMenu.regionId;
+            setDiagDocMenu(null);
+            runDiagRegionAction(regionId, value);
           }} />
       }
 
@@ -1915,8 +1962,11 @@ function DiagnosticRefMenu({ anchorRect, diagnostics, onBack, onClose, onSelect 
 // endroit du header qui doit être opérable sans souris — le panneau prend
 // le focus à l'ouverture et le rend à l'éditeur à la fermeture.
 // ---------------------------------------------------------
-function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
+function DiagDocMenu({ anchorRect, items, actions, number, onSelect, onAction, onClose }) {
   const panelRef = useRefE(null);
+  // Les actions de la région (monter, descendre, tout accepter…) suivent les
+  // options de documentation dans la même navigation au clavier.
+  const all = items.concat(actions || []);
   const [active, setActive] = useStateE(function () {
     const i = items.findIndex(function (it) { return it.selected; });
     return i >= 0 ? i : 0;
@@ -1926,18 +1976,30 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
     if (panelRef.current) panelRef.current.focus();
   }, []);
 
+  // Pas assez de place sous le bouton (le menu s'allonge avec les actions de
+  // la région) : il s'ouvre au-dessus, sans sortir de l'écran.
+  React.useLayoutEffect(function () {
+    const el = panelRef.current;
+    if (!el || !anchorRect) return;
+    const h = el.offsetHeight;
+    if (anchorRect.bottom + 6 + h > window.innerHeight - 8) el.style.top = Math.max(8, anchorRect.top - 6 - h) + 'px';
+  }, [anchorRect]);
+
   useEffectE(function () {
     function onDoc(e) { if (panelRef.current && !panelRef.current.contains(e.target)) onClose(); }
     const t = setTimeout(function () { document.addEventListener('mousedown', onDoc); }, 0);
     return function () { clearTimeout(t); document.removeEventListener('mousedown', onDoc); };
   }, [onClose]);
 
-  function pick(idx) { if (!items[idx].disabled) onSelect(items[idx].value); }
+  function pick(idx) {
+    if (all[idx].disabled) return;
+    if (idx < items.length) onSelect(all[idx].value); else onAction(all[idx].value);
+  }
   function step(dir) {
     let next = active;
-    for (let i = 0; i < items.length; i++) {
-      next = (next + dir + items.length) % items.length;
-      if (!items[next].disabled) break;
+    for (let i = 0; i < all.length; i++) {
+      next = (next + dir + all.length) % all.length;
+      if (!all[next].disabled) break;
     }
     setActive(next);
   }
@@ -1977,6 +2039,20 @@ function DiagDocMenu({ anchorRect, items, number, onSelect, onClose }) {
         );
       })}
       <div style={ddmS.foot}>{t('field.diagScope.hint', { number: number })}</div>
+      {(actions || []).length > 0 && <div style={ddmS.divider} role="separator" />}
+      {(actions || []).map(function (it, j) {
+        const i = items.length + j;
+        return (
+          <div key={it.value} role="menuitem" aria-disabled={it.disabled || undefined}
+            onMouseEnter={function () { if (!it.disabled) setActive(i); }}
+            onMouseDown={function (e) { e.preventDefault(); }}
+            onClick={function () { pick(i); }}
+            style={Object.assign({}, ddmS.item, ddmS.action, it.disabled ? ddmS.itemDisabled : {}, (i === active && !it.disabled) ? ddmS.itemActive : {})}>
+            <span className="material-icons-outlined" style={{ fontSize: 18, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 50%, transparent)', flexShrink: 0 }}>{it.icon}</span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 85%, transparent)' }}>{it.label}</span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -1994,7 +2070,9 @@ const ddmS = {
   item: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', minHeight: 48, padding: 'var(--ds-spacing-xs) var(--ds-spacing-12)', cursor: 'pointer', font: 'var(--mat-sys-body-medium)' },
   itemActive: { background: 'color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent)' },
   itemDisabled: { opacity: 0.38, cursor: 'default' },
-  foot: { padding: '6px 14px 2px', borderTop: '1px solid var(--mat-sys-surface-container-low)', marginTop: 4, fontSize: 11, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' }
+  foot: { padding: '6px 14px 2px', borderTop: '1px solid var(--mat-sys-surface-container-low)', marginTop: 4, fontSize: 11, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 40%, transparent)' },
+  divider: { height: 1, margin: 'var(--ds-spacing-xxs) 0', background: 'var(--mat-sys-outline-variant)' },
+  action: { minHeight: 40 }
 };
 
 const afmS = {

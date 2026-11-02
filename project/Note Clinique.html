@@ -391,6 +391,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "patientPharmacy": true,
   "templateTextProposed": false,
   "templateDraftLines": true,
+  "autoConduct": true,
   "suggestionStyle": "tirets",
   "pendingBadge": true,
   "formOpenMode": "auto",
@@ -606,6 +607,7 @@ function App() {
               patientPharmacy={t.patientPharmacy !== false}
               templateTextProposed={t.templateTextProposed === true}
               templateDraftLines={t.templateDraftLines !== false}
+              autoConduct={t.autoConduct !== false}
               suggestionStyle={t.suggestionStyle || 'tirets'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
@@ -733,6 +735,8 @@ function App() {
                        onChange={(v) => setTweak('templateDraftLines', v)} />
           <TweakToggle label="Gabarit : texte proposé" value={t.templateTextProposed === true}
                        onChange={(v) => setTweak('templateTextProposed', v)} />
+          <TweakToggle label="Conduite précédente automatique" value={t.autoConduct !== false}
+                       onChange={(v) => setTweak('autoConduct', v)} />
           <TweakRadio label="Style des suggestions"
                       value={t.suggestionStyle || 'tirets'}
                       options={[

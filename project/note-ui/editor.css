@@ -103,6 +103,22 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
   padding: 6px 10px 4px 12px;
   user-select: none;
 }
+/* Réordonner (PLAN-conduite-precedente.md, B4) : poignée ⋮⋮ au survol d'une
+   ligne ou d'un en-tête de région, et barre de la fente visée pendant le
+   glisser (dxDragPlugin, editor-schema.jsx). Posées sur <body>, en fixed. */
+.dxr-drag {
+  position: fixed; z-index: 2000; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--mat-sys-corner-extra-small, 4px);
+  color: var(--mat-sys-on-surface-variant); cursor: grab;
+  opacity: 0; pointer-events: none; transition: opacity 120ms;
+}
+.dxr-drag.is-on { opacity: 1; pointer-events: auto; }
+.dxr-drag:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.dxr-drag .material-symbols-outlined { font-size: 18px; }
+.dxr-drop { position: fixed; z-index: 2000; height: 2px; border-radius: 1px; background: var(--mat-sys-primary); pointer-events: none; display: none; }
+.dxr-drop.is-on { display: block; }
+html.dxr-dragging, html.dxr-dragging * { cursor: grabbing !important; user-select: none; }
 /* [hidden] natif (statusEl/subEl — editor-schema.jsx) doit l'emporter
    sur le display:inline-flex/flex posé par les règles ci-dessous. */
 .note-field .ql-editor .dxr-head [hidden] {
@@ -492,6 +508,8 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
 /* Renouveler et dose augmentée / diminuée : badge d'icône seule, ton primaire ; En suspens : ton secondaire. */
 .chip-status--renewal, .chip-status--adjust { background: var(--mat-sys-primary-container); color: var(--mat-sys-on-primary-container); }
 .chip-status--pending { background: var(--mat-sys-secondary-container); color: var(--mat-sys-on-secondary-container); }
+/* Avertissement d'une tuile de conduite reprise (PLAN-conduite-precedente.md C6) : ton d'avertissement. */
+.chip-status--warn { background: light-dark(#fff1d6, #4a3410); color: light-dark(#a15c00, #e9cca5); }
 .chip-status--icon { display: inline-flex; align-items: center; padding: 0 2px; }
 .chip-status--icon .material-symbols-outlined { font-size: 16px; line-height: 18px; }
 /* Tweak « Badge En suspens » (html[data-pending-badge], posé par NoteEditor). */

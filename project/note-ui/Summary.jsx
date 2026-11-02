@@ -28,6 +28,10 @@ var PATIENT_SUMMARY = window.forPatient({ adulte: {
     { name:L('Almotriptan 12,5 mg'),  detail:L('1 co PRN, max. 2/24 h — actif'), status:'active' },
     { name:L('Candesartan 8 mg'),     detail:L('1 co DIE — actif'),             status:'active' },
     { name:L('Lévothyroxine 75 mcg'), detail:L('1 co DIE — actif'),             status:'active' },
+    // Diabète : mêmes changements que PATIENT_MEDS (editor-data.jsx), après ma
+    // dernière note de suivi (PLAN-conduite-precedente.md, C6).
+    { name:L('Metformine 1000 mg'),   detail:L('1 co BID — actif'),             status:'active' },
+    { name:L('Gliclazide 30 mg'),     detail:L('cessé (hypoglycémies)'),        status:'cessée',  date:'10/2026' },
     { name:L('Naproxène 500 mg'),     detail:L('cessé (inefficace)'),           status:'cessée',  date:'11/2025' },
   ],
   immun: [
