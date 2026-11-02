@@ -1,6 +1,30 @@
 /* global React */
 // Notes antérieures de démonstration, par patiente (patients.js).
+// `conducts` (PLAN-conduite-precedente.md) : la conduite de chaque problème
+// du dossier que la note conclut — { sommaireId, content, tiles }, le plan
+// seulement (Q2), tuiles à leur place dans le texte comme un texte rapide.
+// Ajouter le diagnostic en Conclusion d'une nouvelle note la reprend.
 const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
+  {
+    date: L("9 SEPTEMBRE 2026 08:50"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Suivi diabète"),
+    icons: [],
+    diagnostics: [L("Diabète de type 2")],
+    details: L("Motif : Suivi de diabète de type 2.\nSubjectif : Bonne observance. Glycémies à jeun de 7 à 9 mmol/L. Aucune hypoglycémie.\nObjectif : TA 128/80. Poids 74 kg. HbA1c 7,4 %. Examen des pieds : sensibilité au monofilament normale, pouls pédieux présents."),
+    conclusion: L("Impression : Diabète de type 2, contrôle sous-optimal.\nPlan : Poursuivre metformine 500 mg BID et gliclazide 30 mg DIE. HbA1c et créatinine dans 3 mois. Examen des pieds fait, à refaire dans 1 an. Revoir dans 3 mois."),
+    conducts: [{ sommaireId: 'som-diabete',
+      content: L("Plan : Poursuivre {metf} et {glic}. {hba1c} et {creat} dans 3 mois. Examen des pieds fait, à refaire dans 1 an. Revoir dans 3 mois."),
+      tiles: {
+        metf: { kind: 'rx', key: 'cat-15', details: { dose: '500', frequency: 'BID' } },
+        glic: { kind: 'rx', key: 'cat-16' },
+        hba1c: { kind: 'lab', key: 'hba1c' },
+        creat: { kind: 'lab', key: 'creat' } } }],
+    files: [],
+  },
   {
     date: L("14 MAI 2026 10:40"),
     author: "%%DOCTOR%%",
@@ -13,6 +37,28 @@ const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
     episodeId: "ep-demo-migraine",
     details: L("Motif : Suivi de migraine sous candesartan depuis 6 mois.\nSubjectif : Calendrier des céphalées : 9 jours de migraine par mois (12 avant le candesartan). Almotriptan efficace en 2 h dans 2 crises sur 3. Aucun abus de médicaments.\nObjectif : TA 124/78. Examen neurologique normal."),
     conclusion: L("Impression : Migraine sans aura, réponse partielle au candesartan.\nPlan : Poursuivre candesartan 8 mg DIE et almotriptan au besoin. Calendrier des céphalées. Bilan rénal et électrolytes faits. Revoir dans 3 mois ; référer en neurologie si pas de gain."),
+    conducts: [{ sommaireId: 'som-migraine',
+      content: L("Plan : Poursuivre {cand} et {almo} au besoin. Calendrier des céphalées. Revoir dans 3 mois ; référer en neurologie si pas de gain."),
+      tiles: { cand: { kind: 'rx', key: 'med-candesartan' }, almo: { kind: 'rx', key: 'med-almotriptan' } } }],
+    files: [],
+  },
+  {
+    date: L("12 MARS 2026 08:15"),
+    author: "%%DOCTOR%%",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Suivi diabète"),
+    icons: [],
+    diagnostics: [L("Diabète de type 2")],
+    details: L("Motif : Suivi de diabète de type 2.\nSubjectif : Metformine bien tolérée. Glycémies à jeun de 8 à 10 mmol/L.\nObjectif : TA 130/82. Poids 75 kg. HbA1c 7,9 %."),
+    conclusion: L("Impression : Diabète de type 2, contrôle insuffisant.\nPlan : Augmenter la metformine à 500 mg BID. Ajouter gliclazide 30 mg DIE. HbA1c dans 6 mois."),
+    conducts: [{ sommaireId: 'som-diabete',
+      content: L("Plan : Augmenter la metformine : {metf}. Ajouter {glic}. {hba1c} dans 6 mois."),
+      tiles: {
+        metf: { kind: 'rx', key: 'cat-15', details: { dose: '500', frequency: 'BID' } },
+        glic: { kind: 'rx', key: 'cat-16' },
+        hba1c: { kind: 'lab', key: 'hba1c' } } }],
     files: [],
   },
   {
@@ -40,6 +86,9 @@ const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
     diagnostics: [L("Hypothyroïdie")],
     details: L("Motif : Suivi annuel d'hypothyroïdie.\nSubjectif : Asymptomatique. Prise régulière de la lévothyroxine.\nObjectif : TSH 3,1 mUI/L."),
     conclusion: L("Impression : Hypothyroïdie bien contrôlée.\nPlan : Poursuivre lévothyroxine 75 mcg DIE. TSH dans 12 mois."),
+    conducts: [{ sommaireId: 'som-hypothyroidie',
+      content: L("Plan : Poursuivre {levo}. {tsh} dans 12 mois."),
+      tiles: { levo: { kind: 'rx', key: 'med-levothyroxine' }, tsh: { kind: 'lab', key: 'tsh' } } }],
     files: [],
   },
 ], pediatrique: [
@@ -94,6 +143,22 @@ const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
     ],
   },
   {
+    date: L("15 AVRIL 2026 11:05"),
+    author: "Dr Marc Lefebvre",
+    clinic: "%%CLINIC%%",
+    role: L("Médecin de famille"),
+    mode: L("PRÉSENTIEL"),
+    title: L("Rhinite allergique"),
+    icons: [],
+    diagnostics: [L("Rhinite allergique")],
+    details: L("Motif : Congestion nasale et éternuements depuis 3 semaines.\nSubjectif : Symptômes chaque printemps. Cetirizine peu efficace seule.\nObjectif : Muqueuse nasale pâle et œdémateuse. Pas de polype."),
+    conclusion: L("Impression : Rhinite allergique saisonnière.\nPlan : Fluticasone nasale pendant la saison pollinique. Cetirizine au besoin. Revoir au besoin."),
+    conducts: [{ sommaireId: 'som-rhinite',
+      content: L("Plan : {flut} pendant la saison pollinique. {ceti} au besoin. Revoir au besoin."),
+      tiles: { flut: { kind: 'rx', key: 'fluticasone-nasal' }, ceti: { kind: 'rx', key: 'cat-38' } } }],
+    files: [],
+  },
+  {
     date: L("12 MARS 2026 14:20"),
     author: "%%DOCTOR%%",
     clinic: "%%CLINIC%%",
@@ -107,6 +172,9 @@ const NOTE_ITEMS_TEMPLATE = window.forPatient({ adulte: [
     // Ajouts que « Réutiliser ma dernière conclusion » propose (colonne de
     // suggestions, dxConclusionOptions) : ce que la conclusion prescrivait.
     reuse: [{ kind: 'rx', key: 'vento100' }],
+    conducts: [{ sommaireId: 'som-asthme',
+      content: L("Plan : Poursuivre {vento} au besoin. Technique d'inhalation revue. Réévaluation dans 6 mois."),
+      tiles: { vento: { kind: 'rx', key: 'vento100' } } }],
     files: [],
   },
   {

@@ -3,7 +3,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true }) {
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true,
+  autoConduct = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
   React.useEffect(function() { document.documentElement.setAttribute('data-note-wide', noteWide ? 'on' : 'off'); }, [noteWide]);
@@ -24,6 +25,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Tweak « Gabarit : lignes à compléter » (A3) : lu par buildTemplateChipNode
   // (editor-schema.jsx) à l'application d'un gabarit, de note ou de conclusion.
   window.__TEMPLATE_DRAFT_LINES = templateDraftLines !== false;
+  // Tweak « Conduite précédente automatique » (PLAN-conduite-precedente.md,
+  // Q7) : lu par autoConductBlocks (editor-schema.jsx). Éteint, la dernière
+  // conduite d'un problème n'est plus insérée, seulement proposée en colonne.
+  window.__AUTO_CONDUCT = autoConduct !== false;
   // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
   // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
   React.useEffect(function() {
@@ -729,6 +734,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     // lignes « en attente » de celle qu'on vient de fermer.
     lastDxRef.current = null;
     window.__NOTE_DX_OVERLAY = [];
+    // Une conduite précédente est insérée une fois par fil et par note (Q3,
+    // PLAN-conduite-precedente.md) : la note suivante repart de zéro.
+    window.resetConductServed();
     window.dispatchEvent(new CustomEvent('note:diagnostics-change', { detail: { threads: [] } }));
     setRaison('');
     templateRaisonRef.current = '';

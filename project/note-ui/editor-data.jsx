@@ -483,6 +483,20 @@ const PATIENT_MEDS = window.forPatient({ adulte: [
     details: { molecule: L('Lévothyroxine'), dose: '75', unit: 'mcg', form: 'comprimé', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Hypothyroïdie'), notes: L('Profil actif au dossier.') } },
+  // Diabète (PLAN-conduite-precedente.md) : changés en octobre 2026, après ma
+  // dernière note de suivi — la conduite reprise le signale (C6).
+  { key: 'med-metformine', name: L('Metformine'), dose: '1000 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    sig: L('1 co PO BID'),
+    chipSig: L('1 co PO BID'),
+    details: { molecule: L('Metformine'), dose: '1000', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Diabète de type 2'), notes: L('Dose augmentée 10/2026.') } },
+  { key: 'med-gliclazide', name: L('Gliclazide'), dose: '30 mg', med: true, medStatus: 'cessée', medDate: '10/2026', medStatusLabel: L('cessé (hypoglycémies)'),
+    sig: L('1 co PO DIE'),
+    chipSig: L('1 co PO DIE'),
+    details: { molecule: L('Gliclazide'), dose: '30', unit: 'mg', form: 'comprimé', route: 'PO',
+      frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
+      indication: L('Diabète de type 2'), notes: L('Cessé 10/2026.') } },
   { key: 'med-naproxene', name: L('Naproxène'), dose: '500 mg', med: true, medStatus: 'cessée', medDate: '11/2025', medStatusLabel: L('cessé (inefficace)'),
     sig: L('1 co PO BID'),
     chipSig: L('1 co PO BID'),
@@ -1555,22 +1569,122 @@ function noteDayLabel(date) {
   return window.I18N.lang === 'fr' ? day : day.replace(/^[a-z]/, function (c) { return c.toUpperCase(); });
 }
 
+// Date d'une note antérieure (« 14 MAI 2026 10:40 », « MAY 14, 2026 10:40 AM »)
+// → Date, ou null si on ne la reconnaît pas.
+const NOTE_MONTHS = ['janvier', 'fevrier', 'mars', 'avril', 'mai', 'juin', 'juillet', 'aout', 'septembre', 'octobre', 'novembre', 'decembre',
+  'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+function parseNoteDate(s) {
+  const words = _norm(s).replace(/,/g, ' ').split(/\s+/).filter(Boolean);
+  let day = null, month = -1, year = null;
+  words.forEach(function (w) {
+    const m = NOTE_MONTHS.indexOf(w);
+    if (m >= 0) month = m % 12;
+    else if (/^\d{4}$/.test(w)) year = +w;
+    else if (/^\d{1,2}$/.test(w) && day == null) day = +w;
+  });
+  return month >= 0 && year && day ? new Date(year, month, day) : null;
+}
+function monthsBetween(from, to) {
+  return (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth()) - (to.getDate() < from.getDate() ? 1 : 0);
+}
+
+// Conduite précédente (PLAN-conduite-precedente.md) : la dernière conduite
+// à tenir d'un problème au dossier, lue dans les notes antérieures (`conducts`,
+// une entrée par problème conclu : { sommaireId, content, tiles }, le plan
+// seulement — Q2). Seulement pour une région reliée à une ligne Problèmes
+// active du dossier (C8) : jamais par code ni par libellé.
+// ctx = { notes (la plus récente d'abord), today?, author? }.
+// → { mine, colleague } : chacun une option de conclusion (voir
+// dxConclusionOptions) ou null — la plus récente de mes notes, et la plus
+// récente d'un collègue. Le choix entre les deux revient à l'appelant (C4).
+function isMyNote(note, ctx) {
+  return /%%DOCTOR%%/.test(note.author || '') || !!(ctx && ctx.author && note.author === ctx.author);
+}
+function lastConduct(dx, ctx) {
+  const out = { mine: null, colleague: null };
+  if (!dx || !dx.sommaireId || dx.documentAs !== 'probleme' || dx.status === 'cesse') return out;
+  const today = (ctx && ctx.today) || new Date();
+  ((ctx && ctx.notes) || []).forEach(function (note) {
+    const c = (note.conducts || []).find(function (x) { return x.sommaireId === dx.sommaireId; });
+    if (!c) return;
+    const mine = isMyNote(note, ctx);
+    const slot = mine ? 'mine' : 'colleague';
+    if (!out[slot]) out[slot] = conductOption(note, c, mine, today);
+  });
+  return out;
+}
+// Une conduite → option de conclusion. Ses tuiles portent leur avertissement
+// (`warn`, C6) : la puce en attente le montre, le médecin décide. Au-delà de
+// 12 mois, `stale` (C5) : la source passe en avertissement.
+const CONDUCT_STALE_MONTHS = 12;
+function conductOption(note, c, mine, today) {
+  const date = noteDayLabel(note.date);
+  const when = parseNoteDate(note.date);
+  const ageMonths = when ? monthsBetween(when, today) : null;
+  const tiles = {};
+  Object.keys(c.tiles || {}).forEach(function (k) {
+    const warn = conductWarning(c.tiles[k]);
+    tiles[k] = warn ? Object.assign({}, c.tiles[k], { warn: warn }) : c.tiles[k];
+  });
+  const stale = ageMonths != null && ageMonths >= CONDUCT_STALE_MONTHS;
+  return {
+    id: mine ? 'last' : 'last-colleague', kind: 'last', colleague: !mine,
+    name: mine ? t('suggest.derniereConclusion.title') : t('conduct.colleague.title', { author: note.author }),
+    content: c.content || '', tiles: tiles, proposals: Object.keys(tiles).map(function (k) { return tiles[k]; }),
+    date: date, author: note.author, ageMonths: ageMonths, stale: stale,
+    // La source signe les ajouts en attente (barre des ajouts, infobulle des
+    // puces) : plus d'un an, elle le dit (C5).
+    source: !mine ? t('conduct.source.colleague.label', { author: note.author, date: date })
+      : stale ? t('conduct.source.mineStale.label', { date: date }) : t('conduct.source.mine.label', { date: date }),
+  };
+}
+
+// Une tuile d'une ancienne conduite comparée au dossier d'aujourd'hui (C6) :
+// le texte de l'avertissement, ou null. Allergie au dossier, médicament cessé
+// depuis, dose ou fréquence changée au profil.
+function conductRxItem(tile) {
+  return RX_ALL.find(function (x) { return x.key === tile.key; }) || PATIENT_MEDS.find(function (x) { return x.key === tile.key; }) || null;
+}
+function conductWarning(tile) {
+  if (!tile || tile.kind !== 'rx') return null;
+  const it = conductRxItem(tile);
+  if (!it) return null;
+  const allergy = rxAllergyOf(it);
+  if (allergy) return t('conduct.warn.allergy.text', { name: allergy });
+  const d = Object.assign({}, it.details, tile.details);
+  const molecule = _norm(d.molecule || it.name);
+  const med = PATIENT_MEDS.find(function (m) { return _norm((m.details && m.details.molecule) || m.name) === molecule; });
+  if (!med) return null;
+  if (med.medStatus === 'cessée') return t('conduct.warn.ceased.text', { status: medStatusText(med) });
+  const md = med.details || {};
+  if (String(md.dose) !== String(d.dose) || (md.frequency || '') !== (d.frequency || '')) {
+    return t('conduct.warn.dose.text', { current: (med.dose + ' ' + (med.chipSig || med.sig || '')).trim() });
+  }
+  return null;
+}
+
 // Gabarits de conclusion offerts sous un diagnostic, dans l'ordre de la
 // rencontre vision (2026-10-27) : réutiliser la dernière conclusion, mon
 // gabarit, le gabarit Omnimed — mes textes rapides et ceux d'Omnimed liés au
 // diagnostic. Chaque option : { id, kind, name, content, tiles?, proposals,
 // source, allergy, date?, author? } ; `source` signe ses ajouts en attente.
-// « Dernière conclusion » : seulement si le problème est au dossier
-// (`ctx.sommaire`, lignes de getSommaireDiagnostics) ET qu'une note
-// antérieure (`ctx.notes`, la plus récente d'abord) le conclut — son texte et
-// ses ajouts réutilisables (`reuse`).
+// En tête, la dernière conduite du problème (lastConduct) : la mienne, sinon
+// celle d'un collègue (C4) — même sans gabarit pour ce diagnostic (ex.
+// diabète), et toujours première, même en conflit d'allergie (C6 : le
+// médecin décide). Sans conduite : l'ancienne « Dernière conclusion »,
+// seulement si le problème est au dossier (`ctx.sommaire`, lignes de
+// getSommaireDiagnostics) ET qu'une note antérieure (`ctx.notes`, la plus
+// récente d'abord) le conclut — son texte et ses ajouts réutilisables (`reuse`).
 function dxConclusionOptions(dx, ctx) {
+  const lc = lastConduct(dx, ctx);
+  const conduct = lc.mine || lc.colleague;
+  if (conduct) conduct.allergy = optionAllergy(conduct);
   const c = dxContextFor(dx);
-  if (!c) return [];
+  if (!c) return conduct ? [conduct] : [];
   const same = function (other) { const o = dxContextFor(other); return !!o && o.key === c.key; };
   const out = [];
   const inChart = ((ctx && ctx.sommaire) || []).some(same);
-  const note = inChart && ((ctx && ctx.notes) || []).find(function (n) {
+  const note = !conduct && inChart && ((ctx && ctx.notes) || []).find(function (n) {
     return n.conclusion && (n.diagnostics || []).some(function (name) { return same({ name: name }); });
   });
   if (note) {
@@ -1584,7 +1698,7 @@ function dxConclusionOptions(dx, ctx) {
   out.forEach(function (o) { o.allergy = optionAllergy(o); });
   // Allergie au dossier (PLAN-gabarits-conclusion.md, Q7) : les options sans
   // conflit d'abord, l'ordre ci-dessus gardé sinon.
-  return out.filter(function (o) { return !o.allergy; }).concat(out.filter(function (o) { return !!o.allergy; }));
+  return (conduct ? [conduct] : []).concat(out.filter(function (o) { return !o.allergy; }), out.filter(function (o) { return !!o.allergy; }));
 }
 
 // Texte rapide → option de conclusion. `proposals` : tous ses ajouts — les
@@ -2351,5 +2465,5 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
-  dxConclusionOptions, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, noteDayLabel, templateWithoutTool,
+  dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

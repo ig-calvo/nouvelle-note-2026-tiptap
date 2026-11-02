@@ -48,10 +48,12 @@ function scOptionDesc(opt) {
 }
 
 // Avertissement d'une option de conclusion en conflit avec une allergie au
-// dossier (dxConclusionOptions, `allergy`), ou null.
+// dossier (dxConclusionOptions, `allergy`), ou d'une conduite précédente de
+// plus d'un an (`stale`, PLAN-conduite-precedente.md C5), ou null.
 function scOptionWarn(opt) {
   const a = opt.allergy;
-  return a ? t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') }) : null;
+  if (a) return t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') });
+  return opt.stale ? t('conduct.stale.text') : null;
 }
 
 // Libellé qu'aurait la puce d'un item : sert à savoir s'il est déjà sous le
