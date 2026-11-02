@@ -80,6 +80,9 @@ var PATIENT_SUMMARY = window.forPatient({ adulte: {
   ],
 } });
 
+// Lu par l'agent flottant (AgentFab.jsx) pour ses recherches dans le dossier.
+window.PATIENT_SUMMARY = PATIENT_SUMMARY;
+
 var INIT_DATA = Object.assign({
   results: [],
   programs: [],

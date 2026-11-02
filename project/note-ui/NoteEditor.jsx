@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', visitStart = false, templateDraftLines = true,
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
   autoConduct = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
@@ -177,9 +177,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const templateRaisonRef = React.useRef('');
   const raisonRef = React.useRef(raison);
   raisonRef.current = raison;
-  // Réglage « Suggestions » : colonne, barre en ligne (« curseur »), ou les deux.
+  // Réglage « Suggestions » : colonne, barre en ligne (« curseur »), les deux,
+  // ou l'agent flottant.
   const suggestionsColumn = suggestionsPlacement === 'colonne' || suggestionsPlacement === 'les-deux';
   const suggestionsBar = suggestionsPlacement === 'curseur' || suggestionsPlacement === 'les-deux';
+  // « Agent flottant » : un FAB en bas à droite qui signale les suggestions
+  // et ouvre l'assistant du dossier (AgentFab.jsx).
+  const suggestionsAgent = suggestionsPlacement === 'agent';
   const noteCardRef = React.useRef(null);
 
   function handleEditorReady(editor) {
@@ -1193,6 +1197,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         </div>
       }
       {suggestionsBar && <window.SuggestionBar editor={editorInstance} />}
+      {suggestionsAgent && isOpen &&
+        <window.AgentFab editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
+          signal={agentSignal} opening={agentOpening} animation={agentAnimation} size={agentSize} />}
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,
           jamais réaffiché ensuite (il n'y en a qu'un par note). */}

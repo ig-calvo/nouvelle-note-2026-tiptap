@@ -333,6 +333,7 @@
     'note-ui/rich-text-controls.jsx',
     'note-ui/ActionLog.jsx',
     'note-ui/SuggestionsColumn.jsx',
+    'note-ui/AgentFab.jsx',
     'note-ui/VisitStartPanel.jsx',
     'note-ui/NoteEditor.jsx',
     'note-ui/NotesList.jsx',
@@ -401,6 +402,10 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "summaryAddToNote": false,
   "suggestionsOn": false,
   "suggestionsPlacement": "curseur",
+  "agentSignal": "pastille",
+  "agentOpening": "panneau",
+  "agentAnimation": "etapes",
+  "agentSize": "petit",
   "visitStart": false,
   "themeMode": "clair",
   "patient": "adulte"
@@ -615,6 +620,10 @@ function App() {
               pendingBadge={t.pendingBadge !== false}
               aiProposals={t.aiProposals === true}
               suggestionsPlacement={t.suggestionsOn === true ? (t.suggestionsPlacement || 'curseur') : 'aucune'}
+              agentSignal={t.agentSignal || 'pastille'}
+              agentOpening={t.agentOpening || 'panneau'}
+              agentAnimation={t.agentAnimation || 'etapes'}
+              agentSize={t.agentSize || 'petit'}
               visitStart={t.visitStart === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
@@ -759,8 +768,43 @@ function App() {
                         { value: 'curseur', label: 'Barre' },
                         { value: 'colonne', label: 'Colonne' },
                         { value: 'les-deux', label: 'Les deux' },
+                        { value: 'agent', label: 'Agent flottant' },
                       ]}
                       onChange={(v) => setTweak({ suggestionsOn: true, suggestionsPlacement: v })} />
+          {/* Agent flottant (AgentFab.jsx, exploration du 2026-11-02) : ses
+              variantes, visibles seulement quand il est l'emplacement choisi. */}
+          {t.suggestionsOn === true && t.suggestionsPlacement === 'agent' &&
+          <React.Fragment>
+            <TweakRadio label="Agent : signal"
+                        value={t.agentSignal || 'pastille'}
+                        options={[
+                          { value: 'pastille', label: 'Pastille' },
+                          { value: 'etendu', label: 'Étendu' },
+                          { value: 'halo', label: 'Halo' },
+                        ]}
+                        onChange={(v) => setTweak('agentSignal', v)} />
+            <TweakRadio label="Agent : ouverture"
+                        value={t.agentOpening || 'panneau'}
+                        options={[
+                          { value: 'panneau', label: 'Panneau ancré' },
+                          { value: 'tiroir', label: 'Tiroir latéral' },
+                        ]}
+                        onChange={(v) => setTweak('agentOpening', v)} />
+            <TweakRadio label="Agent : animation de recherche"
+                        value={t.agentAnimation || 'etapes'}
+                        options={[
+                          { value: 'etapes', label: 'Étapes' },
+                          { value: 'compacte', label: 'Compacte' },
+                        ]}
+                        onChange={(v) => setTweak('agentAnimation', v)} />
+            <TweakRadio label="Agent : taille du panneau"
+                        value={t.agentSize || 'petit'}
+                        options={[
+                          { value: 'petit', label: 'Petit' },
+                          { value: 'grand', label: 'Grand' },
+                        ]}
+                        onChange={(v) => setTweak('agentSize', v)} />
+          </React.Fragment>}
           <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
                        onChange={(v) => setTweak('visitStart', v)} />
           <TweakToggle label="IA : éléments structurés proposés" value={t.aiProposals === true}

@@ -22,6 +22,8 @@
 //     requêtes (contextResultsFor), ajoutées sous lui en un clic ;
 //   - sinon → une consigne discrète.
 // Au plus 5 suggestions visibles (pas d'effet « guirlande »).
+// Le contenu vient de useNoteSuggestions, que l'agent flottant (AgentFab.jsx)
+// reprend aussi.
 // =========================================================
 // 5 lignes au plus sous un diagnostic : les gabarits de conclusion d'abord,
 // puis au moins une prescription et une requête quand il y en a.
@@ -94,11 +96,13 @@ function scDiagnosesIn(doc) {
 // la page blanche — la barre prend le relais dans un diagnostic.
 // appliedTemplate : clé du gabarit de début appliqué, dont les diagnostics
 // suggérés suivent (flux de Sacha).
-function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, appliedTemplate }) {
+// Les suggestions du point actif : le contenu de la colonne, que l'agent
+// flottant (AgentFab.jsx) reprend tel quel. → { body, count, context, targeted } ;
+// `targeted` est vrai quand elles visent ce qu'on écrit (un diagnostic, une
+// raison de consultation), pas seulement les gabarits de départ génériques.
+function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, appliedTemplate }) {
   // Re-rendu à chaque déplacement du curseur ou changement du document.
   const [, refresh] = React.useReducer(function (x) { return x + 1; }, 0);
-  // Repliée : un rail de 48 px avec l'icône et le nombre de suggestions.
-  const [collapsed, setCollapsed] = React.useState(false);
   React.useEffect(function () {
     if (!editor) return undefined;
     editor.on('selectionUpdate', refresh);
@@ -150,8 +154,9 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
     );
   }
 
-  let body, count = 0, context = null;
+  let body, count = 0, context = null, targeted = false;
   if (point === 'dx') {
+    targeted = true;
     const found = scFindRegion(editor.state.doc, region.id);
     const present = found ? scLabelsIn(found.node) : [];
     const options = window.NOTE_DATA.dxConclusionOptions(region, dxConclusionContext());
@@ -205,6 +210,7 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
     const inNote = editor ? scDiagnosesIn(editor.state.doc) : [];
     const dxTaken = function (d) { return inNote.some(function (a) { return (a.code && a.code === d.code) || a.name === d.name; }); };
     count = tpls.length + general.length + dxs.filter(function (d) { return !dxTaken(d); }).length;
+    targeted = tpls.length + dxs.length > 0;
     const templateRow = function (tpl) {
       const item = (window.NOTE_DATA.SLASH_ITEMS || []).find(function (it) { return it.key === 'tpl-' + tpl.key; }) || {};
       const desc = window.__SHOW_CLINICAL_TOOLS === false && item.descNoTool ? item.descNoTool : item.desc;
@@ -232,6 +238,14 @@ function SuggestionsColumn({ editor, raison, raisonActive, startOnly = false, ap
         </React.Fragment>
       );
   }
+  return { body: body, count: count, context: context, targeted: targeted };
+}
+
+function SuggestionsColumn(props) {
+  // Repliée : un rail de 48 px avec l'icône et le nombre de suggestions.
+  const [collapsed, setCollapsed] = React.useState(false);
+  const { body, count, context } = useNoteSuggestions(props);
+  function keepFocus(e) { e.preventDefault(); }
 
   const contextLine = context &&
     <div style={scS.context}>
@@ -317,6 +331,7 @@ const scS = {
   barClose: { width: 24, height: 24, border: 0, borderRadius: '50%', background: 'transparent', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
 };
 
+window.useNoteSuggestions = useNoteSuggestions;
 window.SuggestionsColumn = SuggestionsColumn;
 
 // ---------------------------------------------------------------------------
