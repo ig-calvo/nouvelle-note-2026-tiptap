@@ -1418,7 +1418,7 @@
   'agent.rapide.medication.button': 'Medication and allergies',
   'agent.invite.placeholder': 'Ask the chart…',
   'agent.envoyer.aria': 'Send',
-  'agent.avertissement.text': 'Answers drawn from the chart: check them before adding.',
+  'agent.avertissement.text': 'Drawn from the chart: check before adding.',
   'agent.recherche.title': 'Searching the chart…',
   'agent.recherche.source.text': 'Reading: {name}…',
   'agent.redaction.text': 'Writing the answer…',

@@ -607,20 +607,22 @@ const agS = {
   },
   dot: { position: 'absolute', top: 6, right: 6, width: 10, height: 10, borderRadius: '50%', background: 'var(--mat-sys-primary)', border: '2px solid var(--mat-sys-primary-container)' },
 
+  // Panneau : à peu près la largeur du Sommaire, et la hauteur de son contenu
+  // (460 px au plus), pour en laisser voir le haut.
   panel: {
-    position: 'fixed', right: 24, bottom: 92, zIndex: 60, width: 400, maxWidth: 'calc(100vw - 48px)',
-    height: 'min(640px, calc(100vh - 140px))', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+    position: 'fixed', right: 24, bottom: 92, zIndex: 60, width: 320, maxWidth: 'calc(100vw - 48px)',
+    maxHeight: 'min(460px, calc(100vh - 140px))', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
     background: 'var(--mat-sys-surface-container-low)', border: '1px solid var(--mat-sys-outline-variant)',
     borderRadius: 'var(--mat-sys-corner-large)', boxShadow: 'var(--mat-sys-level3)', overflow: 'hidden',
   },
   drawer: {
-    position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 60, width: 400, maxWidth: '100vw', boxSizing: 'border-box',
+    position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 60, width: 360, maxWidth: '100vw', boxSizing: 'border-box',
     display: 'flex', flexDirection: 'column', background: 'var(--mat-sys-surface-container-low)',
     borderLeft: '1px solid var(--mat-sys-outline-variant)', boxShadow: 'var(--mat-sys-level3)',
   },
-  head: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-12)', padding: '12px 12px 12px 16px', borderBottom: '1px solid var(--mat-sys-outline-variant)' },
+  head: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: '8px 8px 8px 12px', borderBottom: '1px solid var(--mat-sys-outline-variant)' },
   avatar: {
-    position: 'relative', width: 36, height: 36, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    position: 'relative', width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     background: 'linear-gradient(135deg, var(--mat-sys-primary-container), var(--mat-sys-tertiary-container, var(--mat-sys-secondary-container)))',
   },
   avatarIcon: { fontSize: 20, color: 'var(--mat-sys-on-primary-container)' },
@@ -628,7 +630,7 @@ const agS = {
   title: { font: 'var(--mat-sys-title-small)', color: 'var(--mat-sys-on-surface)' },
   subtitle: { font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   iconBtn: { width: 36, height: 36, border: 0, borderRadius: '50%', background: 'transparent', color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  scroll: { flex: 1, overflowY: 'auto', padding: 'var(--ds-spacing-12) var(--ds-spacing-md, 16px)', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)' },
+  scroll: { flex: 1, minHeight: 0, overflowY: 'auto', padding: 'var(--ds-spacing-12)', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)' },
   group: { display: 'flex', alignItems: 'center', gap: 6, font: 'var(--mat-sys-label-medium)', color: 'var(--mat-sys-on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.04em' },
   suggList: { display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xxs)' },
   turn: { display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)', marginTop: 'var(--ds-spacing-12)' },
@@ -664,7 +666,7 @@ const agS = {
   cites: { display: 'flex', alignItems: 'center', gap: 4, font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)' },
   actions: { display: 'flex', justifyContent: 'flex-end', gap: 'var(--ds-spacing-xs)' },
   empty: { margin: 0, font: 'var(--mat-sys-body-medium)', color: 'var(--mat-sys-on-surface-variant)' },
-  foot: { display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-12)', borderTop: '1px solid var(--mat-sys-outline-variant)', margin: 0 },
+  foot: { display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-xs) var(--ds-spacing-12) var(--ds-spacing-12)', borderTop: '1px solid var(--mat-sys-outline-variant)', margin: 0 },
   quickRow: { display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', margin: '0 -12px', padding: '0 12px' },
   quickChip: {
     display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 12px 0 8px', borderRadius: 'var(--mat-sys-corner-small)',

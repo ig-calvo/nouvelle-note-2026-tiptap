@@ -104,8 +104,8 @@
       ]
     },
     "agent.avertissement.text": {
-      "fr": "Réponses tirées du dossier : à vérifier avant de les ajouter.",
-      "empreinte": "cf7e41d3881a",
+      "fr": "Tiré du dossier : à vérifier avant d’ajouter.",
+      "empreinte": "97ac19491056",
       "contexte": "texte",
       "fichiers": [
         "note-ui/AgentFab.jsx:434"

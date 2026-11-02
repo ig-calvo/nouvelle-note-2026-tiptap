@@ -1531,7 +1531,7 @@
   'agent.rapide.medication.button': 'Médication et allergies',
   'agent.invite.placeholder': 'Demander au dossier…',
   'agent.envoyer.aria': 'Envoyer',
-  'agent.avertissement.text': 'Réponses tirées du dossier : à vérifier avant de les ajouter.',
+  'agent.avertissement.text': 'Tiré du dossier : à vérifier avant d’ajouter.',
   'agent.recherche.title': 'Recherche dans le dossier…',
   'agent.recherche.source.text': 'Lecture : {name}…',
   'agent.redaction.text': 'Rédaction de la réponse…',
