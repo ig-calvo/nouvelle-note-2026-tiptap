@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', visitStart = false, templateDraftLines = true,
+  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
   autoConduct = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
@@ -1199,7 +1199,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
       {suggestionsBar && <window.SuggestionBar editor={editorInstance} />}
       {suggestionsAgent && isOpen &&
         <window.AgentFab editor={editorInstance} raison={raison} raisonActive={raisonActive} appliedTemplate={appliedTemplate}
-          signal={agentSignal} opening={agentOpening} animation={agentAnimation} />}
+          signal={agentSignal} opening={agentOpening} animation={agentAnimation} size={agentSize} />}
 
       {/* Avertissement à la création du champ confidentiel — un seul palier,
           jamais réaffiché ensuite (il n'y en a qu'un par note). */}

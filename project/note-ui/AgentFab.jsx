@@ -16,7 +16,9 @@
 // Variantes (Tweaks) :
 //   signal     'pastille' | 'etendu' | 'halo' : comment le FAB signale ;
 //   ouverture  'panneau' | 'tiroir' : panneau ancré au FAB, ou tiroir latéral ;
-//   animation  'etapes' | 'compacte' : les sources une à une, ou une seule ligne.
+//   animation  'etapes' | 'compacte' : les sources une à une, ou une seule ligne ;
+//   taille     'petit' | 'grand' : panneau de 320 × 460 px au plus (laisse voir
+//              le haut du Sommaire), ou de 400 × 640 px ; le tiroir 360 ou 400 px.
 // =========================================================
 const AG_STEP_MS = 750;
 const AG_WRITE_MS = 1100;
@@ -289,7 +291,7 @@ function useAgentSearch(editor) {
   return { turns: turns, ask: ask, markAdded: markAdded };
 }
 
-function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pastille', opening = 'panneau', animation = 'etapes' }) {
+function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pastille', opening = 'panneau', animation = 'etapes', size = 'petit' }) {
   const sugg = window.useNoteSuggestions({ editor: editor, raison: raison, raisonActive: raisonActive, appliedTemplate: appliedTemplate });
   const search = useAgentSearch(editor);
   const [open, setOpen] = React.useState(false);
@@ -355,13 +357,13 @@ function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pas
             <span className="ag-pop" style={agS.dot} aria-hidden="true" />}
         </button>}
       {open &&
-        <AgentPanel drawer={drawer} animation={animation} editor={editor} sugg={sugg} search={search}
+        <AgentPanel drawer={drawer} large={size === 'grand'} animation={animation} editor={editor} sugg={sugg} search={search}
           onClose={function () { setOpen(false); }} />}
     </React.Fragment>
   );
 }
 
-function AgentPanel({ drawer, animation, editor, sugg, search, onClose }) {
+function AgentPanel({ drawer, large, animation, editor, sugg, search, onClose }) {
   const [text, setText] = React.useState('');
   const scrollRef = React.useRef(null);
   const last = search.turns[search.turns.length - 1];
@@ -399,7 +401,7 @@ function AgentPanel({ drawer, animation, editor, sugg, search, onClose }) {
 
   return (
     <section role="dialog" aria-modal="false" aria-label={t('agent.panneau.title')}
-      className={drawer ? 'ag-drawer' : 'ag-in'} style={drawer ? agS.drawer : agS.panel}
+      className={drawer ? 'ag-drawer' : 'ag-in'} style={Object.assign({}, drawer ? agS.drawer : agS.panel, large ? (drawer ? agS.drawerLarge : agS.panelLarge) : null)}
       onKeyDown={function (e) { if (e.key === 'Escape') { e.stopPropagation(); onClose(); if (editor) editor.commands.focus(); } }}>
       {header}
       <div ref={scrollRef} style={agS.scroll}>
@@ -615,6 +617,8 @@ const agS = {
     background: 'var(--mat-sys-surface-container-low)', border: '1px solid var(--mat-sys-outline-variant)',
     borderRadius: 'var(--mat-sys-corner-large)', boxShadow: 'var(--mat-sys-level3)', overflow: 'hidden',
   },
+  panelLarge: { width: 400, maxHeight: 'none', height: 'min(640px, calc(100vh - 140px))' },
+  drawerLarge: { width: 400 },
   drawer: {
     position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 60, width: 360, maxWidth: '100vw', boxSizing: 'border-box',
     display: 'flex', flexDirection: 'column', background: 'var(--mat-sys-surface-container-low)',

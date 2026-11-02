@@ -41,6 +41,7 @@ const PRESENTATION_TWEAKS = {
   agentSignal: 'pastille',
   agentOpening: 'panneau',
   agentAnimation: 'etapes',
+  agentSize: 'petit',
   visitStart: false,
   inlineFieldEdit: true,
   formOpenMode: 'auto',

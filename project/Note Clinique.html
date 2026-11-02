@@ -405,6 +405,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "agentSignal": "pastille",
   "agentOpening": "panneau",
   "agentAnimation": "etapes",
+  "agentSize": "petit",
   "visitStart": false,
   "themeMode": "clair",
   "patient": "adulte"
@@ -622,6 +623,7 @@ function App() {
               agentSignal={t.agentSignal || 'pastille'}
               agentOpening={t.agentOpening || 'panneau'}
               agentAnimation={t.agentAnimation || 'etapes'}
+              agentSize={t.agentSize || 'petit'}
               visitStart={t.visitStart === true} />
             <NotesList doctorName={t.doctorName} clinicName={t.clinicName} extraNotes={completedNotes} />
             {noteOpen &&
@@ -795,6 +797,13 @@ function App() {
                           { value: 'compacte', label: 'Compacte' },
                         ]}
                         onChange={(v) => setTweak('agentAnimation', v)} />
+            <TweakRadio label="Agent : taille du panneau"
+                        value={t.agentSize || 'petit'}
+                        options={[
+                          { value: 'petit', label: 'Petit' },
+                          { value: 'grand', label: 'Grand' },
+                        ]}
+                        onChange={(v) => setTweak('agentSize', v)} />
           </React.Fragment>}
           <TweakToggle label="Points de départ de la visite" value={t.visitStart === true}
                        onChange={(v) => setTweak('visitStart', v)} />
