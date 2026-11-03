@@ -951,7 +951,7 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
 
 // =========================================================
 // RxMenu — dropdown de recherche de médicaments (commande /rx)
-// Sections : Favoris · Traitements fréquemment prescrits · Phrases de prescription
+// Sections : Fréquemment prescrits (favoris) · Traitements fréquemment prescrits · Phrases de prescription
 // =========================================================
 function RxNameHighlight({ name, query }) {
   const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');

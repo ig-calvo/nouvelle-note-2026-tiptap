@@ -565,8 +565,9 @@ function adjustMedDose(it, dir) {
 
 // Filtres du menu /rx (rail à droite, Figma « Recherche de prescriptions ») :
 // Tout, Renouvelables (échues ou à renouveler bientôt), Actives, Cessées,
-// Favoris, Gabarits (ceux qui proposent une ordonnance). Le filtre vit le temps
-// d'une recherche, comme les favoris figés (endOrderSearch).
+// Fréquemment prescrits (les favoris, clé `favoris`), Gabarits (ceux qui proposent
+// une ordonnance). Le filtre vit le temps d'une recherche, comme les favoris
+// figés (endOrderSearch).
 const RX_FILTERS = [
   { key: 'tout', label: t('data.filterAll.label'), icon: 'collections_bookmark' },
   { key: 'renouvelables', label: t('data.filterRenewable.label'), icon: 'history' },
@@ -1362,7 +1363,7 @@ function withFreeItem(r, q, make) {
 // Unified order registry (rx / lab / img / ref / exam / serv / ant) — shared search + favorites
 const ORDER_DEFS = {
   rx:  { kbd: 'rx',  type: 'prescription', icon: 'pill',      glyph: '℞', verb: t('data.rxVerb.text'), emptyNoun: t('data.rxNoun.text'),
-         sections: [t('data.sectionFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
+         sections: [t('data.sectionRxFavorites.title'), t('data.sectionRxFrequent.title'), t('data.sectionRxPhrases.title')],
          favs: RX_FAVS,  items: function () { return RX_ALL; }, search: searchRx },
   // Labo en sélection multiple, avec son panneau de droite (searchLab, labRail) ;
   // les bilans sont des items comme les analyses (`profile`).

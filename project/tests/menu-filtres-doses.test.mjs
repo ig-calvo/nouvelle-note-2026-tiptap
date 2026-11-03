@@ -107,6 +107,15 @@ test('le filtre est remis à « Tout » à la fin de la recherche, et les filtre
   assert.deepEqual(D.RX_FILTERS.map((f) => f.key), ['tout', 'renouvelables', 'actives', 'cessees', 'favoris', 'phrases']);
 });
 
+test('/rx : les favoris se lisent « Fréquemment prescrits », au rail comme dans la liste ; les autres menus gardent « Favoris »', () => {
+  const en = process.env.I18N_TEST_LANG === 'en';
+  const frequents = en ? 'Frequently prescribed' : 'Fréquemment prescrits';
+  const favoris = en ? 'Favorites' : 'Favoris';
+  assert.equal(D.RX_FILTERS.find((f) => f.key === 'favoris').label, frequents);
+  assert.equal(D.ORDER_DEFS.rx.sections[0], frequents);
+  for (const kind of ['lab', 'img', 'ref', 'exam', 'serv', 'instr', 'ant']) assert.equal(D.ORDER_DEFS[kind].sections[0], favoris, kind);
+});
+
 test('les filtres ne touchent que /rx : /lab garde sa liste', () => {
   D.endOrderSearch();
   D.setRxFilter('cessees');

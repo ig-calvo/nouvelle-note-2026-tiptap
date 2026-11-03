@@ -735,7 +735,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
-      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Favoris, Phrases de prescription.
+      // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Fréquemment prescrits, Phrases de prescription.
       setFilter(f) {
         const kind = parseSlashQuery(lastQuery).kind;
         if (kind === 'rx') window.NOTE_DATA.setRxFilter(f); else window.NOTE_DATA.setOrderView(kind, f);
