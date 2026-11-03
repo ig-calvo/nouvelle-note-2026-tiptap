@@ -79,7 +79,6 @@
   'date.atTime': '{date} à {time}',
   'date.numeric': '{day}/{month}/{year}',
   'common.labelValue.text': '{label} : {value}',
-  'common.and.text': '{a} et {b}',
 
   // Pluriels (tn)
   'document.pill.aria': { one: '{kind} : {n} sur {total} complété', other: '{kind} : {n} sur {total} complétés' },
@@ -102,13 +101,18 @@
     other: 'La sélection contient {n} éléments ({names}), qui seront retirés de la note.'
   },
   'dx.rename.hint': { one: 'Renomme aussi {n} autre mention de ce diagnostic.', other: 'Renomme aussi {n} autres mentions de ce diagnostic.' },
-  'review.count.label': { one: '{n} modification', other: '{n} modifications' },
-  'review.pending.text': {
-    one: 'Il reste {n} modification en révision dans cette note. Que voulez-vous faire avant de compléter ?',
-    other: 'Il reste {n} modifications en révision dans cette note. Que voulez-vous faire avant de compléter ?'
+  'proposed.total.text': { one: '{n} changement proposé', other: '{n} changements proposés' },
+  'proposed.complete.text': { one: '{n} élément complet', other: '{n} éléments complets' },
+  'proposed.incomplete.text': { one: '{n} élément incomplet', other: '{n} éléments incomplets' },
+  'proposed.draft.text': { one: '{n} ligne à compléter', other: '{n} lignes à compléter' },
+  'proposed.textRuns.text': { one: '{n} passage de texte', other: '{n} passages de texte' },
+  'proposed.acceptAll.tooltip': { one: '{n} élément à compléter reste en place.', other: '{n} éléments à compléter restent en place.' },
+  'proposed.list.title': { one: 'Tout accepter prendra {n} élément complet :', other: 'Tout accepter prendra {n} éléments complets :' },
+  'proposed.list.unfinished.text': { one: '{n} élément à compléter n’est pas pris.', other: '{n} éléments à compléter ne sont pas pris.' },
+  'proposed.dialog.unfinished.text': {
+    one: 'À compléter, sinon retiré de la note : {names}.',
+    other: 'À compléter, sinon retirés de la note : {names}.'
   },
-  'review.pending.chips.text': { one: '{n} ajout', other: '{n} ajouts' },
-  'review.pending.lines.text': { one: '{n} ligne de texte', other: '{n} lignes de texte' },
   'sections.split.empty.aria': 'Conclusion vide',
   'sections.split.lines.aria': { one: '{n} ligne sur {total} dans la conclusion', other: '{n} lignes sur {total} dans la conclusion' },
 
@@ -713,15 +717,17 @@
   // review-mode.jsx
   'review.desactiverModeRevision.tooltip': 'Désactiver le mode révision',
   'review.activerModeRevision.tooltip': 'Activer le mode révision',
-  'review.modificationsAttente.text': 'Modifications en attente',
   'review.annuler.button': 'Annuler',
   'review.reviser.button': 'Réviser',
-  'review.toutAccepterCompleter.button': 'Tout accepter et compléter',
-  'review.ajoutsAttente.aria': 'Ajouts en attente',
   'review.rienCreeAvantEtre.tooltip': 'Rien n’est créé avant d’être accepté.',
-  'review.ajoutsAttente.text': 'Ajouts en attente',
-  'review.finaliserSansEux.button': 'Finaliser sans eux',
   'review.toutAccepterFinaliser.button': 'Tout accepter et finaliser',
+  'proposed.bar.aria': 'Changements proposés',
+  'proposed.previous.tooltip': 'Changement proposé précédent',
+  'proposed.next.tooltip': 'Changement proposé suivant',
+  'proposed.list.conflict.text': 'Allergie',
+  'proposed.dialog.title': 'Changements proposés non traités',
+  'proposed.dialog.remove.button': 'Retirer et finaliser',
+  'proposed.dialog.complete.button': 'Compléter',
 
   // rich-text-controls.jsx
   'richText.paragraphe.label': 'Paragraphe',
@@ -853,9 +859,9 @@
   'summaryModal.creatinine.label': 'Créatinine :',
   'summaryModal.egfr.label': 'DFGe :',
   'summaryModal.weight.label': 'Poids :',
-  'review.pendingText.text': ' : {summary} en attente',
-  'review.pendingDialog.text': 'Il reste {summary} proposés ({sources}), ni acceptés ni refusés. Ce qui n’est pas accepté n’entre pas dans la note finalisée.',
-  'review.template.text': 'gabarit',
+  'proposed.barText.text': ' : {summary}',
+  'proposed.summary.text': '{total} ({pieces})',
+  'proposed.dialog.text': 'Il reste {summary} à traiter. Ce qui n’est pas accepté n’entre pas dans la note finalisée.',
   'field.waitingPhotoPatient.toast': 'En attente d’une photo depuis le téléphone du patient…',
   'field.waitingPhotoMine.toast': 'En attente d’une photo depuis votre cellulaire…',
   'field.removeRxSent.title': 'Retirer cette prescription de la note ?',
@@ -988,7 +994,7 @@
   'conduct.warn.ceased.text': 'Au profil : {status}',
   'conduct.warn.dose.text': 'Dose actuelle au profil : {current}',
   'template.lastConclusion.label': 'Dernière conclusion du {date}',
-  'review.plusieursSources.text': 'Suggestions',
+  'review.plusieursSources.text': 'Plusieurs auteurs',
   'template.author.name': 'Gabarit',
   'suggest.appliquerGabaritNote.tooltip': 'Appliquer ce gabarit de note ; ses ajouts arrivent en attente',
   'suggest.diagnostics.title': 'Diagnostics suggérés · {name}',
@@ -1054,8 +1060,8 @@
   'actionLog.verbOn.text': '{verb} le {when}',
   'review.markByAt.tooltip': '{verb} par {who} — {date}',
   'review.markBy.tooltip': '{verb} par {who}',
-  'review.inserted.text': 'Inséré',
-  'review.deleted.text': 'Supprimé',
+  'review.inserted.text': 'Ajout proposé',
+  'review.deleted.text': 'Suppression proposée',
   'sections.details.heading': 'Détails de la consultation',
   'sections.conclusion.heading': 'Conclusion',
   'noteEditor.ituRoadmap.text': 'Feuille de route - Symptômes urinaires',

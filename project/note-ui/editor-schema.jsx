@@ -723,7 +723,9 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
   //   editor-field.jsx) ; une puce en attente (gabarit) est refusée sans
   //   dialogue, ce n'est pas encore une entité ;
   // - une sélection de texte qui contient des puces demande confirmation ;
-  // - Entrée sur une puce sélectionnée ouvre ses détails.
+  // - Entrée sur une puce sélectionnée ouvre ses détails ; sur une puce
+  //   proposée et complète, elle l'accepte (voir plus bas) ;
+  // - Tab / ⇧ Tab sur une puce proposée : changement proposé suivant / précédent.
   addKeyboardShortcuts() {
     const editor = this.editor;
     function selectedChip() {
@@ -744,7 +746,8 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
     function remove(dir) {
       const chip = selectedChip();
       if (chip) {
-        if (chip.attrs.pending) { window.rejectPendingChip(editor, chip.attrs.cid); return true; }
+        // Refusée, la suivante prend sa place : on enchaîne.
+        if (chip.attrs.pending) { window.rejectPendingChip(editor, chip.attrs.cid); window.moveToProposedChange(editor, 1, true); return true; }
         return request({ cid: chip.attrs.cid });
       }
       const sel = editor.state.selection;
@@ -764,7 +767,9 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
     // rôle habituel (déplacer le curseur hors de la puce).
     function moveField(dir) {
       const chip = selectedChip();
-      if (!chip || chip.attrs.pending || chip.attrs.transmittedAt || window.__INLINE_FIELD_EDIT === false) return false;
+      // Une puce proposée : Tab passe au changement proposé suivant (⇧ Tab, au précédent).
+      if (chip && chip.attrs.pending) { window.moveToProposedChange(editor, dir, false); return true; }
+      if (!chip || chip.attrs.transmittedAt || window.__INLINE_FIELD_EDIT === false) return false;
       const n = chipFieldEls(editor, chip.attrs.cid).length;
       if (!n) return false;
       const cur = chipFieldFocus && chipFieldFocus.cid === chip.attrs.cid ? chipFieldFocus.index : (dir > 0 ? -1 : n);
@@ -789,8 +794,17 @@ function makeChipKeysExtension() { return window.Tiptap.Extension.create({
         }
         // Ligne à compléter : Entrée rouvre sa recherche.
         if (chip.attrs.draft) { window.openDraftSearch(editor, chip.attrs.cid); return true; }
+        // Une puce proposée et complète : Entrée l'accepte et passe à la suivante
+        // (D3) ; Retour arrière la refuse (remove). Incomplète, Entrée ouvre ses
+        // détails : c'est là qu'on la complète. Le double-clic ouvre les détails
+        // d'une complète, pour la vérifier avant d'accepter.
+        if (chip.attrs.pending && window.proposedEntityState(chip.attrs) === 'complete') {
+          window.acceptPendingChip(editor, chip.attrs.cid);
+          window.moveToProposedChange(editor, 1, false);
+          return true;
+        }
         // Sans ça, Entrée remplacerait la puce sélectionnée par un saut de ligne.
-        // Une puce en attente s'ouvre aussi : on peut la vérifier avant d'accepter.
+        // Une puce incomplète en attente s'ouvre : on la complète avant d'accepter.
         window.dispatchEvent(new CustomEvent('note:chip-open-request', { detail: { editor: editor, cid: chip.attrs.cid } }));
         return true;
       }
@@ -3337,14 +3351,7 @@ function acceptPendingChip(editor, cid) {
 // Fin de la plage à effacer pour un chip : le chip, et l'espace qui le
 // suivait si le texte d'avant finit déjà par un espace (ou si le chip ouvre
 // son paragraphe) — sinon « Plan :  ».
-function pendingChipDeleteEnd(doc, pos) {
-  const node = doc.nodeAt(pos);
-  let to = pos + node.nodeSize;
-  const before = doc.textBetween(Math.max(doc.resolve(pos).start(), pos - 1), pos);
-  const after = doc.textBetween(to, Math.min(doc.resolve(to).end(), to + 1));
-  if (after === ' ' && (before === '' || before === ' ')) to += 1;
-  return to;
-}
+function pendingChipDeleteEnd(doc, pos) { return window.proposedEntityDeleteEnd(doc, pos); }
 
 function rejectPendingChip(editor, cid) {
   const pos = findChipPos(editor, cid);
@@ -3355,99 +3362,28 @@ function rejectPendingChip(editor, cid) {
   }).run();
 }
 
-// Ajouts en attente d'un doc JSON : puces `pending` et paragraphes qui
-// portent du texte proposé par un gabarit. `sources` = qui les propose.
+// Changements proposés d'un doc JSON : puces `pending` et texte marqué
+// `insertion` ou `deletion`, par auteur et par état (proposed-changes.jsx).
+// `sources` = qui les propose ; `count`, `chips`, `paragraphs`, `drafts` : la
+// forme d'avant le modèle unique.
 function pendingSummary(docJson) {
-  let chips = 0, paragraphs = 0, drafts = 0; // drafts : lignes à compléter, comptées aussi dans chips
-  const sources = [];
-  const isTemplateText = function (n) {
-    return n.type === 'text' && (n.marks || []).some(function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; });
-  };
-  function walk(node) {
-    if (!node) return;
-    if (node.type === 'chip' && node.attrs && node.attrs.pending) {
-      chips++;
-      if (node.attrs.draft) drafts++;
-      if (node.attrs.proposedBy && sources.indexOf(node.attrs.proposedBy) < 0) sources.push(node.attrs.proposedBy);
-    }
-    if (node.type === 'paragraph' && (node.content || []).some(isTemplateText)) paragraphs++;
-    (node.content || []).forEach(walk);
-  }
-  walk(docJson);
-  return { chips: chips, paragraphs: paragraphs, drafts: drafts, count: chips + paragraphs, sources: sources };
+  return window.summarizeProposedChanges(window.scanProposedChanges(window.proposedDocLike(docJson)));
 }
 
-// Tout accepter / tout refuser les ajouts en attente, en UNE transaction
-// (un seul Ctrl+Z). `reviewAction` : le traqueur du mode révision l'ignore.
-// Une ligne à compléter (`draft`) ne s'accepte pas : elle attend le choix du
-// médecin ; refuser la retire comme les autres. `range` ({ from, to },
-// facultatif) : seulement ce qui s'y trouve — ex. la région d'un diagnostic
-// (PLAN-conduite-precedente.md, A4).
+// Tout accepter / tout refuser, en UNE transaction (un seul Ctrl+Z). Tout
+// accepter ne prend que le texte et les entités complètes : une ligne à
+// compléter ou une entité incomplète reste là, non acceptée (D4) ; refuser
+// retire tout. `range` ({ from, to }, facultatif) : seulement ce qui s'y
+// trouve — ex. la région d'un diagnostic (PLAN-conduite-precedente.md, A4).
 function resolveAllPending(editor, accept, range) {
-  const doc = editor.state.doc;
-  const ops = [];
-  const inside = function (from, to) { return !range || (from >= range.from && to <= range.to); };
-  doc.descendants(function (node, pos) {
-    if (node.type.name === 'chip' && node.attrs.pending && !(accept && node.attrs.draft) && inside(pos, pos + node.nodeSize)) ops.push({ chip: node, from: pos });
-  });
-  (window.scanReviewChanges ? window.scanReviewChanges(doc) : []).forEach(function (c) {
-    if (c.kind === 'insertion' && c.authorId === TEMPLATE_AUTHOR.id && inside(c.from, c.to)) ops.push({ from: c.from, to: c.to });
-  });
-  if (!ops.length) return;
-  const stamp = { pending: false, warn: null, savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
-  editor.chain().focus().command(function (props) {
-    const tr = props.tr;
-    tr.setMeta('reviewAction', true);
-    ops.sort(function (a, b) { return b.from - a.from; }).forEach(function (op) {
-      if (op.chip) {
-        if (accept) tr.setNodeMarkup(op.from, undefined, Object.assign({}, op.chip.attrs, stamp));
-        else tr.delete(op.from, pendingChipDeleteEnd(tr.doc, op.from));
-      } else if (accept) tr.removeMark(op.from, op.to, props.state.schema.marks.insertion);
-      else tr.delete(op.from, op.to);
-    });
-    return true;
-  }).run();
+  window.resolveProposed(editor, window.scanProposedChanges(editor.state.doc), accept, { all: true, range: range });
 }
 
 // Même résolution sur un doc JSON (finalisation, tests). Ne modifie pas le
-// doc reçu. Refuser retire les puces en attente et le texte proposé.
+// doc reçu. Accepter garde le texte et les entités complètes, et retire le
+// reste (Q8) ; refuser retire les puces en attente et le texte proposé.
 function resolvePendingInDoc(docJson, accept) {
-  const isTemplateMark = function (m) { return m.type === 'insertion' && m.attrs && m.attrs.authorId === TEMPLATE_AUTHOR.id; };
-  function walk(node) {
-    if (!node || !node.content) return node;
-    const content = [];
-    let dropSpace = false; // chip refusé : l'espace qui le suivait part aussi (voir pendingChipDeleteEnd)
-    node.content.forEach(function (c) {
-      if (dropSpace && c.type === 'text' && c.text.charAt(0) === ' ') {
-        dropSpace = false;
-        if (c.text.length === 1) return;
-        c = Object.assign({}, c, { text: c.text.slice(1) });
-      }
-      dropSpace = false;
-      if (c.type === 'chip' && c.attrs && c.attrs.pending) {
-        // Une ligne à compléter acceptée reste ce que le gabarit voulait dire,
-        // en texte : rien n'est prescrit sans choix.
-        if (accept && c.attrs.draft) content.push({ type: 'text', text: c.attrs.draft.term });
-        else if (accept) content.push(Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { pending: false, warn: null }) }));
-        else {
-          const prev = content[content.length - 1];
-          dropSpace = !prev || (prev.type === 'text' && /\s$/.test(prev.text));
-        }
-        return;
-      }
-      if (c.type === 'text' && (c.marks || []).some(isTemplateMark)) {
-        if (!accept) return;
-        const marks = c.marks.filter(function (m) { return !isTemplateMark(m); });
-        const t = Object.assign({}, c);
-        if (marks.length) t.marks = marks; else delete t.marks;
-        content.push(t);
-        return;
-      }
-      content.push(walk(c));
-    });
-    return Object.assign({}, node, { content: content });
-  }
-  return walk(docJson);
+  return window.resolveProposedInDoc(docJson, accept);
 }
 
 // Doc sans ses chips en attente — ce qui n'a pas été accepté n'entre pas dans
