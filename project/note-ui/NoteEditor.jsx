@@ -1452,7 +1452,9 @@ function ChipInlineEditor({ chipId, field, fieldRect, entity, onSave, onClose })
       L('Échographie Abdomen'), L('Échographie Pelvis'), L('Échographie Thyroïde'),
       L('Échographie Sein'), L('Échographie Carotides'), L('Échographie Membres inférieurs'),
       L('TDM Cerveau'), L('TDM Thorax'), L('TDM Abdomen-Pelvis'), L('TDM Sinus'),
-      L('IRM Cerveau'), L('IRM Rachis cervical'), L('IRM Rachis lombaire'),
+      L('Angio-TDM Cerveau'), L('TDM Massif facial'),
+      L('IRM Cerveau'), L('IRM Cerveau avec contraste'), L('IRM Conduits auditifs internes'),
+      L('IRM Rachis cervical'), L('IRM Rachis lombaire'),
       L('IRM Genou'), L('IRM Épaule'), L('IRM Cheville'),
       L('Mammographie Bilatérale')
     ],
