@@ -11,6 +11,10 @@
 // changements survivent aux brouillons et au démontage/remontage de
 // NoteBody gratuitement.
 //
+// Lire et résoudre les changements (le texte marqué ET les entités en
+// attente, d'un même geste) se fait dans proposed-changes.jsx ; ce fichier
+// garde les marques, le traqueur, et l'interface : popover, barre, dialogue.
+//
 // Toute transaction ÉMISE PAR ce module (accept/reject, insertion IA déjà
 // marquée) porte `meta('reviewAction', true)` — le tracker l'ignore. Sans
 // cette règle, accepter une suppression la re-marquerait aussitôt comme
@@ -284,60 +288,20 @@ function buildReviewExtensions() {
 }
 
 // ---------------------------------------------------------
-// Scan — un « changement » = run contigu de text nodes {même type de mark,
-// même auteur}. Recalculé sur chaque `update` de l'éditeur (voir
-// NoteEditor.jsx), jamais persisté.
+// Scan et résolution — le modèle unique du texte et des entités vit dans
+// proposed-changes.jsx (scanProposedChanges, resolveProposed). Ici, la part
+// du texte seulement : ce que le popover ✓/✗ d'une marque lit et résout.
+// Recalculé sur chaque `update` de l'éditeur (voir NoteEditor.jsx), jamais
+// persisté.
 // ---------------------------------------------------------
 function scanReviewChanges(doc) {
-  const changes = [];
-  doc.descendants(function (node, pos) {
-    if (!node.isText) return;
-    const m = node.marks.find(function (mk) { return mk.type.name === 'insertion' || mk.type.name === 'deletion'; });
-    if (!m) return;
-    const last = changes[changes.length - 1];
-    if (last && last.to === pos && last.kind === m.type.name && last.authorId === m.attrs.authorId) {
-      last.to = pos + node.nodeSize;
-      last.text += node.text;
-    } else {
-      changes.push({
-        id: m.type.name + ':' + pos,
-        kind: m.type.name,
-        from: pos,
-        to: pos + node.nodeSize,
-        authorId: m.attrs.authorId,
-        authorName: m.attrs.authorName,
-        color: m.attrs.color,
-        ts: m.attrs.ts,
-        text: node.text
-      });
-    }
-  });
-  return changes;
+  return window.scanProposedChanges(doc).filter(function (c) { return c.kind !== 'entity'; });
 }
 
-// Résolution — toujours dans UNE tr `meta reviewAction`, positions
-// traitées en ordre décroissant pour rester valides après chaque delete.
-// accepter une insertion / refuser une suppression = on garde le texte,
-// on retire juste le marquage. refuser une insertion / accepter une
-// suppression = le texte disparaît réellement.
-function resolveChanges(editor, changes, accept) {
-  if (!changes.length) return;
-  editor.chain().command(function (props) {
-    const tr = props.tr;
-    tr.setMeta('reviewAction', true);
-    changes.slice().sort(function (a, b) { return b.from - a.from; }).forEach(function (c) {
-      const kill = (c.kind === 'insertion') !== accept;
-      if (kill) tr.delete(c.from, c.to);
-      else tr.removeMark(c.from, c.to, props.state.schema.marks[c.kind]);
-    });
-    return true;
-  }).run();
-}
+function resolveChanges(editor, changes, accept) { window.resolveProposed(editor, changes, accept); }
 
 function acceptChange(editor, change) { resolveChanges(editor, [change], true); }
 function rejectChange(editor, change) { resolveChanges(editor, [change], false); }
-function acceptAllChanges(editor) { resolveChanges(editor, scanReviewChanges(editor.state.doc), true); }
-function rejectAllChanges(editor) { resolveChanges(editor, scanReviewChanges(editor.state.doc), false); }
 
 // Décore récursivement les text nodes d'un tableau de blocs JSON avec le
 // mark insertion — utilisé pour le texte inséré par l'Assistant IA, marqué
@@ -388,7 +352,7 @@ function ReviewChangePopover({ change, anchorRect, onClose, onAccept, onReject }
   const top = anchorRect.bottom + 8;
   let left = anchorRect.left;
   if (left + W > window.innerWidth - 16) left = Math.max(12, window.innerWidth - W - 16);
-  const verb = change.kind === 'insertion' ? 'Insertion' : 'Suppression';
+  const verb = change.kind === 'insertion' ? t('review.inserted.text') : t('review.deleted.text');
   return (
     <div ref={ref} style={Object.assign({}, rvwS.popover, { top: top, left: left, width: W })} role="dialog">
       <div style={rvwS.popHead}>
@@ -411,8 +375,10 @@ function ReviewChangePopover({ change, anchorRect, onClose, onAccept, onReject }
   );
 }
 
-function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAll }) {
-  const [menuOpen, setMenuOpen] = React.useState(false);
+// « Suivre mes modifications » : le seul réglage que garde l'en-tête. Le
+// compteur, « Tout accepter » et « Tout refuser » sont dans la barre des
+// changements proposés (ProposedChangesBar), qui sert le texte et les entités.
+function ReviewHeaderControls({ active, onToggle }) {
   return (
     <div style={rvwS.headerRow}>
       <button
@@ -424,102 +390,124 @@ function ReviewHeaderControls({ active, onToggle, count, onAcceptAll, onRejectAl
         <span className="material-icons-outlined" style={{ fontSize: 18 }}>rate_review</span>
         {t('review.modeRevision.button')}
       </button>
-      {active && count > 0 &&
-        <div style={{ position: 'relative' }}>
-          <button type="button" style={rvwS.countBtn} onClick={function () { setMenuOpen(function (v) { return !v; }); }}>
-            {tn('review.count.label', count)}
-            <span className="material-icons-outlined" style={{ fontSize: 16 }}>arrow_drop_down</span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------
+// Changements proposés — `summary` = summarizeProposedChanges
+// (proposed-changes.jsx). Une barre au-dessus du corps de la note, un
+// dialogue à la finalisation (Q-06) : le même pour le texte d'un gabarit ou
+// de l'IA, les entités et les modifications suivies.
+// ---------------------------------------------------------
+function proposedPiecesText(summary) {
+  const parts = [];
+  if (summary.complete) parts.push(tn('proposed.complete.text', summary.complete));
+  if (summary.incomplete) parts.push(tn('proposed.incomplete.text', summary.incomplete));
+  if (summary.draft) parts.push(tn('proposed.draft.text', summary.draft));
+  if (summary.text) parts.push(tn('proposed.textRuns.text', summary.text));
+  return parts.join(', ');
+}
+
+function proposedSummaryText(summary) {
+  return t('proposed.summary.text', { total: tn('proposed.total.text', summary.total), pieces: proposedPiecesText(summary) });
+}
+
+// `shortList` : les entités complètes que « Tout accepter » prendrait (nom,
+// posologie) ; `showList` : la liste s'affiche avant le geste — une seule
+// fois par note (Q7), `onListShown` le note. Le bouton reste toujours offert.
+function ProposedChangesBar({ summary, shortList, showList, onListShown, onAcceptAll, onRejectAll, onPrev, onNext }) {
+  const [confirming, setConfirming] = React.useState(false);
+  React.useEffect(function () {
+    if (confirming && (!shortList.length || !summary.acceptable)) setConfirming(false);
+  }, [confirming, shortList.length, summary.acceptable]);
+  // Plusieurs auteurs (gabarit de note, dernière conclusion, Assistant IA…) : un libellé commun.
+  const who = summary.sources.length === 1 ? summary.sources[0] : t('review.plusieursSources.text');
+  function askAcceptAll() {
+    if (showList && shortList.length) { setConfirming(true); if (onListShown) onListShown(); return; }
+    onAcceptAll();
+  }
+  return (
+    <div style={rvwS.pendingBar} role="region" aria-label={t('proposed.bar.aria')}>
+      <div style={rvwS.barRow}>
+        <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>playlist_add_check</span>
+        <span style={rvwS.pendingText} title={t('review.rienCreeAvantEtre.tooltip')}>
+          <b>{who}</b>{t('proposed.barText.text', { summary: proposedSummaryText(summary) })}
+        </span>
+        {/* Les actions passent à la ligne ensemble, jamais une seule. */}
+        <span style={rvwS.pendingActions}>
+          <button type="button" style={rvwS.navBtn} onClick={onPrev} title={t('proposed.previous.tooltip')} aria-label={t('proposed.previous.tooltip')}>
+            <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 20 }}>chevron_left</span>
           </button>
-          {menuOpen &&
-            <React.Fragment>
-              <div style={rvwS.menuBg} onClick={function () { setMenuOpen(false); }} />
-              <div style={rvwS.countMenu}>
-                <button type="button" style={rvwS.countMenuItem} onClick={function () { onAcceptAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#1f8a5b, #a5e9cb)' }}>done_all</span> {t('review.toutAccepter.button')}
-                </button>
-                <button type="button" style={rvwS.countMenuItem} onClick={function () { onRejectAll(); setMenuOpen(false); }}>
-                  <span className="material-icons-outlined" style={{ fontSize: 17, color: 'light-dark(#b3261e, #e9a9a5)' }}>remove_done</span> {t('review.toutRefuser.button')}
-                </button>
-              </div>
-            </React.Fragment>}
+          <button type="button" style={rvwS.navBtn} onClick={onNext} title={t('proposed.next.tooltip')} aria-label={t('proposed.next.tooltip')}>
+            <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 20 }}>chevron_right</span>
+          </button>
+          <button type="button" style={rvwS.pendingBtnOutline} onClick={onRejectAll}>
+            <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> {t('review.toutRefuser.button')}
+          </button>
+          {/* Une ligne à compléter ne s'accepte pas (elle attend un choix) et une
+              entité incomplète non plus par ce geste : sans rien d'autre,
+              « Tout accepter » n'aurait rien à faire. */}
+          {summary.acceptable > 0 &&
+          <button type="button" style={rvwS.pendingBtnPrimary} onClick={askAcceptAll}
+            title={summary.unfinished ? tn('proposed.acceptAll.tooltip', summary.unfinished) : undefined}>
+            <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> {t('review.toutAccepter.button')}
+          </button>}
+        </span>
+      </div>
+      {confirming &&
+        <div style={rvwS.shortList} role="group" aria-label={tn('proposed.list.title', shortList.length)}>
+          <div style={rvwS.shortTitle}>{tn('proposed.list.title', shortList.length)}</div>
+          <ul style={rvwS.shortUl}>
+            {shortList.map(function (item) {
+              return (
+                <li key={item.id} style={rvwS.shortItem}>
+                  <b>{item.label}</b>
+                  {item.detail && <span style={rvwS.shortDetail}> — {item.detail}</span>}
+                  {item.conflict &&
+                    <span style={rvwS.shortConflict}>
+                      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 16 }}>warning</span>
+                      {t('proposed.list.conflict.text')}
+                    </span>}
+                </li>
+              );
+            })}
+          </ul>
+          {summary.unfinished > 0 && <div style={rvwS.shortNote}>{tn('proposed.list.unfinished.text', summary.unfinished)}</div>}
+          <div style={rvwS.shortActions}>
+            <button type="button" style={rvwS.pendingBtnGhost} onClick={function () { setConfirming(false); }}>{t('review.annuler.button')}</button>
+            <button type="button" style={rvwS.pendingBtnPrimary} autoFocus onClick={function () { setConfirming(false); onAcceptAll(); }}>
+              <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> {t('review.accepter.button')}
+            </button>
+          </div>
         </div>}
     </div>
   );
 }
 
-function ReviewCompleteDialog({ count, onAcceptAllAndComplete, onReview, onCancel }) {
-  return (
-    <div style={rvwS.dialogScrim}>
-      <div style={rvwS.dialogBox} role="dialog">
-        <div style={rvwS.dialogTitle}>{t('review.modificationsAttente.text')}</div>
-        <p style={rvwS.dialogText}>
-          {tn('review.pending.text', count)}
-        </p>
-        <div style={rvwS.dialogActions}>
-          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCancel}>{t('review.annuler.button')}</button>
-          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>{t('review.reviser.button')}</button>
-          <button type="button" style={rvwS.dialogBtnPrimary} onClick={onAcceptAllAndComplete}>{t('review.toutAccepterCompleter.button')}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------
-// Ajouts en attente d'un gabarit (D-03) — `summary` = pendingSummary
-// (editor-schema.jsx). Barre au-dessus du corps de la note, puis dialogue à
-// la finalisation (Q-06). Même habillage que le mode révision.
-// ---------------------------------------------------------
-function pendingSummaryText(summary) {
-  const parts = [];
-  if (summary.chips) parts.push(tn('review.pending.chips.text', summary.chips));
-  if (summary.paragraphs) parts.push(tn('review.pending.lines.text', summary.paragraphs));
-  return parts.length === 2 ? t('common.and.text', { a: parts[0], b: parts[1] }) : parts.join('');
-}
-
-function PendingProposalsBar({ summary, onAcceptAll, onRejectAll, onReview }) {
-  // Plusieurs sources (gabarit de note, dernière conclusion…) : un libellé commun.
-  const who = summary.sources.length === 1 ? summary.sources[0] : t('review.plusieursSources.text');
-  return (
-    <div style={rvwS.pendingBar} role="region" aria-label={t('review.ajoutsAttente.aria')}>
-      <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: 20, color: 'var(--mat-sys-primary)' }}>playlist_add_check</span>
-      <span style={rvwS.pendingText} title={t('review.rienCreeAvantEtre.tooltip')}>
-        <b>{who}</b>{t('review.pendingText.text', { summary: pendingSummaryText(summary) })}
-      </span>
-      {/* Les trois actions passent à la ligne ensemble, jamais une seule. */}
-      <span style={rvwS.pendingActions}>
-        <button type="button" style={rvwS.pendingBtnGhost} onClick={onReview}>{t('review.reviser.button')}</button>
-        <button type="button" style={rvwS.pendingBtnOutline} onClick={onRejectAll}>
-          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>remove_done</span> {t('review.toutRefuser.button')}
-        </button>
-        {/* Une ligne à compléter ne s'accepte pas (elle attend un choix) : sans
-            autre ajout, « Tout accepter » n'aurait rien à faire. */}
-        {summary.drafts !== summary.count &&
-        <button type="button" style={rvwS.pendingBtnPrimary} onClick={onAcceptAll}>
-          <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 17 }}>done_all</span> {t('review.toutAccepter.button')}
-        </button>}
-      </span>
-    </div>
-  );
-}
-
-function PendingCompleteDialog({ summary, onAcceptAllAndComplete, onReview, onCompleteWithout, onCancel }) {
+// `unfinishedNames` : les lignes à compléter et les entités incomplètes ; elles
+// n'entrent pas dans la note finale si on ne les complète pas (Q8).
+function ProposedCompleteDialog({ summary, unfinishedNames, onAcceptAllAndComplete, onReview, onRemoveAndComplete, onCancel }) {
   React.useEffect(function () {
     function onKey(e) { if (e.key === 'Escape') onCancel(); }
     document.addEventListener('keydown', onKey);
     return function () { document.removeEventListener('keydown', onKey); };
   }, [onCancel]);
+  const canAcceptAll = summary.acceptable > 0;
   return (
     <div style={rvwS.dialogScrim} onMouseDown={function (e) { if (e.target === e.currentTarget) onCancel(); }}>
-      <div style={rvwS.dialogBox} role="dialog" aria-label={t('review.ajoutsAttente.aria')}>
-        <div style={rvwS.dialogTitle}>{t('review.ajoutsAttente.text')}</div>
-        <p style={rvwS.dialogText}>
-          {t('review.pendingDialog.text', { summary: pendingSummaryText(summary), sources: summary.sources.length ? summary.sources.join(', ') : t('review.template.text') })}
-        </p>
+      <div style={rvwS.dialogBox} role="dialog" aria-label={t('proposed.bar.aria')}>
+        <div style={rvwS.dialogTitle}>{t('proposed.dialog.title')}</div>
+        <p style={rvwS.dialogText}>{t('proposed.dialog.text', { summary: proposedSummaryText(summary) })}</p>
+        {unfinishedNames.length > 0 &&
+          <p style={rvwS.dialogText}>{tn('proposed.dialog.unfinished.text', unfinishedNames.length, { names: unfinishedNames.join(', ') })}</p>}
         <div style={rvwS.dialogActions}>
-          <button type="button" style={rvwS.dialogBtnGhost} onClick={onCompleteWithout}>{t('review.finaliserSansEux.button')}</button>
-          <button type="button" style={rvwS.dialogBtnOutline} onClick={onReview}>{t('review.reviser.button')}</button>
-          <button type="button" style={rvwS.dialogBtnPrimary} autoFocus onClick={onAcceptAllAndComplete}>{t('review.toutAccepterFinaliser.button')}</button>
+          <button type="button" style={rvwS.dialogBtnGhost} onClick={onRemoveAndComplete}>{t('proposed.dialog.remove.button')}</button>
+          <button type="button" style={canAcceptAll ? rvwS.dialogBtnOutline : rvwS.dialogBtnPrimary} autoFocus={!canAcceptAll} onClick={onReview}>
+            {unfinishedNames.length ? t('proposed.dialog.complete.button') : t('review.reviser.button')}
+          </button>
+          {canAcceptAll &&
+            <button type="button" style={rvwS.dialogBtnPrimary} autoFocus onClick={onAcceptAllAndComplete}>{t('review.toutAccepterFinaliser.button')}</button>}
         </div>
       </div>
     </div>
@@ -527,7 +515,18 @@ function PendingCompleteDialog({ summary, onAcceptAllAndComplete, onReview, onCo
 }
 
 const rvwS = {
-  pendingBar: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', margin: '0 0 8px', padding: '8px 10px 8px 12px', borderRadius: 8, background: 'color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-outline-variant)', fontFamily: "'Inter',sans-serif" },
+  // Collante : « suivant » et « précédent » font défiler la note jusqu'au changement, la barre reste à portée.
+  pendingBar: { position: 'sticky', top: 8, zIndex: 5, boxShadow: '0 2px 8px rgba(37,36,94,0.10)', margin: '0 0 8px', padding: '8px 10px 8px 12px', borderRadius: 8, background: 'color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-outline-variant)', fontFamily: "'Inter',sans-serif" },
+  barRow: { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  navBtn: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 32, height: 32, border: 0, background: 'transparent', color: 'var(--mat-sys-primary)', borderRadius: 8, padding: 0, cursor: 'pointer' },
+  shortList: { margin: '8px 0 2px', padding: '10px 12px', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)' },
+  shortTitle: { font: "600 13px 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)', marginBottom: 6 },
+  shortUl: { margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 4 },
+  shortItem: { font: "400 13.5px/1.4 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
+  shortDetail: { color: 'color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent)' },
+  shortConflict: { display: 'inline-flex', alignItems: 'center', gap: 2, marginLeft: 8, font: "600 12px 'Inter',sans-serif", color: 'light-dark(#8a5a00, #f5d27a)' },
+  shortNote: { margin: '8px 0 0', font: "400 12.5px/1.4 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent)' },
+  shortActions: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 10 },
   pendingText: { flex: '1 1 240px', font: "400 13.5px/1.4 'Inter',sans-serif", color: 'var(--mat-sys-on-surface)' },
   pendingActions: { display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 'auto', whiteSpace: 'nowrap' },
   pendingBtnGhost: { border: 0, background: 'transparent', color: 'var(--mat-sys-primary)', borderRadius: 8, padding: '7px 10px', font: "600 13px 'Inter',sans-serif", cursor: 'pointer' },
@@ -536,10 +535,6 @@ const rvwS = {
   headerRow: { display: 'flex', alignItems: 'center', gap: 8 },
   toggleBtn: { display: 'inline-flex', alignItems: 'center', gap: 6, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', padding: '7px 12px', font: "500 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', cursor: 'pointer', whiteSpace: 'nowrap' },
   toggleBtnOn: { background: 'color-mix(in srgb, var(--mat-sys-primary) 10%, var(--mat-sys-surface-container-lowest))', border: '1px solid var(--mat-sys-primary)', color: 'var(--mat-sys-primary)' },
-  countBtn: { display: 'inline-flex', alignItems: 'center', gap: 2, border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)', padding: '7px 8px 7px 12px', font: "500 13px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 72%, transparent)', cursor: 'pointer', whiteSpace: 'nowrap' },
-  menuBg: { position: 'fixed', inset: 0, zIndex: 199 },
-  countMenu: { position: 'absolute', top: 'calc(100% + 6px)', right: 0, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, boxShadow: '0 8px 24px rgba(0,0,0,0.14)', zIndex: 200, minWidth: 180, padding: '5px 0' },
-  countMenuItem: { display: 'flex', alignItems: 'center', gap: 8, width: '100%', border: 0, background: 'transparent', padding: '9px 14px', font: "400 13.5px 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent)', cursor: 'pointer', textAlign: 'left' },
 
   popover: { position: 'fixed', zIndex: 90, background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)', borderRadius: 10, boxShadow: '0 8px 24px rgba(37,36,94,0.18)', padding: '12px 14px', fontFamily: "'Inter',sans-serif" },
   popHead: { display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
@@ -552,7 +547,7 @@ const rvwS = {
   popBtnAccept: { flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4, border: 0, borderRadius: 8, background: '#1F8A5B', color: '#fff', padding: '7px 0', font: "500 13px 'Inter',sans-serif", cursor: 'pointer' },
 
   dialogScrim: { position: 'fixed', inset: 0, zIndex: 500, background: 'rgba(20,20,40,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'snm-fade 160ms ease-out' },
-  dialogBox: { width: 440, maxWidth: 'calc(100vw - 32px)', background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 14, padding: '22px 24px', boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter',sans-serif", animation: 'snm-pop 180ms ease-out' },
+  dialogBox: { width: 520, maxWidth: 'calc(100vw - 32px)', background: 'var(--mat-sys-surface-container-lowest)', borderRadius: 14, padding: '22px 24px', boxShadow: '0 20px 48px rgba(0,0,0,0.24)', fontFamily: "'Inter',sans-serif", animation: 'snm-pop 180ms ease-out' },
   dialogTitle: { font: "600 17px 'Poppins',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 88%, transparent)', marginBottom: 8 },
   dialogText: { font: "400 14px/1.55 'Inter',sans-serif", color: 'color-mix(in srgb, var(--mat-sys-on-surface) 65%, transparent)', margin: '0 0 20px' },
   dialogActions: { display: 'flex', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' },
@@ -571,13 +566,10 @@ Object.assign(window, {
   resolveChanges,
   acceptChange,
   rejectChange,
-  acceptAllChanges,
-  rejectAllChanges,
   markBlocksAsInsertion,
   findChangeAtDom,
   ReviewChangePopover,
   ReviewHeaderControls,
-  ReviewCompleteDialog,
-  PendingProposalsBar,
-  PendingCompleteDialog
+  ProposedChangesBar,
+  ProposedCompleteDialog
 });

@@ -97,6 +97,7 @@
     { "fr": "Mettre à jour", "en": "Update", "statut": "établi" },
     { "fr": "Accepter", "en": "Accept", "statut": "établi" },
     { "fr": "Refuser", "en": "Decline", "statut": "établi" },
+    { "fr": "Changement proposé", "en": "Proposed change", "statut": "proposé", "ne_pas": ["Suggested change", "Pending change"], "note": "Texte ou entité qu'un gabarit, l'Assistant IA ou une modification suivie propose à la note, en attente d'acceptation (RA-40). « Ajout proposé » = Proposed addition, « Suppression proposée » = Proposed deletion. « Suggestion » reste pour ce qui n'est pas encore dans la note." },
     { "fr": "Copier", "en": "Copy", "statut": "établi" },
     { "fr": "Dupliquer", "en": "Duplicate", "statut": "établi" },
     { "fr": "Déplacer", "en": "Move", "statut": "établi" },

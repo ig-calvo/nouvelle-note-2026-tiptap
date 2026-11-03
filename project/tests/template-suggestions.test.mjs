@@ -47,11 +47,12 @@ test('pendingSummary : puces en attente et sources', () => {
   assert.deepEqual(s.sources, [w.t('template.source.label', { name: w.TR('Pneumonie (suspicion)') })]);
 });
 
-test('tout accepter : plus rien en attente, les puces restent ; tout refuser : elles disparaissent, le texte reste', () => {
+test('tout accepter : plus rien en attente, les puces complètes restent et l’incomplète est retirée (Q8) ; tout refuser : elles disparaissent, le texte reste', () => {
   const d = doc(...w.buildTemplateBlocks(tpl('pneumonie')));
   const accepted = w.resolvePendingInDoc(d, true);
   assert.equal(w.pendingSummary(accepted).count, 0);
-  assert.equal(chipsIn([accepted]).length, 3);
+  // L'ordonnance du gabarit n'a pas de fréquence : elle n'est pas acceptée, donc n'entre pas dans la note.
+  assert.deepEqual(chipsIn([accepted]).map((c) => c.attrs.type), ['imaging', 'lab']);
   const rejected = w.resolvePendingInDoc(d, false);
   assert.equal(chipsIn([rejected]).length, 0);
   // Le texte reste ; les espaces qui séparaient les puces refusées partent avec elles.
@@ -103,7 +104,7 @@ test('lignes à compléter : chaque ajout du gabarit est une ligne d’état 1 (
   } finally { delete w.__TEMPLATE_DRAFT_LINES; }
 });
 
-test('lignes à compléter : accepter les garde en texte (rien n’est prescrit sans choix), refuser les retire', () => {
+test('lignes à compléter : à la finalisation, accepter les retire (rien n’est prescrit sans choix, et une ligne non complétée n’entre pas, Q8), refuser aussi', () => {
   w.__TEMPLATE_DRAFT_LINES = true;
   let d;
   try { d = doc(...w.buildTemplateBlocks(tpl('otite'))); } finally { delete w.__TEMPLATE_DRAFT_LINES; }
@@ -111,7 +112,7 @@ test('lignes à compléter : accepter les garde en texte (rien n’est prescrit 
   assert.ok(terms.length > 0);
   const accepted = w.resolvePendingInDoc(d, true);
   assert.equal(chipsIn([accepted]).length, 0);
-  terms.forEach((term) => assert.ok(textOf([accepted]).includes(term), term));
+  terms.forEach((term) => assert.ok(!textOf([accepted]).includes(term), term + ' ne reste pas en texte'));
   assert.equal(w.pendingSummary(accepted).count, 0);
   assert.equal(chipsIn([w.resolvePendingInDoc(d, false)]).length, 0);
 });

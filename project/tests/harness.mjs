@@ -75,6 +75,9 @@ export function loadPrototype(files = ['note-ui/note-sections.jsx', 'note-ui/dia
   // La patiente active se lit avant toutes les données, comme dans la page.
   evaluate('note-ui/patients.js');
   for (const rel of SHARED_SOURCES) evaluate(rel);
+  // Le modèle des changements proposés précède editor-schema.jsx dans la page, qui le lit
+  // (pendingSummary, resolvePendingInDoc) : un test qui charge l'un charge aussi l'autre.
+  if (files.includes('note-ui/editor-schema.jsx') && !files.includes('note-ui/proposed-changes.jsx')) evaluate('note-ui/proposed-changes.jsx');
   // Les données CRDS (menu /ref) se chargent avant editor-data.jsx, comme dans la page.
   if (files.includes('note-ui/editor-data.jsx')) evaluate('note-ui/crds-data.js');
   for (const rel of files) evaluate(rel);

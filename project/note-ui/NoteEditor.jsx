@@ -49,11 +49,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // chaque ouverture de note. reviewingMode (tweak) coupe tout quand off :
   // pas de bouton, pas d'auto-activation.
   const [reviewActive, setReviewActive] = React.useState(false);
-  const [reviewChanges, setReviewChanges] = React.useState([]);
+  // Changements proposés (proposed-changes.jsx) : le texte marqué et les
+  // entités en attente, d'où qu'ils viennent (gabarit, IA, suivi) — un seul
+  // compteur, une seule barre, un seul dialogue.
+  const [proposedChanges, setProposedChanges] = React.useState([]);
   const [reviewPopover, setReviewPopover] = React.useState(null); // { change, anchorRect }
-  const [reviewGate, setReviewGate] = React.useState(false);
-  // Finaliser avec des ajouts en attente (gabarit) : dialogue (Q-06).
+  // Finaliser avec des changements proposés restants : dialogue (Q-06).
   const [pendingGate, setPendingGate] = React.useState(false);
+  // La liste courte d'avant « Tout accepter » ne s'affiche qu'une fois par note (Q7).
+  const acceptAllListShownRef = React.useRef(false);
   // Tweak « Gabarit : texte proposé » — lu par l'écouteur de
   // note:apply-template, monté une seule fois.
   const templateTextProposedRef = React.useRef(templateTextProposed);
@@ -242,13 +246,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.dispatchEvent(new CustomEvent('note:doc-status-change', { detail: summary }));
   }, [docStats, txState]); // eslint-disable-line
 
-  // Mode révision — recalcule le compteur/liste de changements à chaque
-  // update (pas `transaction`, qui feu aussi sur les changements de simple
-  // sélection) et ouvre le popover ✓/✗ au clic sur une marque insertion/
-  // suppression (délégué sur editor.view.dom, comme les chips ailleurs).
+  // Changements proposés — recalcule la liste à chaque update (pas
+  // `transaction`, qui feu aussi sur les changements de simple sélection) et
+  // ouvre le popover ✓/✗ au clic sur une marque insertion/suppression
+  // (délégué sur editor.view.dom, comme les chips ailleurs).
   React.useEffect(function() {
     if (!editorInstance) return undefined;
-    function onUpdate() { setReviewChanges(window.scanReviewChanges(editorInstance.state.doc)); }
+    function onUpdate() { setProposedChanges(window.scanProposedChanges(editorInstance.state.doc)); }
     function onClick(e) {
       var mark = e.target.closest('.rvw-ins, .rvw-del');
       if (!mark) return;
@@ -758,9 +762,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     setTxState({});
     setActionEvents([]);
     setReviewActive(false);
-    setReviewChanges([]);
+    setProposedChanges([]);
     setReviewPopover(null);
-    setReviewGate(false);
+    setPendingGate(false);
+    acceptAllListShownRef.current = false;
   }
 
   // « Sauvegarder » : confirmation seulement — le prototype ne garde pas de
@@ -884,15 +889,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Bouton « Finaliser » de la barre du bas — ouvre le dialogue « Compléter
   // la note » (faire suivre + signature) ; le checkout suit s'il reste des
   // documents à transmettre (completeNoteFromDialog).
-  // Mode révision : des modifications en attente bloquent la complétion —
-  // dialogue « Tout accepter et compléter / Réviser / Annuler » plutôt que
-  // de laisser un contenu ambigu (non relu) partir au dossier.
+  // Des changements proposés non traités bloquent la complétion — dialogue
+  // « Tout accepter et finaliser / Compléter ou Réviser / Retirer et finaliser »
+  // plutôt que de laisser un contenu ambigu (non relu) partir au dossier.
   function openFinalize() {
-    if (reviewingMode && reviewChanges.length > 0) {
-      setReviewGate(true);
-      return;
-    }
-    if (pending.count > 0) {
+    if (proposedChanges.length > 0) {
       setPendingGate(true);
       return;
     }
@@ -914,41 +915,25 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     }
   }
 
-  // Ajouts en attente (gabarit) — barre au-dessus du corps de la note et
-  // dialogue de finalisation.
-  var pending = docJson ? window.pendingSummary(docJson) : { count: 0, chips: 0, paragraphs: 0, sources: [] };
-  function resolvePending(accept) { if (editorRef.current) window.resolveAllPending(editorRef.current, accept); }
-  function reviewFirstPending() {
+  // Changements proposés — barre au-dessus du corps de la note et dialogue
+  // de finalisation, sur le même résumé (proposed-changes.jsx).
+  var pending = window.summarizeProposedChanges(proposedChanges);
+  // Ce que ni « Tout accepter » ni la finalisation n'acceptent : lignes à
+  // compléter et entités incomplètes (Q8).
+  var unfinished = proposedChanges.filter(function(c) { return c.kind === 'entity' && !c.acceptable; });
+  // « Tout accepter » : le texte et les entités complètes (D4). Sans `all`, « Tout refuser ».
+  function resolvePending(accept, opts) {
+    var editor = editorRef.current;
+    if (editor) window.resolveProposed(editor, window.scanProposedChanges(editor.state.doc), accept, opts);
+  }
+  function goToProposed(dir) { if (editorRef.current) window.moveToProposedChange(editorRef.current, dir, false); }
+  // « Compléter » (il reste des incomplètes) : la première ; sinon « Réviser » : le premier changement.
+  function reviewFirstProposed(unfinishedFirst) {
     var editor = editorRef.current;
     if (!editor) return;
-    var first = null;
-    editor.state.doc.descendants(function(node, pos) {
-      if (first !== null) return false;
-      if (node.type.name === 'chip' && node.attrs.pending) first = pos;
-      else if (node.isText && node.marks.some(function(m) { return m.type.name === 'insertion' && m.attrs.authorId === window.TEMPLATE_AUTHOR.id; })) first = pos;
-    });
-    if (first === null) return;
-    var node = editor.state.doc.nodeAt(first);
-    if (node && node.type.name === 'chip') editor.chain().focus().setNodeSelection(first).run();
-    else editor.chain().focus().setTextSelection(first).run();
-    try { editor.view.domAtPos(first).node.parentElement.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
-  }
-
-  function reviewGateAcceptAllAndComplete() {
-    if (editorRef.current) window.acceptAllChanges(editorRef.current);
-    setReviewGate(false);
-    setFinalizeOpen(true);
-  }
-
-  function reviewGateReview() {
-    setReviewGate(false);
-    var editor = editorRef.current;
-    if (!editor) return;
-    var first = window.scanReviewChanges(editor.state.doc)[0];
-    if (first) {
-      editor.chain().focus().setTextSelection(first.from).run();
-      try { editor.view.dom.querySelector('.rvw-ins, .rvw-del').scrollIntoView({ block: 'center' }); } catch (e) {}
-    }
+    var all = window.scanProposedChanges(editor.state.doc);
+    var todo = unfinishedFirst ? all.filter(function(c) { return c.kind === 'entity' && !c.acceptable; }) : [];
+    window.focusProposedChange(editor, todo[0] || all[0]);
   }
 
   // « Prescrire »/« Transmettre » sur une chip — envoi rapide d'UN document,
@@ -1036,10 +1021,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         {reviewingMode &&
           <window.ReviewHeaderControls
             active={reviewActive}
-            onToggle={function() { setReviewActive(function(v) { return !v; }); }}
-            count={reviewChanges.length}
-            onAcceptAll={function() { if (editorRef.current) window.acceptAllChanges(editorRef.current); }}
-            onRejectAll={function() { if (editorRef.current) window.rejectAllChanges(editorRef.current); }} />}
+            onToggle={function() { setReviewActive(function(v) { return !v; }); }} />}
       </div>
 
       {/* Points de départ de la visite — tweak du même nom, masqués une fois la note ouverte */}
@@ -1113,11 +1095,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
           <div style={neStyles.noteDiv} />
 
           {pending.count > 0 &&
-            <window.PendingProposalsBar
+            <window.ProposedChangesBar
               summary={pending}
-              onAcceptAll={function() { resolvePending(true); }}
+              shortList={window.proposedShortList(proposedChanges)}
+              showList={!acceptAllListShownRef.current}
+              onListShown={function() { acceptAllListShownRef.current = true; }}
+              onAcceptAll={function() { resolvePending(true, { all: true }); }}
               onRejectAll={function() { resolvePending(false); }}
-              onReview={reviewFirstPending} />}
+              onPrev={function() { goToProposed(-1); }}
+              onNext={function() { goToProposed(1); }} />}
 
           <NoteBody
             placeholder={t('noteEditor.appuyerAfficherCommandes.placeholder')}
@@ -1318,22 +1304,15 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         <window.DocumentViewerModal file={filePreview} onClose={function () { setFilePreview(null); }} />
       }
 
-      {/* Dialogue bloquant — changements en attente à la complétion */}
+      {/* Dialogue bloquant — changements proposés non traités à la complétion */}
       {pendingGate &&
-        <window.PendingCompleteDialog
+        <window.ProposedCompleteDialog
           summary={pending}
-          onAcceptAllAndComplete={function() { resolvePending(true); setPendingGate(false); setFinalizeOpen(true); }}
-          onReview={function() { setPendingGate(false); reviewFirstPending(); }}
-          onCompleteWithout={function() { resolvePending(false); setPendingGate(false); setFinalizeOpen(true); }}
+          unfinishedNames={unfinished.map(function(c) { return c.label; })}
+          onAcceptAllAndComplete={function() { resolvePending(true, { all: true, dropRest: true }); setPendingGate(false); setFinalizeOpen(true); }}
+          onReview={function() { setPendingGate(false); reviewFirstProposed(unfinished.length > 0); }}
+          onRemoveAndComplete={function() { resolvePending(false); setPendingGate(false); setFinalizeOpen(true); }}
           onCancel={function() { setPendingGate(false); }} />
-      }
-
-      {reviewGate &&
-        <window.ReviewCompleteDialog
-          count={reviewChanges.length}
-          onAcceptAllAndComplete={reviewGateAcceptAllAndComplete}
-          onReview={reviewGateReview}
-          onCancel={function() { setReviewGate(false); }} />
       }
 
       {/* Popover de changement (mode révision) */}
