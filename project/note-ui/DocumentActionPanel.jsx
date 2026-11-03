@@ -5,7 +5,7 @@
 // transmissible. Composant partagé par les deux points d'entrée
 // de la transmission.
 // Une seule mise en page depuis le plan V7 (§A) : 3 colonnes
-// contenu / destinataire / aperçu. Le mode `compact` a disparu avec
+// destinataire / contenu / aperçu. Le mode `compact` a disparu avec
 // la réécriture de l'Envoi rapide, qui a maintenant son propre
 // contenu (QuickSendModal.jsx) au lieu de réutiliser ce panneau.
 // Seul appelant : TransmissionModal.jsx.
@@ -344,7 +344,7 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
 
   const recipientsCol = (
     <React.Fragment>
-      {/* Colonne 2 — destinataires (maquette « Transmission générale ») */}
+      {/* Colonne 1 — destinataires (maquette « Transmission générale ») */}
       <div style={dap.col}>
         <div style={dap.recipHead}>
           <span style={dap.recipTitle}>{t('documentAction.destinataire.label', { n: doc.recipients.length })}</span>
@@ -514,7 +514,9 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
       </div>
 
       <div style={hasContent ? dap.cols : dap.colsTwo}>
-        {/* Colonne 1 — contenu du document, en sections repliables (plan V7
+        {recipientsCol}
+
+        {/* Colonne 2 — contenu du document, en sections repliables (plan V7
             §B3). « Pièces jointes » est repliée au départ : c'est un réglage
             secondaire, le contenu clinique doit rester ce qu'on voit en
             premier. Absente pour un outil clinique (voir hasContent). */}
@@ -573,8 +575,6 @@ function DocumentActionPanel({ doc, meta, doctorName, institution, onPatch, show
         </div>
         }
 
-        {recipientsCol}
-
         <div style={dap.col}>
           <div style={dap.colLabel}>{t('documentAction.preview.label')}
             {!readOnly &&
@@ -606,7 +606,7 @@ const dap = {
   },
   statusBadgeSent: { background: 'light-dark(#e6f5ee, #244c39)', color: 'light-dark(#2e9b7a, #a8e5d3)' },
   btnDisabled: { opacity: 0.42, cursor: 'not-allowed' },
-  cols: { display: 'grid', gridTemplateColumns: '1.15fr 1fr 1fr', gap: 22, alignItems: 'start' },
+  cols: { display: 'grid', gridTemplateColumns: '1fr 1.15fr 1fr', gap: 22, alignItems: 'start' },
   colsTwo: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 22, alignItems: 'start' },
   cols3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 22, alignItems: 'start' },
   refCard: { display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, padding: 12, border: '1px solid var(--mat-sys-outline)', borderRadius: 8, background: 'var(--mat-sys-surface-container-lowest)' },
