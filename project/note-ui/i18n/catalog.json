@@ -3095,7 +3095,7 @@
       "empreinte": "7a2abc76f470",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:542"
+        "note-ui/DocumentActionPanel.jsx:544"
       ]
     },
     "documentAction.canalCourriel.label": {
@@ -3160,7 +3160,7 @@
       "empreinte": "aaa029e6a255",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:524"
+        "note-ui/DocumentActionPanel.jsx:526"
       ]
     },
     "documentAction.distanceKm.text": {
@@ -3236,7 +3236,7 @@
       "empreinte": "98d89a25004b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:536"
+        "note-ui/DocumentActionPanel.jsx:538"
       ]
     },
     "documentAction.prescriptions.label": {
@@ -3244,7 +3244,7 @@
       "empreinte": "d7d1c0636806",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/DocumentActionPanel.jsx:524"
+        "note-ui/DocumentActionPanel.jsx:526"
       ]
     },
     "documentAction.preview.label": {
@@ -3311,7 +3311,7 @@
       "contexte": "info-bulle",
       "fichiers": [
         "note-ui/DocumentActionPanel.jsx:488",
-        "note-ui/DocumentActionPanel.jsx:549",
+        "note-ui/DocumentActionPanel.jsx:551",
         "note-ui/DocumentActionPanel.jsx:93"
       ]
     },
