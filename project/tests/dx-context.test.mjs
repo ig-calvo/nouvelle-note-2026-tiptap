@@ -156,11 +156,13 @@ test('sans outils cliniques, le gabarit ITU propose l’analyse d’urine au lie
   assert.equal(D.templateWithoutTool(virus), virus);
 });
 
-test('menu « / » sans outils cliniques : ni item Outils cliniques, ni outil dans la description du gabarit ITU', () => {
+test('menu « / » sans outils cliniques : l’item Outils cliniques reste, mais plus l’outil dans la description du gabarit ITU', () => {
   w.__SHOW_CLINICAL_TOOLS = false;
   const items = w.filterSlashItems('itu');
   assert.equal(items.find((it) => it.key === 'tpl-itu').desc, w.TR('Structure + analyse d’urine proposée'));
-  assert.ok(!w.filterSlashItems('').some((it) => it.ctPicker));
+  // Le tweak règle la rangée du bas et la description des gabarits, pas l'ajout par « + » ou « / ».
+  assert.ok(w.filterSlashItems('').some((it) => it.ctPicker), 'le menu offre toujours d’ajouter un outil clinique');
+  assert.ok(w.filterSlashItems('outil').some((it) => it.ctPicker), 'et la recherche le trouve');
   w.__SHOW_CLINICAL_TOOLS = true;
   assert.equal(w.filterSlashItems('itu').find((it) => it.key === 'tpl-itu').desc, w.TR('Structure + outil clinique ITU'));
   delete w.__SHOW_CLINICAL_TOOLS;

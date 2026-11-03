@@ -2410,7 +2410,10 @@ function buildEditorExtensions(placeholder) {
 function filterSlashItems(query) {
   const t = (query || '').toLowerCase().trim();
   const all = window.NOTE_DATA.SLASH_ITEMS || [];
-  let items = window.__SHOW_CLINICAL_TOOLS === false ? all.filter(function (it) { return !it.ctPicker; }) : all;
+  // « Outils cliniques » reste dans le menu avec le tweak éteint : le réglage
+  // règle la rangée du bas, les points de départ et la description des
+  // gabarits, pas la possibilité d'ajouter un outil par « + » ou « / ».
+  let items = all;
   // Une seule instance de champ confidentiel par note — le retirer du menu
   // une fois créé (voir window.__CONFIDENTIAL_FIELD_ADDED, posé par NoteEditor.jsx).
   if (window.__CONFIDENTIAL_FIELD_ADDED) items = items.filter(function (it) { return !it.confidentialField; });
