@@ -29,8 +29,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Q7) : lu par autoConductBlocks (editor-schema.jsx). Éteint, la dernière
   // conduite d'un problème n'est plus insérée, seulement proposée en colonne.
   window.__AUTO_CONDUCT = autoConduct !== false;
-  // Lu par editor-field.jsx (filterSlash) pour retirer l'entrée "Outils
-  // cliniques" du menu slash sans faire dépendre editor-data.jsx d'une prop.
+  // Lu par filterSlashItems (editor-schema.jsx) et la colonne de suggestions
+  // pour décrire un gabarit sans son outil clinique, sans faire dépendre
+  // editor-data.jsx d'une prop. Il ne retire pas « Outils cliniques » des
+  // menus « + » et « / » : on peut toujours y ajouter un outil.
   React.useEffect(function() {
     window.__SHOW_CLINICAL_TOOLS = showClinicalTools;
   }, [showClinicalTools]);
