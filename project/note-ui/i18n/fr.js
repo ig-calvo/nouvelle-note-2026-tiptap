@@ -1108,6 +1108,7 @@
   'data.medStatusActive.text': 'Actif',
   'data.medStatusExpired.text': 'Échu',
   'data.medStatusCeased.text': 'Cessé',
+  'data.medPrescribedOn.text': 'Prescrit le {date}',
   'data.filterAll.label': 'Tout',
   'data.filterRenewable.label': 'Renouvelables',
   'data.filterActive.label': 'Actives',
