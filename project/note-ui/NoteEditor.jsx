@@ -1,5 +1,5 @@
 /* global React */
-function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true,
+function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true, showDocumentButton = true,
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
@@ -8,6 +8,10 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
   React.useEffect(function() { document.documentElement.setAttribute('data-note-wide', noteWide ? 'on' : 'off'); }, [noteWide]);
+  // Tweak « Bouton Documenter dans les menus » : lu par documentButtonShown
+  // (editor-data.jsx) pour les menus /rx et /lab. Posé pendant le rendu, comme
+  // l'édition inline plus bas, pour que le prochain menu ouvert le voie.
+  window.__SHOW_DOCUMENT_BUTTON = showDocumentButton !== false;
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :

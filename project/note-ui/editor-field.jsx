@@ -43,6 +43,20 @@ function openDraftSearch(editor, cid) {
 }
 window.openDraftSearch = openDraftSearch;
 
+// Placement du menu de recherche /rx /lab /img /ref : sous la ligne de saisie,
+// ou au-dessus quand /lab (avec son panneau) n'a pas la place de s'étendre sous
+// elle — sa barre de sélection ajoute 64 px, et « Ajouter (n) » ne doit pas sortir
+// de la fenêtre. Ancré par `bottom` dans ce cas : le menu grandit vers le haut.
+const LAB_MENU_MAX_HEIGHT = 470;
+function orderMenuPosition(slash) {
+  const w = slash.labRail ? (slash.kind === 'lab' ? 736 : 776) : slash.kind === 'rx' ? 736 : 476;
+  const left = Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - w));
+  const below = slash.rect ? slash.rect.bottom + 6 : 6;
+  const flip = slash.kind === 'lab' && !!slash.labRail && !!slash.rect
+    && window.innerHeight - below < LAB_MENU_MAX_HEIGHT && slash.rect.top - 6 >= LAB_MENU_MAX_HEIGHT;
+  return flip ? { bottom: window.innerHeight - slash.rect.top + 6, left: left, zIndex: 60 } : { top: below, left: left, zIndex: 60 };
+}
+
 function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, linkedChipId }) {
   const hostRef = useRefE(null);
   const editorRef = useRefE(null);
@@ -478,6 +492,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     let checked = [];
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
     let railFocus = false;
+    // /lab : la bascule « Multisélection » est allumée (un clic sélectionne au lieu d'ajouter).
+    let labMulti = false;
     // La recherche ouverte montre-t-elle le contexte d'un diagnostic (pas de panneau /lab) ?
     let orderInContext = false;
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
@@ -581,6 +597,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, term) : null,
           batch: currentBatch ? currentBatch.picks : null,
           counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts(term) : null, query: term, results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          labMulti: labMulti, labSort: window.NOTE_DATA.getLabSort(),
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -599,10 +616,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const api = {
       onStart(props) {
         selectedIndex = initialIndex();
-        checked = []; railFocus = false;
+        checked = []; railFocus = false; labMulti = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout'); window.NOTE_DATA.setRefView('tout');
+        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout'); window.NOTE_DATA.setLabSort('freq'); window.NOTE_DATA.setRefView('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -733,6 +750,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
+      // /lab : bascule « Multisélection », « Tout désélectionner » et tri A-Z d'une catégorie.
+      toggleMulti() { labMulti = !labMulti; publish(lastQuery); },
+      clearChecked() { checked = []; publish(lastQuery); },
+      toggleSort() { window.NOTE_DATA.setLabSort(window.NOTE_DATA.getLabSort() === 'az' ? 'freq' : 'az'); selectedIndex = 0; publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Fréquemment prescrits, Phrases de prescription.
       setFilter(f) {
         const kind = parseSlashQuery(lastQuery).kind;
@@ -1522,7 +1543,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       {/* Mode ordre — /rx /lab /img /ref */}
       {slash && slash.mode === 'order' &&
         <RxMenu
-          position={{ top: (slash.rect ? slash.rect.bottom : 0) + 6, left: Math.max(8, Math.min(slash.rect ? slash.rect.left : 0, window.innerWidth - (slash.labRail ? 776 : slash.kind === 'rx' ? 736 : 476))), zIndex: 60 }}
+          position={orderMenuPosition(slash)}
           kind={slash.kind}
           def={window.NOTE_DATA.ORDER_DEFS[slash.kind]}
           query={slash.query}
@@ -1534,6 +1555,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           checked={slash.checked || []}
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
+          labMulti={slash.labMulti}
+          labSort={slash.labSort}
+          onToggleMulti={() => { if (slashApiRef.current) slashApiRef.current.toggleMulti(); }}
+          onToggleSort={() => { if (slashApiRef.current) slashApiRef.current.toggleSort(); }}
+          onClearChecked={() => { if (slashApiRef.current) slashApiRef.current.clearChecked(); }}
           batch={slash.batch}
           filter={slash.filter}
           railFocus={slash.railFocus}
