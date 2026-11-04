@@ -644,22 +644,39 @@ function RefPrereqs({ id, vals, onChange }) {
 }
 
 // Slash menu
-function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
+// `trigger` : « # » pour la liste des gabarits (aucun résultat : Échap annule
+// la recherche), sinon « / » (aucun résultat : Échap laisse le texte libre).
+function SlashMenu({ position, query, onSelect, onClose, activeIndex, items, trigger }) {
   const ref = useRefP(null);
   useEffectP(() => {
-    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    function onDoc(e) {
+      // Une ligne du menu qu'une liste différente vient de remplacer (l'item
+      // « Gabarits de note » de « / » ouvre la liste du « # » dans ce même
+      // menu) n'est plus dans la page quand l'événement atteint le document :
+      // ce n'est pas un clic à côté.
+      if (e.target && e.target.isConnected === false) return;
+      if (ref.current && !ref.current.contains(e.target)) onClose();
+    }
     document.addEventListener('mousedown', onDoc);
     return () => document.removeEventListener('mousedown', onDoc);
   }, [onClose]);
+  // La ligne active reste visible quand on la change aux flèches (liste longue).
+  useEffectP(() => {
+    const el = ref.current && ref.current.querySelector('.sm-item.active');
+    if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex, items]);
   const grouped = {};
   items.forEach(it => { if (!grouped[it.section]) grouped[it.section] = []; grouped[it.section].push(it); });
+  const kbdStyle = {fontFamily:'var(--font-mono)', background:'var(--bg-subtle)', border:'1px solid var(--border-subtle)', borderRadius:4, padding:'1px 5px'};
   return (
     <div className="slash-menu" ref={ref} style={position}>
       {items.length === 0 &&
         <div style={{padding:16, fontSize:12, color:'var(--fg-3)', textAlign:'center'}}>
-          {query
-            ? <>{t('popover.noResult.empty', { query: query })} <kbd style={{fontFamily:'var(--font-mono)', background:'var(--bg-subtle)', border:'1px solid var(--border-subtle)', borderRadius:4, padding:'1px 5px'}}>{t('popover.echap.text')}</kbd> {t('popover.freeTextHint.hint')}</>
-            : t('popover.noCommand.empty')}
+          {trigger === '#'
+            ? <>{t('popover.noTemplate.empty', { query: query })} <kbd style={kbdStyle}>{t('popover.echap.text')}</kbd> {t('popover.cancelHint.hint')}</>
+            : query
+              ? <>{t('popover.noResult.empty', { query: query })} <kbd style={kbdStyle}>{t('popover.echap.text')}</kbd> {t('popover.freeTextHint.hint')}</>
+              : t('popover.noCommand.empty')}
         </div>}
       {Object.entries(grouped).map(([section, list]) => (
         <div key={section}>
@@ -673,8 +690,9 @@ function SlashMenu({ position, query, onSelect, onClose, activeIndex, items }) {
                 <div>
                   <div className="ttl">{it.title}</div>
                   <div className="desc">{it.desc}</div>
+                  {it.warn && <div className="warn"><span className="material-symbols-outlined" aria-hidden="true">warning</span>{it.warn}</div>}
                 </div>
-                {it.ctPicker || it.notePicker || it.diagRefPicker || it.textRapides
+                {it.ctPicker || it.diagRefPicker
                   ? <span className="material-icons-outlined" style={{fontSize:16,color:'color-mix(in srgb, var(--mat-sys-on-surface) 35%, transparent)',marginLeft:'auto'}}>chevron_right</span>
                   : !it.noKbd && <span className="kbd">{it.kbdNoSlash ? it.kbd : '/' + it.kbd}</span>
                 }

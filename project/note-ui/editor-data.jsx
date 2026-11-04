@@ -1786,6 +1786,43 @@ function searchQuickTexts(q, dx, ctx) {
   return { context: context.filter(match), others: sorted.filter(match) };
 }
 
+// Liste du « # » : tous les gabarits, en une seule recherche — les textes
+// rapides du diagnostic où est le curseur, les gabarits de note, puis les
+// autres textes rapides. `q` : ce qui est tapé après « # » ; tous les mots
+// doivent se trouver dans le nom (ou le raccourci, ou le nom du diagnostic
+// d'un texte rapide). `dx` : attributs du diagnostic où est le curseur, ou
+// null ; `ctx` : contexte de dxConclusionOptions. → lignes de SlashMenu, dans
+// l'ordre d'affichage ; chaque ligne porte soit `noteTemplate` (la clé d'un
+// gabarit de note), soit `quickTextId` (un texte rapide, voir
+// note:insert-quick-text dans NoteEditor.jsx). Sans outils cliniques, un
+// gabarit de note se décrit par ce qu'il propose à la place (descNoTool).
+const QT_ICON = { last: 'history', mine: 'person', omnimed: 'library_add' };
+function searchTemplates(q, dx, ctx) {
+  const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
+  const noTools = window.__SHOW_CLINICAL_TOOLS === false;
+  const notes = SLASH_ITEMS.filter(function (it) {
+    if (!it.noteTemplate) return false;
+    const hay = _hay(it.title) + ' ' + _norm(it.kbd || '');
+    return words.every(function (w) { return hay.includes(w); });
+  }).map(function (it) {
+    return { key: it.key, section: t('field.gabaritsNote.text'), icon: it.icon, title: it.title,
+      desc: noTools && it.descNoTool ? it.descNoTool : it.desc, noteTemplate: it.noteTemplate, noKbd: true };
+  });
+  const found = searchQuickTexts(q, dx, ctx);
+  const quickRow = function (opt, section) {
+    const n = (opt.proposals || []).length;
+    const a = opt.allergy;
+    return { key: 'qt-' + opt.id, section: section, icon: QT_ICON[opt.kind] || 'bolt', title: opt.name,
+      desc: opt.kind === 'last' ? opt.date : tn(opt.kind === 'mine' ? 'suggest.monGabarit.text' : 'suggest.gabaritOmnimed.text', n),
+      warn: a ? t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') }) : '',
+      quickTextId: opt.id, noKbd: true };
+  };
+  const ctxSection = dx ? t('field.pourDiagnostic.text', { name: dx.name }) : '';
+  const otherSection = found.context.length ? t('field.autresTextesRapides.text') : t('field.textesRapides.text');
+  return found.context.map(function (o) { return quickRow(o, ctxSection); })
+    .concat(notes, found.others.map(function (o) { return quickRow(o, otherSection); }));
+}
+
 // Gabarit de note sans son outil clinique (réglage « Outils cliniques »
 // désactivé — rencontre vision 2026-10-27 : « 80 % des outils cliniques, ce
 // sont des requêtes ») : ses requêtes `toolRequests` sont proposées à la fin
@@ -2155,13 +2192,16 @@ const SLASH_ITEMS = [
   // ── STRUCTURE ────────────────────────────────────────────
   { key: 'outils-cliniques', section: L('Structure'), icon: 'handyman', title: L('Outils cliniques'), desc: L('Score, calculatrice, outil clinique…'), kbd: '',
     ctPicker: true, noKbd: true },
-  { key: 'note-templates', section: L('Structure'), icon: 'post_add', title: L('Gabarits de note'), desc: L('Syndrome viral, infection urinaire, examen périodique…'), kbd: '',
-    notePicker: true, noKbd: true },
+  // « Gabarits de note » et « Textes rapides » ouvrent la liste du « # »
+  // (searchTemplates) : l'item remplace « / » par « # » et la liste s'ouvre.
+  { key: 'note-templates', section: L('Structure'), icon: 'post_add', title: L('Gabarits de note'), desc: L('Syndrome viral, infection urinaire, examen périodique…'), kbd: '#', kbdNoSlash: true,
+    notePicker: true },
   // ── GABARITS DE NOTE ─────────────────────────────────────
   // Un niveau au-dessus des gabarits de section / outil clinique : règle
-  // structure + sections + outil clinique associé en un seul geste. Masqués
-  // du menu par défaut (hideWhenEmpty) — atteints via l'item « Gabarits de
-  // note » ci-dessus (NoteTemplateMenu) ou directement au clavier (/virus…).
+  // structure + sections + outil clinique associé en un seul geste. Jamais
+  // dans le menu « / » (filterSlashItems les écarte) : ils se cherchent dans
+  // la liste du « # » (searchTemplates). `kbd` y sert de mot de recherche
+  // (#virus, #itu…).
   { key: 'tpl-premiere', section: L('Gabarits de note'), icon: 'how_to_reg', title: L('Première rencontre'), desc: L('Antécédents, habitudes de vie, examen, conclusion'), kbd: 'premiere',
     hideWhenEmpty: true, noteTemplate: 'premiere' },
   { key: 'tpl-suivi', section: L('Gabarits de note'), icon: 'update', title: L('Suivi'), desc: L('Évolution, examen ciblé, plan'), kbd: 'suivi',
@@ -2186,8 +2226,8 @@ const SLASH_ITEMS = [
     orderSearch: true,
     template: { type: 'instructions', label: L('Consignes'), text: L('Consignes au patient'),
       details: { title: '', body: '', delivery: 'Imprimer + portail' } } },
-  { key: 'textes-rapides', section: L('Fonctions'), icon: 'bolt', title: L('Textes rapides'), desc: L('Insérer un modèle de texte'), kbd: '',
-    noKbd: true, textRapides: true },
+  { key: 'textes-rapides', section: L('Fonctions'), icon: 'bolt', title: L('Textes rapides'), desc: L('Insérer un modèle de texte'), kbd: '#', kbdNoSlash: true,
+    textRapides: true },
   { key: 'diagnostic', section: L('Fonctions'), icon: 'local_hospital', title: L('Diagnostic'), desc: L('Créer une section diagnostic'), kbd: 'dx',
     diagnosticEntry: true },
   // N'apparaît que si la note contient déjà au moins un diagnostic — voir
@@ -2496,5 +2536,5 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
-  dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, noteDayLabel, templateWithoutTool,
+  dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, searchTemplates, noteDayLabel, templateWithoutTool,
   VISIT_APPOINTMENT, RESULTS_TO_FOLLOW, visitStartPoints, startTemplatesFor, visitReason };

@@ -789,6 +789,9 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .sm-item .ic .material-symbols-outlined { font-size: 16px; }
 .sm-item .ttl { font-weight: 600; font-size: 13px; }
 .sm-item .desc { font-size: 11px; color: var(--fg-3); margin-top: 1px; }
+/* Texte rapide en conflit avec une allergie au dossier (liste du « # »). */
+.sm-item .warn { display: flex; align-items: flex-start; gap: 4px; margin-top: 2px; font-size: 11px; color: var(--mat-sys-error); }
+.sm-item .warn .material-symbols-outlined { font-size: 14px; }
 .sm-item .kbd { font-family: var(--font-mono); font-size: 10px; background: var(--bg-subtle); color: var(--fg-3); padding: 2px 6px; border-radius: 4px; }
 
 /* Add / functions menu */
