@@ -56,7 +56,7 @@ test('puce ajustée : badge ↑ / ↓ à la place du renouvellement, texte et ch
 
 test('filtres : Tout, Renouvelables, Actives, Cessées', () => {
   assert.deepEqual(keys(search('tout').profil), ['med-tylenol-100', 'med-tylenol-500', 'med-nitrofurantoine']);
-  assert.deepEqual(keys(search('renouvelables').profil), ['med-tylenol-100', 'med-tylenol-500']); // à renouveler bientôt, échue
+  assert.deepEqual(keys(search('renouvelables').profil), ['med-tylenol-100', 'med-tylenol-500']); // active, échue
   assert.deepEqual(keys(search('actives').profil), ['med-tylenol-100']);
   assert.deepEqual(keys(search('cessees').profil), ['med-nitrofurantoine']);
   for (const f of ['renouvelables', 'actives', 'cessees']) {
@@ -123,4 +123,35 @@ test('les filtres ne touchent que /rx : /lab garde sa liste', () => {
   assert.ok(lab.labSections.length > 0);
   assert.equal(lab.phrases, undefined);
   D.endOrderSearch();
+});
+
+test('Renouvelables : toute médication active ou échue, jamais une cessée', () => {
+  const adulte = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx'], { patient: 'adulte' });
+  const A = adulte.NOTE_DATA;
+  const rx = (filter) => { A.endOrderSearch(); A.setRxFilter(filter); const r = A.searchOrder('rx', ''); A.endOrderSearch(); return r; };
+  // Aucune n'est « à renouveler bientôt » : les actives y sont quand même.
+  assert.deepEqual(keys(rx('renouvelables').profil), ['med-almotriptan', 'med-candesartan', 'med-levothyroxine', 'med-metformine']);
+  assert.deepEqual(keys(rx('renouvelables').profil), keys(rx('actives').profil));
+  assert.deepEqual(keys(rx('cessees').profil), ['med-gliclazide', 'med-naproxene']);
+  assert.equal(A.rxCounts('').renouvelables, 4);
+  assert.equal(A.rxCounts('metformine').renouvelables, 1); // la recherche filtre aussi ce compteur
+  // Une échue et une active, ensemble.
+  assert.equal(D.rxCounts('tylenol').renouvelables, 2);
+});
+
+test('chaque médication du profil a la date de sa prescription d’origine, avant son arrêt ou son échéance', () => {
+  const adulte = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx'], { patient: 'adulte' });
+  for (const m of adulte.NOTE_DATA.PATIENT_MEDS.concat(D.PATIENT_MEDS)) {
+    assert.match(m.prescribedOn, /^\d{4}-\d{2}-\d{2}$/, m.key);
+    if (m.medDate) { // « 02/2026 » : l'origine n'est pas plus tard que ce mois-là
+      const [mm, yyyy] = m.medDate.split('/');
+      assert.ok(m.prescribedOn.slice(0, 7) <= yyyy + '-' + mm, m.key);
+    }
+  }
+  const text = D.medPrescribedText(med('med-tylenol-100'));
+  assert.match(text, /2026/);
+  assert.ok(text.includes(process.env.I18N_TEST_LANG === 'en' ? 'Prescribed on' : 'Prescrit le'));
+  assert.equal(D.medPrescribedText({ key: 'sans-date' }), '');
+  assert.equal(D.medPrescribedText(null), '');
+  assert.equal(D.medPrescribedText(D.RX_ALL ? D.RX_ALL[0] : {}), ''); // un produit du catalogue n'a pas de prescription d'origine
 });
