@@ -905,8 +905,6 @@
   'popover.labRail.aria': 'Vues et groupes d’analyses',
   'popover.labRailChecked.tooltip': { one: '{n} élément coché', other: '{n} éléments cochés' },
   'popover.labMultiselect.label': 'Multisélection',
-  'popover.labSortAz.tooltip': 'Trier de A à Z',
-  'popover.labSortFreq.tooltip': 'Trié de A à Z : revenir à l’ordre de fréquence de prescription',
   'popover.labSelectedCount.text': { one: '{n} analyse sélectionnée', other: '{n} analyses sélectionnées' },
   'popover.labClearSelection.button': 'Tout désélectionner',
   'popover.labDocumentResult.tooltip': 'Documenter le dernier résultat : {name}',

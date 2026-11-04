@@ -1088,7 +1088,7 @@ function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
     </nav>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, labRail, batch, labMulti, labSort, onToggleMulti, onToggleSort, onClearChecked }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, labRail, batch, labMulti, onToggleMulti, onClearChecked }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -1136,8 +1136,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   // ses cases et son pied de raccourcis.
   const labV2 = kind === 'lab' && isLab;
   const selecting = labV2 ? !!labMulti || checkedKeys.length > 0 : checkedKeys.length > 0;
-  // Une catégorie est choisie : le bouton A-Z s'ajoute à la bascule dans l'en-tête.
-  const inCategory = labV2 && !!(labRail.find((r) => r.key === filter) || {}).group;
   let headControl = labV2;
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
   const noFav = (it) => !!it.profile || !!it.crds; // ni un profil ni une raison CRDS n'ont de favori
@@ -1153,9 +1151,8 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
         {sections.map(([ttl, list, secKey]) => { if (list.length === 0) return null;
-          // L'en-tête de la première section porte la bascule « Multisélection »,
-          // et le bouton A-Z quand une catégorie est choisie. Elles restent là même
-          // quand des analyses sont sélectionnées.
+          // L'en-tête de la première section porte la bascule « Multisélection ».
+          // Elle reste là même quand des analyses sont sélectionnées.
           const control = headControl; headControl = false;
           return (
           <div key={secKey || ttl} className="rx-sec-block">
@@ -1163,13 +1160,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               <span className="rx-sec__title">{ttl} <span className="rx-sec-count">({list.length})</span></span>
               {control &&
                 <span className="rx-sec__controls">
-                  {inCategory &&
-                    <button type="button" className={'rx-sort' + (labSort === 'az' ? ' is-on' : '')} aria-pressed={labSort === 'az'}
-                      title={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
-                      aria-label={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
-                      onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleSort && onToggleSort()}>
-                      <span className="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
-                    </button>}
                   <button type="button" role="switch" aria-checked={selecting} className={'rx-switch' + (selecting ? ' is-on' : '')}
                     onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleMulti && onToggleMulti()}>
                     <span className="rx-switch__label">{t('popover.labMultiselect.label')}</span>

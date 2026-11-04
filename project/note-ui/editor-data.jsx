@@ -946,15 +946,11 @@ const LAB_FREQUENT_SHOWN = 3;
 // sont plus des vues (le Figma les retire, 2026-11-04) ; leurs données restent
 // plus haut (LAB_PREVENTION, LAB_SUGGESTED).
 let _labView = 'tout';
-// Ordre des analyses d'une catégorie : « freq » (fréquence de prescription) ou « az ».
-let _labSort = 'freq';
 function labViewKeys() {
   return ['tout', 'favoris', 'bilans'].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return g.key; }));
 }
 function setLabView(v) { _labView = labViewKeys().indexOf(v) >= 0 ? v : 'tout'; }
 function getLabView() { return _labView; }
-function setLabSort(s) { _labSort = s === 'az' ? 'az' : 'freq'; }
-function getLabSort() { return _labSort; }
 
 // Texte où chercher : nom (deux langues), acronyme, alias et nom du groupe
 // (« biochimie » liste tout le groupe, RA-03 de « Menu sélection examens »).
@@ -968,14 +964,13 @@ function _labWith(list) {
     return it ? Object.assign({}, it, { why: x.why }) : null;
   }).filter(Boolean);
 }
-// Les analyses d'une catégorie dans l'ordre choisi (bouton A-Z) : du plus au
-// moins prescrit puis par nom, ou par nom seul, sans tenir compte des accents.
+// Les analyses d'une catégorie : du plus au moins prescrit, puis par nom sans
+// tenir compte des accents. Pas d'autre ordre au choix (décision du 2026-11-04).
 function _labSorted(list) {
-  const az = _labSort === 'az';
   const locale = (window.I18N && window.I18N.locale) || 'fr';
   return list.slice().sort(function (a, b) {
-    if (!az) { const d = labFreq(b.key) - labFreq(a.key); if (d) return d; }
-    return a.name.localeCompare(b.name, locale, { sensitivity: 'base' });
+    const d = labFreq(b.key) - labFreq(a.key);
+    return d || a.name.localeCompare(b.name, locale, { sensitivity: 'base' });
   });
 }
 // Toutes les vues pour la recherche `q` : { vue: [sections] }, une section =
@@ -1001,7 +996,7 @@ function labViews(q, favSet) {
     tout: words.length ? [bilans].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return sec(g.key, g.name, inGroup(g)); })) : [dossier, frequent],
     favoris: [fav], bilans: [bilans]
   };
-  // Une catégorie seule : dans l'ordre choisi (fréquence ou A-Z).
+  // Une catégorie seule : de la plus à la moins prescrite.
   LAB_GROUPS_BY_FREQ.forEach(function (g) { v[g.key] = [sec(g.key, g.name, _labSorted(inGroup(g)))]; });
   Object.keys(v).forEach(function (k) { v[k] = v[k].filter(function (s) { return s.items.length; }); });
   return v;
@@ -2184,7 +2179,7 @@ function orderBatch(kind, term) {
   return { picks: picks, current: parts[parts.length - 1].trim() };
 }
 
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _labSort = 'freq'; _refView = 'tout'; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _refView = 'tout'; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
@@ -2569,7 +2564,7 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, rxAllergyOf,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, setLabSort, getLabSort, labFreq,
+  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, labFreq,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, searchTemplates, noteDayLabel, templateWithoutTool,

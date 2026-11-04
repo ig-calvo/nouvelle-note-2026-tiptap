@@ -644,8 +644,6 @@
   'popover.labRail.aria': 'Lab test views and groups',
   'popover.labRailChecked.tooltip': { one: '{n} item checked', other: '{n} items checked' },
   'popover.labMultiselect.label': 'Multiple selection',
-  'popover.labSortAz.tooltip': 'Sort A to Z',
-  'popover.labSortFreq.tooltip': 'Sorted A to Z: back to prescription frequency order',
   'popover.labSelectedCount.text': { one: '{n} test selected', other: '{n} tests selected' },
   'popover.labClearSelection.button': 'Clear selection',
   'popover.labDocumentResult.tooltip': 'Document the latest result: {name}',

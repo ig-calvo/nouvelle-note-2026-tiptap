@@ -75,19 +75,14 @@ test('Récent : Au dossier, puis Fréquemment prescrit hors dossier ; plus de Pr
   assert.ok(!D.labViewKeys().includes('prev') && !D.labViewKeys().includes('sugg'));
 });
 
-test('une catégorie : de la plus prescrite à la moins prescrite, ou de A à Z ; le tri revient à la fermeture', () => {
+test('une catégorie : de la plus prescrite à la moins prescrite, sans autre ordre au choix', () => {
   D.setLabView('hematologie');
-  assert.deepEqual(D.searchOrder('lab', '').labSections[0].items.slice(0, 4).map((it) => it.key), ['fsc', 'crp', 'inr', 'vs'], 'fréquence, puis le nom à égalité');
-  D.setLabSort('az');
-  const az = D.searchOrder('lab', '').labSections[0].items.map((it) => it.name);
-  assert.deepEqual(az, az.slice().sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })));
-  assert.equal(az[0], w.TR('Antithrombine III'));
-  assert.equal(az.length, D.LAB_GROUPS.find((g) => g.key === 'hematologie').tests.length, 'le tri ne retire rien');
-  D.setLabSort('n’importe quoi');
-  assert.equal(D.getLabSort(), 'freq');
-  D.setLabSort('az');
+  const items = D.searchOrder('lab', '').labSections[0].items;
+  assert.deepEqual(items.slice(0, 4).map((it) => it.key), ['fsc', 'crp', 'inr', 'vs'], 'fréquence, puis le nom à égalité');
+  assert.equal(items.length, D.LAB_GROUPS.find((g) => g.key === 'hematologie').tests.length, 'le tri ne retire rien');
   D.endOrderSearch();
-  assert.equal(D.getLabSort(), 'freq');
+  assert.equal(D.setLabSort, undefined, 'plus de bouton A-Z (décision du 2026-11-04)');
+  assert.equal(D.getLabSort, undefined);
 });
 
 test('au dossier : dernier résultat, normal ou anormal, et tendance par rapport au précédent', () => {
