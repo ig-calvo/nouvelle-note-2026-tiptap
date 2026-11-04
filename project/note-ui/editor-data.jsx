@@ -940,17 +940,26 @@ const LAB_GROUPS_BY_FREQ = LAB_GROUPS.map(function (g, i) {
 const LAB_FREQUENT_SHOWN = 3;
 
 // Panneau de droite du menu /lab (Figma « Requêtes — Vision ») : Récent,
-// Favoris, Ensembles d'examens, puis les catégories du catalogue. Une vue
-// filtre aussi la recherche en cours, comme le rail de /rx (RA-17), et revient
-// à « Tout » (Récent) à chaque nouvelle recherche. Prévention et Suggérés ne
-// sont plus des vues (le Figma les retire, 2026-11-04) ; leurs données restent
-// plus haut (LAB_PREVENTION, LAB_SUGGESTED).
+// Favoris, Suggérés, Ensembles d'examens, puis les catégories du catalogue.
+// Une vue filtre aussi la recherche en cours, comme le rail de /rx (RA-17), et
+// revient à « Tout » (Récent) à chaque nouvelle recherche. Suggérés est de
+// retour avec la maquette de Vanessa (2026-11-04) ; Prévention n'est pas une vue
+// (ses données restent plus haut, LAB_PREVENTION).
 let _labView = 'tout';
+// Diagnostic de la note sous lequel la recherche est ouverte (posé par searchOrder).
+let _labDx = null;
+// Ouverte sous un diagnostic qui a des examens suggérés, la recherche /lab
+// s'ouvre d'office sur la vue Suggérés (`_labAutoView`). La première frappe
+// rend la main à Récent, comme le faisait l'ancien mode « contexte seul » ; un
+// choix de vue au panneau (`_labViewChosen`) n'est plus jamais défait d'office.
+let _labAutoView = false, _labViewChosen = false;
 function labViewKeys() {
-  return ['tout', 'favoris', 'bilans'].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return g.key; }));
+  return ['tout', 'favoris', 'suggeres', 'bilans'].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return g.key; }));
 }
-function setLabView(v) { _labView = labViewKeys().indexOf(v) >= 0 ? v : 'tout'; }
+function setLabView(v) { _labView = labViewKeys().indexOf(v) >= 0 ? v : 'tout'; _labAutoView = false; _labViewChosen = true; }
 function getLabView() { return _labView; }
+// Début ou fin d'une recherche : retour à Récent, sans choix ni diagnostic.
+function resetLabView() { _labView = 'tout'; _labAutoView = false; _labViewChosen = false; _labDx = null; }
 
 // Texte où chercher : nom (deux langues), acronyme, alias et nom du groupe
 // (« biochimie » liste tout le groupe, RA-03 de « Menu sélection examens »).
@@ -974,9 +983,12 @@ function _labSorted(list) {
   });
 }
 // Toutes les vues pour la recherche `q` : { vue: [sections] }, une section =
-// { key, title, items }. Sans recherche, Tout (Récent) = Au dossier puis
-// Fréquemment prescrit (RA-01 ; Figma « Requêtes — Vision ») ; avec une
-// recherche, Tout = les bilans trouvés puis les analyses sous leur catégorie.
+// { key, title, items }. Sans recherche, Tout (Récent) = Au dossier, Favoris
+// puis Fréquemment prescrit (RA-01 ; Figma « Requêtes — Vision »), un examen
+// n'y figurant qu'une fois, dans la section la plus haute ; avec une recherche,
+// Tout = les bilans trouvés puis les analyses sous leur catégorie. Suggérés =
+// les examens du diagnostic de la note (`_labDx`, DX_CONTEXTS) puis ceux des
+// problèmes du Sommaire (LAB_SUGGESTED), chacun une seule fois.
 function labViews(q, favSet) {
   const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
   const match = function (it) { const h = _labHay(it); return words.every(function (w) { return h.includes(w); }); };
@@ -984,17 +996,34 @@ function labViews(q, favSet) {
   const all = LAB_ITEMS.concat(LAB_BILANS);
   const onFile = Object.keys(LAB_ON_FILE);
   const dossier = sec('dossier', t('data.sectionLabOnFile.title'), onFile.map(_labItem).filter(Boolean));
-  // Les plus prescrits hors dossier : un bilan compte comme une analyse.
+  const isFav = function (it) { return favSet.has(it.key); };
+  const notOnFile = function (it) { return onFile.indexOf(it.key) < 0; };
+  // Récent : les favoris hors dossier, puis les plus prescrits hors dossier et
+  // hors favoris ; un bilan compte comme une analyse.
+  const recentFav = sec('favoris', t('data.sectionFavorites.title'), all.filter(function (it) { return isFav(it) && notOnFile(it); }));
   const frequent = sec('frequent', t('data.sectionLabFrequentRx.title'), all
-    .filter(function (it) { return labFreq(it.key) > 0 && onFile.indexOf(it.key) < 0; })
+    .filter(function (it) { return labFreq(it.key) > 0 && notOnFile(it) && !isFav(it); })
     .sort(function (a, b) { return labFreq(b.key) - labFreq(a.key); })
     .slice(0, LAB_FREQUENT_SHOWN));
-  const fav = sec('favoris', t('data.sectionFavorites.title'), all.filter(function (it) { return favSet.has(it.key); }));
+  const fav = sec('favoris', t('data.sectionFavorites.title'), all.filter(isFav));
+  // Suggérés : le diagnostic de la note d'abord, puis les problèmes du Sommaire.
+  const seen = {};
+  const suggested = [];
+  const dxItems = _labDx ? contextResultsFor(_labDx, 'lab') : [];
+  if (dxItems.length) {
+    suggested.push(sec('sugg-dx', t('data.sectionLabSuggestedDx.title', { dx: _labDx.name || '' }), dxItems));
+    dxItems.forEach(function (it) { seen[it.key] = true; });
+  }
+  LAB_SUGGESTED.forEach(function (s, i) {
+    const items = _labWith(s.items).filter(function (it) { return !seen[it.key]; });
+    items.forEach(function (it) { seen[it.key] = true; });
+    suggested.push(sec('sugg-' + i, t('data.sectionLabSuggestedProblem.title', { problem: s.problem }), items));
+  });
   const bilans = sec('bilans', t('data.sectionLabBilans.title'), LAB_BILANS);
   const inGroup = function (g) { return LAB_ITEMS.filter(function (it) { return it.group === g.key; }); };
   const v = {
-    tout: words.length ? [bilans].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return sec(g.key, g.name, inGroup(g)); })) : [dossier, frequent],
-    favoris: [fav], bilans: [bilans]
+    tout: words.length ? [bilans].concat(LAB_GROUPS_BY_FREQ.map(function (g) { return sec(g.key, g.name, inGroup(g)); })) : [dossier, recentFav, frequent],
+    favoris: [fav], suggeres: suggested, bilans: [bilans]
   };
   // Une catégorie seule : de la plus à la moins prescrite.
   LAB_GROUPS_BY_FREQ.forEach(function (g) { v[g.key] = [sec(g.key, g.name, _labSorted(inGroup(g)))]; });
@@ -1013,6 +1042,7 @@ function searchLab(q, favSet) {
 const LAB_VIEW_DEFS = [
   { key: 'tout', label: t('data.labViewRecent.label'), icon: 'history' },
   { key: 'favoris', label: t('data.sectionFavorites.title'), icon: 'favorite_border' },
+  { key: 'suggeres', label: t('data.labViewSuggested.label'), icon: 'auto_awesome' },
   { key: 'bilans', label: t('data.sectionLabBilans.title'), icon: 'library_add_check' }
 ];
 function labRail(q, favSet) {
@@ -2106,13 +2136,21 @@ let _favFreeze = {};
 // `contextName`) puis, pour /rx, toutes les médications au dossier — souvent
 // on modifie une prescription en maladie chronique plutôt qu'on en crée une
 // (rencontre du 2026-10-27, A1). Au premier caractère, ou sur un filtre du
-// rail /rx, c'est une recherche normale.
+// rail /rx, c'est une recherche normale. /lab n'a plus ce mode : son panneau a
+// une vue Suggérés, sur laquelle il s'ouvre d'office quand le diagnostic a des
+// examens (voir `_labAutoView`).
 function searchOrder(kind, q, dx) {
   const d = ORDER_DEFS[kind];
   if (!d) return { favoris: [], frequents: [], autres: [] };
   // /ref : le diagnostic de la région donne « Suggérés pour … » en tête de Tout (refViews).
   if (kind === 'ref') _refDx = dx || null;
-  if (dx && kind !== 'ref' && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
+  if (kind === 'lab') {
+    _labDx = dx || null;
+    const idle = !(q || '').trim();
+    if (idle && !_labViewChosen && _labDx && contextResultsFor(_labDx, 'lab').length) { _labView = 'suggeres'; _labAutoView = true; }
+    else if (_labAutoView && !idle) { _labView = 'tout'; _labAutoView = false; _labViewChosen = true; }
+  }
+  if (dx && kind !== 'ref' && kind !== 'lab' && !(q || '').trim() && (kind !== 'rx' || _rxFilter === 'tout')) {
     const ctx = contextResultsFor(dx, kind);
     if (ctx.length) {
       const res = { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
@@ -2179,7 +2217,7 @@ function orderBatch(kind, term) {
   return { picks: picks, current: parts[parts.length - 1].trim() };
 }
 
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _refView = 'tout'; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; resetLabView(); _refView = 'tout'; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
@@ -2564,7 +2602,7 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, rxAllergyOf,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, labFreq,
+  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, resetLabView, labFreq,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, searchTemplates, noteDayLabel, templateWithoutTool,

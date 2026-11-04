@@ -634,7 +634,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = []; railFocus = false; labMulti = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout'); window.NOTE_DATA.setRefView('tout');
+        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.resetLabView(); window.NOTE_DATA.setRefView('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);

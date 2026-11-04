@@ -42,8 +42,8 @@ test('avec une recherche : les bilans, puis les analyses sous leur groupe', () =
 test('panneau : une vue filtre la liste et la recherche, ses nombres suivent la recherche, retour à Tout à la fermeture', () => {
   D.endOrderSearch();
   const rail = D.labRail('');
-  assert.deepEqual(rail.slice(0, 3).map((r) => r.key), ['tout', 'favoris', 'bilans'], 'Récent, Favoris, Ensembles d’examens (Figma « Requêtes — Vision »)');
-  assert.deepEqual(rail.slice(0, 3).map((r) => r.label), [w.t('data.labViewRecent.label'), w.t('data.sectionFavorites.title'), w.t('data.sectionLabBilans.title')]);
+  assert.deepEqual(rail.slice(0, 4).map((r) => r.key), ['tout', 'favoris', 'suggeres', 'bilans'], 'Récent, Favoris, Suggérés, Ensembles d’examens (Figma « Requêtes — Vision »)');
+  assert.deepEqual(rail.slice(0, 4).map((r) => r.label), [w.t('data.labViewRecent.label'), w.t('data.sectionFavorites.title'), w.t('data.labViewSuggested.label'), w.t('data.sectionLabBilans.title')]);
   assert.equal(D.labRail('fsc')[0].label, w.t('data.labViewAll.label'), 'avec une recherche, la première vue montre tout');
   assert.equal(rail.find((r) => r.key === 'biochimie').count, D.LAB_GROUPS[0].tests.length);
   assert.ok(rail.filter((r) => r.group).length === D.LAB_GROUPS.length);
@@ -60,19 +60,69 @@ test('panneau : une vue filtre la liste et la recherche, ses nombres suivent la 
   assert.equal(D.getLabView(), 'tout');
 });
 
-test('Récent : Au dossier, puis Fréquemment prescrit hors dossier ; plus de Prévention ni de Suggérés', () => {
+test('Récent : Au dossier, Favoris hors dossier, puis Fréquemment prescrit hors dossier et hors favoris ; pas de Prévention', () => {
   const r = D.searchOrder('lab', '');
   D.endOrderSearch();
-  assert.deepEqual(r.labSections.map((s) => s.key), ['dossier', 'frequent']);
-  const frequent = r.labSections[1];
+  assert.deepEqual(r.labSections.map((s) => s.key), ['dossier', 'favoris', 'frequent']);
+  const [dossier, fav, frequent] = r.labSections;
+  assert.equal(fav.title, w.t('data.sectionFavorites.title'));
+  assert.deepEqual(fav.items.map((it) => it.key), ['lipide'], 'FSC est favorite mais déjà au dossier : elle n’est pas répétée');
   assert.equal(frequent.title, w.t('data.sectionLabFrequentRx.title'));
   assert.equal(frequent.items.length, 3);
-  const onFile = r.labSections[0].items.map((it) => it.key);
-  assert.ok(frequent.items.every((it) => !onFile.includes(it.key)), 'rien de ce qui est déjà au dossier');
+  const above = dossier.items.concat(fav.items).map((it) => it.key);
+  assert.ok(frequent.items.every((it) => !above.includes(it.key)), 'rien de ce qui est déjà au dossier ou parmi les favoris');
+  const all = r.labSections.flatMap((s) => s.items.map((it) => it.key));
+  assert.equal(all.length, new Set(all).size, 'un examen n’apparaît qu’une fois dans Récent');
   const freqs = frequent.items.map((it) => D.labFreq(it.key));
   assert.deepEqual(freqs, freqs.slice().sort((a, b) => b - a), 'du plus au moins prescrit');
   assert.ok(D.labFreq('lipide') > 0 && D.labFreq('prof-annuel') > 0, 'un bilan compte comme une analyse (il peut figurer sous Fréquemment prescrit, selon le dossier)');
-  assert.ok(!D.labViewKeys().includes('prev') && !D.labViewKeys().includes('sugg'));
+  assert.ok(!D.labViewKeys().includes('prev'), 'pas de vue Prévention');
+});
+
+test('Suggérés : une vue du panneau, les problèmes du Sommaire avec leur raison ; sans diagnostic, Récent reste la vue ouverte', () => {
+  assert.ok(D.labViewKeys().includes('suggeres'));
+  const rec = D.searchOrder('lab', '');
+  assert.equal(D.getLabView(), 'tout', 'sans diagnostic, la recherche s’ouvre sur Récent');
+  assert.ok(rec.labSections.every((s) => !s.key.startsWith('sugg')));
+  D.setLabView('suggeres');
+  const r = D.searchOrder('lab', '');
+  const total = r.labSections.reduce((n, s) => n + s.items.length, 0);
+  assert.equal(D.labRail('').find((x) => x.key === 'suggeres').count, total, 'le compteur du panneau suit la vue');
+  assert.ok(r.labSections.length > 0 && r.labSections.every((s) => s.key.startsWith('sugg-')));
+  assert.equal(r.labSections[0].title, w.t('data.sectionLabSuggestedProblem.title', { problem: w.TR('Hypertension artérielle') }), 'un titre par problème du Sommaire');
+  assert.ok(r.labSections.flatMap((s) => s.items).every((it) => it.why), 'la raison et l’échéance sur la 2ᵉ ligne');
+  D.endOrderSearch();
+});
+
+test('Suggérés sous un diagnostic : le diagnostic d’abord, puis les problèmes du Sommaire, chaque examen une fois', () => {
+  const hta = { name: 'Hypertension artérielle', code: 'I10' };
+  const r = D.searchOrder('lab', '', hta);
+  assert.equal(D.getLabView(), 'suggeres', 'ouverte sous un diagnostic qui a des examens : la vue Suggérés, d’office');
+  assert.equal(r.labSections[0].key, 'sugg-dx');
+  assert.deepEqual(r.labSections[0].items.map((it) => it.key), ['creat', 'ions', 'srum']);
+  const all = r.labSections.flatMap((s) => s.items.map((it) => it.key));
+  assert.equal(all.length, new Set(all).size, 'ions et créatinine, déjà sous le diagnostic, ne reviennent pas sous le problème du Sommaire');
+  D.endOrderSearch();
+});
+
+test('Suggérés d’office : la première frappe rend la main à Récent, un choix de vue n’est jamais défait', () => {
+  const asthme = { name: 'Asthme léger', code: 'J45.9' };
+  D.searchOrder('lab', '', asthme);
+  assert.equal(D.getLabView(), 'suggeres');
+  D.searchOrder('lab', 'f', asthme);
+  assert.equal(D.getLabView(), 'tout', 'une frappe : recherche normale');
+  D.searchOrder('lab', '', asthme);
+  assert.equal(D.getLabView(), 'tout', 'effacer le texte ne ramène pas la vue d’office');
+  D.endOrderSearch();
+  assert.equal(D.getLabView(), 'tout');
+  D.searchOrder('lab', '', asthme);
+  D.setLabView('favoris');
+  D.searchOrder('lab', '', asthme);
+  assert.equal(D.getLabView(), 'favoris', 'le choix de la personne reste');
+  D.endOrderSearch();
+  D.searchOrder('lab', '', { name: 'Migraine sans aura', code: 'G43.0' });
+  assert.equal(D.getLabView(), 'tout', 'un diagnostic sans examen associé : Récent');
+  D.endOrderSearch();
 });
 
 test('une catégorie : de la plus prescrite à la moins prescrite, sans autre ordre au choix', () => {
