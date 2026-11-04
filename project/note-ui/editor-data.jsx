@@ -458,26 +458,28 @@ const RX_ALL = RX_ITEMS.concat(RX_OTHERS);
 // Figma « Recherche », EX-023). Statuts : 'active' (Actif), 'echue' (Échu),
 // 'cessée' (Cessé) — mêmes clés que le Sommaire (MEDS_STATUS_COLOR). Contenu
 // d'exemple fictif, à valider : le Figma montre Sertraline et Tylenol ; ici le
-// profil garde le Tylenol et la nitrofurantoïne déjà au Sommaire.
+// profil garde le Tylenol et la nitrofurantoïne déjà au Sommaire. `prescribedOn` :
+// la date de la prescription d'origine (ISO), montrée sur la ligne de /rx
+// (medPrescribedText) ; dates d'exemple fictives, à valider.
 const MED_STATUS_LABEL = { active: t('data.medStatusActive.text'), echue: t('data.medStatusExpired.text'), 'cessée': t('data.medStatusCeased.text') };
 const PATIENT_MEDS = window.forPatient({ adulte: [
   // Micheline Lamontagne (patients.js) : le profil que reprend le Figma
   // « Demande de consultation en médecine spécialisée » — almotriptan et
   // candesartan cochés d'office dans les médicaments essayés de la référence.
-  { key: 'med-almotriptan', name: L('Almotriptan'), dose: '12,5 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+  { key: 'med-almotriptan', prescribedOn: '2025-06-10', name: L('Almotriptan'), dose: '12,5 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     sig: L('1 co PO PRN'),
     chipSig: L('1 co PO PRN'),
     details: { molecule: L('Almotriptan'), dose: '12,5', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Migraine'), notes: L('Au début de la crise, max. 2 co par 24 h.') } },
-  { key: 'med-candesartan', name: L('Candesartan'), dose: '8 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+  { key: 'med-candesartan', prescribedOn: '2025-09-02', name: L('Candesartan'), dose: '8 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     doseSteps: ['4', '8', '16'], // paliers d'exemple (mg), à valider
     sig: L('1 co PO DIE'),
     chipSig: L('1 co PO DIE'),
     details: { molecule: L('Candesartan'), dose: '8', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Prophylaxie de la migraine'), notes: L('Profil actif au dossier.') } },
-  { key: 'med-levothyroxine', name: L('Lévothyroxine'), dose: '75 mcg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+  { key: 'med-levothyroxine', prescribedOn: '2024-03-14', name: L('Lévothyroxine'), dose: '75 mcg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     sig: L('1 co PO DIE'),
     chipSig: L('1 co PO DIE'),
     details: { molecule: L('Lévothyroxine'), dose: '75', unit: 'mcg', form: 'comprimé', route: 'PO',
@@ -485,39 +487,39 @@ const PATIENT_MEDS = window.forPatient({ adulte: [
       indication: L('Hypothyroïdie'), notes: L('Profil actif au dossier.') } },
   // Diabète (PLAN-conduite-precedente.md) : changés en octobre 2026, après ma
   // dernière note de suivi — la conduite reprise le signale (C6).
-  { key: 'med-metformine', name: L('Metformine'), dose: '1000 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+  { key: 'med-metformine', prescribedOn: '2025-04-08', name: L('Metformine'), dose: '1000 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
     sig: L('1 co PO BID'),
     chipSig: L('1 co PO BID'),
     details: { molecule: L('Metformine'), dose: '1000', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Diabète de type 2'), notes: L('Dose augmentée 10/2026.') } },
-  { key: 'med-gliclazide', name: L('Gliclazide'), dose: '30 mg', med: true, medStatus: 'cessée', medDate: '10/2026', medStatusLabel: L('cessé (hypoglycémies)'),
+  { key: 'med-gliclazide', prescribedOn: '2025-04-08', name: L('Gliclazide'), dose: '30 mg', med: true, medStatus: 'cessée', medDate: '10/2026', medStatusLabel: L('cessé (hypoglycémies)'),
     sig: L('1 co PO DIE'),
     chipSig: L('1 co PO DIE'),
     details: { molecule: L('Gliclazide'), dose: '30', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Diabète de type 2'), notes: L('Cessé 10/2026.') } },
-  { key: 'med-naproxene', name: L('Naproxène'), dose: '500 mg', med: true, medStatus: 'cessée', medDate: '11/2025', medStatusLabel: L('cessé (inefficace)'),
+  { key: 'med-naproxene', prescribedOn: '2025-02-12', name: L('Naproxène'), dose: '500 mg', med: true, medStatus: 'cessée', medDate: '11/2025', medStatusLabel: L('cessé (inefficace)'),
     sig: L('1 co PO BID'),
     chipSig: L('1 co PO BID'),
     details: { molecule: L('Naproxène'), dose: '500', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'BID', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Migraine'), notes: L('Cessé 11/2025.') } },
 ], pediatrique: [
-  { key: 'med-tylenol-100', name: L('Tylenol'), dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
-    renewSoon: true, doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
+  { key: 'med-tylenol-100', prescribedOn: '2026-01-20', name: L('Tylenol'), dose: '100 mg', med: true, medStatus: 'active', medStatusLabel: L('actif'),
+    doseSteps: ['100', '325', '500', '650'], // paliers d'exemple (mg), à valider
     sig: L('1 co PO PRN'),
     chipSig: L('1 co PO PRN'),
     details: { molecule: L('Tylenol'), dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
       frequency: 'PRN', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Douleur'), notes: L('Profil actif au dossier.') } },
-  { key: 'med-tylenol-500', name: L('Tylenol'), dose: '500 mg', med: true, medStatus: 'echue', doseSteps: ['100', '325', '500', '650'], medDate: '02/2026', medStatusLabel: L('échue 02/2026'),
+  { key: 'med-tylenol-500', prescribedOn: '2025-08-14', name: L('Tylenol'), dose: '500 mg', med: true, medStatus: 'echue', doseSteps: ['100', '325', '500', '650'], medDate: '02/2026', medStatusLabel: L('échue 02/2026'),
     sig: L('2 co PO DIE'),
     chipSig: L('2 co PO DIE'),
     details: { molecule: L('Tylenol'), dose: '500', unit: 'mg', form: 'comprimé', qtyDose: '2', route: 'PO',
       frequency: 'DIE', duration: '', durationUnit: '', quantity: '', refills: '0',
       indication: L('Douleur'), notes: L('Échue au dossier (02/2026).') } },
-  { key: 'med-nitrofurantoine', name: L('Nitrofurantoïne'), dose: '100 mg', med: true, medStatus: 'cessée', medDate: '12/2025', medStatusLabel: L('cessée (ITU)'),
+  { key: 'med-nitrofurantoine', prescribedOn: '2025-12-02', name: L('Nitrofurantoïne'), dose: '100 mg', med: true, medStatus: 'cessée', medDate: '12/2025', medStatusLabel: L('cessée (ITU)'),
     sig: L('1 co PO BID'),
     chipSig: L('1 co PO BID'),
     details: { molecule: L('Nitrofurantoïne'), dose: '100', unit: 'mg', form: 'comprimé', route: 'PO',
@@ -564,7 +566,7 @@ function adjustMedDose(it, dir) {
 }
 
 // Filtres du menu /rx (rail à droite, Figma « Recherche de prescriptions ») :
-// Tout, Renouvelables (échues ou à renouveler bientôt), Actives, Cessées,
+// Tout, Renouvelables (actives ou échues), Actives, Cessées,
 // Fréquemment prescrits (les favoris, clé `favoris`), Gabarits (ceux qui proposent
 // une ordonnance). Le filtre vit le temps d'une recherche, comme les favoris
 // figés (endOrderSearch).
@@ -579,7 +581,8 @@ const RX_FILTERS = [
 let _rxFilter = 'tout';
 function setRxFilter(f) { _rxFilter = RX_FILTERS.some(function (x) { return x.key === f; }) ? f : 'tout'; }
 function getRxFilter() { return _rxFilter; }
-function isRenewable(it) { return !!(it && it.med && (it.medStatus === 'echue' || it.renewSoon)); }
+// Toute médication active ou échue se renouvelle (Ignacio Calvo, 2026-11-04) ; une cessée, non.
+function isRenewable(it) { return !!(it && it.med && (it.medStatus === 'echue' || it.medStatus === 'active')); }
 // `r` = résultat de searchRx ; rend la liste du filtre choisi.
 function applyRxFilter(r, f) {
   const none = { profil: [], favoris: [], frequents: [], autres: [] };
@@ -654,6 +657,15 @@ function rxFilterCounts(q, favs) {
 function medStatusText(m) {
   if (!m || !m.medStatus || m.medStatus === 'active') return '';
   return MED_STATUS_LABEL[m.medStatus] + (m.medDate ? ' ' + m.medDate : '');
+}
+// Date de la prescription d'origine d'une médication au profil, pour sa ligne
+// de /rx : « Prescrit le 20 janv. 2026 » ; vide si elle n'est pas connue.
+function medPrescribedText(m) {
+  if (!m || !m.prescribedOn) return '';
+  const loc = window.I18N && window.I18N.locale;
+  const d = new Date(m.prescribedOn + 'T12:00:00');
+  const date = loc && !isNaN(d) ? d.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : m.prescribedOn;
+  return t('data.medPrescribedOn.text', { date: date });
 }
 // « + » du Sommaire derrière le tweak « Le « + » du sommaire ajoute dans la
 // note » : ce que la boîte demande à la note. { documentAs } = région
@@ -2530,7 +2542,7 @@ function visitReason(points) {
 
 window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
-  medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
+  medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, LAB_GROUPS, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView,

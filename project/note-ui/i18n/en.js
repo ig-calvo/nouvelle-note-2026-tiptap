@@ -242,6 +242,7 @@
   'data.imagingNoun.text': 'exam',
   'data.imagingRequest.text': 'Imaging request',
   'data.labNoun.text': 'lab test',
+  'data.medPrescribedOn.text': 'Prescribed on {date}',
   'data.medStatusActive.text': 'Active',
   'data.medStatusCeased.text': 'Stopped',
   'data.medStatusExpired.text': 'Expired',
