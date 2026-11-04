@@ -656,10 +656,71 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-lab__name { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rx-lab__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rx-lab__line2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.rx-lab__status { font-weight: 600; color: var(--fg-2); }
-.rx-lab__status.is-abnormal { color: var(--mat-sys-error); }
-.rx-lab__trend { display: inline-flex; margin-left: 6px; vertical-align: -3px; color: var(--fg-2); }
-.rx-lab__trend .material-symbols-outlined { font-size: 16px; }
+/* Dernier résultat au dossier (Figma « Requêtes — Vision ») : date · valeur en
+   gras, en rouge si anormal · flèche de tendance. Le mot Normal / Anormal n'est
+   plus écrit : il reste dans .rx-sr pour les lecteurs d'écran. */
+.rx-lab__line2--result { display: flex; align-items: center; gap: 8px; }
+.rx-lab__date { flex-shrink: 0; }
+.rx-lab__value { flex-shrink: 0; font-weight: 600; color: var(--fg-1); }
+.rx-lab__value.is-abnormal { color: var(--mat-sys-error); }
+.rx-lab__trend { display: inline-flex; flex-shrink: 0; color: var(--fg-1); }
+.rx-lab__trend.is-abnormal { color: var(--mat-sys-error); }
+.rx-lab__trend .material-symbols-outlined { font-size: 20px; }
+.rx-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Menu /lab selon le Figma « Requêtes — Vision », état « Laboratoire »
+   (2026-11-04) : liste de 499 px et panneau de 237 px, hauteur de liste 400 px,
+   rangées de 60 px, en-têtes de 12 px, rail sans icône pour les catégories,
+   barre de sélection de 64 px. S'applique à /lab avec son panneau seulement ;
+   /ref et le menu ouvert sous un diagnostic gardent .rx-menu--lab seul. */
+.rx-menu--req { width: 736px; grid-template-columns: 499px minmax(0, 1fr); grid-template-rows: 400px auto; }
+.rx-menu--req .rx-menu__scroll { height: 400px; box-sizing: border-box; padding: 4px 0 0; }
+.rx-menu--req .rx-sec { display: flex; align-items: center; gap: 8px; min-height: 36px; box-sizing: border-box; margin: 0; padding: 8px 12px; font: 600 12px/18px var(--font-body); letter-spacing: 0.4px; color: var(--mat-sys-on-surface-variant); border-bottom: 1px solid var(--mat-sys-outline-variant); }
+.rx-menu--req .rx-sec-block + .rx-sec-block .rx-sec { margin-top: 0; }
+.rx-menu--req .rx-sec__title { flex: 1; min-width: 0; }
+.rx-menu--req .rx-sec-count { color: inherit; font-weight: inherit; }
+.rx-menu--req .rx-item { align-items: center; gap: 12px; min-height: 60px; box-sizing: border-box; padding: 8px 8px 8px 12px; }
+.rx-menu--req .rx-item__body { display: flex; flex-direction: column; justify-content: center; min-height: 40px; }
+.rx-menu--req .rx-item__name { font: 600 14px/21px var(--font-body); letter-spacing: 0.25px; color: var(--fg-1); }
+.rx-menu--req .rx-item__sig { margin-top: 0; font: 400 12px/18px var(--font-body); letter-spacing: 0.4px; color: var(--fg-2); }
+.rx-menu--req .rx-item__actions { padding-top: 0; gap: 0; }
+/* Une analyse sélectionnée garde sa teinte même quand c'est la rangée active (Figma : primary à 8 %). */
+.rx-menu--req .rx-item.is-checked, .rx-menu--req .rx-item.is-checked.is-active { --rx-row-bg: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-lowest)); }
+/* Cœur de 44 px : sur la rangée survolée, active ou focalisée, et toujours si favori. */
+.rx-menu--req .rx-heart { box-sizing: border-box; width: 44px; height: 44px; padding: 0; align-items: center; justify-content: center; border-radius: 8px; }
+.rx-menu--req .rx-heart .material-icons { font-size: 20px; }
+.rx-menu--req .rx-heart.is-fav { color: var(--mat-sys-error); }
+.rx-menu--req .rx-heart:not(.is-fav) { opacity: 0; }
+.rx-menu--req .rx-item:hover .rx-heart, .rx-menu--req .rx-item.is-active .rx-heart, .rx-menu--req .rx-item:focus-within .rx-heart, .rx-menu--req .rx-heart:focus-visible { opacity: 1; }
+.rx-menu--req .rx-item .rx-med-actions--heart { right: 56px; top: 50%; transform: translateY(-50%); }
+/* Panneau de droite. */
+.rx-menu--req .rx-rail { padding: 12px 12px 16px; gap: 4px; border-left-color: var(--mat-sys-outline-variant); }
+.rx-menu--req .rx-rail__item { height: 36px; gap: 0; padding: 0 12px; font: 400 12px/18px var(--font-body); letter-spacing: 0.4px; }
+.rx-menu--req .rx-rail__item .material-icons-outlined { margin-right: 12px; }
+.rx-menu--req .rx-rail__count { margin-left: 8px; }
+.rx-menu--req .rx-rail__item--group { height: 34px; }
+.rx-menu--req .rx-rail__item.is-on { background: light-dark(rgba(103, 80, 164, 0.08), rgba(208, 188, 255, 0.16)); color: var(--mat-sys-on-primary-container); font-weight: 600; }
+.rx-menu--req .rx-rail__count { font-size: 12px; }
+.rx-rail__sep { height: 1px; margin: 4px 0; background: var(--mat-sys-outline-variant); }
+/* Bascule « Multisélection » (52 × 32) et bouton A-Z d'une catégorie. */
+.rx-switch { display: inline-flex; align-items: center; gap: 8px; margin: -8px 0; padding: 0; border: 0; background: transparent; cursor: pointer; font: 400 14px/21px var(--font-body); letter-spacing: 0.25px; color: var(--mat-sys-on-surface); }
+.rx-switch__track { position: relative; box-sizing: border-box; width: 52px; height: 32px; border: 2px solid var(--mat-sys-outline); border-radius: 16px; background: var(--mat-sys-surface-container-highest); transition: background 120ms, border-color 120ms; }
+.rx-switch__thumb { position: absolute; top: 50%; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--mat-sys-outline); transform: translateY(-50%); transition: left 120ms, width 120ms, height 120ms, background 120ms; }
+.rx-switch.is-on .rx-switch__track { background: var(--mat-sys-primary); border-color: var(--mat-sys-primary); }
+.rx-switch.is-on .rx-switch__thumb { left: 22px; width: 24px; height: 24px; background: var(--mat-sys-on-primary); }
+.rx-switch:focus-visible .rx-switch__track, .rx-sort:focus-visible, .rx-selbar__btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.rx-sort { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: -6px 0; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--mat-sys-on-surface); }
+.rx-sort .material-symbols-outlined { font-size: 22px; }
+.rx-sort:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.rx-sort.is-on { background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent); color: var(--mat-sys-primary); }
+/* Barre de sélection, en pied, seulement quand quelque chose est sélectionné. */
+.rx-selbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; box-sizing: border-box; min-height: 64px; padding: 0 12px 0 16px; background: var(--mat-sys-surface); }
+.rx-selbar__count { flex: 1; font: 400 12px/18px var(--font-body); letter-spacing: 0.4px; color: var(--fg-3); }
+.rx-selbar__btn { height: 32px; padding: 0 16px; border-radius: 8px; font: 500 14px/20px var(--font-body); letter-spacing: 0.1px; cursor: pointer; }
+.rx-selbar__btn--outlined { border: 1px solid var(--mat-sys-outline-variant); background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); }
+.rx-selbar__btn--outlined:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, var(--mat-sys-surface-container-lowest)); }
+.rx-selbar__btn--filled { border: 0; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); }
+.rx-selbar__btn--filled:hover { background: color-mix(in srgb, var(--mat-sys-on-primary) 8%, var(--mat-sys-primary)); }
 /* Actions d'une ligne : visibles sur la ligne survolée ou choisie (Figma), pas sur toutes. */
 .rx-item .rx-med-actions { visibility: hidden; }
 .rx-item.is-active .rx-med-actions, .rx-item:hover .rx-med-actions, .rx-item:focus-within .rx-med-actions { visibility: visible; }

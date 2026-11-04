@@ -42,9 +42,13 @@ test('avec une recherche : les bilans, puis les analyses sous leur groupe', () =
 test('panneau : une vue filtre la liste et la recherche, ses nombres suivent la recherche, retour à Tout à la fermeture', () => {
   D.endOrderSearch();
   const rail = D.labRail('');
-  assert.deepEqual(rail.slice(0, 5).map((r) => r.key), ['tout', 'prev', 'sugg', 'favoris', 'bilans']);
+  assert.deepEqual(rail.slice(0, 3).map((r) => r.key), ['tout', 'favoris', 'bilans'], 'Récent, Favoris, Ensembles d’examens (Figma « Requêtes — Vision »)');
+  assert.deepEqual(rail.slice(0, 3).map((r) => r.label), [w.t('data.labViewRecent.label'), w.t('data.sectionFavorites.title'), w.t('data.sectionLabBilans.title')]);
+  assert.equal(D.labRail('fsc')[0].label, w.t('data.labViewAll.label'), 'avec une recherche, la première vue montre tout');
   assert.equal(rail.find((r) => r.key === 'biochimie').count, D.LAB_GROUPS[0].tests.length);
   assert.ok(rail.filter((r) => r.group).length === D.LAB_GROUPS.length);
+  assert.deepEqual(rail.filter((r) => r.group).map((r) => r.key), ['biochimie', 'hematologie', 'microbiologie', 'serologie', 'biochimie-urinaire', 'fonction-respiratoire', 'medicament'], 'les catégories, de la plus prescrite à la moins prescrite');
+  assert.deepEqual(D.labViewKeys(), rail.map((r) => r.key), 'le clavier suit l’ordre du panneau');
   D.setLabView('hematologie');
   assert.deepEqual(D.searchOrder('lab', '').labSections.map((s) => s.key), ['hematologie']);
   assert.deepEqual(D.searchOrder('lab', 'c').labSections.map((s) => s.key), ['hematologie'], 'la vue filtre aussi la recherche');
@@ -56,14 +60,34 @@ test('panneau : une vue filtre la liste et la recherche, ses nombres suivent la 
   assert.equal(D.getLabView(), 'tout');
 });
 
-test('Prévention et Suggérés : la raison sur la 2e ligne ; un bilan peut être suggéré', () => {
+test('Récent : Au dossier, puis Fréquemment prescrit hors dossier ; plus de Prévention ni de Suggérés', () => {
   const r = D.searchOrder('lab', '');
   D.endOrderSearch();
-  const prev = r.labSections.find((s) => s.key === 'prev');
-  assert.ok(prev.items.every((it) => it.why));
-  const sugg = r.labSections.find((s) => s.key === 'sugg1');
-  assert.equal(sugg.title, w.t('data.sectionLabSuggested.title', { problem: w.TR('Dyslipidémie') }));
-  assert.ok(sugg.items.some((it) => it.key === 'lipide' && it.profile));
+  assert.deepEqual(r.labSections.map((s) => s.key), ['dossier', 'frequent']);
+  const frequent = r.labSections[1];
+  assert.equal(frequent.title, w.t('data.sectionLabFrequentRx.title'));
+  assert.equal(frequent.items.length, 3);
+  const onFile = r.labSections[0].items.map((it) => it.key);
+  assert.ok(frequent.items.every((it) => !onFile.includes(it.key)), 'rien de ce qui est déjà au dossier');
+  const freqs = frequent.items.map((it) => D.labFreq(it.key));
+  assert.deepEqual(freqs, freqs.slice().sort((a, b) => b - a), 'du plus au moins prescrit');
+  assert.ok(D.labFreq('lipide') > 0 && D.labFreq('prof-annuel') > 0, 'un bilan compte comme une analyse (il peut figurer sous Fréquemment prescrit, selon le dossier)');
+  assert.ok(!D.labViewKeys().includes('prev') && !D.labViewKeys().includes('sugg'));
+});
+
+test('une catégorie : de la plus prescrite à la moins prescrite, ou de A à Z ; le tri revient à la fermeture', () => {
+  D.setLabView('hematologie');
+  assert.deepEqual(D.searchOrder('lab', '').labSections[0].items.slice(0, 4).map((it) => it.key), ['fsc', 'crp', 'inr', 'vs'], 'fréquence, puis le nom à égalité');
+  D.setLabSort('az');
+  const az = D.searchOrder('lab', '').labSections[0].items.map((it) => it.name);
+  assert.deepEqual(az, az.slice().sort((a, b) => a.localeCompare(b, 'fr', { sensitivity: 'base' })));
+  assert.equal(az[0], w.TR('Antithrombine III'));
+  assert.equal(az.length, D.LAB_GROUPS.find((g) => g.key === 'hematologie').tests.length, 'le tri ne retire rien');
+  D.setLabSort('n’importe quoi');
+  assert.equal(D.getLabSort(), 'freq');
+  D.setLabSort('az');
+  D.endOrderSearch();
+  assert.equal(D.getLabSort(), 'freq');
 });
 
 test('au dossier : dernier résultat, normal ou anormal, et tendance par rapport au précédent', () => {
