@@ -148,9 +148,12 @@ test('chaque médication du profil a la date de sa prescription d’origine, ava
       assert.ok(m.prescribedOn.slice(0, 7) <= yyyy + '-' + mm, m.key);
     }
   }
+  // Maquette « Prescription — Vision » (2026-11-04) : la date en aaaa-mm-jj, pour une médication active ou échue ; pas pour une cessée.
   const text = D.medPrescribedText(med('med-tylenol-100'));
-  assert.match(text, /2026/);
-  assert.ok(text.includes(process.env.I18N_TEST_LANG === 'en' ? 'Prescribed on' : 'Prescrit le'));
+  assert.equal(text, (process.env.I18N_TEST_LANG === 'en' ? 'Prescribed on ' : 'Prescrit le ') + '2026-01-20');
+  assert.match(D.medPrescribedText(med('med-tylenol-500')), /2025-08-14$/, 'échue : la date aussi');
+  assert.equal(med('med-tylenol-500').medStatus, 'echue');
+  assert.equal(D.medPrescribedText(med('med-nitrofurantoine')), '', 'cessée : pas de date');
   assert.equal(D.medPrescribedText({ key: 'sans-date' }), '');
   assert.equal(D.medPrescribedText(null), '');
   assert.equal(D.medPrescribedText(D.RX_ALL ? D.RX_ALL[0] : {}), ''); // un produit du catalogue n'a pas de prescription d'origine

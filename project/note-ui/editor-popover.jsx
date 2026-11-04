@@ -1194,7 +1194,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       {it.crds && it.cote && <span className="rx-status rx-status--cote">{t('data.crdsPriority.text', { cote: it.cote })}</span>}
                     </div>
                     {/* Une médication au dossier montre aussi la date de sa prescription d'origine. */}
-                    <div className="rx-item__sig">{[it.sig, it.med ? window.NOTE_DATA.medPrescribedText(it) : ''].filter(Boolean).join(' · ')}</div>
+                    <div className="rx-item__sig">{[it.sig, it.med ? window.NOTE_DATA.medPrescribedText(it) : ''].filter(Boolean).join(' | ')}</div>
                   </div>}
                   <div className="rx-item__actions">
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
