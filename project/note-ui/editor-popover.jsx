@@ -1128,15 +1128,17 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   // une ligne la (dé)sélectionne au lieu d'ajouter.
   const multi = !!d.multi;
   const checkedKeys = checked || [];
-  // /lab avec son panneau (Figma « Requêtes — Vision ») : pas de cases à cocher ;
-  // la bascule « Multisélection » (ou ⇧ ↵) fait d'un clic une sélection, et une
-  // barre en pied compte la sélection. Sans panneau (ouvert sous un diagnostic),
-  // l'ancien menu garde ses cases et son pied de raccourcis.
+  // /lab avec son panneau (Figma « Requêtes — Vision ») : la bascule « Multisélection »
+  // (ou ⇧ ↵) fait d'un clic une sélection. Bascule éteinte : pas de case, un clic
+  // ajoute. Bascule allumée : une case à cocher au début de chaque rangée, et une
+  // barre en pied compte la sélection. La bascule reste dans l'en-tête tant que le
+  // mode est allumé. Sans panneau (ouvert sous un diagnostic), l'ancien menu garde
+  // ses cases et son pied de raccourcis.
   const labV2 = kind === 'lab' && isLab;
   const selecting = labV2 ? !!labMulti || checkedKeys.length > 0 : checkedKeys.length > 0;
-  // Une catégorie est choisie : le bouton A-Z remplace la bascule dans l'en-tête.
+  // Une catégorie est choisie : le bouton A-Z s'ajoute à la bascule dans l'en-tête.
   const inCategory = labV2 && !!(labRail.find((r) => r.key === filter) || {}).group;
-  let headControl = labV2 && checkedKeys.length === 0;
+  let headControl = labV2;
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
   const noFav = (it) => !!it.profile || !!it.crds; // ni un profil ni une raison CRDS n'ont de favori
   // Tous les résultats de la recherche sont des allergènes masqués : la
@@ -1168,25 +1170,29 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
         {sections.map(([ttl, list, secKey]) => { if (list.length === 0) return null;
-          // L'en-tête de la première section porte la bascule « Multisélection »
-          // (ou le bouton A-Z d'une catégorie) ; elle disparaît dès qu'il y a une sélection.
+          // L'en-tête de la première section porte la bascule « Multisélection »,
+          // et le bouton A-Z quand une catégorie est choisie. Elles restent là même
+          // quand des analyses sont sélectionnées.
           const control = headControl; headControl = false;
           return (
           <div key={secKey || ttl} className="rx-sec-block">
             <div className="rx-sec">
               <span className="rx-sec__title">{ttl} <span className="rx-sec-count">({list.length})</span></span>
-              {control && (inCategory
-                ? <button type="button" className={'rx-sort' + (labSort === 'az' ? ' is-on' : '')} aria-pressed={labSort === 'az'}
-                    title={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
-                    aria-label={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
-                    onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleSort && onToggleSort()}>
-                    <span className="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
-                  </button>
-                : <button type="button" role="switch" aria-checked={!!labMulti} className={'rx-switch' + (labMulti ? ' is-on' : '')}
+              {control &&
+                <span className="rx-sec__controls">
+                  {inCategory &&
+                    <button type="button" className={'rx-sort' + (labSort === 'az' ? ' is-on' : '')} aria-pressed={labSort === 'az'}
+                      title={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
+                      aria-label={labSort === 'az' ? t('popover.labSortFreq.tooltip') : t('popover.labSortAz.tooltip')}
+                      onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleSort && onToggleSort()}>
+                      <span className="material-symbols-outlined" aria-hidden="true">sort_by_alpha</span>
+                    </button>}
+                  <button type="button" role="switch" aria-checked={selecting} className={'rx-switch' + (selecting ? ' is-on' : '')}
                     onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleMulti && onToggleMulti()}>
                     <span className="rx-switch__label">{t('popover.labMultiselect.label')}</span>
                     <span className="rx-switch__track" aria-hidden="true"><span className="rx-switch__thumb" /></span>
-                  </button>)}
+                  </button>
+                </span>}
             </div>
             {list.map((it) => {
               flat += 1;
@@ -1200,7 +1206,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                   onMouseEnter={() => onHover(idx)}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => (multi && selecting ? onToggleCheck(it) : onSelect(it, window.NOTE_DATA.defaultMedAction(it)))}>
-                  {multi && !labV2 &&
+                  {multi && (!labV2 || selecting) &&
                     <button type="button" className="rx-check" role="checkbox" aria-checked={checkedKeys.indexOf(uid(it)) >= 0}
                       aria-label={checkedKeys.indexOf(uid(it)) >= 0 ? t('popover.uncheck.aria', { name: it.name }) : t('popover.check.aria', { name: it.name })}
                       onMouseDown={(e) => e.preventDefault()}

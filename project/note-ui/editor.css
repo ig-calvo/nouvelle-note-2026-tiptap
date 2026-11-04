@@ -713,6 +713,10 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-sort .material-symbols-outlined { font-size: 22px; }
 .rx-sort:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
 .rx-sort.is-on { background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent); color: var(--mat-sys-primary); }
+/* Bascule et bouton A-Z côte à côte, à droite de l'en-tête d'une section. */
+.rx-sec__controls { display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0; }
+/* En multisélection : la case est au début de la rangée, centrée avec le texte, le cœur et « Documenter ». */
+.rx-menu--req .rx-check { margin: 0 0 0 -4px; }
 /* Barre de sélection, en pied, seulement quand quelque chose est sélectionné. */
 .rx-selbar { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; box-sizing: border-box; min-height: 64px; padding: 0 12px 0 16px; background: var(--mat-sys-surface); }
 .rx-selbar__count { flex: 1; font: 400 12px/18px var(--font-body); letter-spacing: 0.4px; color: var(--fg-3); }
