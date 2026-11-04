@@ -703,6 +703,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }
           if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
         }
+        // /lab en multisélection (bascule allumée ou analyses cochées) : la recherche
+        // est gelée. Rien ne s'ajoute au texte de la note, pour que la vue reste stable ;
+        // Espace coche ou décoche la rangée active (comme ⇧ Entrée) ; Entrée soumet la
+        // sélection. Éteindre la bascule libère la frappe (décision du 2026-11-04).
+        if (parsed.mode === 'order' && parsed.kind === 'lab' && (labMulti || checked.length > 0)) {
+          const frozen = window.NOTE_DATA.multiFreezeKey(props.event);
+          if (frozen === 'toggle') {
+            const it = !railFocus && currentItems[selectedIndex];
+            if (it) { toggleChecked(it, parsed.kind); publish(lastQuery); }
+            return true;
+          }
+          if (frozen === 'block') return true;
+        }
         if (props.event.key === 'ArrowDown') {
           selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;

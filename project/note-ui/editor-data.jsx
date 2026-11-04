@@ -960,6 +960,16 @@ function setLabView(v) { _labView = labViewKeys().indexOf(v) >= 0 ? v : 'tout'; 
 function getLabView() { return _labView; }
 // Début ou fin d'une recherche : retour à Récent, sans choix ni diagnostic.
 function resetLabView() { _labView = 'tout'; _labAutoView = false; _labViewChosen = false; _labDx = null; }
+// Multisélection de /lab : la recherche est gelée (décision du 2026-11-04). Pour
+// une touche du clavier, dit ce que fait le menu : 'toggle' (Espace : coche ou
+// décoche la rangée active), 'block' (un caractère, Retour arrière ou Suppr : rien
+// ne s'écrit dans la note) ou 'pass' (flèches, Entrée, Tab, Échap, raccourcis
+// avec Cmd ou Ctrl, composition de texte : le menu les traite comme d'habitude).
+function multiFreezeKey(e) {
+  if (!e || !e.key || e.isComposing || e.metaKey || e.ctrlKey) return 'pass';
+  if (e.key === ' ' || e.key === 'Spacebar') return 'toggle';
+  return e.key.length === 1 || e.key === 'Backspace' || e.key === 'Delete' ? 'block' : 'pass';
+}
 
 // Texte où chercher : nom (deux langues), acronyme, alias et nom du groupe
 // (« biochimie » liste tout le groupe, RA-03 de « Menu sélection examens »).
@@ -2602,7 +2612,7 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, rxAllergyOf,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, resetLabView, labFreq,
+  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, resetLabView, multiFreezeKey, labFreq,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, searchTemplates, noteDayLabel, templateWithoutTool,
