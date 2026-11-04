@@ -492,7 +492,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     let checked = [];
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
     let railFocus = false;
-    // /lab : la bascule « Multisélection » est allumée (un clic sélectionne au lieu d'ajouter).
+    // /lab : la bascule « Multisélection » est allumée (cases à cocher, un clic
+    // sélectionne au lieu d'ajouter). Cocher une analyse l'allume (toggleChecked),
+    // pour que la bascule et les cases ne se contredisent jamais ; l'éteindre vide la sélection.
     let labMulti = false;
     // La recherche ouverte montre-t-elle le contexte d'un diagnostic (pas de panneau /lab) ?
     let orderInContext = false;
@@ -502,6 +504,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const i = checked.findIndex(function (c) { return checkUid(c, c.__kind) === u; });
       if (i >= 0) checked.splice(i, 1);
       else checked.push(Object.assign({}, it, { __kind: kind }));
+      labMulti = true;
     }
 
     function initialIndex() { return 0; }
@@ -751,7 +754,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       },
       republish() { publish(lastQuery); },
       // /lab : bascule « Multisélection », « Tout désélectionner » et tri A-Z d'une catégorie.
-      toggleMulti() { labMulti = !labMulti; publish(lastQuery); },
+      toggleMulti() {
+        // La bascule montre « allumée » dès qu'il y a une sélection : l'éteindre vide la sélection.
+        labMulti = !(labMulti || checked.length > 0);
+        if (!labMulti) checked = [];
+        publish(lastQuery);
+      },
       clearChecked() { checked = []; publish(lastQuery); },
       toggleSort() { window.NOTE_DATA.setLabSort(window.NOTE_DATA.getLabSort() === 'az' ? 'freq' : 'az'); selectedIndex = 0; publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Fréquemment prescrits, Phrases de prescription.

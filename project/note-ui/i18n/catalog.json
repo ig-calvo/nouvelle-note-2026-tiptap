@@ -2388,7 +2388,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-data.jsx:2233",
-        "note-ui/editor-popover.jsx:1217"
+        "note-ui/editor-popover.jsx:1223"
       ]
     },
     "data.examNoun.text": {
@@ -4308,7 +4308,7 @@
       "empreinte": "a069e0271e98",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1306"
+        "note-ui/editor-field.jsx:1314"
       ]
     },
     "field.ajouterFichiers.text": {
@@ -4316,7 +4316,7 @@
       "empreinte": "a632819ba623",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1759"
+        "note-ui/editor-field.jsx:1767"
       ]
     },
     "field.annulationSeraEnvoyeeDestinataire.text": {
@@ -4324,7 +4324,7 @@
       "empreinte": "368b2532eab9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1502"
+        "note-ui/editor-field.jsx:1510"
       ]
     },
     "field.annuler.button": {
@@ -4332,7 +4332,7 @@
       "empreinte": "49ba3292420c",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1398"
+        "note-ui/editor-field.jsx:1406"
       ]
     },
     "field.annuler.tooltip": {
@@ -4340,8 +4340,8 @@
       "empreinte": "49ba3292420c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1389",
-        "note-ui/editor-field.jsx:1422"
+        "note-ui/editor-field.jsx:1397",
+        "note-ui/editor-field.jsx:1430"
       ]
     },
     "field.annulerOrdonnance.text": {
@@ -4349,7 +4349,7 @@
       "empreinte": "3a23c8737884",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1476"
+        "note-ui/editor-field.jsx:1484"
       ]
     },
     "field.annulerRequete.text": {
@@ -4357,7 +4357,7 @@
       "empreinte": "aed68cc665a1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1476"
+        "note-ui/editor-field.jsx:1484"
       ]
     },
     "field.aucunDiagnosticNote.text": {
@@ -4365,7 +4365,7 @@
       "empreinte": "372be90638af",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1826"
+        "note-ui/editor-field.jsx:1834"
       ]
     },
     "field.autresTextesRapides.text": {
@@ -4381,7 +4381,7 @@
       "empreinte": "219433a36c0b",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1495"
+        "note-ui/editor-field.jsx:1503"
       ]
     },
     "field.cancelRequest.title": {
@@ -4389,7 +4389,7 @@
       "empreinte": "99412ed1347a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1497"
+        "note-ui/editor-field.jsx:1505"
       ]
     },
     "field.cancelRx.aria": {
@@ -4397,7 +4397,7 @@
       "empreinte": "0b04f0aac993",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1495"
+        "note-ui/editor-field.jsx:1503"
       ]
     },
     "field.cancelRx.title": {
@@ -4405,7 +4405,7 @@
       "empreinte": "1a2f936cb62c",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1497"
+        "note-ui/editor-field.jsx:1505"
       ]
     },
     "field.ceased.text": {
@@ -4421,7 +4421,7 @@
       "empreinte": "ff4d245c7dff",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1723"
+        "note-ui/editor-field.jsx:1731"
       ]
     },
     "field.cesse.text": {
@@ -4429,7 +4429,7 @@
       "empreinte": "71bad9275d88",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1835"
+        "note-ui/editor-field.jsx:1843"
       ]
     },
     "field.convertirTexte.button": {
@@ -4437,7 +4437,7 @@
       "empreinte": "58ad05a5cad6",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1464"
+        "note-ui/editor-field.jsx:1472"
       ]
     },
     "field.deleteItem.title": {
@@ -4445,7 +4445,7 @@
       "empreinte": "79598e2c0e49",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1421"
+        "note-ui/editor-field.jsx:1429"
       ]
     },
     "field.deleteRx.title": {
@@ -4453,7 +4453,7 @@
       "empreinte": "6c6e029bda2a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1421"
+        "note-ui/editor-field.jsx:1429"
       ]
     },
     "field.diagScope.hint": {
@@ -4461,7 +4461,7 @@
       "empreinte": "4380c6573f05",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1929"
+        "note-ui/editor-field.jsx:1937"
       ]
     },
     "field.documenterComme.aria": {
@@ -4469,7 +4469,7 @@
       "empreinte": "b08d7d9e777e",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1910"
+        "note-ui/editor-field.jsx:1918"
       ]
     },
     "field.documenterComme.text": {
@@ -4477,7 +4477,7 @@
       "empreinte": "b08d7d9e777e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1912"
+        "note-ui/editor-field.jsx:1920"
       ]
     },
     "field.dxDescendre.text": {
@@ -4485,7 +4485,7 @@
       "empreinte": "2a44103a3abe",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:892"
+        "note-ui/editor-field.jsx:900"
       ]
     },
     "field.dxMonter.text": {
@@ -4493,7 +4493,7 @@
       "empreinte": "7a0cf92fd297",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:891"
+        "note-ui/editor-field.jsx:899"
       ]
     },
     "field.dxToutAccepter.text": {
@@ -4501,7 +4501,7 @@
       "empreinte": "2ed9183ca87d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:895"
+        "note-ui/editor-field.jsx:903"
       ]
     },
     "field.dxToutRetirer.text": {
@@ -4509,7 +4509,7 @@
       "empreinte": "7274be4707d8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:896"
+        "note-ui/editor-field.jsx:904"
       ]
     },
     "field.envoyerAnnulation.button": {
@@ -4517,7 +4517,7 @@
       "empreinte": "d6a4f42372c4",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1506"
+        "note-ui/editor-field.jsx:1514"
       ]
     },
     "field.eteTransmisPasAnnule.text": {
@@ -4525,7 +4525,7 @@
       "empreinte": "f855d2253136",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1395"
+        "note-ui/editor-field.jsx:1403"
       ]
     },
     "field.fermer.tooltip": {
@@ -4533,9 +4533,9 @@
       "empreinte": "5ab4ec640d65",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1498",
-        "note-ui/editor-field.jsx:1760",
-        "note-ui/editor-field.jsx:1820"
+        "note-ui/editor-field.jsx:1506",
+        "note-ui/editor-field.jsx:1768",
+        "note-ui/editor-field.jsx:1828"
       ]
     },
     "field.gabaritsNote.text": {
@@ -4551,7 +4551,7 @@
       "empreinte": "1e099d9acdba",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1433"
+        "note-ui/editor-field.jsx:1441"
       ]
     },
     "field.insererFonction.tooltip": {
@@ -4559,7 +4559,7 @@
       "empreinte": "798780205c73",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1298"
+        "note-ui/editor-field.jsx:1306"
       ]
     },
     "field.labResultText.text": {
@@ -4591,7 +4591,7 @@
       "empreinte": "f260e757cec7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1344"
+        "note-ui/editor-field.jsx:1352"
       ]
     },
     "field.ordinateur.label": {
@@ -4599,7 +4599,7 @@
       "empreinte": "3f81300ddf48",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1722"
+        "note-ui/editor-field.jsx:1730"
       ]
     },
     "field.patient.label": {
@@ -4607,7 +4607,7 @@
       "empreinte": "301e246b6841",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1724"
+        "note-ui/editor-field.jsx:1732"
       ]
     },
     "field.photoMine.text": {
@@ -4615,7 +4615,7 @@
       "empreinte": "09abd782bb4b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:871"
+        "note-ui/editor-field.jsx:879"
       ]
     },
     "field.photoPatient.text": {
@@ -4623,7 +4623,7 @@
       "empreinte": "97ee84f51518",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:871"
+        "note-ui/editor-field.jsx:879"
       ]
     },
     "field.photoReceived.text": {
@@ -4631,7 +4631,7 @@
       "empreinte": "338502b94534",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:864"
+        "note-ui/editor-field.jsx:872"
       ]
     },
     "field.plusOptions.tooltip": {
@@ -4639,7 +4639,7 @@
       "empreinte": "a9452148ca3d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1362"
+        "note-ui/editor-field.jsx:1370"
       ]
     },
     "field.pourDiagnostic.text": {
@@ -4655,7 +4655,7 @@
       "empreinte": "2dab03c86888",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1358"
+        "note-ui/editor-field.jsx:1366"
       ]
     },
     "field.removeItem.hint": {
@@ -4663,7 +4663,7 @@
       "empreinte": "6b3ea2faf74c",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1429"
+        "note-ui/editor-field.jsx:1437"
       ]
     },
     "field.removeItemSent.hint": {
@@ -4671,7 +4671,7 @@
       "empreinte": "40df9554ca04",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1428"
+        "note-ui/editor-field.jsx:1436"
       ]
     },
     "field.removeItemSent.title": {
@@ -4679,7 +4679,7 @@
       "empreinte": "c95861bddf1f",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1421"
+        "note-ui/editor-field.jsx:1429"
       ]
     },
     "field.removeRx.hint": {
@@ -4687,7 +4687,7 @@
       "empreinte": "09dc0ca5cf44",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1429"
+        "note-ui/editor-field.jsx:1437"
       ]
     },
     "field.removeRxSent.hint": {
@@ -4695,7 +4695,7 @@
       "empreinte": "2bbcc397b951",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1428"
+        "note-ui/editor-field.jsx:1436"
       ]
     },
     "field.removeRxSent.title": {
@@ -4703,7 +4703,7 @@
       "empreinte": "55c0d5d6d729",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1421"
+        "note-ui/editor-field.jsx:1429"
       ]
     },
     "field.removeSelection.hint": {
@@ -4714,7 +4714,7 @@
       "empreinte": "2a487b9fd939",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1394"
+        "note-ui/editor-field.jsx:1402"
       ]
     },
     "field.renvoiDiagnostic.text": {
@@ -4722,7 +4722,7 @@
       "empreinte": "f203f6473801",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1819"
+        "note-ui/editor-field.jsx:1827"
       ]
     },
     "field.retirerNote.aria": {
@@ -4730,7 +4730,7 @@
       "empreinte": "288ed87c3e82",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1419"
+        "note-ui/editor-field.jsx:1427"
       ]
     },
     "field.retirerNote.text": {
@@ -4738,8 +4738,8 @@
       "empreinte": "288ed87c3e82",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1436",
-        "note-ui/editor-field.jsx:1469"
+        "note-ui/editor-field.jsx:1444",
+        "note-ui/editor-field.jsx:1477"
       ]
     },
     "field.retour.button": {
@@ -4747,7 +4747,7 @@
       "empreinte": "e5befb1f9671",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1504"
+        "note-ui/editor-field.jsx:1512"
       ]
     },
     "field.retour.tooltip": {
@@ -4755,8 +4755,8 @@
       "empreinte": "e5befb1f9671",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1756",
-        "note-ui/editor-field.jsx:1816"
+        "note-ui/editor-field.jsx:1764",
+        "note-ui/editor-field.jsx:1824"
       ]
     },
     "field.supprimer.aria": {
@@ -4764,7 +4764,7 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1419"
+        "note-ui/editor-field.jsx:1427"
       ]
     },
     "field.supprimer.text": {
@@ -4772,8 +4772,8 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1436",
-        "note-ui/editor-field.jsx:1469"
+        "note-ui/editor-field.jsx:1444",
+        "note-ui/editor-field.jsx:1477"
       ]
     },
     "field.supprimerSelection.aria": {
@@ -4781,7 +4781,7 @@
       "empreinte": "d1347096709f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1386"
+        "note-ui/editor-field.jsx:1394"
       ]
     },
     "field.supprimerSelection.button": {
@@ -4789,7 +4789,7 @@
       "empreinte": "d1347096709f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1400"
+        "note-ui/editor-field.jsx:1408"
       ]
     },
     "field.supprimerSelection.text": {
@@ -4797,7 +4797,7 @@
       "empreinte": "90f5c458e710",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1388"
+        "note-ui/editor-field.jsx:1396"
       ]
     },
     "field.textesRapides.text": {
@@ -4813,7 +4813,7 @@
       "empreinte": "b87db5167167",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1358"
+        "note-ui/editor-field.jsx:1366"
       ]
     },
     "field.voir.text": {
@@ -4821,7 +4821,7 @@
       "empreinte": "8a754f1f426c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1344"
+        "note-ui/editor-field.jsx:1352"
       ]
     },
     "field.waitingPhotoMine.toast": {
@@ -4829,7 +4829,7 @@
       "empreinte": "a150645a2fd1",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/editor-field.jsx:868"
+        "note-ui/editor-field.jsx:876"
       ]
     },
     "field.waitingPhotoPatient.toast": {
@@ -4837,7 +4837,7 @@
       "empreinte": "601db266d76a",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/editor-field.jsx:868"
+        "note-ui/editor-field.jsx:876"
       ]
     },
     "lab.profileNote.text": {
@@ -5629,7 +5629,7 @@
       "empreinte": "acac7665d270",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1168"
+        "note-ui/editor-popover.jsx:1170"
       ]
     },
     "picker.noneFor.text": {
@@ -5637,7 +5637,7 @@
       "empreinte": "efe57c10db02",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1168"
+        "note-ui/editor-popover.jsx:1170"
       ]
     },
     "popover.aaaaMmJj.placeholder": {
@@ -5661,8 +5661,8 @@
       "empreinte": "2e0f0469e2f7",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1323",
-        "note-ui/editor-popover.jsx:1341"
+        "note-ui/editor-popover.jsx:1329",
+        "note-ui/editor-popover.jsx:1347"
       ]
     },
     "popover.addSelection.text": {
@@ -5670,7 +5670,7 @@
       "empreinte": "62dd5c722263",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1337"
+        "note-ui/editor-popover.jsx:1343"
       ]
     },
     "popover.aerosolDoseur.label": {
@@ -5718,7 +5718,7 @@
       "empreinte": "721554924ba7",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1284"
+        "note-ui/editor-popover.jsx:1290"
       ]
     },
     "popover.allergyHidden.text": {
@@ -5729,7 +5729,7 @@
       "empreinte": "4ea8176a0914",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1162"
+        "note-ui/editor-popover.jsx:1164"
       ]
     },
     "popover.allergyHide.button": {
@@ -5737,7 +5737,7 @@
       "empreinte": "adb05f2ba3e9",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1164"
+        "note-ui/editor-popover.jsx:1166"
       ]
     },
     "popover.allergyOnly.text": {
@@ -5748,7 +5748,7 @@
       "empreinte": "f4e7907b46f5",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1161"
+        "note-ui/editor-popover.jsx:1163"
       ]
     },
     "popover.allergyShow.button": {
@@ -5756,7 +5756,7 @@
       "empreinte": "5e8020402fa8",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1164"
+        "note-ui/editor-popover.jsx:1166"
       ]
     },
     "popover.allergyShown.text": {
@@ -5767,7 +5767,7 @@
       "empreinte": "aefd50f523be",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1159"
+        "note-ui/editor-popover.jsx:1161"
       ]
     },
     "popover.allergyTag.text": {
@@ -5775,7 +5775,7 @@
       "empreinte": "7a648dc3a3a5",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1216"
+        "note-ui/editor-popover.jsx:1222"
       ]
     },
     "popover.analyses.label": {
@@ -5824,7 +5824,7 @@
       "empreinte": "36238be9474d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1337"
+        "note-ui/editor-popover.jsx:1343"
       ]
     },
     "popover.batch.title": {
@@ -5891,7 +5891,7 @@
       "empreinte": "aba4aeb26e7e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1338"
+        "note-ui/editor-popover.jsx:1344"
       ]
     },
     "popover.cancelHint.hint": {
@@ -5915,7 +5915,7 @@
       "empreinte": "582abd2668c0",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1252"
+        "note-ui/editor-popover.jsx:1258"
       ]
     },
     "popover.chartMedications.text": {
@@ -5931,7 +5931,7 @@
       "empreinte": "9c6a8b4693fa",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1205"
+        "note-ui/editor-popover.jsx:1211"
       ]
     },
     "popover.check.text": {
@@ -5939,7 +5939,7 @@
       "empreinte": "9d301be9e974",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1336"
+        "note-ui/editor-popover.jsx:1342"
       ]
     },
     "popover.choisir.label": {
@@ -6163,7 +6163,7 @@
       "empreinte": "ba28e738dd00",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1242"
+        "note-ui/editor-popover.jsx:1248"
       ]
     },
     "popover.dejaDossier.tooltip": {
@@ -6171,7 +6171,7 @@
       "empreinte": "468cdc052dd9",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1292"
+        "note-ui/editor-popover.jsx:1298"
       ]
     },
     "popover.depuis.label": {
@@ -6187,7 +6187,7 @@
       "empreinte": "89611e5fc50a",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1277"
+        "note-ui/editor-popover.jsx:1283"
       ]
     },
     "popover.documenterAjouterProfilSans.tooltip": {
@@ -6195,7 +6195,7 @@
       "empreinte": "89611e5fc50a",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1277"
+        "note-ui/editor-popover.jsx:1283"
       ]
     },
     "popover.dose.label": {
@@ -6271,7 +6271,7 @@
       "empreinte": "1f7a4f9e2f70",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1338"
+        "note-ui/editor-popover.jsx:1344"
       ]
     },
     "popover.examen.label": {
@@ -6311,7 +6311,7 @@
       "empreinte": "2c801d4abf50",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1335"
+        "note-ui/editor-popover.jsx:1341"
       ]
     },
     "popover.filtresMedications.aria": {
@@ -6319,7 +6319,7 @@
       "empreinte": "10c8f4d52e5b",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1305"
+        "note-ui/editor-popover.jsx:1311"
       ]
     },
     "popover.finTraitement.label": {
@@ -6392,7 +6392,7 @@
       "empreinte": "26d07df8e464",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1242"
+        "note-ui/editor-popover.jsx:1248"
       ]
     },
     "popover.indication.label": {
@@ -6465,7 +6465,7 @@
       "empreinte": "d17ec0b74742",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1319"
+        "note-ui/editor-popover.jsx:1325"
       ]
     },
     "popover.labDocumentResult.tooltip": {
@@ -6473,7 +6473,7 @@
       "empreinte": "a4fc7e958735",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1269"
+        "note-ui/editor-popover.jsx:1275"
       ]
     },
     "popover.labMultiselect.label": {
@@ -6481,7 +6481,7 @@
       "empreinte": "44557cd49937",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1187"
+        "note-ui/editor-popover.jsx:1192"
       ]
     },
     "popover.labNormal.text": {
@@ -6520,7 +6520,7 @@
       "empreinte": "5198cfbfe798",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1316"
+        "note-ui/editor-popover.jsx:1322"
       ]
     },
     "popover.labSortAz.tooltip": {
@@ -6528,8 +6528,8 @@
       "empreinte": "bca8b750a4ac",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1180",
-        "note-ui/editor-popover.jsx:1181"
+        "note-ui/editor-popover.jsx:1185",
+        "note-ui/editor-popover.jsx:1186"
       ]
     },
     "popover.labSortFreq.tooltip": {
@@ -6537,8 +6537,8 @@
       "empreinte": "e89e3c9bc159",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1180",
-        "note-ui/editor-popover.jsx:1181"
+        "note-ui/editor-popover.jsx:1185",
+        "note-ui/editor-popover.jsx:1186"
       ]
     },
     "popover.labTrendDown.tooltip": {
@@ -6586,7 +6586,7 @@
       "empreinte": "e9b60082cbef",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1243"
+        "note-ui/editor-popover.jsx:1249"
       ]
     },
     "popover.minDose.tooltip": {
@@ -6594,7 +6594,7 @@
       "empreinte": "6195d29bdf50",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1243"
+        "note-ui/editor-popover.jsx:1249"
       ]
     },
     "popover.modalite.label": {
@@ -6634,7 +6634,7 @@
       "empreinte": "6a5e4e939fee",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1334"
+        "note-ui/editor-popover.jsx:1340"
       ]
     },
     "popover.nePasSubstituer.tooltip": {
@@ -6666,7 +6666,7 @@
       "empreinte": "b83a82871925",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1243"
+        "note-ui/editor-popover.jsx:1249"
       ]
     },
     "popover.noResult.empty": {
@@ -6787,7 +6787,7 @@
       "empreinte": "9d5cc4084d1e",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1258"
+        "note-ui/editor-popover.jsx:1264"
       ]
     },
     "popover.prescrireNouvelleOrdonnanceMedicam.tooltip": {
@@ -6795,7 +6795,7 @@
       "empreinte": "9d5cc4084d1e",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1258"
+        "note-ui/editor-popover.jsx:1264"
       ]
     },
     "popover.priorite.label": {
@@ -7018,7 +7018,7 @@
       "empreinte": "d1c718f76061",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1232"
+        "note-ui/editor-popover.jsx:1238"
       ]
     },
     "popover.renseignementsCliniques.label": {
@@ -7035,7 +7035,7 @@
       "empreinte": "3bb1fc6a4d17",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1335"
+        "note-ui/editor-popover.jsx:1341"
       ]
     },
     "popover.retirerFavoris.tooltip": {
@@ -7043,7 +7043,7 @@
       "empreinte": "dcaac849fc33",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1284"
+        "note-ui/editor-popover.jsx:1290"
       ]
     },
     "popover.saisieManuelle.tooltip": {
@@ -7059,7 +7059,7 @@
       "empreinte": "77e30a25e55e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1332"
+        "note-ui/editor-popover.jsx:1338"
       ]
     },
     "popover.selectionMultiple.tooltip": {
@@ -7067,7 +7067,7 @@
       "empreinte": "d4f53524b1a1",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1330"
+        "note-ui/editor-popover.jsx:1336"
       ]
     },
     "popover.selectionUnique.text": {
@@ -7075,7 +7075,7 @@
       "empreinte": "aa8cf592860e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1332"
+        "note-ui/editor-popover.jsx:1338"
       ]
     },
     "popover.selectionUnique.tooltip": {
@@ -7083,7 +7083,7 @@
       "empreinte": "a6d6eea3f2b7",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1330"
+        "note-ui/editor-popover.jsx:1336"
       ]
     },
     "popover.service.label": {
@@ -7171,7 +7171,7 @@
       "empreinte": "d9be85cc48dc",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-popover.jsx:1205"
+        "note-ui/editor-popover.jsx:1211"
       ]
     },
     "popover.unitOf.aria": {
