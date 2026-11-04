@@ -345,7 +345,6 @@ const PORTEE_VERIFIEE = [
   'note-ui/SummaryModals.jsx:function ProblemsModal',
   'note-ui/editor-field.jsx:function NoteBody',
   'note-ui/editor-field.jsx:function AddFileSourceMenu',
-  'note-ui/editor-field.jsx:function NoteTemplateMenu',
   'note-ui/editor-field.jsx:function DiagnosticRefMenu',
   'note-ui/editor-field.jsx:function DiagDocMenu',
   'note-ui/editor-popover.jsx:function LabTestsField',

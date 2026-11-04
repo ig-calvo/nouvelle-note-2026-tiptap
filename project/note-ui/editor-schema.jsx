@@ -2421,9 +2421,10 @@ function filterSlashItems(query) {
   // n'existe (voir window.__HAS_DIAGNOSTICS, posé par syncDiagnosticRefs
   // dans editor-field.jsx à chaque transaction).
   if (!window.__HAS_DIAGNOSTICS) items = items.filter(function (it) { return !it.diagRefPicker; });
-  // Sans outils cliniques, un gabarit qui en ajoutait un se décrit par ce
-  // qu'il propose à la place (templateWithoutTool, editor-data.jsx).
-  if (window.__SHOW_CLINICAL_TOOLS === false) items = items.map(function (it) { return it.descNoTool ? Object.assign({}, it, { desc: it.descNoTool }) : it; });
+  // Les gabarits de note ne se tapent plus sous « / » (/pneumo, /virus…) : ils
+  // se cherchent après « # » (searchTemplates, editor-data.jsx). Les items
+  // « Gabarits de note » et « Textes rapides » restent, et ouvrent cette liste.
+  items = items.filter(function (it) { return !it.noteTemplate; });
   if (!t) return items.filter(function (it) { return !it.hideWhenEmpty; });
   return items.filter(function (it) { return it.title.toLowerCase().includes(t) || window.I18N.other(it.title).toLowerCase().includes(t) || (it.kbd && it.kbd.includes(t)); });
 }
@@ -2464,8 +2465,9 @@ function dxRegionAtSelection(state) {
 }
 
 // ---------------------------------------------------------
-// Extension « / » — un seul plugin officiel @tiptap/suggestion. `handlers`
-// = { onCommand, makeRender } fournis par NoteBody (ils ferment sur son
+// Extension « / » (fonctions) et « # » (gabarits) — le plugin officiel
+// @tiptap/suggestion, une fois par caractère. `handlers` = { onCommand,
+// makeRender, makeHashRender } fournis par NoteBody (ils ferment sur son
 // propre state React — voir editor-field.jsx).
 // ---------------------------------------------------------
 // Texte d'aide d'une recherche de fonction encore vide (« /ref ») : le Figma
@@ -2516,6 +2518,24 @@ function buildSlashExtension(handlers) {
           },
           command: handlers.onCommand,
           render: handlers.makeRender
+        }),
+        // « # » — la liste des gabarits (de note et textes rapides) s'ouvre
+        // tout de suite ; ce qui suit « # » la filtre. Même départ que « / » :
+        // début de ligne ou après une espace. Après le plugin « / » : quand un
+        // item de « / » ou de « + » réécrit sa requête en « # », la liste du
+        // « # » est publiée en dernier.
+        window.Tiptap.Suggestion({
+          pluginKey: new window.Tiptap.pm.PluginKey('hashSuggestion'),
+          editor: this.editor,
+          char: '#',
+          allowSpaces: true,
+          decorationClass: 'slash-pending',
+          items: function (props) {
+            return window.NOTE_DATA.searchTemplates(props.query, dxRegionAtSelection(props.editor && props.editor.state),
+              window.dxConclusionContext ? window.dxConclusionContext() : null);
+          },
+          command: handlers.onCommand,
+          render: handlers.makeHashRender
         }),
         orderHintPlugin()
       ];

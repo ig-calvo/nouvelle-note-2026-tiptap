@@ -156,15 +156,15 @@ test('sans outils cliniques, le gabarit ITU propose l’analyse d’urine au lie
   assert.equal(D.templateWithoutTool(virus), virus);
 });
 
-test('menu « / » sans outils cliniques : l’item Outils cliniques reste, mais plus l’outil dans la description du gabarit ITU', () => {
+test('sans outils cliniques : l’item Outils cliniques reste dans « / », mais plus l’outil dans la description du gabarit ITU (liste du « # »)', () => {
   w.__SHOW_CLINICAL_TOOLS = false;
-  const items = w.filterSlashItems('itu');
-  assert.equal(items.find((it) => it.key === 'tpl-itu').desc, w.TR('Structure + analyse d’urine proposée'));
+  const tpl = (q) => D.searchTemplates(q, null, { notes: [], sommaire: [] }).find((it) => it.key === 'tpl-itu');
+  assert.equal(tpl('itu').desc, w.TR('Structure + analyse d’urine proposée'));
   // Le tweak règle la rangée du bas et la description des gabarits, pas l'ajout par « + » ou « / ».
   assert.ok(w.filterSlashItems('').some((it) => it.ctPicker), 'le menu offre toujours d’ajouter un outil clinique');
   assert.ok(w.filterSlashItems('outil').some((it) => it.ctPicker), 'et la recherche le trouve');
   w.__SHOW_CLINICAL_TOOLS = true;
-  assert.equal(w.filterSlashItems('itu').find((it) => it.key === 'tpl-itu').desc, w.TR('Structure + outil clinique ITU'));
+  assert.equal(tpl('itu').desc, w.TR('Structure + outil clinique ITU'));
   delete w.__SHOW_CLINICAL_TOOLS;
 });
 
@@ -182,7 +182,7 @@ test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img (e
 test('gabarits de visite : première rencontre, suivi, problème aigu, examen périodique ; atteints aussi par la raison', () => {
   assert.deepEqual(D.NOTE_TEMPLATES.filter((tpl) => tpl.general).map((tpl) => tpl.key), ['premiere', 'suivi', 'aigu', 'periodique']);
   D.NOTE_TEMPLATES.filter((tpl) => tpl.general).forEach((tpl) => {
-    assert.ok(D.SLASH_ITEMS.some((it) => it.noteTemplate === tpl.key), tpl.key + ' : au menu « / »');
+    assert.ok(D.SLASH_ITEMS.some((it) => it.noteTemplate === tpl.key), tpl.key + ' : dans la liste du « # »');
   });
   assert.deepEqual(D.templatesForReason('Suivi du diabète').map((tpl) => tpl.key), ['suivi']);
   assert.deepEqual(D.templatesForReason('Follow-up for hypertension').map((tpl) => tpl.key), ['suivi']);
