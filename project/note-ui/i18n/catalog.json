@@ -596,7 +596,7 @@
       "empreinte": "cf66d4fe2da4",
       "contexte": "aide",
       "fichiers": [
-        "Note Clinique.html:431"
+        "Note Clinique.html:432"
       ]
     },
     "app.error.title": {
@@ -604,7 +604,7 @@
       "empreinte": "a834b7056422",
       "contexte": "titre",
       "fichiers": [
-        "Note Clinique.html:429"
+        "Note Clinique.html:430"
       ]
     },
     "app.finaliser.button": {
@@ -612,7 +612,7 @@
       "empreinte": "ad181d5f077f",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:664"
+        "Note Clinique.html:671"
       ]
     },
     "app.noteClinique.tooltip": {
@@ -620,7 +620,7 @@
       "empreinte": "d2d1b9bf123d",
       "contexte": "info-bulle",
       "fichiers": [
-        "Note Clinique.html:572"
+        "Note Clinique.html:579"
       ]
     },
     "app.portailPatientActif.toast": {
@@ -628,7 +628,7 @@
       "empreinte": "88aba41df5a9",
       "contexte": "notification",
       "fichiers": [
-        "Note Clinique.html:537"
+        "Note Clinique.html:544"
       ]
     },
     "app.sauvegarder.button": {
@@ -636,7 +636,7 @@
       "empreinte": "9ada14395d66",
       "contexte": "bouton",
       "fichiers": [
-        "Note Clinique.html:662"
+        "Note Clinique.html:669"
       ]
     },
     "app.tiptap.hint": {
@@ -2969,7 +2969,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:443"
+        "Note Clinique.html:444"
       ]
     },
     "document.kind.exam": {
@@ -2977,7 +2977,7 @@
       "empreinte": "130a08fa06ba",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:445"
+        "Note Clinique.html:446"
       ]
     },
     "document.kind.imaging": {
@@ -2985,7 +2985,7 @@
       "empreinte": "876ab0ce03e2",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:444"
+        "Note Clinique.html:445"
       ]
     },
     "document.kind.instructions": {
@@ -2993,7 +2993,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:446"
+        "Note Clinique.html:447"
       ]
     },
     "document.kind.lab": {
@@ -3001,7 +3001,7 @@
       "empreinte": "0f78e26d87bf",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:444"
+        "Note Clinique.html:445"
       ]
     },
     "document.kind.prescription": {
@@ -3009,7 +3009,7 @@
       "empreinte": "212f9846068b",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:443"
+        "Note Clinique.html:444"
       ]
     },
     "document.kind.referral": {
@@ -3017,7 +3017,7 @@
       "empreinte": "f8130bb03a28",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:445"
+        "Note Clinique.html:446"
       ]
     },
     "document.kind.service": {
@@ -3025,7 +3025,7 @@
       "empreinte": "329cb8b6ba8c",
       "contexte": "texte",
       "fichiers": [
-        "Note Clinique.html:445"
+        "Note Clinique.html:446"
       ]
     },
     "document.pill.aria": {
@@ -3036,7 +3036,7 @@
       "empreinte": "bf0aa7983972",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "Note Clinique.html:452"
+        "Note Clinique.html:453"
       ]
     },
     "documentAction.agrandir.tooltip": {
@@ -7166,7 +7166,7 @@
       "empreinte": "3cc0b7c2227d",
       "contexte": "libellé",
       "fichiers": [
-        "Note Clinique.html:463"
+        "Note Clinique.html:464"
       ]
     },
     "presentation.aDire.heading": {
@@ -7174,7 +7174,7 @@
       "empreinte": "7a4787ee20c8",
       "contexte": "titre de section",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:647"
+        "note-ui/presentation-mode.jsx:648"
       ]
     },
     "presentation.apres.label": {
@@ -7182,7 +7182,7 @@
       "empreinte": "e1693dbee038",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:115"
+        "note-ui/presentation-mode.jsx:116"
       ]
     },
     "presentation.apres.say1.text": {
@@ -7190,7 +7190,7 @@
       "empreinte": "9130c27c7feb",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:117"
+        "note-ui/presentation-mode.jsx:118"
       ]
     },
     "presentation.apres.say2.text": {
@@ -7198,7 +7198,7 @@
       "empreinte": "4bca1989efa5",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:118"
+        "note-ui/presentation-mode.jsx:119"
       ]
     },
     "presentation.apres.show1.text": {
@@ -7206,7 +7206,7 @@
       "empreinte": "9300d794cd31",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:121"
+        "note-ui/presentation-mode.jsx:122"
       ]
     },
     "presentation.apres.show2.text": {
@@ -7214,7 +7214,7 @@
       "empreinte": "34a49c5acabf",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:122"
+        "note-ui/presentation-mode.jsx:123"
       ]
     },
     "presentation.apres.show3.text": {
@@ -7222,7 +7222,7 @@
       "empreinte": "41d3862522c7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:123"
+        "note-ui/presentation-mode.jsx:124"
       ]
     },
     "presentation.apres.show4.text": {
@@ -7230,7 +7230,7 @@
       "empreinte": "5e6253ba013f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:124"
+        "note-ui/presentation-mode.jsx:125"
       ]
     },
     "presentation.autoOff.tooltip": {
@@ -7238,7 +7238,7 @@
       "empreinte": "56b414dca533",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:692"
+        "note-ui/presentation-mode.jsx:693"
       ]
     },
     "presentation.autoOn.tooltip": {
@@ -7246,7 +7246,7 @@
       "empreinte": "cfb6a9e68c2a",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:692"
+        "note-ui/presentation-mode.jsx:693"
       ]
     },
     "presentation.chapter.aria": {
@@ -7254,7 +7254,7 @@
       "empreinte": "b0e8e0a6e908",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:686"
+        "note-ui/presentation-mode.jsx:687"
       ]
     },
     "presentation.chapterOf.text": {
@@ -7262,7 +7262,7 @@
       "empreinte": "ce8bb416db6a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:667"
+        "note-ui/presentation-mode.jsx:668"
       ]
     },
     "presentation.commandes.action.button": {
@@ -7270,7 +7270,7 @@
       "empreinte": "e54611e166fa",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:82"
+        "note-ui/presentation-mode.jsx:83"
       ]
     },
     "presentation.commandes.label": {
@@ -7278,7 +7278,7 @@
       "empreinte": "114f5259b8c9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:76"
+        "note-ui/presentation-mode.jsx:77"
       ]
     },
     "presentation.commandes.say1.text": {
@@ -7286,7 +7286,7 @@
       "empreinte": "0218eefbbeeb",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:78"
+        "note-ui/presentation-mode.jsx:79"
       ]
     },
     "presentation.commandes.say2.text": {
@@ -7294,7 +7294,7 @@
       "empreinte": "82917ae94325",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:79"
+        "note-ui/presentation-mode.jsx:80"
       ]
     },
     "presentation.commandes.show1.text": {
@@ -7302,7 +7302,7 @@
       "empreinte": "296b47e912c0",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:81"
+        "note-ui/presentation-mode.jsx:82"
       ]
     },
     "presentation.commandes.show2.text": {
@@ -7310,7 +7310,7 @@
       "empreinte": "33e72ec51355",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:81"
+        "note-ui/presentation-mode.jsx:82"
       ]
     },
     "presentation.commandes.show3.text": {
@@ -7318,7 +7318,7 @@
       "empreinte": "4c9040c28491",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:81"
+        "note-ui/presentation-mode.jsx:82"
       ]
     },
     "presentation.dx.action.button": {
@@ -7326,7 +7326,7 @@
       "empreinte": "f0c6f6de3aea",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:99"
+        "note-ui/presentation-mode.jsx:100"
       ]
     },
     "presentation.dx.label": {
@@ -7334,7 +7334,7 @@
       "empreinte": "a92106820716",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:93"
+        "note-ui/presentation-mode.jsx:94"
       ]
     },
     "presentation.dx.say1.text": {
@@ -7342,7 +7342,7 @@
       "empreinte": "14bd0c6c98d4",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:95"
+        "note-ui/presentation-mode.jsx:96"
       ]
     },
     "presentation.dx.say2.text": {
@@ -7350,7 +7350,7 @@
       "empreinte": "7af5c9fe9704",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:96"
+        "note-ui/presentation-mode.jsx:97"
       ]
     },
     "presentation.dx.show1.text": {
@@ -7358,7 +7358,7 @@
       "empreinte": "780c824c63b8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:98"
+        "note-ui/presentation-mode.jsx:99"
       ]
     },
     "presentation.dx.show2.text": {
@@ -7366,7 +7366,7 @@
       "empreinte": "1763ad4f3b5e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:98"
+        "note-ui/presentation-mode.jsx:99"
       ]
     },
     "presentation.gestes.heading": {
@@ -7374,7 +7374,7 @@
       "empreinte": "c73ece4006a4",
       "contexte": "titre de section",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:653"
+        "note-ui/presentation-mode.jsx:654"
       ]
     },
     "presentation.hideGestures.label": {
@@ -7382,8 +7382,8 @@
       "empreinte": "e6b009887dbc",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:702",
-        "note-ui/presentation-mode.jsx:703"
+        "note-ui/presentation-mode.jsx:703",
+        "note-ui/presentation-mode.jsx:704"
       ]
     },
     "presentation.hideRail.aria": {
@@ -7391,7 +7391,7 @@
       "empreinte": "01f6635340b4",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:711"
+        "note-ui/presentation-mode.jsx:712"
       ]
     },
     "presentation.hideRail.tooltip": {
@@ -7399,7 +7399,7 @@
       "empreinte": "82501b2e8c1e",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:711"
+        "note-ui/presentation-mode.jsx:712"
       ]
     },
     "presentation.hideSay.label": {
@@ -7407,8 +7407,8 @@
       "empreinte": "27159020a24d",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:696",
-        "note-ui/presentation-mode.jsx:697"
+        "note-ui/presentation-mode.jsx:697",
+        "note-ui/presentation-mode.jsx:698"
       ]
     },
     "presentation.hint.text": {
@@ -7416,7 +7416,7 @@
       "empreinte": "4977ca84382b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:659"
+        "note-ui/presentation-mode.jsx:660"
       ]
     },
     "presentation.nextChapter.aria": {
@@ -7424,7 +7424,7 @@
       "empreinte": "a50b9f157670",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:675"
+        "note-ui/presentation-mode.jsx:676"
       ]
     },
     "presentation.nextStep.aria": {
@@ -7432,7 +7432,7 @@
       "empreinte": "992dbd535d89",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:675"
+        "note-ui/presentation-mode.jsx:676"
       ]
     },
     "presentation.note.action.button": {
@@ -7440,7 +7440,7 @@
       "empreinte": "f47a838c44c3",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:73"
+        "note-ui/presentation-mode.jsx:74"
       ]
     },
     "presentation.note.label": {
@@ -7448,7 +7448,7 @@
       "empreinte": "424306e12b34",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:67"
+        "note-ui/presentation-mode.jsx:68"
       ]
     },
     "presentation.note.say1.text": {
@@ -7456,7 +7456,7 @@
       "empreinte": "17f0d9a424a2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:69"
+        "note-ui/presentation-mode.jsx:70"
       ]
     },
     "presentation.note.say2.text": {
@@ -7464,7 +7464,7 @@
       "empreinte": "7541a1171273",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:70"
+        "note-ui/presentation-mode.jsx:71"
       ]
     },
     "presentation.note.show1.text": {
@@ -7472,7 +7472,7 @@
       "empreinte": "7593df2b49e0",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:72"
+        "note-ui/presentation-mode.jsx:73"
       ]
     },
     "presentation.note.show2.text": {
@@ -7480,7 +7480,7 @@
       "empreinte": "2fd608507db1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:72"
+        "note-ui/presentation-mode.jsx:73"
       ]
     },
     "presentation.outils.action.button": {
@@ -7488,7 +7488,7 @@
       "empreinte": "4707fe9f5b64",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:90"
+        "note-ui/presentation-mode.jsx:91"
       ]
     },
     "presentation.outils.label": {
@@ -7496,7 +7496,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:85"
+        "note-ui/presentation-mode.jsx:86"
       ]
     },
     "presentation.outils.say1.text": {
@@ -7504,7 +7504,7 @@
       "empreinte": "f5a5d4bdf14f",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:87"
+        "note-ui/presentation-mode.jsx:88"
       ]
     },
     "presentation.outils.show1.text": {
@@ -7512,7 +7512,7 @@
       "empreinte": "70f3db391ba9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:89"
+        "note-ui/presentation-mode.jsx:90"
       ]
     },
     "presentation.outils.show2.text": {
@@ -7520,7 +7520,7 @@
       "empreinte": "c1195196fc1a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:89"
+        "note-ui/presentation-mode.jsx:90"
       ]
     },
     "presentation.outils.show3.text": {
@@ -7528,7 +7528,7 @@
       "empreinte": "2588da0cd386",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:89"
+        "note-ui/presentation-mode.jsx:90"
       ]
     },
     "presentation.prescrire.action.button": {
@@ -7536,7 +7536,7 @@
       "empreinte": "108d147866da",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:112"
+        "note-ui/presentation-mode.jsx:113"
       ]
     },
     "presentation.prescrire.label": {
@@ -7544,7 +7544,7 @@
       "empreinte": "2dab03c86888",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:102"
+        "note-ui/presentation-mode.jsx:103"
       ]
     },
     "presentation.prescrire.say1.text": {
@@ -7552,7 +7552,7 @@
       "empreinte": "75b4b462629d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:104"
+        "note-ui/presentation-mode.jsx:105"
       ]
     },
     "presentation.prescrire.say2.text": {
@@ -7560,7 +7560,7 @@
       "empreinte": "56222e7e60ac",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:105"
+        "note-ui/presentation-mode.jsx:106"
       ]
     },
     "presentation.prescrire.show1.text": {
@@ -7568,7 +7568,7 @@
       "empreinte": "49bcad8cb1e2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:108"
+        "note-ui/presentation-mode.jsx:109"
       ]
     },
     "presentation.prescrire.show2.text": {
@@ -7576,7 +7576,7 @@
       "empreinte": "e3af3cff33d2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:109"
+        "note-ui/presentation-mode.jsx:110"
       ]
     },
     "presentation.prescrire.show3.text": {
@@ -7584,7 +7584,7 @@
       "empreinte": "1389166277ab",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:110"
+        "note-ui/presentation-mode.jsx:111"
       ]
     },
     "presentation.prevChapter.aria": {
@@ -7592,7 +7592,7 @@
       "empreinte": "7ba61693efb3",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:670"
+        "note-ui/presentation-mode.jsx:671"
       ]
     },
     "presentation.prevStep.aria": {
@@ -7600,7 +7600,7 @@
       "empreinte": "4b2bab32c84b",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:670"
+        "note-ui/presentation-mode.jsx:671"
       ]
     },
     "presentation.region.aria": {
@@ -7608,7 +7608,7 @@
       "empreinte": "aa245f5ffeac",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:641"
+        "note-ui/presentation-mode.jsx:642"
       ]
     },
     "presentation.restart.aria": {
@@ -7616,7 +7616,7 @@
       "empreinte": "406fcb6cb5bf",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:707"
+        "note-ui/presentation-mode.jsx:708"
       ]
     },
     "presentation.restart.tooltip": {
@@ -7624,7 +7624,7 @@
       "empreinte": "b041345d4d7d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:707"
+        "note-ui/presentation-mode.jsx:708"
       ]
     },
     "presentation.showGestures.label": {
@@ -7632,8 +7632,8 @@
       "empreinte": "367701efe8c7",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:702",
-        "note-ui/presentation-mode.jsx:703"
+        "note-ui/presentation-mode.jsx:703",
+        "note-ui/presentation-mode.jsx:704"
       ]
     },
     "presentation.showRail.aria": {
@@ -7641,7 +7641,7 @@
       "empreinte": "8dd8a0596d70",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:627"
+        "note-ui/presentation-mode.jsx:628"
       ]
     },
     "presentation.showRail.tooltip": {
@@ -7649,7 +7649,7 @@
       "empreinte": "c5f0b5181497",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:627"
+        "note-ui/presentation-mode.jsx:628"
       ]
     },
     "presentation.showSay.label": {
@@ -7657,8 +7657,8 @@
       "empreinte": "6e7cca49a745",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:696",
-        "note-ui/presentation-mode.jsx:697"
+        "note-ui/presentation-mode.jsx:697",
+        "note-ui/presentation-mode.jsx:698"
       ]
     },
     "presentation.state1.label": {
@@ -7666,7 +7666,7 @@
       "empreinte": "c9115ac83851",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:374"
+        "note-ui/presentation-mode.jsx:375"
       ]
     },
     "presentation.state10.label": {
@@ -7674,7 +7674,7 @@
       "empreinte": "91729588ddcb",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:383"
+        "note-ui/presentation-mode.jsx:384"
       ]
     },
     "presentation.state11.label": {
@@ -7682,7 +7682,7 @@
       "empreinte": "a6f4b3191b3c",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:384"
+        "note-ui/presentation-mode.jsx:385"
       ]
     },
     "presentation.state12.label": {
@@ -7690,7 +7690,7 @@
       "empreinte": "e373f746ac55",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:385"
+        "note-ui/presentation-mode.jsx:386"
       ]
     },
     "presentation.state2.label": {
@@ -7698,7 +7698,7 @@
       "empreinte": "53f033996a80",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:375"
+        "note-ui/presentation-mode.jsx:376"
       ]
     },
     "presentation.state3.label": {
@@ -7706,7 +7706,7 @@
       "empreinte": "7792f98c6d77",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:376"
+        "note-ui/presentation-mode.jsx:377"
       ]
     },
     "presentation.state4.label": {
@@ -7714,7 +7714,7 @@
       "empreinte": "64a093972d7f",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:377"
+        "note-ui/presentation-mode.jsx:378"
       ]
     },
     "presentation.state5.label": {
@@ -7722,7 +7722,7 @@
       "empreinte": "c7dcbdfff8c2",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:378"
+        "note-ui/presentation-mode.jsx:379"
       ]
     },
     "presentation.state6.label": {
@@ -7730,7 +7730,7 @@
       "empreinte": "b531cfa55770",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:379"
+        "note-ui/presentation-mode.jsx:380"
       ]
     },
     "presentation.state7.label": {
@@ -7738,7 +7738,7 @@
       "empreinte": "3b26be7dcf98",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:380"
+        "note-ui/presentation-mode.jsx:381"
       ]
     },
     "presentation.state8.label": {
@@ -7746,7 +7746,7 @@
       "empreinte": "6bc97feb68aa",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:381"
+        "note-ui/presentation-mode.jsx:382"
       ]
     },
     "presentation.state9.label": {
@@ -7754,7 +7754,7 @@
       "empreinte": "87bc2d1732e0",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:382"
+        "note-ui/presentation-mode.jsx:383"
       ]
     },
     "presentation.stepOf.text": {
@@ -7762,7 +7762,7 @@
       "empreinte": "5b7b36fa344e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:666"
+        "note-ui/presentation-mode.jsx:667"
       ]
     },
     "presentation.transmettre.label": {
@@ -7770,7 +7770,7 @@
       "empreinte": "b87db5167167",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:129"
+        "note-ui/presentation-mode.jsx:130"
       ]
     },
     "presentation.transmettre.say1.text": {
@@ -7778,7 +7778,7 @@
       "empreinte": "27353ee4ad30",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:131"
+        "note-ui/presentation-mode.jsx:132"
       ]
     },
     "presentation.transmettre.say2.text": {
@@ -7786,7 +7786,7 @@
       "empreinte": "baf2202af0b1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:132"
+        "note-ui/presentation-mode.jsx:133"
       ]
     },
     "presentation.transmettre.show1.text": {
@@ -7794,7 +7794,7 @@
       "empreinte": "29fe2af32c42",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:135"
+        "note-ui/presentation-mode.jsx:136"
       ]
     },
     "presentation.transmettre.show2.text": {
@@ -7802,7 +7802,7 @@
       "empreinte": "6194f8662529",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:136"
+        "note-ui/presentation-mode.jsx:137"
       ]
     },
     "presentation.transmettre.show3.text": {
@@ -7810,7 +7810,7 @@
       "empreinte": "75e2fe3767a6",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:137"
+        "note-ui/presentation-mode.jsx:138"
       ]
     },
     "presentation.unitChapter.text": {
@@ -7818,7 +7818,7 @@
       "empreinte": "a097bc3ee29a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:659"
+        "note-ui/presentation-mode.jsx:660"
       ]
     },
     "presentation.unitStep.text": {
@@ -7826,7 +7826,7 @@
       "empreinte": "4605a3f5f16e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:659"
+        "note-ui/presentation-mode.jsx:660"
       ]
     },
     "print.annuler.button": {
@@ -12929,7 +12929,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:571"
+        "Note Clinique.html:578"
       ]
     },
     {
@@ -16212,7 +16212,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "node: function () { return window.buildClinicalToolNode('exam-court', L('Examen physique - Version courte')); },",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:169"
+        "note-ui/presentation-mode.jsx:170"
       ]
     },
     {
@@ -17881,7 +17881,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "{ __dx: true, action: 'nouveau', pick: { source: 'cim10', name: L('Infection des voies urinaires, siège non précisé'), code: 'N39.0', level: null } },",
       "fichiers": [
-        "note-ui/presentation-mode.jsx:176"
+        "note-ui/presentation-mode.jsx:177"
       ]
     },
     {
@@ -19287,7 +19287,7 @@
       "contexte": "donnée de démonstration",
       "extrait": "mode: data.visitType === 'phone' ? L('APPEL') : L('PRÉSENTIEL'),",
       "fichiers": [
-        "Note Clinique.html:571",
+        "Note Clinique.html:578",
         "note-ui/NotesList.jsx:100",
         "note-ui/NotesList.jsx:126",
         "note-ui/NotesList.jsx:13",

@@ -387,6 +387,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "allergyWarning": false,
   "portalActive": true,
   "noteWide": false,
+  "noteTextSize": "prototype",
   "ftBarPosition": "haut",
   "reviewingMode": false,
   "reviewAuthor": "me",
@@ -505,6 +506,12 @@ function App() {
     root.classList.toggle('omnimed-dark', dark);
     root.classList.toggle('omnimed-light', !dark);
   }, [t.themeMode]);
+  // Taille du texte de la note : html[data-note-text] (editor.css, NotesList.jsx).
+  // Posé ici et non dans NoteEditor : la Liste de notes cliniques doit le suivre
+  // même quand l'éditeur n'est pas monté.
+  React.useEffect(function () {
+    document.documentElement.setAttribute('data-note-text', t.noteTextSize === 'vraie' ? 'vraie' : 'prototype');
+  }, [t.noteTextSize]);
   const [navCollapsed, setNavCollapsed] = React.useState(function () {
     return window.innerWidth <= 1500;
   });
@@ -723,6 +730,15 @@ function App() {
                        onChange={(v) => setTweak('portalActive', v)} />
           <TweakToggle label="Note plus large (marges réduites)" value={t.noteWide === true}
                        onChange={(v) => setTweak('noteWide', v)} />
+          {/* Taille du texte de la note : « Vraie note » = celle de la note enregistrée
+              (éditeur Tiptap DS3, body-large 16 px) ; « Prototype » = la taille d'origine. */}
+          <TweakRadio label="Taille du texte de la note"
+                      value={t.noteTextSize === 'vraie' ? 'vraie' : 'prototype'}
+                      options={[
+                        { value: 'prototype', label: 'Prototype' },
+                        { value: 'vraie', label: 'Vraie note' },
+                      ]}
+                      onChange={(v) => setTweak('noteTextSize', v)} />
           {/* Barre de mise en forme flottante (seule retenue) : bas = sous la
               sélection plutôt qu'au-dessus. */}
           <TweakRadio label="Position de la barre"

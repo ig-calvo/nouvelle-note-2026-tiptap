@@ -39,16 +39,34 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
   font-style: normal;
   color: var(--fg-4);
 }
-.note-field .ql-editor { font-family: var(--font-body) !important; font-size: 14px !important; line-height: 21px !important; letter-spacing: 0.25px; color: var(--fg-1); min-height: 72px; height: auto !important; overflow-y: visible !important; padding: 8px 4px !important; caret-color: var(--brand-primary); }
-.note-field .ql-editor p, .note-field .ql-editor ol, .note-field .ql-editor ul, .note-field .ql-editor pre, .note-field .ql-editor blockquote { font-size: 14px !important; line-height: 21px !important; letter-spacing: 0.25px; font-family: var(--font-body) !important; margin: 0 0 6px; }
+/* Taille du texte de la note : tweak « Taille du texte de la note »
+   (html[data-note-text], posé par Note Clinique.html). Par défaut, les valeurs du
+   prototype ; « vraie » = celles de la vraie note (éditeur Tiptap DS3, classe
+   ds-typo-body-large), lues dans les jetons DS3. Raccourcis `font` (poids
+   taille/interligne famille), lus ici et par la Liste de notes (NotesList.jsx).
+   L'espacement des lettres est le même dans les deux (0,25 / 0,25 / 0,4 px). */
+:root {
+  --note-font-body: 400 14px/21px var(--font-body);
+  --note-font-h1: 500 16px/20px var(--font-body);
+  --note-font-h2: 500 14px/20px var(--font-body);
+  --note-font-h3: 500 12px/16px var(--font-body);
+}
+html[data-note-text="vraie"] {
+  --note-font-body: var(--mat-sys-body-large);
+  --note-font-h1: var(--mat-sys-body-large-bold);
+  --note-font-h2: var(--mat-sys-body-medium-bold);
+  --note-font-h3: var(--mat-sys-body-small-bold);
+}
+.note-field .ql-editor { font: var(--note-font-body) !important; font-family: var(--font-body) !important; letter-spacing: 0.25px; color: var(--fg-1); min-height: 72px; height: auto !important; overflow-y: visible !important; padding: 8px 4px !important; caret-color: var(--brand-primary); }
+.note-field .ql-editor p, .note-field .ql-editor ol, .note-field .ql-editor ul, .note-field .ql-editor pre, .note-field .ql-editor blockquote { font: var(--note-font-body) !important; font-family: var(--font-body) !important; letter-spacing: 0.25px; margin: 0 0 6px; }
 .note-field .ql-editor p:last-child, .note-field .ql-editor h1:last-child, .note-field .ql-editor h2:last-child, .note-field .ql-editor h3:last-child { margin-bottom: 0; }
 
 /* Headings — étiquette discrète (majuscules, gris, poids medium) plutôt que
    titre gras noir. Levels 1-3 only: StarterKit caps heading at level 3.
    Titre 2/3 tombent pile sur label-large/label-medium (DS3, poids 500) ;
    Titre 1 étend le même traitement à 16px, au-delà du plancher label du DS3. */
-.note-field .ql-editor h1 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 16px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 14px 0 6px !important; }
-.note-field .ql-editor h2 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 14px !important; line-height: 20px !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 12px 0 5px !important; } /* --mat-sys-label-large */
+.note-field .ql-editor h1 { font: var(--note-font-h1) !important; font-family: var(--font-body) !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 14px 0 6px !important; }
+.note-field .ql-editor h2 { font: var(--note-font-h2) !important; font-family: var(--font-body) !important; letter-spacing: 0.25px; text-transform: uppercase; color: var(--fg-3); margin: 12px 0 5px !important; } /* --mat-sys-label-large */
 /* Titre verrouillé (« Détails de la consultation ») : ni éditable ni
    sélectionnable. La sélection ProseMirror en est repoussée
    (lockedHeadingSelection) ; ici, le navigateur ne le surligne jamais, même
@@ -56,7 +74,7 @@ html[data-note-wide="on"] .note-field-title { margin-left: 4px; }
    titre doit encore sélectionner le texte en dessous. */
 .note-field .ql-editor h2[data-locked="true"] { cursor: default; }
 .note-field .ql-editor h2[data-locked="true"]::selection, .note-field .ql-editor h2[data-locked="true"] *::selection { background: transparent; }
-.note-field .ql-editor h3 { font-family: var(--font-body) !important; font-weight: 500 !important; font-size: 12px !important; line-height: 16px !important; letter-spacing: 0.4px; text-transform: uppercase; color: var(--fg-3); margin: 10px 0 4px !important; } /* --mat-sys-label-medium */
+.note-field .ql-editor h3 { font: var(--note-font-h3) !important; font-family: var(--font-body) !important; letter-spacing: 0.4px; text-transform: uppercase; color: var(--fg-3); margin: 10px 0 4px !important; } /* --mat-sys-label-medium */
 .note-field .ql-editor h1:first-child, .note-field .ql-editor h2:first-child, .note-field .ql-editor h3:first-child { margin-top: 0 !important; }
 .note-field .ql-editor ul, .note-field .ql-editor ol { padding-left: 1.2em; }
 .note-field .ql-editor blockquote { margin: 6px 0; padding: 2px 0 2px 14px; border-left: 3px solid var(--border-default, #c4c4c4); color: var(--fg-3); }

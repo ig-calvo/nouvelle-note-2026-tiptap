@@ -726,30 +726,29 @@ const nlStyles = {
   detailsSection: { marginBottom: 16 },
   // Titres de section — étiquette discrète (majuscules, gris, poids medium),
   // même traitement que .ql-editor h1/h2/h3 (editor.css), pour qu'une note
-  // complétée garde l'apparence qu'elle avait en édition.
+  // complétée garde l'apparence qu'elle avait en édition. Poids, taille et
+  // interligne viennent des variables `--note-font-*` (editor.css), donc du tweak
+  // « Taille du texte de la note » ; l'espacement des lettres est le même dans
+  // les deux tailles.
   roHeading1: {
-    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 16,
-    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    font: 'var(--note-font-h1)', letterSpacing: 0.25, textTransform: 'uppercase',
     color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '14px 0 6px',
   },
   roHeading2: {
-    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
-    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    font: 'var(--note-font-h2)', letterSpacing: 0.25, textTransform: 'uppercase',
     color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '12px 0 5px',
   },
   roHeading3: {
-    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 12,
-    lineHeight: '16px', letterSpacing: 0.4, textTransform: 'uppercase',
+    font: 'var(--note-font-h3)', letterSpacing: 0.4, textTransform: 'uppercase',
     color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)", margin: '10px 0 4px',
   },
   detailsLabel: {
-    fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize: 14,
-    lineHeight: '20px', letterSpacing: 0.25, textTransform: 'uppercase',
+    font: 'var(--note-font-h2)', letterSpacing: 0.25, textTransform: 'uppercase',
     color: "color-mix(in srgb, var(--mat-sys-on-surface) 54%, transparent)",
     marginBottom: 8,
   },
   detailsText: {
-    fontSize: 14, color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", lineHeight: 1.5, letterSpacing: 0.25,
+    font: 'var(--note-font-body)', color: "color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)", letterSpacing: 0.25,
   },
   refBtn: {
     position: 'fixed', transform: 'translateX(-50%)', zIndex: 500,
@@ -786,7 +785,7 @@ const nlStyles = {
     color: 'light-dark(#7a1f26, #e8a6ab)', background: 'light-dark(#ecdfe0, #462a2c)', borderRadius: 4, padding: '2px 6px',
   },
   roDiagSub: { fontSize: 11, fontStyle: 'italic', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 55%, transparent)', marginLeft: 'auto', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-  roDiagBody: { padding: '1px 12px 8px 28px', fontSize: 14, color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', lineHeight: 1.5, letterSpacing: 0.25 },
+  roDiagBody: { padding: '1px 12px 8px 28px', font: 'var(--note-font-body)', color: 'color-mix(in srgb, var(--mat-sys-on-surface) 82%, transparent)', letterSpacing: 0.25 },
   roDiagLine: { position: 'relative', margin: '0 0 1px' },
   roDiagArrow: { position: 'absolute', left: -16, top: 4, width: 18, fontSize: 15, lineHeight: 1, color: '#9dbbd6', display: 'flex', justifyContent: 'center', userSelect: 'none', pointerEvents: 'none' },
   roDxref: {

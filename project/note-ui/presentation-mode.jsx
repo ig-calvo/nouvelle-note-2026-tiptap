@@ -27,6 +27,7 @@ const PRESENTATION_TWEAKS = {
   allergyWarning: true,
   portalActive: true,
   noteWide: false,
+  noteTextSize: 'prototype',
   ftBarPosition: 'haut',
   reviewingMode: false,
   checkoutSuggestions: false,
