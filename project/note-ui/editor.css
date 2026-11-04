@@ -692,7 +692,7 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-menu--req .rx-heart.is-fav { color: var(--mat-sys-error); }
 .rx-menu--req .rx-heart:not(.is-fav) { opacity: 0; }
 .rx-menu--req .rx-item:hover .rx-heart, .rx-menu--req .rx-item.is-active .rx-heart, .rx-menu--req .rx-item:focus-within .rx-heart, .rx-menu--req .rx-heart:focus-visible { opacity: 1; }
-.rx-menu--req .rx-item .rx-med-actions--heart { right: 56px; top: 50%; transform: translateY(-50%); }
+.rx-menu--req .rx-item .rx-med-actions--heart { right: 56px; top: 50%; height: auto; transform: translateY(-50%); }
 /* Panneau de droite. */
 .rx-menu--req .rx-rail { padding: 12px 12px 16px; gap: 4px; border-left-color: var(--mat-sys-outline-variant); }
 .rx-menu--req .rx-rail__item { height: 36px; gap: 0; padding: 0 12px; font: 400 12px/18px var(--font-body); letter-spacing: 0.4px; }
@@ -768,7 +768,8 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 /* Boutons de ligne en surimpression à droite (fond de la ligne) : ils ne prennent pas de place quand ils sont cachés,
    le nom et la posologie gardent toute la largeur. */
 .rx-item .rx-med-actions { position: absolute; right: 12px; top: 6px; padding-left: 16px; background: var(--rx-row-bg); box-shadow: -12px 0 10px -4px var(--rx-row-bg); }
-.rx-item .rx-med-actions--heart { right: 52px; }
+/* « Documenter » au même centre que le cœur (26 px, à 9 + 2 px du haut de la ligne). */
+.rx-item .rx-med-actions--heart { right: 52px; top: 11px; height: 26px; align-items: center; }
 .rx-med-btn { border: 0; background: transparent; cursor: pointer; padding: 4px; display: inline-flex; color: var(--fg-3); border-radius: 6px; transition: background 110ms, color 110ms; }
 .rx-med-btn:hover { background: rgba(25,117,209,0.10); color: var(--mat-sys-primary); }
 .rx-med-btn .material-icons-outlined,

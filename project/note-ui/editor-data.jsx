@@ -529,15 +529,19 @@ const PATIENT_MEDS = window.forPatient({ adulte: [
 // médication déjà au dossier : renouveler, augmenter, diminuer, cesser (active ou
 // échue) ; prescrire seul, le « + » (cessée). « Documenter » (l'ajouter au
 // profil sans prescrire) n'est offert que pour un produit qui n'est pas au
-// dossier : il est toujours actif, sans tweak. « Mentionner » (référencer une
+// dossier, et seulement si le tweak « Bouton Documenter dans les menus » est
+// allumé (documentButtonShown). « Mentionner » (référencer une
 // médication du dossier sans prescription) n'est plus offert : la commande
 // `mentionner` de runOrderCommand reste. Le clic ou Entrée sur la ligne reste
 // l'action principale : `defaultMedAction` — renouveler une médication active ou
 // échue, une nouvelle prescription sans marque de renouvellement pour une cessée
 // ou un produit du catalogue (undefined). Augmenter / diminuer remplacent
 // l'ancien « Ajuster » (Figma « Recherche de prescriptions », 2026-10-15).
+// Le tweak « Bouton Documenter dans les menus » (allumé par défaut) le retire :
+// éteint, le bouton n'est pas rendu, ni dans /rx ni dans /lab.
+function documentButtonShown() { return window.__SHOW_DOCUMENT_BUTTON !== false; }
 function medActions(it) {
-  if (!it || !it.med) return ['documenter'];
+  if (!it || !it.med) return documentButtonShown() ? ['documenter'] : [];
   if (it.medStatus === 'active' || it.medStatus === 'echue') return ['renouveler', 'augmenter', 'diminuer', 'cesser'];
   return ['prescrire']; // cessée : seulement le « + »
 }
@@ -2572,7 +2576,7 @@ function visitReason(points) {
 }
 
 window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
-  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, medStatusText, defaultMedAction, summaryAddDetail,
+  RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, documentButtonShown, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,

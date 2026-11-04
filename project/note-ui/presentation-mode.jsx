@@ -23,6 +23,7 @@
 // (utilisateur, clinique) et la langue restent ceux du présentateur.
 const PRESENTATION_TWEAKS = {
   showClinicalTools: true,
+  showDocumentButton: true,
   portalActive: true,
   noteWide: false,
   ftBarPosition: 'haut',

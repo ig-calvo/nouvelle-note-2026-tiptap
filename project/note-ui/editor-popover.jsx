@@ -1222,7 +1222,9 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
                         ligne prescrit (renouvelle une médication active ou échue). Une médication au dossier a
                         ses actions (active ou échue : renouveler, ↑ ↓, cesser ; cessée : « + ») ; « Documenter » (ajouter
-                        au profil sans prescrire) n'est offert que pour un produit hors du dossier. */}
+                        au profil sans prescrire) n'est offert que pour un produit hors du dossier, et seulement
+                        si le tweak « Bouton Documenter dans les menus » est allumé (documentButtonShown : éteint,
+                        le bouton n'est pas rendu, dans /rx comme dans /lab). */}
                     {it.med
                       ? <span className="rx-med-actions">
                           {medActs.indexOf('renouveler') >= 0 &&
@@ -1261,7 +1263,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       : noFav(it) && kind !== 'lab' ? null
                       : <>
                           {/* Dernier résultat au dossier : le documenter dans la note, pas le prescrire (RA-15 du prototype). */}
-                          {kind === 'lab' && !it.profile && window.NOTE_DATA.labOnFile(it.key) &&
+                          {kind === 'lab' && !it.profile && window.NOTE_DATA.documentButtonShown() && window.NOTE_DATA.labOnFile(it.key) &&
                             <span className="rx-med-actions rx-med-actions--heart">
                               <button type="button" className="rx-med-btn" title={t('popover.labDocumentResult.tooltip', { name: it.name })} aria-label={t('popover.labDocumentResult.tooltip', { name: it.name })}
                                 onMouseDown={(e) => e.preventDefault()}
@@ -1269,7 +1271,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                                 <span className="material-symbols-outlined" aria-hidden="true">edit_document</span>
                               </button>
                             </span>}
-                          {kind === 'rx' && !it.active &&
+                          {kind === 'rx' && !it.active && window.NOTE_DATA.documentButtonShown() &&
                             <span className="rx-med-actions rx-med-actions--heart">
                               <button type="button" className="rx-med-btn" title={t('popover.documenterAjouterProfilSans.tooltip')} aria-label={t('popover.documenterAjouterProfilSans.aria')}
                                 onMouseDown={(e) => e.preventDefault()}
