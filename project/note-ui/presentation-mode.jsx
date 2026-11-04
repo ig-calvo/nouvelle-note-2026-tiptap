@@ -24,6 +24,7 @@
 const PRESENTATION_TWEAKS = {
   showClinicalTools: true,
   showDocumentButton: true,
+  allergyWarning: true,
   portalActive: true,
   noteWide: false,
   ftBarPosition: 'haut',

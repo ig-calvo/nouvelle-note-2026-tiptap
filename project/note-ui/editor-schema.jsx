@@ -125,7 +125,9 @@ function chipIssues(a) {
     if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || t('schema.interactionHautRisque.text') });
     // Allergie au dossier (rxAllergyOf) : la recherche /rx ne masque plus les produits
     // allergènes ; la puce porte l'avertissement, une seconde après son ajout (warnAfter).
-    const allergy = window.NOTE_DATA && window.NOTE_DATA.rxAllergyOf && !(a.rx && (a.rx.renewal || a.rx.adjust))
+    // Le tweak « Avertissement d'allergie sur la puce » l'éteint (window.__SHOW_ALLERGY_WARNING
+    // posé par NoteEditor ; absent, il est offert).
+    const allergy = window.__SHOW_ALLERGY_WARNING !== false && window.NOTE_DATA && window.NOTE_DATA.rxAllergyOf && !(a.rx && (a.rx.renewal || a.rx.adjust))
       ? window.NOTE_DATA.rxAllergyOf({ name: (a.rx && a.rx.name) || a.label || '', details: d }) : null;
     if (allergy) out.push({ level: 'error', kind: 'allergy', message: t('schema.allergy.text', { name: allergy }) });
   }

@@ -383,7 +383,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
   "clinicName": "Clinique du Centre-ville",
   "showClinicalTools": true,
-  "showDocumentButton": true,
+  "showDocumentButton": false,
+  "allergyWarning": false,
   "portalActive": true,
   "noteWide": false,
   "ftBarPosition": "haut",
@@ -606,6 +607,7 @@ function App() {
               institution={t.clinicName}
               showClinicalTools={t.showClinicalTools}
               showDocumentButton={t.showDocumentButton !== false}
+              allergyWarning={t.allergyWarning !== false}
               saveDraftRef={noteSaveDraftRef}
               noteWide={t.noteWide === true}
               reviewingMode={t.reviewingMode === true}
@@ -715,6 +717,8 @@ function App() {
                        onChange={(v) => setTweak('showClinicalTools', v)} />
           <TweakToggle label="Bouton Documenter dans les menus" value={t.showDocumentButton !== false}
                        onChange={(v) => setTweak('showDocumentButton', v)} />
+          <TweakToggle label="Avertissement d'allergie sur la puce" value={t.allergyWarning !== false}
+                       onChange={(v) => setTweak('allergyWarning', v)} />
           <TweakToggle label="Portail patient actif" value={t.portalActive !== false}
                        onChange={(v) => setTweak('portalActive', v)} />
           <TweakToggle label="Note plus large (marges réduites)" value={t.noteWide === true}

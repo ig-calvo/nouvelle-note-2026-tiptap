@@ -1,5 +1,5 @@
 /* global React */
-function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true, showDocumentButton = true,
+function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true, showDocumentButton = true, allergyWarning = true,
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
@@ -12,6 +12,11 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // (editor-data.jsx) pour les menus /rx et /lab. Posé pendant le rendu, comme
   // l'édition inline plus bas, pour que le prochain menu ouvert le voie.
   window.__SHOW_DOCUMENT_BUTTON = showDocumentButton !== false;
+  // Tweak « Avertissement d'allergie sur la puce » : lu par chipIssues (editor-schema.jsx),
+  // donc par la puce, le checkout et le changement proposé. Éteint, aucune issue
+  // « allergy » : ni icône ni message. Les suggestions écartent toujours les allergènes
+  // (rxAllergyOf), quel que soit ce réglage.
+  window.__SHOW_ALLERGY_WARNING = allergyWarning !== false;
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
   React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
