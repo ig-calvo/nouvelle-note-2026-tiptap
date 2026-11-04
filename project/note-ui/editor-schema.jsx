@@ -123,8 +123,8 @@ function chipIssues(a) {
     if (missing.length) out.push({ level: 'error', kind: 'incomplete', blocking: true, missing: missing,
       message: t('schema.rxIncomplete.text', { fields: missing.map(function (m) { return m.word; }).join(', ') }) });
     if (d.alert && d.alert.level === 'high') out.push({ level: 'error', kind: 'interaction', message: d.alert.message || t('schema.interactionHautRisque.text') });
-    // Allergie au dossier (même règle que la recherche /rx, rxAllergyOf) : une
-    // ordonnance posée malgré tout, par un texte rapide ou « Afficher », la garde visible.
+    // Allergie au dossier (rxAllergyOf) : la recherche /rx ne masque plus les produits
+    // allergènes ; la puce porte l'avertissement, une seconde après son ajout (warnAfter).
     const allergy = window.NOTE_DATA && window.NOTE_DATA.rxAllergyOf && !(a.rx && (a.rx.renewal || a.rx.adjust))
       ? window.NOTE_DATA.rxAllergyOf({ name: (a.rx && a.rx.name) || a.label || '', details: d }) : null;
     if (allergy) out.push({ level: 'error', kind: 'allergy', message: t('schema.allergy.text', { name: allergy }) });
@@ -174,10 +174,41 @@ function chipStatusBadges(a) {
   return out;
 }
 
+// Une seconde après l'ajout d'une ordonnance dans la note, la puce montre ses
+// avertissements d'allergie et d'interaction (demande d'Ignacio Calvo,
+// 2026-11-04) : pas dans la fenêtre de sélection, pas au premier instant.
+// `warnAfter` (posé par holdChipWarnings à l'insertion) dit jusqu'à quand les
+// retenir ; releaseChipWarnings l'efface au bout du délai, ce qui redessine la puce.
+const CHIP_WARN_DELAY_MS = 1000;
+const HELD_ISSUE_KINDS = ['allergy', 'interaction'];
+function shownChipIssues(data, now) {
+  const issues = chipIssues(data);
+  const t0 = now === undefined ? Date.now() : now;
+  if (!data || !data.warnAfter || t0 >= data.warnAfter) return issues;
+  return issues.filter(function (i) { return HELD_ISSUE_KINDS.indexOf(i.kind) < 0; });
+}
+// Les attrs d'une puce à insérer, avec ses avertissements retenus si elle en aura.
+function holdChipWarnings(attrs) {
+  if (!attrs || !chipIssues(attrs).some(function (i) { return HELD_ISSUE_KINDS.indexOf(i.kind) >= 0; })) return attrs;
+  return Object.assign({}, attrs, { warnAfter: Date.now() + CHIP_WARN_DELAY_MS });
+}
+// Au bout du délai : la puce, si elle est encore dans la note, montre ses avertissements.
+// Hors historique (Ctrl+Z ne les « retient » pas de nouveau) et jamais une modification de l'auteur.
+function releaseChipWarnings(editor, cid) {
+  if (!editor || editor.isDestroyed) return;
+  const pos = findChipPos(editor, cid);
+  if (pos < 0) return;
+  const node = editor.state.doc.nodeAt(pos);
+  if (!node || !node.attrs.warnAfter) return;
+  editor.view.dispatch(editor.state.tr
+    .setNodeMarkup(pos, undefined, Object.assign({}, node.attrs, { warnAfter: null }))
+    .setMeta('addToHistory', false).setMeta('reviewAction', true));
+}
+
 // Classes et icônes de fin de puce : état (erreur / avertissement), puis
 // commentaire. La double coche « Transmis » vient après (decorateSentChip).
 function decorateChipStates(node, data) {
-  const issues = chipIssues(data);
+  const issues = shownChipIssues(data);
   const kinds = issues.map(function (i) { return i.kind; });
   if (kinds.indexOf('interaction') >= 0) node.classList.add('chip--interaction');
   if (kinds.indexOf('prereq') >= 0) node.classList.add('chip--todo');
@@ -641,7 +672,11 @@ function makeChipNode() { return window.Tiptap.Node.create({
       warn: { default: null },
       // Ligne à compléter (état 1) : { kind, term } — la recherche à rouvrir
       // (« rx », « Nitrofurantoïne »). Toujours `pending` aussi.
-      draft: { default: null }
+      draft: { default: null },
+      // Avertissements d'ordonnance (allergie, interaction) retenus jusqu'à cet
+      // instant (ms) : la puce les montre une seconde après son ajout dans la note
+      // (holdChipWarnings). Une date passée, ou rien, ne retient plus rien.
+      warnAfter: { default: null }
     };
   },
   parseHTML() {
@@ -3426,6 +3461,10 @@ function stripPendingChips(docJson) {
 
 Object.assign(window, {
   orderChipAttrs,
+  holdChipWarnings,
+  releaseChipWarnings,
+  shownChipIssues,
+  CHIP_WARN_DELAY_MS,
   labChipAttrs,
   buildRequestChips,
   buildPendingChipNode,

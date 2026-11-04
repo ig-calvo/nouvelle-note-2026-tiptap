@@ -600,22 +600,22 @@ function applyRxFilter(r, f) {
     default: return r;
   }
 }
-// Allergies du patient (débrief du 2026-10-28) : la recherche /rx masque les
-// produits d'une classe à laquelle le patient est allergique et le dit dans une
-// bannière ; « Afficher » les remet, marqués. Les médications au dossier ne sont
-// jamais masquées. Le Sommaire tient la liste à jour (setPatientAllergies) ;
-// classes et correspondances simulées, à valider cliniquement.
+// Allergies du patient : `rxAllergyOf` repère un produit d'une classe à laquelle le
+// patient est allergique. La recherche /rx ne les masque plus et ne les marque plus
+// (Ignacio Calvo, 2026-11-04) : l'avertissement vient sur la puce, une seconde après
+// son ajout dans la note (chipIssues, holdChipWarnings — editor-schema.jsx). Les
+// suggestions (colonne, agent, gabarits de conclusion) écartent toujours les
+// allergènes. Le Sommaire tient la liste à jour (setPatientAllergies) ; classes et
+// correspondances simulées, à valider cliniquement.
 const ALLERGEN_CLASSES = [
   { key: 'penicilline', allergy: /penicill|amoxicill|ampicill|cloxacill/, product: /penicill|amoxicill|ampicill|cloxacill|piperacill/ },
   // Sulfamides antibactériens (2e patiente, RA-38) : le TMP-SMX (cat-45).
   { key: 'sulfamides', allergy: /sulfam|sulfon/, product: /sulfamethox/ },
 ];
 let _patientAllergies = window.forPatient({ pediatrique: [L('Pénicilline')], adulte: [L('Sulfamides')] });
-let _showAllergens = false;
 function setPatientAllergies(names) { _patientAllergies = (names || []).filter(Boolean); }
 function getPatientAllergies() { return _patientAllergies.slice(); }
-function setShowAllergens(on) { _showAllergens = !!on; }
-// L'allergie au dossier qui exclut ce produit, ou null.
+// L'allergie au dossier à laquelle ce produit se rattache, ou null.
 function rxAllergyOf(it) {
   if (!it || it.med) return null;
   const hay = _hay(it.name) + ' ' + _hay((it.details && it.details.molecule) || '');
@@ -626,29 +626,10 @@ function rxAllergyOf(it) {
   }
   return null;
 }
-// Retire des sections hors dossier les produits allergènes (sauf « Afficher ») ;
-// `allergy` = { count, names, shown } quand la recherche en a trouvé.
-function applyAllergyFilter(r) {
-  const out = Object.assign({}, r);
-  let count = 0; const names = [];
-  ['contexte', 'favoris', 'frequents', 'autres'].forEach(function (k) {
-    if (!r[k]) return;
-    out[k] = r[k].filter(function (it) {
-      const a = rxAllergyOf(it);
-      if (!a) return true;
-      count += 1;
-      if (names.indexOf(a) < 0) names.push(a);
-      return _showAllergens;
-    });
-  });
-  if (count) out.allergy = { count: count, names: names, shown: _showAllergens };
-  return out;
-}
-
 // Compteurs du rail, pour la recherche en cours. Tout = les lignes que « Tout »
 // affiche.
 function rxFilterCounts(q, favs) {
-  const r = applyAllergyFilter(searchRx(q, favs));
+  const r = searchRx(q, favs);
   const tout = r.profil.length + r.favoris.length + r.frequents.length + r.autres.length;
   return { tout: tout, renouvelables: r.profil.filter(isRenewable).length,
     actives: r.profil.filter(function (it) { return it.medStatus === 'active'; }).length,
@@ -2140,12 +2121,12 @@ function searchOrder(kind, q, dx) {
     const ctx = contextResultsFor(dx, kind);
     if (ctx.length) {
       const res = { contexte: ctx, contextName: dx.name, profil: kind === 'rx' ? PATIENT_MEDS.slice() : [], favoris: [], frequents: [], autres: [] };
-      return kind === 'rx' ? applyAllergyFilter(res) : res;
+      return res;
     }
   }
   if (!_favFreeze[kind]) _favFreeze[kind] = new Set(d.favs);
   const r = d.search(q, _favFreeze[kind]);
-  return kind === 'rx' ? applyAllergyFilter(applyRxFilter(r, _rxFilter)) : r;
+  return kind === 'rx' ? applyRxFilter(r, _rxFilter) : r;
 }
 // ---------------------------------------------------------
 // Ajout en lot par virgules (« /lab fsc, tsh, ferritine ») : chaque terme
@@ -2155,15 +2136,14 @@ function searchOrder(kind, q, dx) {
 // résultat se garde en texte libre.
 // ---------------------------------------------------------
 // Les résultats d'une recherche, à plat, dans l'ordre de la vue « Tout » (sans
-// filtre du rail ni contexte de diagnostic). Les allergènes masqués de /rx
-// n'y sont pas.
+// filtre du rail ni contexte de diagnostic).
 function _orderResults(kind, q) {
   const d = ORDER_DEFS[kind];
   const favs = (_favFreeze[kind]) || d.favs;
   if (kind === 'lab') return labViews(q, favs).tout.reduce(function (a, s) { return a.concat(s.items); }, []);
   if (kind === 'ref') return refViews(q, favs).tout.reduce(function (a, s) { return a.concat(s.items); }, []);
   let r = d.search(q, favs);
-  if (kind === 'rx') r = applyAllergyFilter(applyRxFilter(r, 'tout'));
+  if (kind === 'rx') r = applyRxFilter(r, 'tout');
   return [].concat(r.profil || [], r.favoris || [], r.frequents || [], r.autres || []);
 }
 // Le meilleur résultat d'un terme : le nom (ou l'acronyme) exact, puis un nom
@@ -2181,7 +2161,7 @@ function bestOrderMatch(kind, term) {
     const words = nq.split(/\s+/).filter(Boolean);
     real = ORDER_DEFS[kind].items().filter(function (it) {
       const h = _hay(it.name) + ' ' + _norm(it.short || '');
-      return words.every(function (w) { return h.includes(w); }) && !(kind === 'rx' && rxAllergyOf(it));
+      return words.every(function (w) { return h.includes(w); });
     });
   }
   const score = function (it) {
@@ -2199,15 +2179,12 @@ function orderBatch(kind, term) {
   if (parts.length < 2 || !ORDER_DEFS[kind]) return null;
   const picks = parts.slice(0, -1).map(function (p) { return p.trim(); }).filter(Boolean)
     .map(function (p) {
-      const item = bestOrderMatch(kind, p);
-      // /rx : un terme qui ne trouve qu'un allergène masqué le dit (bannière d'allergie).
-      const masked = !item && kind === 'rx' && RX_ALL.some(function (it) { return rxAllergyOf(it) && _hay(it.name).includes(_norm(p)); });
-      return { term: p, item: item, masked: masked };
+      return { term: p, item: bestOrderMatch(kind, p) };
     });
   return { picks: picks, current: parts[parts.length - 1].trim() };
 }
 
-function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _labSort = 'freq'; _refView = 'tout'; _showAllergens = false; }
+function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; _labView = 'tout'; _labSort = 'freq'; _refView = 'tout'; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
 function rxCounts(q) { return rxFilterCounts(q, _favFreeze.rx || ORDER_DEFS.rx.favs); }
 function toggleOrderFav(kind, key) { const d = ORDER_DEFS[kind]; if (d) { d.favs.has(key) ? d.favs.delete(key) : d.favs.add(key); } }
@@ -2590,7 +2567,7 @@ function visitReason(points) {
 window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, documentButtonShown, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
-  setPatientAllergies, getPatientAllergies, setShowAllergens, rxAllergyOf, applyAllergyFilter,
+  setPatientAllergies, getPatientAllergies, rxAllergyOf,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
   LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, setLabSort, getLabSort, labFreq,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,

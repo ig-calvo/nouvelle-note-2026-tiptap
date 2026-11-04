@@ -162,7 +162,7 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
     const options = window.NOTE_DATA.dxConclusionOptions(region, dxConclusionContext());
     // Déjà proposé : une puce de cette option (acceptée ou en attente) est sous le diagnostic.
     const sources = found ? scSourcesIn(found.node) : [];
-    // Pas de produit allergène pour ce patient (comme la recherche /rx, qui les masque).
+    // Pas de produit allergène suggéré pour ce patient (la recherche /rx, elle, les garde).
     const rxAll = window.NOTE_DATA.contextResultsFor(region, 'rx').filter(function (it) { return !window.NOTE_DATA.rxAllergyOf(it); });
     const reqAll = window.NOTE_DATA.contextResultsFor(region, 'req');
     const room = SC_MAX_ROWS - options.length;

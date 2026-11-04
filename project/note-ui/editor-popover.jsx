@@ -1047,7 +1047,7 @@ function BatchList({ batch, query, onAdd }) {
           <li key={i} className={'rx-batch__item' + (p.item ? '' : ' is-missing')}>
             <span className="material-symbols-outlined" aria-hidden="true">{p.item ? (p.item.free ? 'edit_note' : 'check') : 'error'}</span>
             <span className="rx-batch__name">{p.item ? [p.item.name, p.item.dose].filter(Boolean).join(' ')
-              : p.masked ? t('popover.batchMasked.text', { term: p.term }) : t('popover.batchMissing.text', { term: p.term })}</span>
+              : t('popover.batchMissing.text', { term: p.term })}</span>
             {p.item && p.item.free && <span className="rx-batch__free">{t('data.freeText.text')}</span>}
           </li>))}
       </ul>
@@ -1088,7 +1088,7 @@ function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
     </nav>);
 }
 
-function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, onToggleAllergens, labRail, batch, labMulti, labSort, onToggleMulti, onToggleSort, onClearChecked }) {
+function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, labRail, batch, labMulti, labSort, onToggleMulti, onToggleSort, onClearChecked }) {
   const ref = useRefP(null);
   useEffectP(() => {
     function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
@@ -1141,9 +1141,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   let headControl = labV2;
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
   const noFav = (it) => !!it.profile || !!it.crds; // ni un profil ni une raison CRDS n'ont de favori
-  // Tous les résultats de la recherche sont des allergènes masqués : la
-  // bannière le dit seule, sans le « Aucun produit trouvé » qui la contredirait.
-  const allMasked = total === 0 && !!query && !!results.allergy && !results.allergy.shown;
 
   return (
     <div className={'rx-menu' + (railOn ? ' rx-menu--rail' : '') + (isLab ? ' rx-menu--lab' : '') + (labV2 ? ' rx-menu--req' : '') + (railOn && railFocus ? ' is-rail-focus' : '')} ref={ref} style={position} role="listbox">
@@ -1152,21 +1149,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
         {/* Ajout en lot (« /lab fsc, tsh, … ») : les termes suivis d'une virgule,
             chacun avec le résultat retenu (orderBatch, editor-data.jsx). */}
         {batch && batch.length > 0 && <BatchList batch={batch} query={query} onAdd={onAddChecked} />}
-        {/* Produits allergènes masqués (applyAllergyFilter, editor-data.jsx) : la
-            bannière le dit et « Afficher » les remet, marqués sur leur ligne. */}
-        {results.allergy &&
-          <div className="rx-allergy" role="status">
-            <span className="material-icons-outlined" aria-hidden="true">{results.allergy.shown ? 'warning' : 'visibility_off'}</span>
-            <span className="rx-allergy__text">{results.allergy.shown
-              ? tn('popover.allergyShown.text', results.allergy.count, { names: results.allergy.names.join(', ') })
-              : allMasked
-                ? tn('popover.allergyOnly.text', results.allergy.count, { query: query, names: results.allergy.names.join(', ') })
-                : tn('popover.allergyHidden.text', results.allergy.count, { names: results.allergy.names.join(', ') })}</span>
-            <button type="button" className="rx-allergy__btn" onMouseDown={(e) => e.preventDefault()} onClick={() => onToggleAllergens && onToggleAllergens()}>
-              {results.allergy.shown ? t('popover.allergyHide.button') : t('popover.allergyShow.button')}
-            </button>
-          </div>}
-        {total === 0 && !allMasked &&
+        {total === 0 &&
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
         {sections.map(([ttl, list, secKey]) => { if (list.length === 0) return null;
@@ -1218,8 +1201,6 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                     <div className="rx-item__name">
                       <RxNameHighlight name={it.name} query={query} /> {it.dose}
                       {it.med && <span className={'rx-status rx-status--' + (it.medStatus === 'cessée' ? 'ceased' : it.medStatus)} title={it.medStatusLabel || ''}>{window.NOTE_DATA.MED_STATUS_LABEL[it.medStatus]}</span>}
-                      {kind === 'rx' && results.allergy && window.NOTE_DATA.rxAllergyOf(it) &&
-                        <span className="rx-status rx-status--allergy">{t('popover.allergyTag.text', { name: window.NOTE_DATA.rxAllergyOf(it) })}</span>}
                       {it.crds && it.cote && <span className="rx-status rx-status--cote">{t('data.crdsPriority.text', { cote: it.cote })}</span>}
                     </div>
                     {/* Une médication au dossier montre aussi la date de sa prescription d'origine. */}
