@@ -12,12 +12,12 @@ const lab = (key) => D.ORDER_DEFS.lab.items().find((it) => it.key === key);
 const img = (key) => D.ORDER_DEFS.img.items().find((it) => it.key === key);
 const prof = (key) => D.LAB_PROFILES.find((p) => p.key === key);
 
-test('plus de /req : /lab montre ses vues (Au dossier, Fréquemment prescrit) ; l’imagerie en sélection unique', () => {
+test('plus de /req : /lab montre ses vues (Au dossier, Favoris, Fréquemment prescrit) ; l’imagerie en sélection unique', () => {
   assert.deepEqual(w.parseSlashQuery('req diab'), { mode: 'menu' }, '« /req » n’ouvre plus de recherche');
   assert.ok(!D.ORDER_DEFS.req);
   assert.ok(!D.SLASH_ITEMS.some((it) => it.kbd === 'req'));
   const all = D.searchOrder('lab', '');
-  assert.deepEqual(all.labSections.map((s) => s.key), ['dossier', 'frequent']);
+  assert.deepEqual(all.labSections.map((s) => s.key), ['dossier', 'favoris', 'frequent']);
   assert.equal(w.flattenRxResults(all)[0].key, all.labSections[0].items[0].key, 'au clavier, dans l’ordre des sections');
   D.endOrderSearch();
   assert.deepEqual(D.searchOrder('lab', 'diab').labSections[0].items.map((p) => p.name), [w.TR('Profil diabète')], 'un bilan se trouve par son nom');

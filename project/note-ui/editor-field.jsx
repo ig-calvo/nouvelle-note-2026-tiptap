@@ -612,7 +612,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, term) : null,
           batch: currentBatch ? currentBatch.picks : null,
           counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts(term) : null, query: term, results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
-          labMulti: labMulti, labSort: window.NOTE_DATA.getLabSort(),
+          labMulti: labMulti,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
       }
@@ -634,7 +634,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         checked = []; railFocus = false; labMulti = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
-        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.setLabView('tout'); window.NOTE_DATA.setLabSort('freq'); window.NOTE_DATA.setRefView('tout');
+        window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.resetLabView(); window.NOTE_DATA.setRefView('tout');
         currentItems = props.items; currentClientRect = props.clientRect; currentRange = props.range; lastQuery = props.query;
         slashCommandRef.current = props.command;
         publish(props.query);
@@ -703,6 +703,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }
           if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
         }
+        // /lab en multisélection (bascule allumée ou analyses cochées) : la recherche
+        // est gelée. Rien ne s'ajoute au texte de la note, pour que la vue reste stable ;
+        // Espace coche ou décoche la rangée active (comme ⇧ Entrée) ; Entrée soumet la
+        // sélection. Éteindre la bascule libère la frappe (décision du 2026-11-04).
+        if (parsed.mode === 'order' && parsed.kind === 'lab' && (labMulti || checked.length > 0)) {
+          const frozen = window.NOTE_DATA.multiFreezeKey(props.event);
+          if (frozen === 'toggle') {
+            const it = !railFocus && currentItems[selectedIndex];
+            if (it) { toggleChecked(it, parsed.kind); publish(lastQuery); }
+            return true;
+          }
+          if (frozen === 'block') return true;
+        }
         if (props.event.key === 'ArrowDown') {
           selectedIndex = Math.min(currentItems.length - 1, selectedIndex + 1);
           publish(lastQuery); return true;
@@ -765,7 +778,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
       republish() { publish(lastQuery); },
-      // /lab : bascule « Multisélection », « Tout désélectionner » et tri A-Z d'une catégorie.
+      // /lab : bascule « Multisélection » et « Tout désélectionner ».
       toggleMulti() {
         // La bascule montre « allumée » dès qu'il y a une sélection : l'éteindre vide la sélection.
         labMulti = !(labMulti || checked.length > 0);
@@ -773,7 +786,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         publish(lastQuery);
       },
       clearChecked() { checked = []; publish(lastQuery); },
-      toggleSort() { window.NOTE_DATA.setLabSort(window.NOTE_DATA.getLabSort() === 'az' ? 'freq' : 'az'); selectedIndex = 0; publish(lastQuery); },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Fréquemment prescrits, Phrases de prescription.
       setFilter(f) {
         const kind = parseSlashQuery(lastQuery).kind;
@@ -1574,9 +1586,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           onToggleCheck={(it) => { if (slashApiRef.current) slashApiRef.current.toggleCheck(it); }}
           onAddChecked={() => { if (slashApiRef.current) slashApiRef.current.addChecked(); }}
           labMulti={slash.labMulti}
-          labSort={slash.labSort}
           onToggleMulti={() => { if (slashApiRef.current) slashApiRef.current.toggleMulti(); }}
-          onToggleSort={() => { if (slashApiRef.current) slashApiRef.current.toggleSort(); }}
           onClearChecked={() => { if (slashApiRef.current) slashApiRef.current.clearChecked(); }}
           batch={slash.batch}
           filter={slash.filter}

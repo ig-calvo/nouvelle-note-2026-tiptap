@@ -705,18 +705,14 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-menu--req .rx-rail__item.is-on { background: light-dark(rgba(103, 80, 164, 0.08), rgba(208, 188, 255, 0.16)); color: var(--mat-sys-on-primary-container); font-weight: 600; }
 .rx-menu--req .rx-rail__count { font-size: 12px; }
 .rx-rail__sep { height: 1px; margin: 4px 0; background: var(--mat-sys-outline-variant); }
-/* Bascule « Multisélection » (52 × 32) et bouton A-Z d'une catégorie. */
+/* Bascule « Multisélection » (52 × 32). */
 .rx-switch { display: inline-flex; align-items: center; gap: 8px; margin: -8px 0; padding: 0; border: 0; background: transparent; cursor: pointer; font: 400 14px/21px var(--font-body); letter-spacing: 0.25px; color: var(--mat-sys-on-surface); }
 .rx-switch__track { position: relative; box-sizing: border-box; width: 52px; height: 32px; border: 2px solid var(--mat-sys-outline); border-radius: 16px; background: var(--mat-sys-surface-container-highest); transition: background 120ms, border-color 120ms; }
 .rx-switch__thumb { position: absolute; top: 50%; left: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--mat-sys-outline); transform: translateY(-50%); transition: left 120ms, width 120ms, height 120ms, background 120ms; }
 .rx-switch.is-on .rx-switch__track { background: var(--mat-sys-primary); border-color: var(--mat-sys-primary); }
 .rx-switch.is-on .rx-switch__thumb { left: 22px; width: 24px; height: 24px; background: var(--mat-sys-on-primary); }
-.rx-switch:focus-visible .rx-switch__track, .rx-sort:focus-visible, .rx-selbar__btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
-.rx-sort { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; margin: -6px 0; padding: 0; border: 0; border-radius: 8px; background: transparent; cursor: pointer; color: var(--mat-sys-on-surface); }
-.rx-sort .material-symbols-outlined { font-size: 22px; }
-.rx-sort:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
-.rx-sort.is-on { background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent); color: var(--mat-sys-primary); }
-/* Bascule et bouton A-Z côte à côte, à droite de l'en-tête d'une section. */
+.rx-switch:focus-visible .rx-switch__track, .rx-selbar__btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+/* La bascule, à droite de l'en-tête d'une section. */
 .rx-sec__controls { display: inline-flex; align-items: center; gap: 12px; flex-shrink: 0; }
 /* En multisélection : la case est au début de la rangée, centrée avec le texte, le cœur et « Documenter ». */
 .rx-menu--req .rx-check { margin: 0 0 0 -4px; }

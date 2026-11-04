@@ -52,10 +52,14 @@ test('/rx sous un asthme, rien de tapé : le contexte, favoris en tête, puis to
   assert.deepEqual(keys(w.flattenRxResults(r)), keys(r.contexte).concat(keys(r.profil)), 'la navigation au clavier suit la liste affichée');
 });
 
-test('/lab sous un asthme : le contexte seul, pas de dossier pharmacologique', () => {
+test('/lab sous un asthme : plus de « contexte seul » ; le menu s’ouvre sur la vue Suggérés, le diagnostic en tête', () => {
   const r = D.searchOrder('lab', '', { name: 'Asthme léger', code: 'J45.9' });
-  assert.deepEqual(keys(r.contexte), ['efr']);
-  assert.equal(r.profil.length, 0);
+  assert.equal(r.contexte, undefined, 'plus de section « contexte » pour /lab');
+  assert.equal(D.getLabView(), 'suggeres');
+  assert.equal(r.labSections[0].key, 'sugg-dx');
+  assert.equal(r.labSections[0].title, w.t('data.sectionLabSuggestedDx.title', { dx: 'Asthme léger' }));
+  assert.deepEqual(keys(r.labSections[0].items), ['efr']);
+  D.endOrderSearch();
 });
 
 test('taper quitte le contexte : recherche normale', () => {
@@ -168,10 +172,10 @@ test('sans outils cliniques : l’item Outils cliniques reste dans « / », mais
   delete w.__SHOW_CLINICAL_TOOLS;
 });
 
-test('sous un asthme, chaque fonction s’ouvre en contexte : /rx, /lab, /img (et les requêtes de la colonne)', () => {
+test('sous un asthme, /rx et /img s’ouvrent en contexte, /lab sur Suggérés (et les requêtes de la colonne)', () => {
   const dx = { name: w.TR('Asthme léger'), code: 'J45.9' };
   assert.deepEqual(keys(D.searchOrder('rx', '', dx).contexte), ['vento100', 'cat-35', 'cat-37', 'cat-39']);
-  assert.deepEqual(keys(D.searchOrder('lab', '', dx).contexte), ['efr']);
+  assert.deepEqual(keys(D.searchOrder('lab', '', dx).labSections[0].items), ['efr']);
   assert.deepEqual(keys(D.searchOrder('img', '', dx).contexte), ['rxpoumon']);
   assert.deepEqual(D.contextResultsFor(dx, 'req').map((it) => it.orderKind + ':' + it.key), ['lab:efr', 'img:rxpoumon']);
   D.endOrderSearch();
