@@ -383,9 +383,11 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "doctorName": "Véronique Charland",
   "clinicName": "Clinique du Centre-ville",
   "showClinicalTools": true,
-  "showDocumentButton": true,
+  "showDocumentButton": false,
+  "allergyWarning": false,
   "portalActive": true,
   "noteWide": false,
+  "noteTextSize": "prototype",
   "ftBarPosition": "haut",
   "reviewingMode": false,
   "reviewAuthor": "me",
@@ -504,6 +506,12 @@ function App() {
     root.classList.toggle('omnimed-dark', dark);
     root.classList.toggle('omnimed-light', !dark);
   }, [t.themeMode]);
+  // Taille du texte de la note : html[data-note-text] (editor.css, NotesList.jsx).
+  // Posé ici et non dans NoteEditor : la Liste de notes cliniques doit le suivre
+  // même quand l'éditeur n'est pas monté.
+  React.useEffect(function () {
+    document.documentElement.setAttribute('data-note-text', t.noteTextSize === 'vraie' ? 'vraie' : 'prototype');
+  }, [t.noteTextSize]);
   const [navCollapsed, setNavCollapsed] = React.useState(function () {
     return window.innerWidth <= 1500;
   });
@@ -606,6 +614,7 @@ function App() {
               institution={t.clinicName}
               showClinicalTools={t.showClinicalTools}
               showDocumentButton={t.showDocumentButton !== false}
+              allergyWarning={t.allergyWarning !== false}
               saveDraftRef={noteSaveDraftRef}
               noteWide={t.noteWide === true}
               reviewingMode={t.reviewingMode === true}
@@ -715,10 +724,21 @@ function App() {
                        onChange={(v) => setTweak('showClinicalTools', v)} />
           <TweakToggle label="Bouton Documenter dans les menus" value={t.showDocumentButton !== false}
                        onChange={(v) => setTweak('showDocumentButton', v)} />
+          <TweakToggle label="Avertissement d'allergie sur la puce" value={t.allergyWarning !== false}
+                       onChange={(v) => setTweak('allergyWarning', v)} />
           <TweakToggle label="Portail patient actif" value={t.portalActive !== false}
                        onChange={(v) => setTweak('portalActive', v)} />
           <TweakToggle label="Note plus large (marges réduites)" value={t.noteWide === true}
                        onChange={(v) => setTweak('noteWide', v)} />
+          {/* Taille du texte de la note : « Vraie note » = celle de la note enregistrée
+              (éditeur Tiptap DS3, body-large 16 px) ; « Prototype » = la taille d'origine. */}
+          <TweakRadio label="Taille du texte de la note"
+                      value={t.noteTextSize === 'vraie' ? 'vraie' : 'prototype'}
+                      options={[
+                        { value: 'prototype', label: 'Prototype' },
+                        { value: 'vraie', label: 'Vraie note' },
+                      ]}
+                      onChange={(v) => setTweak('noteTextSize', v)} />
           {/* Barre de mise en forme flottante (seule retenue) : bas = sous la
               sélection plutôt qu'au-dessus. */}
           <TweakRadio label="Position de la barre"

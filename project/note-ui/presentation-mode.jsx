@@ -24,8 +24,10 @@
 const PRESENTATION_TWEAKS = {
   showClinicalTools: true,
   showDocumentButton: true,
+  allergyWarning: true,
   portalActive: true,
   noteWide: false,
+  noteTextSize: 'prototype',
   ftBarPosition: 'haut',
   reviewingMode: false,
   checkoutSuggestions: false,

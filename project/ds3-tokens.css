@@ -62,7 +62,11 @@
   --mat-sys-body-large: 400 16px/24px var(--font-mat-sys-plain-family);
   --mat-sys-body-large-bold: 600 16px/24px var(--font-mat-sys-plain-family);
   --mat-sys-body-medium: 400 14px/21px var(--font-mat-sys-plain-family);
+  /* body-medium-bold et body-small-bold : titres 2 et 3 de la note enregistrée
+     (descriptif d'Ignacio Calvo, 2026-11-04), pas encore relus dans tokens.json. */
+  --mat-sys-body-medium-bold: 600 14px/21px var(--font-mat-sys-plain-family);
   --mat-sys-body-small: 400 12px/18px var(--font-mat-sys-plain-family);
+  --mat-sys-body-small-bold: 600 12px/18px var(--font-mat-sys-plain-family);
   --mat-sys-label-large: 500 14px/20px var(--font-mat-sys-plain-family);
   --mat-sys-label-large-bold: 600 14px/20px var(--font-mat-sys-plain-family);
   --mat-sys-label-medium: 500 12px/16px var(--font-mat-sys-plain-family);

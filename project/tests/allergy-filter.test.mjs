@@ -5,10 +5,13 @@
 // Lancer : node --test project/tests/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { loadPrototype } from './harness.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
+import { loadPrototype, projectDir } from './harness.mjs';
 
 const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/editor-data.jsx', 'note-ui/editor-schema.jsx']);
 const D = w.NOTE_DATA;
+const read = (rel) => fs.readFileSync(path.join(projectDir, rel), 'utf8');
 const keys = (r) => w.flattenRxResults(r).map((it) => it.key);
 const item = (test) => D.ORDER_DEFS.rx.items().find(test);
 const kinds = (issues) => issues.map((i) => i.kind);
@@ -96,4 +99,43 @@ test('sans allergie ni interaction, rien n’est retenu ; une puce incomplète g
 test('une puce rechargée avec un délai déjà passé montre tout de suite ses avertissements', () => {
   const a = w.orderChipAttrs('rx', item((it) => it.key === 'amox500'));
   assert.deepEqual(kinds(w.shownChipIssues(Object.assign({}, a, { warnAfter: Date.now() - 60000 }))), ['allergy']);
+});
+
+// --- Tweak « Avertissement d'allergie sur la puce » (2026-11-04) ---
+
+test('tweak éteint : aucune issue « allergie », rien n’est retenu une seconde, l’interaction reste', () => {
+  D.setPatientAllergies(['Pénicilline']);
+  assert.equal(w.__SHOW_ALLERGY_WARNING, undefined, 'rien de posé : l’avertissement est offert');
+  const amox = w.orderChipAttrs('rx', item((it) => it.key === 'amox500'));
+  w.__SHOW_ALLERGY_WARNING = false;
+  try {
+    assert.deepEqual(kinds(w.chipIssues(amox)), [], 'ni sur la puce, ni au checkout');
+    const held = w.holdChipWarnings(amox);
+    assert.equal(held.warnAfter, undefined, 'plus de délai d’une seconde pour une allergie');
+    assert.deepEqual(kinds(w.shownChipIssues(held, Date.now() + 5000)), []);
+    const cipro = w.holdChipWarnings(w.orderChipAttrs('rx', item((it) => it.name === w.TR('Ciprofloxacine'))));
+    assert.ok(cipro.warnAfter, 'une interaction de haut risque garde son délai');
+    assert.ok(kinds(w.shownChipIssues(cipro, cipro.warnAfter)).includes('interaction'));
+  } finally { delete w.__SHOW_ALLERGY_WARNING; }
+  assert.deepEqual(kinds(w.chipIssues(amox)), ['allergy'], 'rallumé');
+});
+
+test('tweak éteint : les suggestions écartent toujours les allergènes (T5), rxAllergyOf aussi', () => {
+  D.setPatientAllergies(['Pénicilline']);
+  w.__SHOW_ALLERGY_WARNING = false;
+  try {
+    assert.equal(D.rxAllergyOf(item((it) => it.key === 'amox500')), 'Pénicilline');
+    const ctx = D.contextResultsFor({ name: 'Otite moyenne aiguë', code: '65363002' }, 'rx');
+    assert.ok(ctx.some((it) => D.rxAllergyOf(it)), 'le contexte du diagnostic contient un allergène');
+  } finally { delete w.__SHOW_ALLERGY_WARNING; }
+});
+
+test('le drapeau est posé par NoteEditor, réglé par le panneau Tweaks (éteint par défaut) et allumé en mode présentation', () => {
+  assert.match(read('note-ui/NoteEditor.jsx'), /window\.__SHOW_ALLERGY_WARNING = allergyWarning !== false;/);
+  assert.match(read('note-ui/editor-schema.jsx'), /window\.__SHOW_ALLERGY_WARNING !== false &&/);
+  const html = read('Note Clinique.html');
+  assert.match(html, /"allergyWarning": false,/, 'éteint par défaut pour la séance de test');
+  assert.match(html, /allergyWarning=\{t\.allergyWarning !== false\}/);
+  assert.match(html, /<TweakToggle label="Avertissement d'allergie sur la puce"/);
+  assert.match(read('note-ui/presentation-mode.jsx'), /allergyWarning: true,/);
 });

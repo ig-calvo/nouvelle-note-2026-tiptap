@@ -1,5 +1,6 @@
-// Tweak « Bouton Documenter dans les menus » : allumé par défaut, il retire le
-// bouton « Documenter » des menus /rx et /lab quand il est éteint. Le drapeau
+// Tweak « Bouton Documenter dans les menus » : éteint par défaut dans le panneau
+// Tweaks (séance de test, 2026-11-04), il retire le bouton « Documenter » des
+// menus /rx et /lab ; sans drapeau posé, le code l'offre. Le drapeau
 // window.__SHOW_DOCUMENT_BUTTON est posé par NoteEditor ; les menus le lisent
 // par documentButtonShown (editor-data.jsx). Le rendu des boutons (RxMenu) ne
 // tourne pas hors navigateur : on vérifie qu'il passe par ce drapeau.
@@ -37,7 +38,7 @@ test('éteint : le bouton n’est plus offert, les autres actions restent', () =
 test('le drapeau est posé par NoteEditor, réglé par le panneau Tweaks, et fixé en mode présentation', () => {
   assert.match(read('note-ui/NoteEditor.jsx'), /window\.__SHOW_DOCUMENT_BUTTON = showDocumentButton !== false;/);
   const html = read('Note Clinique.html');
-  assert.match(html, /"showDocumentButton": true,/, 'allumé par défaut');
+  assert.match(html, /"showDocumentButton": false,/, 'éteint par défaut pour la séance de test (décision du 2026-11-04)');
   assert.match(html, /showDocumentButton=\{t\.showDocumentButton !== false\}/);
   assert.match(html, /<TweakToggle label="Bouton Documenter dans les menus"/);
   assert.match(read('note-ui/presentation-mode.jsx'), /showDocumentButton: true,/);
