@@ -100,6 +100,21 @@ html[data-note-text="vraie"] {
 
 /* Texte d'aide d'une recherche de fonction vide (« /ref », orderHintPlugin). */
 .note-field .ql-editor .slash-hint { color: var(--mat-sys-on-surface-variant); opacity: 0.75; font-weight: 400; pointer-events: none; user-select: none; }
+/* Sélection de /lab dans la ligne de la note (labPendingChipsPlugin, editor-schema.jsx ;
+   maquette de Vanessa Bois, 2026-11-04) : l'icône de la fonction, une puce « FSC ✕ » par
+   analyse choisie, puis le terme en cours. « /lab » et les termes résolus restent dans le
+   document, cachés ; le fond du texte en attente part avec eux. */
+.note-field .ql-editor .slash-hidden { font-size: 0; letter-spacing: 0; }
+.note-field .ql-editor .slash-pending:has(.slash-hidden) { background: transparent; padding: 0; margin: 0; }
+.pchips { display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; vertical-align: middle; user-select: none; }
+.pchips__fn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; box-sizing: border-box; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); }
+.pchips__fn .material-icons-outlined { font-size: 20px; }
+.pchip { display: inline-flex; align-items: center; gap: 4px; height: 32px; box-sizing: border-box; padding: 0 4px 0 12px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface-container-lowest); color: var(--mat-sys-on-surface); font: 400 14px/20px var(--font-body); letter-spacing: 0.1px; }
+.pchip.is-missing { border-style: dashed; color: var(--mat-sys-on-surface-variant); text-decoration: line-through; }
+.pchip__x { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--mat-sys-on-surface-variant); cursor: pointer; }
+.pchip__x:hover { background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent); }
+.pchip__x:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
+.pchip__x .material-icons-outlined { font-size: 18px; }
 
 /* ============================================================
    Diagnostic region — node bloc imbriqué (.dxr > .dxr-head + .dxr-body).

@@ -511,6 +511,7 @@
   'field.photoMine.text': 'Photo — cellphone',
   'field.photoPatient.text': 'Photo — patient',
   'field.photoReceived.text': 'Photo received',
+  'field.pendingChipRemove.aria': 'Remove {name}',
   'field.plusOptions.tooltip': 'More options',
   'field.prescrire.text': 'Prescribe',
   'field.removeItem.hint': 'Remove this item from the note completely, or keep it as plain text?',

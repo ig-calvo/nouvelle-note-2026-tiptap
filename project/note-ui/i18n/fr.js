@@ -1093,6 +1093,7 @@
   'field.photoPatient.text': 'Photo — patient',
   'field.photoMine.text': 'Photo — cellulaire',
   'field.photoReceived.text': 'Photo reçue',
+  'field.pendingChipRemove.aria': 'Retirer {name}',
   'summaryModal.noKnownAllergy.text': 'Aucune allergie connue',
 
   // Données de démonstration : libellés d'interface du catalogue (lot A3)

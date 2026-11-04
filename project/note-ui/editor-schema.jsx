@@ -2533,6 +2533,105 @@ function orderHintPlugin() {
   } } });
 }
 
+// ---------------------------------------------------------
+// Sélection de /lab dans la ligne de la note (maquette de Vanessa Bois, flows
+// « Laboratoire - flow baseline » et « Recherche par catégorie de laboratoire »,
+// 2026-11-04) : tant que la recherche /lab est ouverte, la ligne montre l'icône
+// de la fonction (fiole), puis une puce « FSC ✕ » par analyse choisie — cochée
+// dans le menu, ou résolue par une virgule (« fsc, ») —, puis le terme en
+// cours. « /lab » et les termes résolus restent dans le document (le plugin
+// Suggestion en a besoin) mais sont cachés (.slash-hidden). Ce sont des
+// décorations : rien n'entre dans le document avant la tuile.
+// État partagé : window.__LAB_PENDING = { open, checked: [{ uid, label }],
+// removeChecked(uid) }, tenu par le contrôleur de la recherche (editor-field.jsx).
+// ---------------------------------------------------------
+// Où en est la recherche /lab dans l'état : positions de « /lab », du terme et
+// du curseur, ou null (recherche fermée, sélection non vide, pas de « /lab »).
+function labPendingAt(state) {
+  const st = window.__LAB_PENDING;
+  if (!st || !st.open || !state.selection.empty) return null;
+  const $from = state.selection.$from;
+  const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '￼');
+  const at = before.toLowerCase().lastIndexOf('/lab ');
+  if (at < 0 || (at > 0 && !/\s/.test(before.charAt(at - 1)))) return null;
+  const slashFrom = $from.start() + at;
+  return { slashFrom: slashFrom, termFrom: slashFrom + 5, term: before.slice(at + 5), caret: state.selection.from };
+}
+// ✕ d'une puce résolue par virgule : retire « fsc, » (et l'espace qui suit) du texte.
+function removeLabPendingPart(view, i) {
+  const p = labPendingAt(view.state); if (!p) return;
+  const part = window.NOTE_DATA.labPendingParts(p.term).parts[i]; if (!part) return;
+  let to = p.termFrom + part.end;
+  if (view.state.doc.textBetween(to, Math.min(to + 1, view.state.doc.content.size), undefined, '￼') === ' ') to += 1;
+  view.dispatch(view.state.tr.delete(p.termFrom + part.start, to));
+  view.focus();
+}
+// « Tout désélectionner » : retire aussi le texte de toutes les puces résolues par virgule.
+function clearLabPendingParts(view) {
+  const p = labPendingAt(view.state); if (!p) return;
+  const info = window.NOTE_DATA.labPendingParts(p.term);
+  if (info.hideTo > 0) view.dispatch(view.state.tr.delete(p.termFrom, p.termFrom + info.hideTo));
+}
+function labPendingDom(view, chips) {
+  const wrap = document.createElement('span');
+  wrap.className = 'pchips';
+  wrap.setAttribute('contenteditable', 'false');
+  const fn = document.createElement('span');
+  fn.className = 'pchips__fn';
+  const icon = document.createElement('span');
+  icon.className = 'material-icons-outlined';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.textContent = 'science';
+  fn.appendChild(icon);
+  wrap.appendChild(fn);
+  chips.forEach(function (c) {
+    const chip = document.createElement('span');
+    chip.className = 'pchip' + (c.missing ? ' is-missing' : '');
+    const label = document.createElement('span');
+    label.className = 'pchip__label';
+    label.textContent = c.label;
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'pchip__x';
+    x.setAttribute('aria-label', t('field.pendingChipRemove.aria', { name: c.label }));
+    const xi = document.createElement('span');
+    xi.className = 'material-icons-outlined';
+    xi.setAttribute('aria-hidden', 'true');
+    xi.textContent = 'close';
+    x.appendChild(xi);
+    // Le focus reste dans la note ; le clic ne ferme pas le menu (RxMenu ignore .pchips).
+    x.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    x.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (c.kind === 'batch') removeLabPendingPart(view, c.i);
+      else if (window.__LAB_PENDING && window.__LAB_PENDING.removeChecked) window.__LAB_PENDING.removeChecked(c.uid);
+    });
+    chip.appendChild(label);
+    chip.appendChild(x);
+    wrap.appendChild(chip);
+  });
+  return wrap;
+}
+function labPendingChipsPlugin() {
+  const PM = window.Tiptap.pm;
+  return new PM.Plugin({ props: { decorations: function (state) {
+    if (!PM.Decoration || !PM.DecorationSet) return null;
+    const p = labPendingAt(state);
+    if (!p) return null;
+    const D = window.NOTE_DATA;
+    const info = D.labPendingParts(p.term);
+    const chips = info.parts.map(function (x, i) {
+      return { kind: 'batch', i: i, label: x.item ? D.labChipLabel(x.item) : x.text, missing: !x.item };
+    }).concat((window.__LAB_PENDING.checked || []).map(function (c) { return { kind: 'checked', uid: c.uid, label: c.label }; }));
+    const sig = chips.map(function (c) { return c.kind + ':' + (c.uid || c.i) + ':' + c.label + (c.missing ? '!' : ''); }).join('|');
+    return PM.DecorationSet.create(state.doc, [
+      PM.Decoration.widget(p.slashFrom, function (view) { return labPendingDom(view, chips); },
+        { side: -1, key: 'lab-pending:' + sig, stopEvent: function () { return true; }, ignoreSelection: true }),
+      PM.Decoration.inline(p.slashFrom, p.termFrom + info.hideTo, { class: 'slash-hidden' })
+    ]);
+  } } });
+}
+
 function buildSlashExtension(handlers) {
   return window.Tiptap.Extension.create({
     name: 'slashCommand',
@@ -2574,7 +2673,8 @@ function buildSlashExtension(handlers) {
           command: handlers.onCommand,
           render: handlers.makeHashRender
         }),
-        orderHintPlugin()
+        orderHintPlugin(),
+        labPendingChipsPlugin()
       ];
     }
   });
@@ -3499,7 +3599,7 @@ Object.assign(window, {
   parseSlashQuery,
   flattenRxResults,
   dxRegionAtSelection,
-  buildSlashExtension,
+  buildSlashExtension, clearLabPendingParts,
   DEFAULT_DOC,
   scanDoc,
   buildActionLog,
