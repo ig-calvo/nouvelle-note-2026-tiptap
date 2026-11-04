@@ -940,7 +940,8 @@ const LAB_GROUPS_BY_FREQ = LAB_GROUPS.map(function (g, i) {
 const LAB_FREQUENT_SHOWN = 3;
 
 // Panneau de droite du menu /lab (Figma « Requêtes — Vision ») : Récent,
-// Favoris, Suggérés, Ensembles d'examens, puis les catégories du catalogue.
+// Favoris, Suggérés, un séparateur, puis les catégories : Bilans en tête, puis
+// celles du catalogue.
 // Une vue filtre aussi la recherche en cours, comme le rail de /rx (RA-17), et
 // revient à « Tout » (Récent) à chaque nouvelle recherche. Suggérés est de
 // retour avec la maquette de Vanessa (2026-11-04) ; Prévention n'est pas une vue
@@ -1052,8 +1053,7 @@ function searchLab(q, favSet) {
 const LAB_VIEW_DEFS = [
   { key: 'tout', label: t('data.labViewRecent.label'), icon: 'history' },
   { key: 'favoris', label: t('data.sectionFavorites.title'), icon: 'favorite_border' },
-  { key: 'suggeres', label: t('data.labViewSuggested.label'), icon: 'auto_awesome' },
-  { key: 'bilans', label: t('data.sectionLabBilans.title'), icon: 'library_add_check' }
+  { key: 'suggeres', label: t('data.labViewSuggested.label'), icon: 'auto_awesome' }
 ];
 function labRail(q, favSet) {
   const v = labViews(q, favSet || _favFreeze.lab || LAB_FAVS);
@@ -1062,7 +1062,10 @@ function labRail(q, favSet) {
     // Avec une recherche, la première vue montre tous les résultats : « Tout », pas « Récent ».
     const def = d.key === 'tout' && searching ? Object.assign({}, d, { label: t('data.labViewAll.label'), icon: 'folder_copy' }) : d;
     return Object.assign({ count: _labCount(v[d.key] || []) }, def);
-  }).concat(LAB_GROUPS_BY_FREQ.map(function (g) { return { key: g.key, label: g.name, icon: 'folder', group: true, count: _labCount(v[g.key] || []) }; }));
+  // Sous le séparateur, les catégories : « Bilans » en tête (maquette de Vanessa,
+  // 2026-11-04), puis les catégories du catalogue de la plus à la moins prescrite.
+  }).concat([{ key: 'bilans', label: t('data.sectionLabBilans.title'), icon: 'folder', group: true, count: _labCount(v.bilans || []) }],
+    LAB_GROUPS_BY_FREQ.map(function (g) { return { key: g.key, label: g.name, icon: 'folder', group: true, count: _labCount(v[g.key] || []) }; }));
 }
 
 // =========================================================

@@ -42,12 +42,17 @@ test('avec une recherche : les bilans, puis les analyses sous leur groupe', () =
 test('panneau : une vue filtre la liste et la recherche, ses nombres suivent la recherche, retour à Tout à la fermeture', () => {
   D.endOrderSearch();
   const rail = D.labRail('');
-  assert.deepEqual(rail.slice(0, 4).map((r) => r.key), ['tout', 'favoris', 'suggeres', 'bilans'], 'Récent, Favoris, Suggérés, Ensembles d’examens (Figma « Requêtes — Vision »)');
-  assert.deepEqual(rail.slice(0, 4).map((r) => r.label), [w.t('data.labViewRecent.label'), w.t('data.sectionFavorites.title'), w.t('data.labViewSuggested.label'), w.t('data.sectionLabBilans.title')]);
+  assert.deepEqual(rail.slice(0, 3).map((r) => r.key), ['tout', 'favoris', 'suggeres'], 'Récent, Favoris, Suggérés : les vues qui bougent avec le contenu');
+  assert.deepEqual(rail.slice(0, 3).map((r) => r.label), [w.t('data.labViewRecent.label'), w.t('data.sectionFavorites.title'), w.t('data.labViewSuggested.label')]);
+  assert.ok(rail.slice(0, 3).every((r) => !r.group) && rail.slice(3).every((r) => r.group), 'sous le séparateur, que des catégories');
   assert.equal(D.labRail('fsc')[0].label, w.t('data.labViewAll.label'), 'avec une recherche, la première vue montre tout');
   assert.equal(rail.find((r) => r.key === 'biochimie').count, D.LAB_GROUPS[0].tests.length);
-  assert.ok(rail.filter((r) => r.group).length === D.LAB_GROUPS.length);
-  assert.deepEqual(rail.filter((r) => r.group).map((r) => r.key), ['biochimie', 'hematologie', 'microbiologie', 'serologie', 'biochimie-urinaire', 'fonction-respiratoire', 'medicament'], 'les catégories, de la plus prescrite à la moins prescrite');
+  assert.equal(rail.filter((r) => r.group).length, D.LAB_GROUPS.length + 1, 'les catégories du catalogue, plus Bilans');
+  assert.deepEqual(rail.filter((r) => r.group).map((r) => r.key), ['bilans', 'biochimie', 'hematologie', 'microbiologie', 'serologie', 'biochimie-urinaire', 'fonction-respiratoire', 'medicament'], 'Bilans en tête (maquette de Vanessa), puis les catégories de la plus prescrite à la moins prescrite');
+  const bilans = rail.find((r) => r.key === 'bilans');
+  assert.equal(bilans.label, w.t('data.sectionLabBilans.title'));
+  assert.equal(bilans.count, D.LAB_BILANS.length);
+  assert.equal(bilans.icon, 'folder', 'comme les autres catégories : le panneau n’affiche pas d’icône sous le séparateur');
   assert.deepEqual(D.labViewKeys(), rail.map((r) => r.key), 'le clavier suit l’ordre du panneau');
   D.setLabView('hematologie');
   assert.deepEqual(D.searchOrder('lab', '').labSections.map((s) => s.key), ['hematologie']);

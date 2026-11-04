@@ -1056,8 +1056,8 @@ function BatchList({ batch, query, onAdd }) {
 }
 
 // Panneau de droite de /lab (Figma « Requêtes — Vision ») : Récent, Favoris,
-// Ensembles d'examens, un séparateur, puis les catégories du catalogue, sans
-// icône, chacune avec son nombre de résultats.
+// Suggérés, un séparateur, puis les catégories sans icône (Bilans en tête, puis
+// celles du catalogue), chacune avec son nombre de résultats.
 // Pour /ref : Tout, Favoris, puis les spécialités, avec leur en-tête et leurs
 // icônes, sans sélection multiple.
 function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
