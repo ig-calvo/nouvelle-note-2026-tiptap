@@ -505,9 +505,15 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // Zone du clavier dans le menu /rx : la liste des résultats ou le rail de filtres (Tab bascule).
     let railFocus = false;
     // /lab : la bascule « Multisélection » est allumée (cases à cocher, un clic
-    // sélectionne au lieu d'ajouter). Cocher une analyse l'allume (toggleChecked),
-    // pour que la bascule et les cases ne se contredisent jamais ; l'éteindre vide la sélection.
-    let labMulti = false;
+    // sélectionne au lieu d'ajouter). Elle l'est d'office à l'ouverture (maquette
+    // « flow baseline » de Vanessa, 2026-11-04 : hypothèse à tester auprès des
+    // cliniciens). Cocher une analyse l'allume (toggleChecked), pour que la bascule
+    // et les cases ne se contredisent jamais ; l'éteindre vide la sélection.
+    let labMulti = true;
+    // Allumée À LA MAIN (un clic sur la bascule, après l'avoir éteinte) : seulement
+    // alors la recherche est gelée (RA-43). Allumée d'office, on tape librement,
+    // comme dans la maquette (« fsh, » puis une 2ᵉ analyse).
+    let labMultiHand = false;
     // La recherche ouverte montre-t-elle le contexte d'un diagnostic (pas de panneau /lab) ?
     let orderInContext = false;
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
@@ -631,7 +637,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     const api = {
       onStart(props) {
         selectedIndex = initialIndex();
-        checked = []; railFocus = false; labMulti = false;
+        checked = []; railFocus = false; labMulti = true; labMultiHand = false;
         dxState = null; dxModel = null; dxSelfRewrite = false;
         slashDoneRef.current = false;
         window.NOTE_DATA.setRxFilter('tout'); window.NOTE_DATA.resetLabView(); window.NOTE_DATA.setRefView('tout');
@@ -703,11 +709,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           }
           if (key === 'Enter' || key === 'ArrowLeft') { railFocus = false; publish(lastQuery); return true; }
         }
-        // /lab en multisélection (bascule allumée ou analyses cochées) : la recherche
-        // est gelée. Rien ne s'ajoute au texte de la note, pour que la vue reste stable ;
-        // Espace coche ou décoche la rangée active (comme ⇧ Entrée) ; Entrée soumet la
-        // sélection. Éteindre la bascule libère la frappe (décision du 2026-11-04).
-        if (parsed.mode === 'order' && parsed.kind === 'lab' && (labMulti || checked.length > 0)) {
+        // /lab, multisélection allumée À LA MAIN : la recherche est gelée. Rien ne
+        // s'ajoute au texte de la note, pour que la vue reste stable ; Espace coche ou
+        // décoche la rangée active (comme ⇧ Entrée) ; Entrée soumet la sélection. Éteindre
+        // la bascule libère la frappe (décisions du 2026-11-04). Allumée d'office, la
+        // multisélection ne gèle rien : la maquette de Vanessa tape « fsh, » avec la bascule allumée.
+        if (parsed.mode === 'order' && parsed.kind === 'lab' && labMultiHand) {
           const frozen = window.NOTE_DATA.multiFreezeKey(props.event);
           if (frozen === 'toggle') {
             const it = !railFocus && currentItems[selectedIndex];
@@ -780,9 +787,11 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       republish() { publish(lastQuery); },
       // /lab : bascule « Multisélection » et « Tout désélectionner ».
       toggleMulti() {
-        // La bascule montre « allumée » dès qu'il y a une sélection : l'éteindre vide la sélection.
-        labMulti = !(labMulti || checked.length > 0);
-        if (!labMulti) checked = [];
+        // La bascule montre « allumée » d'office et dès qu'il y a une sélection : l'éteindre
+        // vide la sélection. La rallumer est un geste volontaire : la recherche se fige.
+        const on = !(labMulti || checked.length > 0);
+        labMulti = on; labMultiHand = on;
+        if (!on) checked = [];
         publish(lastQuery);
       },
       clearChecked() { checked = []; publish(lastQuery); },

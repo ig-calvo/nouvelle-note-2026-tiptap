@@ -4333,7 +4333,7 @@
       "empreinte": "a069e0271e98",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1336"
+        "note-ui/editor-field.jsx:1345"
       ]
     },
     "field.ajouterFichiers.text": {
@@ -4341,7 +4341,7 @@
       "empreinte": "a632819ba623",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1786"
+        "note-ui/editor-field.jsx:1795"
       ]
     },
     "field.annulationSeraEnvoyeeDestinataire.text": {
@@ -4349,7 +4349,7 @@
       "empreinte": "368b2532eab9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1532"
+        "note-ui/editor-field.jsx:1541"
       ]
     },
     "field.annuler.button": {
@@ -4357,7 +4357,7 @@
       "empreinte": "49ba3292420c",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1428"
+        "note-ui/editor-field.jsx:1437"
       ]
     },
     "field.annuler.tooltip": {
@@ -4365,8 +4365,8 @@
       "empreinte": "49ba3292420c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1419",
-        "note-ui/editor-field.jsx:1452"
+        "note-ui/editor-field.jsx:1428",
+        "note-ui/editor-field.jsx:1461"
       ]
     },
     "field.annulerOrdonnance.text": {
@@ -4374,7 +4374,7 @@
       "empreinte": "3a23c8737884",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1506"
+        "note-ui/editor-field.jsx:1515"
       ]
     },
     "field.annulerRequete.text": {
@@ -4382,7 +4382,7 @@
       "empreinte": "aed68cc665a1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1506"
+        "note-ui/editor-field.jsx:1515"
       ]
     },
     "field.aucunDiagnosticNote.text": {
@@ -4390,7 +4390,7 @@
       "empreinte": "372be90638af",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1853"
+        "note-ui/editor-field.jsx:1862"
       ]
     },
     "field.autresTextesRapides.text": {
@@ -4406,7 +4406,7 @@
       "empreinte": "219433a36c0b",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1525"
+        "note-ui/editor-field.jsx:1534"
       ]
     },
     "field.cancelRequest.title": {
@@ -4414,7 +4414,7 @@
       "empreinte": "99412ed1347a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1527"
+        "note-ui/editor-field.jsx:1536"
       ]
     },
     "field.cancelRx.aria": {
@@ -4422,7 +4422,7 @@
       "empreinte": "0b04f0aac993",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1525"
+        "note-ui/editor-field.jsx:1534"
       ]
     },
     "field.cancelRx.title": {
@@ -4430,7 +4430,7 @@
       "empreinte": "1a2f936cb62c",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1527"
+        "note-ui/editor-field.jsx:1536"
       ]
     },
     "field.ceased.text": {
@@ -4446,7 +4446,7 @@
       "empreinte": "ff4d245c7dff",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1750"
+        "note-ui/editor-field.jsx:1759"
       ]
     },
     "field.cesse.text": {
@@ -4454,7 +4454,7 @@
       "empreinte": "71bad9275d88",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1862"
+        "note-ui/editor-field.jsx:1871"
       ]
     },
     "field.convertirTexte.button": {
@@ -4462,7 +4462,7 @@
       "empreinte": "58ad05a5cad6",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1494"
+        "note-ui/editor-field.jsx:1503"
       ]
     },
     "field.deleteItem.title": {
@@ -4470,7 +4470,7 @@
       "empreinte": "79598e2c0e49",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1451"
+        "note-ui/editor-field.jsx:1460"
       ]
     },
     "field.deleteRx.title": {
@@ -4478,7 +4478,7 @@
       "empreinte": "6c6e029bda2a",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1451"
+        "note-ui/editor-field.jsx:1460"
       ]
     },
     "field.diagScope.hint": {
@@ -4486,7 +4486,7 @@
       "empreinte": "4380c6573f05",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1956"
+        "note-ui/editor-field.jsx:1965"
       ]
     },
     "field.documenterComme.aria": {
@@ -4494,7 +4494,7 @@
       "empreinte": "b08d7d9e777e",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1937"
+        "note-ui/editor-field.jsx:1946"
       ]
     },
     "field.documenterComme.text": {
@@ -4502,7 +4502,7 @@
       "empreinte": "b08d7d9e777e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1939"
+        "note-ui/editor-field.jsx:1948"
       ]
     },
     "field.dxDescendre.text": {
@@ -4510,7 +4510,7 @@
       "empreinte": "2a44103a3abe",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:922"
+        "note-ui/editor-field.jsx:931"
       ]
     },
     "field.dxMonter.text": {
@@ -4518,7 +4518,7 @@
       "empreinte": "7a0cf92fd297",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:921"
+        "note-ui/editor-field.jsx:930"
       ]
     },
     "field.dxToutAccepter.text": {
@@ -4526,7 +4526,7 @@
       "empreinte": "2ed9183ca87d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:925"
+        "note-ui/editor-field.jsx:934"
       ]
     },
     "field.dxToutRetirer.text": {
@@ -4534,7 +4534,7 @@
       "empreinte": "7274be4707d8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:926"
+        "note-ui/editor-field.jsx:935"
       ]
     },
     "field.envoyerAnnulation.button": {
@@ -4542,7 +4542,7 @@
       "empreinte": "d6a4f42372c4",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1536"
+        "note-ui/editor-field.jsx:1545"
       ]
     },
     "field.eteTransmisPasAnnule.text": {
@@ -4550,7 +4550,7 @@
       "empreinte": "f855d2253136",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1425"
+        "note-ui/editor-field.jsx:1434"
       ]
     },
     "field.fermer.tooltip": {
@@ -4558,9 +4558,9 @@
       "empreinte": "5ab4ec640d65",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1528",
-        "note-ui/editor-field.jsx:1787",
-        "note-ui/editor-field.jsx:1847"
+        "note-ui/editor-field.jsx:1537",
+        "note-ui/editor-field.jsx:1796",
+        "note-ui/editor-field.jsx:1856"
       ]
     },
     "field.gabaritsNote.text": {
@@ -4576,7 +4576,7 @@
       "empreinte": "1e099d9acdba",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1463"
+        "note-ui/editor-field.jsx:1472"
       ]
     },
     "field.insererFonction.tooltip": {
@@ -4584,7 +4584,7 @@
       "empreinte": "798780205c73",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1328"
+        "note-ui/editor-field.jsx:1337"
       ]
     },
     "field.labResultText.text": {
@@ -4616,7 +4616,7 @@
       "empreinte": "f260e757cec7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1374"
+        "note-ui/editor-field.jsx:1383"
       ]
     },
     "field.ordinateur.label": {
@@ -4624,7 +4624,7 @@
       "empreinte": "3f81300ddf48",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1749"
+        "note-ui/editor-field.jsx:1758"
       ]
     },
     "field.patient.label": {
@@ -4632,7 +4632,7 @@
       "empreinte": "301e246b6841",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-field.jsx:1751"
+        "note-ui/editor-field.jsx:1760"
       ]
     },
     "field.photoMine.text": {
@@ -4640,7 +4640,7 @@
       "empreinte": "09abd782bb4b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:901"
+        "note-ui/editor-field.jsx:910"
       ]
     },
     "field.photoPatient.text": {
@@ -4648,7 +4648,7 @@
       "empreinte": "97ee84f51518",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:901"
+        "note-ui/editor-field.jsx:910"
       ]
     },
     "field.photoReceived.text": {
@@ -4656,7 +4656,7 @@
       "empreinte": "338502b94534",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:894"
+        "note-ui/editor-field.jsx:903"
       ]
     },
     "field.plusOptions.tooltip": {
@@ -4664,7 +4664,7 @@
       "empreinte": "a9452148ca3d",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1392"
+        "note-ui/editor-field.jsx:1401"
       ]
     },
     "field.pourDiagnostic.text": {
@@ -4680,7 +4680,7 @@
       "empreinte": "2dab03c86888",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1388"
+        "note-ui/editor-field.jsx:1397"
       ]
     },
     "field.removeItem.hint": {
@@ -4688,7 +4688,7 @@
       "empreinte": "6b3ea2faf74c",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1459"
+        "note-ui/editor-field.jsx:1468"
       ]
     },
     "field.removeItemSent.hint": {
@@ -4696,7 +4696,7 @@
       "empreinte": "40df9554ca04",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1458"
+        "note-ui/editor-field.jsx:1467"
       ]
     },
     "field.removeItemSent.title": {
@@ -4704,7 +4704,7 @@
       "empreinte": "c95861bddf1f",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1451"
+        "note-ui/editor-field.jsx:1460"
       ]
     },
     "field.removeRx.hint": {
@@ -4712,7 +4712,7 @@
       "empreinte": "09dc0ca5cf44",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1459"
+        "note-ui/editor-field.jsx:1468"
       ]
     },
     "field.removeRxSent.hint": {
@@ -4720,7 +4720,7 @@
       "empreinte": "2bbcc397b951",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1458"
+        "note-ui/editor-field.jsx:1467"
       ]
     },
     "field.removeRxSent.title": {
@@ -4728,7 +4728,7 @@
       "empreinte": "55c0d5d6d729",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-field.jsx:1451"
+        "note-ui/editor-field.jsx:1460"
       ]
     },
     "field.removeSelection.hint": {
@@ -4739,7 +4739,7 @@
       "empreinte": "2a487b9fd939",
       "contexte": "aide",
       "fichiers": [
-        "note-ui/editor-field.jsx:1424"
+        "note-ui/editor-field.jsx:1433"
       ]
     },
     "field.renvoiDiagnostic.text": {
@@ -4747,7 +4747,7 @@
       "empreinte": "f203f6473801",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1846"
+        "note-ui/editor-field.jsx:1855"
       ]
     },
     "field.retirerNote.aria": {
@@ -4755,7 +4755,7 @@
       "empreinte": "288ed87c3e82",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1449"
+        "note-ui/editor-field.jsx:1458"
       ]
     },
     "field.retirerNote.text": {
@@ -4763,8 +4763,8 @@
       "empreinte": "288ed87c3e82",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1466",
-        "note-ui/editor-field.jsx:1499"
+        "note-ui/editor-field.jsx:1475",
+        "note-ui/editor-field.jsx:1508"
       ]
     },
     "field.retour.button": {
@@ -4772,7 +4772,7 @@
       "empreinte": "e5befb1f9671",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1534"
+        "note-ui/editor-field.jsx:1543"
       ]
     },
     "field.retour.tooltip": {
@@ -4780,8 +4780,8 @@
       "empreinte": "e5befb1f9671",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-field.jsx:1783",
-        "note-ui/editor-field.jsx:1843"
+        "note-ui/editor-field.jsx:1792",
+        "note-ui/editor-field.jsx:1852"
       ]
     },
     "field.supprimer.aria": {
@@ -4789,7 +4789,7 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1449"
+        "note-ui/editor-field.jsx:1458"
       ]
     },
     "field.supprimer.text": {
@@ -4797,8 +4797,8 @@
       "empreinte": "1acfc1c7d761",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1466",
-        "note-ui/editor-field.jsx:1499"
+        "note-ui/editor-field.jsx:1475",
+        "note-ui/editor-field.jsx:1508"
       ]
     },
     "field.supprimerSelection.aria": {
@@ -4806,7 +4806,7 @@
       "empreinte": "d1347096709f",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/editor-field.jsx:1416"
+        "note-ui/editor-field.jsx:1425"
       ]
     },
     "field.supprimerSelection.button": {
@@ -4814,7 +4814,7 @@
       "empreinte": "d1347096709f",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/editor-field.jsx:1430"
+        "note-ui/editor-field.jsx:1439"
       ]
     },
     "field.supprimerSelection.text": {
@@ -4822,7 +4822,7 @@
       "empreinte": "90f5c458e710",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1418"
+        "note-ui/editor-field.jsx:1427"
       ]
     },
     "field.textesRapides.text": {
@@ -4838,7 +4838,7 @@
       "empreinte": "b87db5167167",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1388"
+        "note-ui/editor-field.jsx:1397"
       ]
     },
     "field.voir.text": {
@@ -4846,7 +4846,7 @@
       "empreinte": "8a754f1f426c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-field.jsx:1374"
+        "note-ui/editor-field.jsx:1383"
       ]
     },
     "field.waitingPhotoMine.toast": {
@@ -4854,7 +4854,7 @@
       "empreinte": "a150645a2fd1",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/editor-field.jsx:898"
+        "note-ui/editor-field.jsx:907"
       ]
     },
     "field.waitingPhotoPatient.toast": {
@@ -4862,7 +4862,7 @@
       "empreinte": "601db266d76a",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/editor-field.jsx:898"
+        "note-ui/editor-field.jsx:907"
       ]
     },
     "lab.profileNote.text": {
