@@ -187,6 +187,16 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     return (batch || []).filter(function (p) { return p.item; }).map(function (p) { return p.item; });
   }
 
+  // Allergie ou interaction d'une ordonnance : la puce les montre une seconde
+  // après son ajout dans la note (holdChipWarnings, editor-schema.jsx), pas dans la
+  // fenêtre de sélection ni au premier instant. Libère ce qui a été retenu.
+  function releaseWarningsLater(editor, list) {
+    list.forEach(function (a) {
+      if (!a || !a.warnAfter) return;
+      setTimeout(function () { window.releaseChipWarnings(editor, a.cid); }, Math.max(0, a.warnAfter - Date.now()));
+    });
+  }
+
   // Insère le chip d'ordonnance riche (posologie complète) à la position de
   // « /rx query » (ou /lab /img /ref). Porté de l'ancien insertOrderChip
   // Quill : « cesser » construit un chip barré sans posologie ; « ajuster »
@@ -210,12 +220,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // Plusieurs items (ajout en lot par virgules) hors labo et imagerie : une
     // puce chacun, dans l'ordre, sans regroupement.
     if (props.items && kind !== 'lab' && kind !== 'img') {
-      const nodes = [];
+      const nodes = [], held = [];
       props.items.forEach(function (it) {
-        const attrs = orderChipAttrsFor(kind, it);
-        if (attrs) nodes.push({ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' });
+        const attrs = window.holdChipWarnings(orderChipAttrsFor(kind, it));
+        if (attrs) { nodes.push({ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }); held.push(attrs); }
       });
       if (nodes.length) editor.chain().focus().insertContentAt(range, nodes).run();
+      releaseWarningsLater(editor, held);
       return;
     }
     // Plusieurs résultats cochés, un bilan ou une analyse : des puces labo
@@ -237,9 +248,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
       return;
     }
-    const attrs = orderChipAttrsFor(kind, item, action);
+    const attrs = window.holdChipWarnings(orderChipAttrsFor(kind, item, action));
     if (!attrs) return;
     editor.chain().focus().insertContentAt(range, [{ type: 'chip', attrs: attrs }, { type: 'text', text: ' ' }]).run();
+    releaseWarningsLater(editor, [attrs]);
     // Référence dont des prérequis CRDS sont à remplir : le formulaire s'ouvre
     // d'office (D8 de PLAN-reference-specialite.md) ; sinon, au clic.
     const d = attrs.details || {};
@@ -768,8 +780,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         if (kind === 'rx') window.NOTE_DATA.setRxFilter(f); else window.NOTE_DATA.setOrderView(kind, f);
         selectedIndex = 0; publish(lastQuery);
       },
-      // Bannière d'allergie du menu /rx : afficher ou masquer les produits allergènes.
-      toggleAllergens(on) { window.NOTE_DATA.setShowAllergens(on); selectedIndex = 0; publish(lastQuery); },
       // Événements souris du picker /dx (DxRow/DxList — editor-popover.jsx) :
       // même réducteur que le clavier (dxStep), pour que survol/clic/fil
       // d'Ariane restent cohérents avec ↑↓/→/←/Entrée sans dupliquer la logique.
@@ -1574,7 +1584,6 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           counts={slash.counts}
           labRail={slash.labRail}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
-          onToggleAllergens={() => { if (slashApiRef.current) slashApiRef.current.toggleAllergens(!(slash.results.allergy && slash.results.allergy.shown)); }}
           onClose={() => setSlash(null)} />
       }
 

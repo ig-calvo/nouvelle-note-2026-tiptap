@@ -34,7 +34,6 @@ test('chaque fonction résout ses termes : prescription, requêtes, consignes, a
 test('un terme sans résultat : introuvable, ou texte libre pour les consignes et les antécédents', () => {
   const rx = D.orderBatch('rx', 'xyzz, ').picks[0];
   assert.equal(rx.item, null);
-  assert.equal(rx.masked, false);
   const instr = D.orderBatch('instr', 'Mettre de la crème, ').picks[0].item;
   assert.equal(instr.free, true);
   assert.equal(instr.details.title, 'Mettre de la crème');
@@ -43,10 +42,10 @@ test('un terme sans résultat : introuvable, ou texte libre pour les consignes e
   assert.equal(ant.code, null);
 });
 
-test('/rx : un terme qui ne trouve qu’un allergène masqué le dit', () => {
+test('/rx : un terme qui ne trouve qu’un allergène le résout comme les autres (l’avertissement vient sur la puce)', () => {
   const p = D.orderBatch('rx', 'amox, ').picks[0];
-  assert.equal(p.item, null);
-  assert.equal(p.masked, true);
+  assert.equal(p.item && p.item.key, 'amox500');
+  assert.equal(p.masked, undefined);
 });
 
 test('/instr et /ant proposent le terme tel quel en fin de liste', () => {

@@ -52,8 +52,8 @@ var PATIENT_SUMMARY = window.forPatient({ adulte: {
     { left:L('Taille'),       mid:'165 cm',           right:'08/12/2025' },
     { left:L('IMC'),          mid:'22,8',             right:'08/12/2025' },
   ],
-  // Allergie à la pénicilline (débrief du 2026-10-28) : la recherche /rx masque
-  // les pénicillines (editor-data.jsx, applyAllergyFilter).
+  // Allergie à la pénicilline (débrief du 2026-10-28) : une pénicilline ajoutée par
+  // /rx porte l'avertissement sur sa puce, une seconde après (rxAllergyOf, chipIssues).
   allergies: [
     { name:L('Pénicilline'), mid:L('Éruption cutanée'), type:'allergie' },
   ],

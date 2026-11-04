@@ -499,6 +499,9 @@ html.dxr-dragging, html.dxr-dragging * { cursor: grabbing !important; user-selec
 .chip-issue-icon, .chip-comment-icon { font-size: 16px; line-height: 1; margin-left: 2px; }
 .chip-issue-icon--error { color: var(--mat-sys-error); }
 .chip-issue-icon--warning { color: light-dark(#a15c00, #e9cca5); }
+/* L'avertissement d'une ordonnance (allergie, interaction) arrive une seconde après la puce : il apparaît doucement. */
+@keyframes chip-issue-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .chip-issue-icon { animation: chip-issue-in 200ms var(--motion-ease, ease-out); } }
 .chip-comment-icon { color: var(--mat-sys-on-surface-variant); }
 /* Détails d'un chip transmis (ChipPopover readOnly) : champs visiblement inactifs. */
 .popover fieldset:disabled { opacity: 0.72; }
@@ -756,14 +759,6 @@ html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-
 .rx-status--active { background: light-dark(#e1efe6, #1f3a2b); color: light-dark(#1d5c36, #b9d5c7); }
 .rx-status--echue { background: light-dark(#f7ebcf, #43361a); color: light-dark(#7a5200, #e9cca5); }
 .rx-status--ceased { background: light-dark(#ecdfe0, #462a2c); color: light-dark(#7a1f26, #e8a6ab); }
-.rx-status--allergy { background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); }
-/* Bannière « produits masqués (allergie au dossier) » en tête du menu /rx. */
-.rx-allergy { display: flex; align-items: center; gap: 8px; margin: 8px 12px 4px; padding: 6px 8px 6px 12px; border-radius: var(--mat-sys-corner-small); background: var(--mat-sys-error-container); color: var(--mat-sys-on-error-container); font: 500 13px/18px var(--font-body); }
-.rx-allergy .material-icons-outlined { font-size: 18px; flex-shrink: 0; }
-.rx-allergy__text { flex: 1; min-width: 0; }
-.rx-allergy__btn { flex-shrink: 0; border: 0; background: transparent; color: inherit; font: 600 13px var(--font-body); text-decoration: underline; padding: 4px 6px; border-radius: var(--mat-sys-corner-extra-small, 4px); cursor: pointer; }
-.rx-allergy__btn:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
-.rx-allergy__btn:focus-visible { outline: 3px solid var(--mat-sys-inverse-surface); outline-offset: 1px; }
 .rx-active { width: 22px; height: 22px; border-radius: 50%; background: var(--mat-sys-primary); color: var(--mat-sys-on-primary); display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .rx-active .material-icons { font-size: 15px; }
 /* Actions sur une médication active au dossier — donne un sens distinct

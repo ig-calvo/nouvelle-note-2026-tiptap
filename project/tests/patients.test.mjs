@@ -31,17 +31,16 @@ test('patiente adulte : identité, migraine au Sommaire, profil médicamenteux d
   assert.ok(!meds.includes('med-tylenol-100'), 'pas le profil de l’autre dossier');
 });
 
-test('patiente adulte : l’allergie aux sulfamides masque le TMP-SMX dans /rx, pas un autre antibiotique', () => {
+test('patiente adulte : l’allergie aux sulfamides repère le TMP-SMX, que /rx ne masque plus, pas un autre antibiotique', () => {
   const w = loadPrototype(files, { patient: 'adulte' });
   const D = w.NOTE_DATA;
   D.endOrderSearch();
   const tmp = D.searchOrder('rx', 'sulfamethox');
-  assert.equal(tmp.allergy && tmp.allergy.count, 1, 'TMP-SMX masqué et compté');
+  assert.equal(tmp.allergy, undefined, 'plus de bannière ni de produit masqué');
   const shown = [...tmp.favoris, ...tmp.frequents, ...tmp.autres].map((it) => it.key);
-  assert.ok(!shown.includes('cat-45'), shown.join(', '));
+  assert.ok(shown.includes('cat-45'), 'le TMP-SMX reste dans la liste : ' + shown.join(', '));
   assert.equal(D.rxAllergyOf({ name: 'Trimethoprime-sulfamethoxazole', details: {} }), w.TR('Sulfamides'));
-  const amox = D.searchOrder('rx', 'amox');
-  assert.ok(!amox.allergy, 'l’amoxicilline n’est pas masquée pour cette patiente');
+  assert.equal(D.rxAllergyOf({ name: 'Amoxicilline', details: { molecule: 'Amoxicilline' } }), null, 'l’amoxicilline n’est pas un allergène pour cette patiente');
 });
 
 test('par défaut, et pour une patiente inconnue, la patiente adulte (Micheline Lamontagne)', () => {
