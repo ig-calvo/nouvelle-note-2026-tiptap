@@ -1091,7 +1091,12 @@ function LabRail({ kind, rail, view, checkedKeys, onFilter }) {
 function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, onHover, onToggleFav, onClose, checked, onToggleCheck, onAddChecked, filter, counts, onFilter, railFocus, labRail, batch, labMulti, onToggleMulti, onClearChecked }) {
   const ref = useRefP(null);
   useEffectP(() => {
-    function onDoc(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    // Les puces de la sélection, dans la ligne de la note (.pchips, editor-schema.jsx),
+    // ne sont pas « en dehors » : leur ✕ retire une analyse sans fermer le menu.
+    function onDoc(e) {
+      if (e.target && e.target.closest && e.target.closest('.pchips')) return;
+      if (ref.current && !ref.current.contains(e.target)) onClose();
+    }
     // Différé d'un tick : l'item du SlashMenu déclenche sur mousedown et React
     // monte ce menu pendant la propagation — sans le délai, ce mousedown
     // fermerait aussitôt le menu (le clic ne lancerait pas la fonction).
@@ -1136,6 +1141,9 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
   // ses cases et son pied de raccourcis.
   const labV2 = kind === 'lab' && isLab;
   const selecting = labV2 ? !!labMulti || checkedKeys.length > 0 : checkedKeys.length > 0;
+  // Les analyses choisies : cochées, et résolues par une virgule (« fsc, »), que la
+  // ligne de la note montre en puces (labPendingChipsPlugin, editor-schema.jsx).
+  const pickedCount = checkedKeys.length + (kind === 'lab' && batch ? batch.filter((p) => p.item).length : 0);
   let headControl = labV2;
   const uid = (it) => (it.orderKind || kind) + ':' + it.key;
   const noFav = (it) => !!it.profile || !!it.crds; // ni un profil ni une raison CRDS n'ont de favori
@@ -1146,7 +1154,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
       <div className="rx-menu__scroll">
         {/* Ajout en lot (« /lab fsc, tsh, … ») : les termes suivis d'une virgule,
             chacun avec le résultat retenu (orderBatch, editor-data.jsx). */}
-        {batch && batch.length > 0 && <BatchList batch={batch} query={query} onAdd={onAddChecked} />}
+        {batch && batch.length > 0 && kind !== 'lab' && <BatchList batch={batch} query={query} onAdd={onAddChecked} />}
         {total === 0 &&
           <div className="rx-empty">{query ? t('picker.noneFor.text', { noun: d.emptyNoun, query: query }) : t('picker.none.text', { noun: d.emptyNoun })}</div>
         }
@@ -1194,7 +1202,7 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
                       {it.crds && it.cote && <span className="rx-status rx-status--cote">{t('data.crdsPriority.text', { cote: it.cote })}</span>}
                     </div>
                     {/* Une médication au dossier montre aussi la date de sa prescription d'origine. */}
-                    <div className="rx-item__sig">{[it.sig, it.med ? window.NOTE_DATA.medPrescribedText(it) : ''].filter(Boolean).join(' · ')}</div>
+                    <div className="rx-item__sig">{[it.sig, it.med ? window.NOTE_DATA.medPrescribedText(it) : ''].filter(Boolean).join(' | ')}</div>
                   </div>}
                   <div className="rx-item__actions">
                     {/* Boutons de ligne, visibles au survol ou à la sélection. Le clic ou Entrée sur la
@@ -1288,16 +1296,16 @@ function RxMenu({ position, kind, def, query, results, activeIndex, onSelect, on
               <span className="rx-rail__count">{counts[f.key]}</span>
             </button>))}
         </nav>}
-      {labV2 && checkedKeys.length > 0 &&
+      {labV2 && pickedCount > 0 &&
         <div className="rx-selbar">
-          <span className="rx-selbar__count" role="status">{tn('popover.labSelectedCount.text', checkedKeys.length)}</span>
+          <span className="rx-selbar__count" role="status">{tn('popover.labSelectedCount.text', pickedCount)}</span>
           <button type="button" className="rx-selbar__btn rx-selbar__btn--outlined"
             onMouseDown={(e) => e.preventDefault()} onClick={() => onClearChecked && onClearChecked()}>
             {t('popover.labClearSelection.button')}
           </button>
           <button type="button" className="rx-selbar__btn rx-selbar__btn--filled"
             onMouseDown={(e) => e.preventDefault()} onClick={onAddChecked}>
-            {t('popover.addChecked.button', { n: checkedKeys.length })}
+            {t('popover.addChecked.button', { n: pickedCount })}
           </button>
         </div>}
       {!labV2 &&

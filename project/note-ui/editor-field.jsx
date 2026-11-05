@@ -146,6 +146,24 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     }, 0);
   }
 
+  // /lab quitté ailleurs dans la note avec une sélection : les puces de la
+  // sélection remplacent « /lab … » sans toucher au curseur (le clic de la
+  // personne a déjà posé la sienne), comme restoreDraftChip. Rien si le texte a changé.
+  function commitPendingTile(range, query, items, kind) {
+    setTimeout(function () {
+      const editor = editorRef.current; if (!editor || !range) return;
+      const doc = editor.state.doc;
+      if (range.from < 0 || range.to > doc.content.size) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
+      const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+      const nodes = [];
+      window.buildRequestChips(items, kind).forEach(function (a) {
+        nodes.push(editor.schema.nodes.chip.create(Object.assign(a, stamp)), editor.schema.text(' '));
+      });
+      if (nodes.length) editor.view.dispatch(editor.state.tr.replaceWith(range.from, range.to, nodes));
+    }, 0);
+  }
+
   // Abandon d'une recherche de fonction : la ligne à compléter d'où elle a
   // été rouverte revient (openDraftSearch), sinon « /rx amox » est retiré.
   function abandonSearch(range, query) {
@@ -585,8 +603,27 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     // sans que l'utilisateur comprenne pourquoi. Les modes ordre/dx ne
     // « renoncent » jamais non plus — RxMenu/DiagnosticDropdown affichent
     // leur propre message « rien trouvé ».
+    // Les puces de la sélection /lab dans la ligne de la note (labPendingChipsPlugin,
+    // editor-schema.jsx) lisent cet état. Le plugin ne se redessine que sur une
+    // transaction : un changement de la sélection cochée ou de l'ouverture en envoie une, vide.
+    let labPendingSig = '';
+    function syncLabPending(open) {
+      const items = open ? checked.map(function (c) { return { uid: checkUid(c, c.__kind), label: window.NOTE_DATA.labChipLabel(c) }; }) : [];
+      window.__LAB_PENDING = { open: open, checked: items, removeChecked: function (uid) {
+        const i = checked.findIndex(function (c) { return checkUid(c, c.__kind) === uid; });
+        if (i >= 0) { checked.splice(i, 1); publish(lastQuery); }
+      } };
+      const sig = (open ? '1:' : '0:') + items.map(function (i) { return i.uid; }).join('|');
+      if (sig === labPendingSig) return;
+      labPendingSig = sig;
+      setTimeout(function () {
+        const editor = editorRef.current;
+        if (editor) editor.view.dispatch(editor.state.tr.setMeta('labPending', true));
+      }, 0);
+    }
     function publish(query) {
       const parsed = parseSlashQuery(query);
+      syncLabPending(parsed.mode === 'order' && parsed.kind === 'lab');
       if (parsed.mode !== 'dx') { dxState = null; dxModel = null; }
       if (parsed.mode !== 'order') currentBatch = null;
       if (parsed.mode === 'order') {
@@ -766,12 +803,20 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         // Abandon d'une recherche de fonction (/rx, /lab, /img, /ref, /req) sans
         // avoir choisi d'item : le texte « /rx amox » est retiré. Le menu
         // générique garde son texte (« Échap pour écrire en texte libre »).
-        const abandoned = !slashDoneRef.current && parseSlashQuery(lastQuery).mode === 'order';
+        const parsedExit = parseSlashQuery(lastQuery);
+        const abandoned = !slashDoneRef.current && parsedExit.mode === 'order';
         const range = currentRange, query = lastQuery;
+        // /lab : une sélection en cours (cochée, ou résolue par des virgules) ne se
+        // perd pas quand on quitte la recherche en cliquant ailleurs dans la note :
+        // elle devient la tuile, à la place de « /lab … » (maquette de Vanessa Bois,
+        // 2026-11-04). Sans sélection, c'est un abandon (RA-12).
+        const pending = abandoned && parsedExit.kind === 'lab' ? batchItems(currentBatch && currentBatch.picks).concat(checked) : [];
         checked = []; currentBatch = null; window.__DX_DOCUMENT_AS = null;
+        syncLabPending(false);
         window.NOTE_DATA.endOrderSearch();
         setSlash(null);
-        if (abandoned) abandonSearch(range, query);
+        if (pending.length && range) commitPendingTile(range, query, pending, parsedExit.kind);
+        else if (abandoned) abandonSearch(range, query);
         else window.__DRAFT_REOPEN = null;
       },
       setActiveIndex(idx) { selectedIndex = idx; publish(lastQuery); },
@@ -784,6 +829,19 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         const items = lot.concat(checked); checked = [];
         slashCommandRef.current({ __order: true, items: items, kind: parsed.kind });
       },
+      // Clic en dehors du menu (hors de la note ou sur une zone sans texte, où le plugin ne
+      // se ferme pas de lui-même) : en labo, la sélection devient la tuile, comme Entrée ;
+      // sans sélection, la recherche est abandonnée comme avec Échap, texte retiré (RA-12),
+      // au lieu de laisser « /lab fsc » et un menu fermé.
+      closeOutside() {
+        const parsed = parseSlashQuery(lastQuery);
+        if (parsed.mode === 'order') {
+          const lot = currentBatch ? batchItems(currentBatch.picks) : [];
+          if (parsed.kind === 'lab' && (checked.length || lot.length) && slashCommandRef.current) { api.addChecked(); return; }
+          if (currentRange) abandonSearch(currentRange, lastQuery);
+        }
+        setSlash(null);
+      },
       republish() { publish(lastQuery); },
       // /lab : bascule « Multisélection » et « Tout désélectionner ».
       toggleMulti() {
@@ -794,7 +852,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         if (!on) checked = [];
         publish(lastQuery);
       },
-      clearChecked() { checked = []; publish(lastQuery); },
+      // « Tout désélectionner » : les analyses cochées et les puces résolues par virgule.
+      clearChecked() {
+        checked = [];
+        const editor = editorRef.current;
+        if (editor && parseSlashQuery(lastQuery).kind === 'lab') window.clearLabPendingParts(editor.view);
+        publish(lastQuery);
+      },
       // Filtre du rail du menu /rx : Tout, Renouvelables, Actives, Cessées, Fréquemment prescrits, Phrases de prescription.
       setFilter(f) {
         const kind = parseSlashQuery(lastQuery).kind;
@@ -1603,7 +1667,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           counts={slash.counts}
           labRail={slash.labRail}
           onFilter={(f) => { if (slashApiRef.current) slashApiRef.current.setFilter(f); }}
-          onClose={() => setSlash(null)} />
+          onClose={() => { if (slashApiRef.current) slashApiRef.current.closeOutside(); else setSlash(null); }} />
       }
 
       {/* Mode diagnostic — /dx (dx-picker.jsx : Dans cette note → Sommaire → CIM-10) */}

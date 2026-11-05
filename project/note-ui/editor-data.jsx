@@ -644,13 +644,13 @@ function medStatusText(m) {
   return MED_STATUS_LABEL[m.medStatus] + (m.medDate ? ' ' + m.medDate : '');
 }
 // Date de la prescription d'origine d'une médication au profil, pour sa ligne
-// de /rx : « Prescrit le 20 janv. 2026 » ; vide si elle n'est pas connue.
+// de /rx : « Prescrit le 2025-10-12 » (aaaa-mm-jj, comme la maquette de Vanessa
+// Bois « Prescription — Vision », 2026-11-04). Seulement pour une médication
+// active ou échue (renouvelable) : la maquette n'en met pas sur une cessée. Vide
+// si la date n'est pas connue.
 function medPrescribedText(m) {
-  if (!m || !m.prescribedOn) return '';
-  const loc = window.I18N && window.I18N.locale;
-  const d = new Date(m.prescribedOn + 'T12:00:00');
-  const date = loc && !isNaN(d) ? d.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' }) : m.prescribedOn;
-  return t('data.medPrescribedOn.text', { date: date });
+  if (!m || !m.prescribedOn || (m.medStatus !== 'active' && m.medStatus !== 'echue')) return '';
+  return t('data.medPrescribedOn.text', { date: m.prescribedOn });
 }
 // « + » du Sommaire derrière le tweak « Le « + » du sommaire ajoute dans la
 // note » : ce que la boîte demande à la note. { documentAs } = région
@@ -2229,6 +2229,30 @@ function orderBatch(kind, term) {
     });
   return { picks: picks, current: parts[parts.length - 1].trim() };
 }
+// Le même ajout par virgules, vu de la ligne de la note (maquette de Vanessa
+// Bois, « flow baseline », 2026-11-04 : « en ajoutant une virgule après
+// l'analyse, elle devient une chip »). `term` = ce qui suit « /lab ». Chaque terme
+// suivi d'une virgule donne une partie { start, end, text, item|null } ; `start`
+// et `end` sont des décalages dans `term` (la virgule comprise dans `end`), pour
+// cacher ou retirer son texte ; `hideTo` = fin du texte déjà résolu ; `current` =
+// le terme en cours de frappe. Les termes vides sont ignorés (comme orderBatch).
+function labPendingParts(term) {
+  const segs = String(term || '').split(',');
+  const parts = [];
+  let off = 0;
+  for (let i = 0; i < segs.length - 1; i++) {
+    const text = segs[i].trim();
+    if (text) parts.push({ start: off, end: off + segs[i].length + 1, text: text, item: bestOrderMatch('lab', text) });
+    off += segs[i].length + 1;
+  }
+  return { parts: parts, hideTo: off, current: segs[segs.length - 1] };
+}
+// Libellé d'une analyse ou d'un bilan dans une puce de sélection : l'acronyme
+// quand elle en a un (« FSC »), sinon son nom ; un bilan garde son nom.
+function labChipLabel(it) {
+  if (!it) return '';
+  return it.profile ? it.name : (it.short || labShortName(it.name));
+}
 
 function endOrderSearch() { _favFreeze = {}; _rxFilter = 'tout'; resetLabView(); _refView = 'tout'; }
 // Compteurs du rail avec les favoris figés de la recherche en cours.
@@ -2615,7 +2639,7 @@ window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PAT
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, rxAllergyOf,
   ORDER_DEFS, orderKindForKbd, searchOrder, endOrderSearch, toggleOrderFav, deriveLabRx, deriveImgRx, deriveRefRx, deriveExamRx, deriveServRx,
-  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, resetLabView, multiFreezeKey, labFreq,
+  LAB_PROFILES, LAB_GROUPS, LAB_GROUPS_BY_FREQ, LAB_BILANS, searchLab, labRail, labViewKeys, setLabView, getLabView, resetLabView, multiFreezeKey, labPendingParts, labChipLabel, labFreq,
   CRDS_SPECS, CRDS_REASONS, crdsReason, crdsReasonsOf, crdsRefDetails, crdsRefItem, crdsSection, crdsFitsPatient, refSuggestionsFor, crdsPrereqs, crdsPrereqInit, crdsPrereqMissing, searchRef, refRail, refViewKeys, setRefView, getRefView,
   orderViewKeys, getOrderView, setOrderView, orderRail, priorityLabel, orderBatch, bestOrderMatch, INSTR_ITEMS, labOnFile, labShortName, FIELD_OPTIONS, valueLabel, AI_SAMPLE_PROPOSALS, DX_CONTEXTS, dxContextFor, contextResultsFor, templatesForReason, chipIsItem, orderItemForChip, dxSuggestionFor, nextStepSuggestions,
   dxConclusionOptions, lastConduct, conductWarning, parseNoteDate, QUICK_TEXTS, quickTextOptionById, searchQuickTexts, searchTemplates, noteDayLabel, templateWithoutTool,
