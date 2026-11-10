@@ -105,6 +105,7 @@
   'proposed.complete.text': { one: '{n} élément complet', other: '{n} éléments complets' },
   'proposed.incomplete.text': { one: '{n} élément incomplet', other: '{n} éléments incomplets' },
   'proposed.draft.text': { one: '{n} ligne à compléter', other: '{n} lignes à compléter' },
+  'proposed.removed.text': { one: '{n} élément retiré', other: '{n} éléments retirés' },
   'proposed.textRuns.text': { one: '{n} passage de texte', other: '{n} passages de texte' },
   'proposed.acceptAll.tooltip': { one: '{n} élément à compléter reste en place.', other: '{n} éléments à compléter restent en place.' },
   'proposed.list.title': { one: 'Tout accepter prendra {n} élément complet :', other: 'Tout accepter prendra {n} éléments complets :' },

@@ -1236,6 +1236,9 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const chipEl = e.target.closest('.chip[data-cid]');
       if (!chipEl) return;
       e.preventDefault();
+      // Puce retirée sous suivi (lot 1b) : rien à ouvrir ni à modifier ; le clic
+      // ouvre le popover de la révision (NoteEditor, marque `.rvw-del`).
+      if (chipEl.closest('.rvw-del')) return;
       // Ligne à compléter : un clic (hors ✕) rouvre sa recherche.
       if (chipEl.classList.contains('chip--draft') && !e.target.closest('.chip-pending-btn')) {
         window.openDraftSearch(editor, chipEl.getAttribute('data-cid'));
