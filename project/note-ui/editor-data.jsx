@@ -1772,18 +1772,20 @@ function conductWarning(tile) {
 // rencontre vision (2026-10-27) : réutiliser la dernière conclusion, mon
 // gabarit, le gabarit Omnimed — mes textes rapides et ceux d'Omnimed liés au
 // diagnostic. Chaque option : { id, kind, name, content, tiles?, proposals,
-// source, allergy, date?, author? } ; `source` signe ses ajouts en attente.
+// source, date?, author? } ; `source` signe ses ajouts en attente.
 // En tête, la dernière conduite du problème (lastConduct) : la mienne, sinon
 // celle d'un collègue (C4) — même sans gabarit pour ce diagnostic (ex.
-// diabète), et toujours première, même en conflit d'allergie (C6 : le
-// médecin décide). Sans conduite : l'ancienne « Dernière conclusion »,
-// seulement si le problème est au dossier (`ctx.sommaire`, lignes de
-// getSommaireDiagnostics) ET qu'une note antérieure (`ctx.notes`, la plus
-// récente d'abord) le conclut — son texte et ses ajouts réutilisables (`reuse`).
+// diabète), et toujours première. Sans conduite : l'ancienne « Dernière
+// conclusion », seulement si le problème est au dossier (`ctx.sommaire`,
+// lignes de getSommaireDiagnostics) ET qu'une note antérieure (`ctx.notes`,
+// la plus récente d'abord) le conclut — son texte et ses ajouts réutilisables
+// (`reuse`).
+// L'allergie au dossier ne classe pas les options et ne les accompagne
+// d'aucun avertissement (RA-48) : l'alerte vient sur l'entité, une fois
+// ajoutée (chipIssues, editor-schema.jsx), jamais avant le choix.
 function dxConclusionOptions(dx, ctx) {
   const lc = lastConduct(dx, ctx);
   const conduct = lc.mine || lc.colleague;
-  if (conduct) conduct.allergy = optionAllergy(conduct);
   const c = dxContextFor(dx);
   if (!c) return conduct ? [conduct] : [];
   const same = function (other) { const o = dxContextFor(other); return !!o && o.key === c.key; };
@@ -1800,10 +1802,7 @@ function dxConclusionOptions(dx, ctx) {
   ['mine', 'omnimed'].forEach(function (kind) {
     QUICK_TEXTS.forEach(function (q) { if (q.kind === kind && q.dx.indexOf(c.key) >= 0) out.push(quickTextOption(q)); });
   });
-  out.forEach(function (o) { o.allergy = optionAllergy(o); });
-  // Allergie au dossier (PLAN-gabarits-conclusion.md, Q7) : les options sans
-  // conflit d'abord, l'ordre ci-dessus gardé sinon.
-  return (conduct ? [conduct] : []).concat(out.filter(function (o) { return !o.allergy; }), out.filter(function (o) { return !!o.allergy; }));
+  return (conduct ? [conduct] : []).concat(out);
 }
 
 // Texte rapide → option de conclusion. `proposals` : tous ses ajouts — les
@@ -1817,36 +1816,18 @@ function quickTextOption(q) {
     source: t('template.source.label', { name: q.name }) });
 }
 
-// Conflit d'une option avec une allergie au dossier (rxAllergyOf) :
-// { names, items } — les allergies et les produits en cause —, ou null.
-function optionAllergy(opt) {
-  const names = [], items = [];
-  (opt.proposals || []).forEach(function (p) {
-    if (p.kind !== 'rx') return;
-    const it = RX_ALL.find(function (x) { return x.key === p.key; });
-    const a = it && rxAllergyOf(it);
-    if (!a) return;
-    if (names.indexOf(a) < 0) names.push(a);
-    if (items.indexOf(it.name) < 0) items.push(it.name);
-  });
-  return names.length ? { names: names, items: items } : null;
-}
-
-// Un texte rapide par sa clé, en option de conclusion (allergie comprise), ou null.
+// Un texte rapide par sa clé, en option de conclusion, ou null.
 function quickTextOptionById(id) {
   const q = QUICK_TEXTS.find(function (x) { return x.key === id; });
-  if (!q) return null;
-  const o = quickTextOption(q);
-  o.allergy = optionAllergy(o);
-  return o;
+  return q ? quickTextOption(q) : null;
 }
 
 // Sélecteur « Textes rapides » du menu « / » (PLAN-gabarits-conclusion.md,
 // étape 5). `dx` : attributs du diagnostic où est le curseur, ou null.
 // → { context, others } : `context`, les options de ce diagnostic
 // (dxConclusionOptions, même ordre) ; `others`, les autres textes rapides,
-// les miens d'abord, ceux sans conflit d'allergie avant les autres (comme
-// dxConclusionOptions). `q` cherche dans le nom du texte et dans le nom et les
+// les miens d'abord, sans autre classement (l'allergie au dossier n'en est
+// pas un, RA-48). `q` cherche dans le nom du texte et dans le nom et les
 // mots de ses diagnostics ; tous les mots tapés doivent s'y trouver.
 function searchQuickTexts(q, dx, ctx) {
   const words = _norm((q || '').trim()).split(/\s+/).filter(Boolean);
@@ -1860,8 +1841,7 @@ function searchQuickTexts(q, dx, ctx) {
   const others = ['mine', 'omnimed'].reduce(function (acc, kind) {
     return acc.concat(QUICK_TEXTS.filter(function (x) { return x.kind === kind && taken.indexOf(x.key) < 0; }));
   }, []).map(function (x) { return quickTextOptionById(x.key); });
-  const sorted = others.filter(function (o) { return !o.allergy; }).concat(others.filter(function (o) { return !!o.allergy; }));
-  return { context: context.filter(match), others: sorted.filter(match) };
+  return { context: context.filter(match), others: others.filter(match) };
 }
 
 // Liste du « # » : tous les gabarits, en une seule recherche — les textes
@@ -1889,10 +1869,10 @@ function searchTemplates(q, dx, ctx) {
   const found = searchQuickTexts(q, dx, ctx);
   const quickRow = function (opt, section) {
     const n = (opt.proposals || []).length;
-    const a = opt.allergy;
+    // Aucun avertissement d'allergie dans la liste (RA-48) : l'alerte vient
+    // sur l'entité, une fois ajoutée.
     return { key: 'qt-' + opt.id, section: section, icon: QT_ICON[opt.kind] || 'bolt', title: opt.name,
       desc: opt.kind === 'last' ? opt.date : tn(opt.kind === 'mine' ? 'suggest.monGabarit.text' : 'suggest.gabaritOmnimed.text', n),
-      warn: a ? t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') }) : '',
       quickTextId: opt.id, noKbd: true };
   };
   const ctxSection = dx ? t('field.pourDiagnostic.text', { name: dx.name }) : '';
@@ -1999,11 +1979,10 @@ function nextStepSuggestions(a) {
   let except = null;
   if (dx) {
     const opt = dxConclusionOptions(dx, a.ctx).filter(function (o) { return sources.indexOf(o.source) < 0; })[0];
-    // Tous en conflit d'allergie (dxConclusionOptions met les autres d'abord) :
-    // la pastille le dit, par son icône et son info-bulle.
-    const warn = opt && opt.allergy && t('suggest.allergieGabarit.text', { name: opt.allergy.names.join(', '), items: opt.allergy.items.join(', ') });
-    if (opt) out.push({ id: 'tpl:' + opt.id, kind: 'template', icon: warn ? 'warning' : NEXT_TEMPLATE_ICON[opt.kind], label: opt.name,
-      desc: warn || undefined, option: opt, regionId: dx.id });
+    // Aucun avertissement d'allergie sur la pastille (RA-48) : l'alerte vient
+    // sur l'entité, une fois ajoutée.
+    if (opt) out.push({ id: 'tpl:' + opt.id, kind: 'template', icon: NEXT_TEMPLATE_ICON[opt.kind], label: opt.name,
+      option: opt, regionId: dx.id });
   } else {
     except = orderItemForChip(a.chip);
     const c = except && DX_CONTEXTS.find(function (x) { return (x[except.kind] || []).indexOf(except.item.key) >= 0; });
@@ -2013,7 +1992,8 @@ function nextStepSuggestions(a) {
     const inNote = (a.diagnoses || []).some(function (n) { const o = dxContextFor(n); return o && o.key === c.key; });
     if (!inNote) out.push({ id: 'dx:' + d.code, kind: 'dx', icon: 'local_hospital', label: d.name, desc: d.code, dx: d });
   }
-  // Pas de produit allergène pour ce patient (comme la recherche /rx, qui les masque).
+  // Pas de produit allergène pour ce patient : les suggestions les écartent
+  // toujours (RA-44), même si la recherche /rx ne les masque plus.
   const orders = contextResultsFor(dx, 'rx').filter(function (it) { return !rxAllergyOf(it); }).map(function (it) { return { kind: 'rx', item: it }; })
     .concat(contextResultsFor(dx, 'req').map(function (it) { return { kind: 'req', item: it }; }));
   orders.forEach(function (o) {

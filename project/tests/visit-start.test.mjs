@@ -61,6 +61,6 @@ test('flux de Sacha : chaque diagnostic suggéré par un gabarit est codé, et c
   });
   const pneumonie = D.NOTE_TEMPLATES.find((x) => x.key === 'virus').dxSuggestions.find((d) => d.code === 'J18.9');
   const opts = D.dxConclusionOptions({ name: pneumonie.name, code: pneumonie.code }, { notes: [], sommaire: [] });
-  assert.deepEqual(opts.map((o) => o.id), ['pac-allergie', 'pac-ambu', 'pac-comorb'], 'clic sur Pneumonie : ses textes rapides, sans conflit d’allergie d’abord');
+  assert.deepEqual(opts.map((o) => o.id), ['pac-ambu', 'pac-comorb', 'pac-allergie'], 'clic sur Pneumonie : ses textes rapides, dans leur ordre, sans classement selon l’allergie (RA-48)');
   assert.equal(D.NOTE_TEMPLATES.find((x) => x.key === 'periodique').dxSuggestions, undefined);
 });

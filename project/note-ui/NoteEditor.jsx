@@ -403,8 +403,8 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
     window.addEventListener('note:apply-dx-template', onApplyDxTemplate);
     // Diagnostic suggéré par le gabarit de début (flux de Sacha) : la région
     // à la fin de la conclusion, déjà remplie de son gabarit de conclusion en
-    // attente — le premier de mes textes rapides, sinon d'Omnimed, sans
-    // conflit d'allergie s'il y en a un (dxConclusionOptions les classe).
+    // attente — le premier de mes textes rapides, sinon d'Omnimed. L'allergie
+    // au dossier n'y change rien (RA-48) : l'alerte vient sur l'entité.
     function onAddSuggestedDx(e) {
       var editor = editorRef.current, d = e.detail;
       if (!editor || !d) return;

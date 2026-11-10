@@ -1367,7 +1367,6 @@
   'suggest.ajouterSous.tooltip': 'Add under “{name}”',
   'suggest.gabaritConclusion.title': 'Conclusion',
   'suggest.gabaritOmnimed.text': { one: 'Omnimed template · {n} proposed addition', other: 'Omnimed template · {n} proposed additions' },
-  'suggest.allergieGabarit.text': 'Allergy on file ({name}): {items}',
   'suggest.appliquerGabarit.tooltip': 'Add under the diagnosis, pending: accept or reject',
   'suggest.gabaritDejaPropose.tooltip': 'Template already proposed under this diagnosis',
   'suggest.derniereConclusion.title': 'Reuse my last conclusion',

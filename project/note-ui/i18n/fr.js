@@ -973,7 +973,6 @@
   'suggest.ajouterSous.tooltip': 'Ajouter sous « {name} »',
   'suggest.gabaritConclusion.title': 'Conclusion',
   'suggest.gabaritOmnimed.text': { one: 'Gabarit Omnimed · {n} ajout proposé', other: 'Gabarit Omnimed · {n} ajouts proposés' },
-  'suggest.allergieGabarit.text': 'Allergie au dossier ({name}) : {items}',
   'suggest.appliquerGabarit.tooltip': 'Ajouter sous le diagnostic, en attente : à accepter ou refuser',
   'suggest.gabaritDejaPropose.tooltip': 'Gabarit déjà proposé sous ce diagnostic',
   'suggest.derniereConclusion.title': 'Réutiliser ma dernière conclusion',

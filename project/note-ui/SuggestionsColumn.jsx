@@ -49,12 +49,10 @@ function scOptionDesc(opt) {
   return opt.kind === 'mine' ? tn('suggest.monGabarit.text', n) : tn('suggest.gabaritOmnimed.text', n);
 }
 
-// Avertissement d'une option de conclusion en conflit avec une allergie au
-// dossier (dxConclusionOptions, `allergy`), ou d'une conduite précédente de
-// plus d'un an (`stale`, PLAN-conduite-precedente.md C5), ou null.
+// Avertissement d'une option de conclusion : une conduite précédente de plus
+// d'un an (`stale`, PLAN-conduite-precedente.md C5), ou null. Aucun
+// avertissement d'allergie avant le choix (RA-48) : il vient sur l'entité.
 function scOptionWarn(opt) {
-  const a = opt.allergy;
-  if (a) return t('suggest.allergieGabarit.text', { name: a.names.join(', '), items: a.items.join(', ') });
   return opt.stale ? t('conduct.stale.text') : null;
 }
 
