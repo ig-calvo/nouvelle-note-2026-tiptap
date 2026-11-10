@@ -21,6 +21,9 @@ function newChipId() { return 'c' + _chipSeq++; }
 function buildChipDom(data, existingEl) {
   if (data.draft) return buildDraftChipDom(data, existingEl);
   const node = buildChipDomBase(data, existingEl);
+  // Une mention (copier-coller dans la même note) renvoie à la puce d'origine : un clic y mène.
+  if (data.ref) node.setAttribute('data-ref', data.ref);
+  else node.removeAttribute('data-ref');
   decorateChipDestination(node, data);
   decorateChipStates(node, data);
   if (data.pending) decoratePendingChip(node, data);
@@ -47,6 +50,7 @@ const CHECKOUT_CHIP_TYPES = ['prescription', 'lab', 'imaging', 'referral', 'exam
 const CHIP_KIND_GLYPH = { lab: 'science', img: 'radiology', ref: 'assignment', exam: 'monitor_heart', serv: 'medical_services' };
 function chipDestination(a) {
   if (!a) return 'dossier';
+  if (a.ref) return 'dossier'; // une mention : rien à envoyer, la puce d'origine s'en charge
   if (a.pending) return 'suggestion';
   if (a.cancelledAt || a.transmittedAt) return 'envoye';
   return CHECKOUT_CHIP_TYPES.indexOf(a.type) >= 0 ? 'a-envoyer' : 'dossier';
@@ -646,12 +650,15 @@ function makeChipNode() { return window.Tiptap.Node.create({
       label: { default: '' },
       icon: { default: 'bookmark' },
       text: { default: '' },
-      rx: { default: null },
-      details: { default: null },
+      // `rendered: false` : un objet ne se rend pas en attribut (« [object
+      // Object] »). Tiptap relit ces attributs avant ceux de parseHTML et les
+      // écraserait au collage : les valeurs voyagent dans data-rx et data-details.
+      rx: { default: null, rendered: false },
+      details: { default: null, rendered: false },
       // Horodatage/auteur de la dernière sauvegarde de ce chip — alimente le
-      // Journal des actions (voir buildActionLog plus bas). Pas de round-trip
-      // HTML (parseHTML) : les chips de ce prototype ne sont jamais recréés
-      // depuis du HTML collé, seulement depuis du JSON.
+      // Journal des actions (voir buildActionLog plus bas). Le HTML (parseHTML)
+      // sert au copier-coller (lot 4, paste-entities.jsx) : une puce collée est
+      // recréée depuis lui, puis réécrite selon sa provenance.
       savedAt: { default: null },
       author: { default: null },
       // Ajout proposé par un gabarit, en attente d'acceptation (voir
@@ -674,11 +681,19 @@ function makeChipNode() { return window.Tiptap.Node.create({
       warn: { default: null },
       // Ligne à compléter (état 1) : { kind, term } — la recherche à rouvrir
       // (« rx », « Nitrofurantoïne »). Toujours `pending` aussi.
-      draft: { default: null },
+      draft: { default: null, rendered: false },
       // Avertissements d'ordonnance (allergie, interaction) retenus jusqu'à cet
       // instant (ms) : la puce les montre une seconde après son ajout dans la note
       // (holdChipWarnings). Une date passée, ou rien, ne retient plus rien.
-      warnAfter: { default: null }
+      warnAfter: { default: null },
+      // Copier-coller (lot 4, paste-entities.jsx). `origin` : { patient, note,
+      // pending } lu dans le HTML copié, le temps du collage (posé par
+      // parseHTML, effacé par transformPasted). `ref` : le `cid` de la puce dont
+      // celle-ci est une mention (même note, même référence). `copyOf` :
+      // 'patient' | 'note' | 'inconnu' — la pré-entité vient d'une copie.
+      origin: { default: null, rendered: false },
+      ref: { default: null, rendered: false },
+      copyOf: { default: null, rendered: false }
     };
   },
   parseHTML() {
@@ -697,7 +712,12 @@ function makeChipNode() { return window.Tiptap.Node.create({
           icon: (dom.querySelector('.chip-icon') || {}).textContent || 'bookmark',
           text: label,
           rx: rx,
-          details: details
+          details: details,
+          // Provenance (lot 4) : d'où vient la puce copiée ; une mention garde sa référence.
+          origin: dom.hasAttribute('data-origin-note')
+            ? { patient: dom.getAttribute('data-origin-patient') || null, note: dom.getAttribute('data-origin-note') || null, pending: dom.getAttribute('data-pending') === 'true' }
+            : null,
+          ref: dom.getAttribute('data-ref') || null
         };
       }
     }];
@@ -709,6 +729,9 @@ function makeChipNode() { return window.Tiptap.Node.create({
     if (node.attrs.label) attrs['data-label'] = node.attrs.label;
     if (node.attrs.pending) attrs['data-pending'] = 'true';
     if (node.attrs.transmittedAt) attrs['data-sent'] = 'true';
+    if (node.attrs.ref) attrs['data-ref'] = node.attrs.ref;
+    // Provenance pour le copier-coller (lot 4) : le patient et la note d'où la puce est copiée.
+    if (window.currentNoteId) { attrs['data-origin-patient'] = window.PATIENT_KEY || ''; attrs['data-origin-note'] = window.currentNoteId(); }
     return ['span', window.Tiptap.mergeAttributes({ class: 'ql-chip chip' }, HTMLAttributes, attrs), node.attrs.label || ''];
   },
   addNodeView() {
@@ -2436,7 +2459,8 @@ function buildEditorExtensions(placeholder) {
     makeDiagnosticRefNode(),
     makeSectionSplitNode(),
     makeClinicalToolNode()
-  ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : []);
+  ].concat(window.buildReviewExtensions ? window.buildReviewExtensions() : [],
+    window.buildPasteExtensions ? window.buildPasteExtensions() : []);
 }
 
 // ---------------------------------------------------------
@@ -2718,6 +2742,7 @@ function scanDoc(docJson) {
     if (!node) return;
     if (node.type === 'chip') {
       if (node.attrs.pending) return; // ajout non accepté : pas encore dans la note
+      if (node.attrs.ref) return; // une mention : la puce d'origine compte, pas elle (lot 4)
       chips.push({ cid: node.attrs.cid, entity: {
         type: node.attrs.type, label: node.attrs.label, icon: node.attrs.icon,
         text: node.attrs.text, rx: node.attrs.rx || undefined, details: node.attrs.details || undefined,
@@ -2847,6 +2872,7 @@ function buildActionLog(docJson, events) {
     if (!node) return;
     if (node.type === 'chip') {
       if (node.attrs.pending) return;
+      if (node.attrs.ref) return; // une mention : une seule entrée, celle de la puce d'origine
       seen[node.attrs.cid] = true;
       pushChip(node.attrs, false);
     } else if (node.type === 'clinicalTool') {

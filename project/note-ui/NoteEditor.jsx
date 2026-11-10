@@ -748,6 +748,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
 
   function resetNote() {
     initialDocRef.current = null;
+    // Une autre note commence : ce qu'on y colle d'une note copiée avant est
+    // une copie d'ailleurs, pas une mention (paste-entities.jsx).
+    if (window.resetNoteSession) window.resetNoteSession();
     // La superposition n'a de sens que pour LA note en cours d'édition :
     // sans ce nettoyage, une prochaine note vierge repartirait avec les
     // lignes « en attente » de celle qu'on vient de fermer.

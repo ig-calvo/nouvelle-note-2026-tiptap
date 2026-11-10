@@ -1246,7 +1246,10 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       }
       // Ajout en attente (gabarit) : rien à ouvrir, seuls ✓ / ✕ agissent (click, ci-dessous).
       if (chipEl.classList.contains('chip--pending')) return;
-      const cid = chipEl.getAttribute('data-cid');
+      // Une mention (copier-coller dans la même note, lot 4) renvoie à la puce
+      // d'origine : un clic ouvre celle-ci, tant qu'elle est dans la note.
+      const refCid = chipEl.getAttribute('data-ref');
+      const cid = refCid && window.findChipPos(editor, refCid) >= 0 ? refCid : chipEl.getAttribute('data-cid');
       const actionEl = e.target.closest('[data-action]');
       const fieldEl = e.target.closest('[data-field]');
       if (actionEl) {
