@@ -35,7 +35,7 @@ const PRESENTATION_TWEAKS = {
   groupRequests: false,
   templateDraftLines: true,
   templateTextProposed: false,
-  suggestionStyle: 'violet',
+  suggestionStyle: 'bleu',
   pendingBadge: false,
   aiProposals: false,
   summaryAddToNote: false,

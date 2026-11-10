@@ -2,7 +2,7 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true, showDocumentButton = true, allergyWarning = true,
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
-  templateTextProposed = false, suggestionStyle = 'violet', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
+  templateTextProposed = false, suggestionStyle = 'bleu', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
   aiProposals = false, pendingBadge = false, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
   autoConduct = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
@@ -73,8 +73,9 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // note:apply-template, monté une seule fois.
   const templateTextProposedRef = React.useRef(templateTextProposed);
   templateTextProposedRef.current = templateTextProposed;
-  // Tweak « Style des suggestions » : CSS seulement (editor.css).
-  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', suggestionStyle || 'violet'); }, [suggestionStyle]);
+  // Tweak « Style des suggestions » : CSS seulement (editor.css). « violet »
+  // (RA-54, valeur déjà enregistrée dans les Tweaks) se lit « bleu » (RA-55).
+  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', !suggestionStyle || suggestionStyle === 'violet' ? 'bleu' : suggestionStyle); }, [suggestionStyle]);
   const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
 
   // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
