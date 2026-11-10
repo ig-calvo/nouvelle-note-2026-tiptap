@@ -1,6 +1,8 @@
 // Textes rapides avec tuiles dans le texte (PLAN-gabarits-conclusion.md) : un
 // jeton `{clé}` place sa puce à même la phrase ; les variantes d'un diagnostic
-// sont des textes à part, classés selon les allergies au dossier.
+// sont des textes à part. Les allergies au dossier ne les classent pas et ne
+// les accompagnent d'aucun avertissement : l'alerte vient sur l'entité, une
+// fois ajoutée (RA-48).
 // Lancer : node --test project/tests/*.test.mjs
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -64,36 +66,40 @@ test('refuser les puces : elles partent seules, le texte autour reste', () => wi
   assert.ok(text.some((l) => l.startsWith(src[1].replace('{abx}', '').trimEnd())), 'la ligne de l’antibiotique reste');
 }));
 
-test('allergie à la pénicilline : la variante sans conflit d’abord, les autres signalées', () => {
+test('allergie à la pénicilline : ni classement ni avertissement sur les options (RA-48)', () => {
   const ids = (list) => list.map((o) => o.id);
-  withAllergies([], () => {
-    const o = D.dxConclusionOptions(PNEUMONIE, NO_CTX);
-    assert.deepEqual(ids(o), ['pac-ambu', 'pac-comorb', 'pac-allergie']);
-    assert.ok(o.every((x) => x.allergy === null));
-  });
-  withAllergies([w.L('Pénicilline')], () => {
-    const o = D.dxConclusionOptions(PNEUMONIE, NO_CTX);
-    assert.deepEqual(ids(o), ['pac-allergie', 'pac-ambu', 'pac-comorb']);
-    assert.equal(o[0].allergy, null);
-    assert.deepEqual(o[1].allergy, { names: [w.L('Pénicilline')], items: [w.TR('Amoxicilline')] });
-    assert.deepEqual(o[2].allergy.items, [w.TR('Amoxicilline-clavulanate')]);
-  });
+  const optionsWith = (allergies) => withAllergies(allergies, () => D.dxConclusionOptions(PNEUMONIE, NO_CTX));
+  const without = optionsWith([]);
+  const withPenicillin = optionsWith([w.L('Pénicilline')]);
+  assert.deepEqual(ids(without), ['pac-ambu', 'pac-comorb', 'pac-allergie']);
+  assert.deepEqual(ids(withPenicillin), ids(without), 'l’ordre ne dépend pas de l’allergie');
+  assert.ok(withPenicillin.every((x) => x.allergy === undefined), 'aucun conflit d’allergie calculé sur une option');
 });
 
-test('barre de la suite : le texte sans conflit, et aucun produit allergène proposé', () => withAllergies([w.L('Pénicilline')], () => {
+test('l’alerte d’allergie vient sur l’entité, une fois ajoutée : la puce du texte en conflit la porte', () => withAllergies([w.L('Pénicilline')], () => {
+  const opt = D.dxConclusionOptions(PNEUMONIE, NO_CTX).find((o) => o.id === 'pac-ambu');
+  const kinds = chipsOf(w.buildConclusionBlocks(opt)).flatMap((c) => w.chipIssues(c.attrs).map((i) => i.kind));
+  assert.ok(kinds.includes('allergy'), 'l’amoxicilline de « PAC ambulatoire » porte l’alerte d’allergie');
+  const sans = D.dxConclusionOptions(PNEUMONIE, NO_CTX).find((o) => o.id === 'pac-allergie');
+  const kindsSans = chipsOf(w.buildConclusionBlocks(sans)).flatMap((c) => w.chipIssues(c.attrs).map((i) => i.kind));
+  assert.ok(!kindsSans.includes('allergy'), 'la variante « allergie à la pénicilline » n’en porte aucune');
+}));
+
+test('barre de la suite : le premier texte, sans avertissement, et aucun produit allergène proposé', () => withAllergies([w.L('Pénicilline')], () => {
   const s = D.nextStepSuggestions({ region: Object.assign({ id: 'd1' }, PNEUMONIE), ctx: NO_CTX });
-  assert.equal(s[0].id, 'tpl:pac-allergie');
+  assert.equal(s[0].id, 'tpl:pac-ambu');
   assert.equal(s[0].desc, undefined);
+  assert.notEqual(s[0].icon, 'warning');
   const rx = s.filter((x) => x.orderKind === 'rx').map((x) => x.item.key);
   assert.ok(rx.length > 0);
   assert.ok(!rx.includes('cat-50') && !rx.includes('cat-48'), 'ni amoxicilline ni amoxicilline-clavulanate');
 }));
 
-test('tous les textes en conflit : la pastille de la barre porte l’avertissement', () => withAllergies([w.L('Pénicilline'), w.L('Azithromycine')], () => {
+test('la pastille de la barre ne porte aucun avertissement, même si tous les textes sont en conflit', () => withAllergies([w.L('Pénicilline'), w.L('Azithromycine')], () => {
   // Otite : amoxicilline, ou azithromycine pour l'allergie à la pénicilline.
   const otite = D.nextStepSuggestions({ region: { id: 'd2', name: 'Otite', code: 'H66.9' }, ctx: NO_CTX })[0];
-  assert.equal(otite.icon, 'warning');
-  assert.match(otite.desc, new RegExp(w.L('Pénicilline')));
+  assert.notEqual(otite.icon, 'warning');
+  assert.equal(otite.desc, undefined);
 }));
 
 test('chaque diagnostic connu a au moins un texte rapide, et chaque texte se construit en entier', () => withAllergies([], () => {
@@ -111,14 +117,15 @@ test('catalogue : une entrée avec `key` garde sa clé, les autres prennent cat-
   assert.equal(new Set(rx.map((it) => it.key)).size, rx.length, 'clés uniques');
 });
 
-test('variantes selon l’allergie : MPOC, otite, pharyngite et sinusite', () => withAllergies([w.L('Pénicilline')], () => {
-  const first = (code) => D.dxConclusionOptions({ name: 'x', code }, NO_CTX)[0].id;
-  assert.equal(first('J44.1'), 'mpoc-allergie');
-  assert.equal(first('H66.9'), 'otite-allergie');
-  assert.equal(first('J02.0'), 'pharyngite-allergie');
-  assert.equal(first('J01.9'), 'sinusite-allergie');
-  assert.equal(first('L03.1'), 'cellulite', 'céphalexine : hors de la classe pénicilline');
-}));
+test('variantes selon l’allergie : MPOC, otite, pharyngite et sinusite restent offertes, dans le même ordre avec ou sans allergie', () => {
+  const idsOf = (allergies, code) => withAllergies(allergies, () => D.dxConclusionOptions({ name: 'x', code }, NO_CTX).map((o) => o.id));
+  [['J44.1', 'mpoc-allergie'], ['H66.9', 'otite-allergie'], ['J02.0', 'pharyngite-allergie'], ['J01.9', 'sinusite-allergie']].forEach(([code, variant]) => {
+    const avec = idsOf([w.L('Pénicilline')], code);
+    assert.ok(avec.includes(variant), `${code} : la variante ${variant} est offerte`);
+    assert.deepEqual(avec, idsOf([], code), `${code} : l’allergie ne change pas l’ordre`);
+  });
+  assert.equal(idsOf([w.L('Pénicilline')], 'L03.1')[0], 'cellulite', 'céphalexine : hors de la classe pénicilline');
+});
 
 test('menu « / » : hors diagnostic, tous les textes, les miens d’abord ; la recherche trouve aussi par diagnostic', () => withAllergies([], () => {
   const all = D.searchQuickTexts('', null, NO_CTX);
@@ -135,13 +142,15 @@ test('menu « / » : hors diagnostic, tous les textes, les miens d’abord ; la 
 test('menu « / » dans un diagnostic : ses textes d’abord, dans l’ordre des suggestions, puis les autres sans doublon', () => withAllergies([w.L('Pénicilline')], () => {
   const r = D.searchQuickTexts('', PNEUMONIE, NO_CTX);
   assert.deepEqual(r.context.map((o) => o.id), D.dxConclusionOptions(PNEUMONIE, NO_CTX).map((o) => o.id));
-  assert.equal(r.context[0].id, 'pac-allergie');
+  assert.equal(r.context[0].id, 'pac-ambu', 'l’ordre des textes, sans classement selon l’allergie');
   assert.ok(!r.others.some((o) => o.id.startsWith('pac-')));
   assert.equal(r.context.length + r.others.length, D.QUICK_TEXTS.length);
   const sinus = D.quickTextOptionById('sinusite');
   assert.equal(sinus.source, w.t('template.source.label', { name: sinus.name }));
-  assert.deepEqual(sinus.allergy.items, [w.TR('Amoxicilline')]);
+  assert.equal(sinus.allergy, undefined, 'aucun conflit d’allergie calculé sur l’option');
   assert.equal(D.quickTextOptionById('inconnu'), null);
-  // Hors diagnostic aussi : la variante sans conflit d'abord.
-  assert.deepEqual(D.searchQuickTexts('sinus', null, NO_CTX).others.map((o) => o.id), ['sinusite-allergie', 'sinusite']);
+  // Hors diagnostic aussi : même ordre qu'avec ou sans allergie.
+  const sinusOrder = (allergies) => withAllergies(allergies, () => D.searchQuickTexts('sinus', null, NO_CTX).others.map((o) => o.id));
+  assert.deepEqual(sinusOrder([w.L('Pénicilline')]), sinusOrder([]));
+  assert.deepEqual(sinusOrder([]), ['sinusite', 'sinusite-allergie']);
 }));

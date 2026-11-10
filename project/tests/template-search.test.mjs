@@ -61,17 +61,16 @@ test('sous un diagnostic : ses textes rapides d’abord, puis les gabarits de no
   assert.deepEqual(sections(D.searchTemplates('pneumo', null, NO_CTX)), [w.TR('Gabarits de note'), w.TR('Textes rapides')]);
 });
 
-test('une allergie au dossier : le texte rapide en conflit la dit sous son nom et passe après les autres', () => {
+test('une allergie au dossier : la liste ne porte aucun avertissement et ne change pas d’ordre (RA-48)', () => {
   const before = D.getPatientAllergies();
+  const rowsFor = (allergies) => { D.setPatientAllergies(allergies); return D.searchTemplates('', PNEUMONIE, NO_CTX); };
   try {
-    D.setPatientAllergies(['Pénicilline']);
-    const rows = D.searchTemplates('', PNEUMONIE, NO_CTX).filter((r) => r.quickTextId);
-    const warned = rows.filter((r) => r.warn);
-    assert.ok(warned.length > 0, 'au moins un texte de la pneumonie contient une pénicilline');
-    assert.ok(warned.every((r) => /pénicilline/i.test(r.warn)));
-    const own = rows.filter((r) => r.section === rows[0].section);
-    assert.ok(!own[0].warn, 'ceux sans conflit d’abord');
-    assert.equal(rows.find((r) => r.quickTextId === 'pac-allergie').warn, '', 'la variante « allergie à la pénicilline » ne porte aucun avertissement');
+    const sans = rowsFor([]);
+    const avec = rowsFor(['Pénicilline']);
+    assert.deepEqual(avec, sans, 'la liste est la même avec ou sans allergie au dossier');
+    assert.ok(avec.every((r) => !r.warn), 'aucune ligne ne porte d’avertissement d’allergie');
+    const own = avec.filter((r) => r.section === avec[0].section).map((r) => r.quickTextId);
+    assert.deepEqual(own, ['pac-ambu', 'pac-comorb', 'pac-allergie'], 'l’ordre des textes de la pneumonie, sans classement');
   } finally { D.setPatientAllergies(before); }
 });
 
