@@ -398,8 +398,8 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "templateTextProposed": false,
   "templateDraftLines": true,
   "autoConduct": true,
-  "suggestionStyle": "tirets",
-  "pendingBadge": true,
+  "suggestionStyle": "violet",
+  "pendingBadge": false,
   "formOpenMode": "auto",
   "groupRequests": false,
   "inlineFieldEdit": true,
@@ -626,11 +626,11 @@ function App() {
               templateTextProposed={t.templateTextProposed === true}
               templateDraftLines={t.templateDraftLines !== false}
               autoConduct={t.autoConduct !== false}
-              suggestionStyle={t.suggestionStyle || 'tirets'}
+              suggestionStyle={t.suggestionStyle || 'violet'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
               inlineFieldEdit={t.inlineFieldEdit !== false}
-              pendingBadge={t.pendingBadge !== false}
+              pendingBadge={t.pendingBadge === true}
               aiProposals={t.aiProposals === true}
               suggestionsPlacement={t.suggestionsOn === true ? (t.suggestionsPlacement || 'curseur') : 'aucune'}
               agentSignal={t.agentSignal || 'pastille'}
@@ -773,14 +773,14 @@ function App() {
           <TweakToggle label="Conduite précédente automatique" value={t.autoConduct !== false}
                        onChange={(v) => setTweak('autoConduct', v)} />
           <TweakRadio label="Style des suggestions"
-                      value={t.suggestionStyle || 'tirets'}
+                      value={t.suggestionStyle || 'violet'}
                       options={[
+                        { value: 'violet', label: 'Mauve' },
                         { value: 'tirets', label: 'Tirets' },
                         { value: 'opacite', label: 'Estompé' },
-                        { value: 'violet', label: 'Mauve' },
                       ]}
                       onChange={(v) => setTweak('suggestionStyle', v)} />
-          <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge !== false}
+          <TweakToggle label="Badge « En suspens » sur les suggestions" value={t.pendingBadge === true}
                        onChange={(v) => setTweak('pendingBadge', v)} />
         </TweakSection>
         <TweakSection label="Pistes (vision)">
