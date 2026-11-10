@@ -27,17 +27,19 @@ function proposedTemplateAuthorId() {
   return (window.TEMPLATE_AUTHOR && window.TEMPLATE_AUTHOR.id) || 'gabarit';
 }
 
-// 'ia' | 'gabarit' | 'medecin'. Lot 2 y ajoutera 'copie' avec des auteurs
-// portés par le document ; d'ici là, l'auteur se déduit de ce que le
-// document porte déjà (authorId d'une marque, proposedBy d'une puce).
+// 'ia' | 'gabarit' | 'medecin' | 'copie'. L'auteur se déduit de ce que le
+// document porte déjà (authorId d'une marque, proposedBy d'une puce, copyOf
+// d'une pré-entité collée, lot 4).
 function proposedAuthorKind(authorId) {
   if (authorId === 'ai') return 'ia';
+  if (authorId === 'copie') return 'copie';
   if (authorId === proposedTemplateAuthorId()) return 'gabarit';
   return 'medecin';
 }
 
 function proposedEntityAuthor(attrs) {
   const name = attrs.proposedBy || '';
+  if (attrs.copyOf) return { id: 'copie', name: name, kind: 'copie' };
   const ai = !!name && name === t('ai.assistant.name');
   return { id: ai ? 'ai' : proposedTemplateAuthorId(), name: name, kind: ai ? 'ia' : 'gabarit' };
 }
