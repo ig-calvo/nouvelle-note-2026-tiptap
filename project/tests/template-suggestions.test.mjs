@@ -27,23 +27,25 @@ const textOf = (nodes) => {
   return out.join('');
 };
 
-test('« Pneumonie » propose imagerie, labo et une ordonnance incomplète, toutes en attente et signées par le gabarit', () => {
+test('« Pneumonie » propose imagerie, deux analyses, une ordonnance incomplète et une complète, toutes en attente et signées par le gabarit', () => {
   const chips = chipsIn(w.buildTemplateBlocks(tpl('pneumonie')));
-  assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'prescription']);
+  assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'lab', 'prescription', 'prescription']);
   assert.ok(chips.every((c) => c.attrs.pending && c.attrs.proposedBy === w.t('template.source.label', { name: w.TR('Pneumonie (suspicion)') })));
-  const rx = chips[2].attrs;
+  const rx = chips[3].attrs;
   assert.equal(rx.details.frequency, '');
   assert.doesNotMatch(rx.rx.sig, /BID/, 'la posologie affichée suit la fréquence vidée');
   // Amoxicilline-clavulanate : la patiente de démo est allergique à la pénicilline.
   assert.deepEqual(w.chipIssues(rx).map((i) => i.kind), ['incomplete', 'allergy']);
+  // Azithromycine : une ordonnance complète, sans allergie, qui montre l'ajout prêt à accepter.
+  assert.deepEqual(w.chipIssues(chips[4].attrs), []);
 });
 
 test('pendingSummary : puces en attente et sources', () => {
   const d = doc(...w.buildTemplateBlocks(tpl('pneumonie')));
   const s = w.pendingSummary(d);
-  assert.equal(s.chips, 3);
+  assert.equal(s.chips, 5);
   assert.equal(s.paragraphs, 0);
-  assert.equal(s.count, 3);
+  assert.equal(s.count, 5);
   assert.deepEqual(s.sources, [w.t('template.source.label', { name: w.TR('Pneumonie (suspicion)') })]);
 });
 
@@ -52,14 +54,14 @@ test('tout accepter : plus rien en attente, les puces complètes restent et l’
   const accepted = w.resolvePendingInDoc(d, true);
   assert.equal(w.pendingSummary(accepted).count, 0);
   // L'ordonnance du gabarit n'a pas de fréquence : elle n'est pas acceptée, donc n'entre pas dans la note.
-  assert.deepEqual(chipsIn([accepted]).map((c) => c.attrs.type), ['imaging', 'lab']);
+  assert.deepEqual(chipsIn([accepted]).map((c) => c.attrs.type), ['imaging', 'lab', 'lab', 'prescription']);
   const rejected = w.resolvePendingInDoc(d, false);
   assert.equal(chipsIn([rejected]).length, 0);
   // Le texte reste ; les espaces qui séparaient les puces refusées partent avec elles.
   const plan = rejected.content.find((b) => b.type === 'paragraph' && textOf([b]).startsWith('Plan'));
   assert.equal(textOf([plan]), w.L('Impression : \nPlan : ').split('\n')[1]);
   assert.equal(textOf([rejected]).replace(/\s+/g, ' '), textOf([d]).replace(/\s+/g, ' ').trimEnd() + ' ');
-  assert.equal(w.pendingSummary(d).count, 3, 'le doc reçu n’est pas modifié');
+  assert.equal(w.pendingSummary(d).count, 5, 'le doc reçu n’est pas modifié');
 });
 
 test('texte proposé : les paragraphes sont marqués « Gabarit », pas les titres ; accepter retire la marque, refuser retire le texte', () => {
@@ -71,7 +73,7 @@ test('texte proposé : les paragraphes sont marqués « Gabarit », pas les titr
   assert.ok(headings.every((h) => (h.content || []).every((t) => !(t.marks || []).length)));
   const d = doc(...blocks);
   const s = w.pendingSummary(d);
-  assert.equal(s.chips, 1);
+  assert.equal(s.chips, 3);
   assert.ok(s.paragraphs > 0);
   const accepted = w.resolvePendingInDoc(d, true);
   assert.equal(w.pendingSummary(accepted).count, 0);
@@ -83,7 +85,7 @@ test('texte proposé : les paragraphes sont marqués « Gabarit », pas les titr
 test('sans le tweak, le texte du gabarit n’est pas proposé', () => {
   const s = w.pendingSummary(doc(...w.buildTemplateBlocks(tpl('otite'))));
   assert.equal(s.paragraphs, 0);
-  assert.equal(s.chips, 1);
+  assert.equal(s.chips, 3);
 });
 
 // Réglage « Gabarit : lignes à compléter » (rencontre du 2026-10-27, A3) : le
@@ -92,9 +94,9 @@ test('lignes à compléter : chaque ajout du gabarit est une ligne d’état 1 (
   w.__TEMPLATE_DRAFT_LINES = true;
   try {
     const chips = chipsIn(w.buildTemplateBlocks(tpl('pneumonie')));
-    assert.deepEqual(chips.map((c) => c.attrs.draft.kind), ['img', 'lab', 'rx']);
+    assert.deepEqual(chips.map((c) => c.attrs.draft.kind), ['img', 'lab', 'lab', 'rx', 'rx']);
     assert.ok(chips.every((c) => c.attrs.pending && c.attrs.rx === null && c.attrs.draft.term === c.attrs.label));
-    assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'prescription']);
+    assert.deepEqual(chips.map((c) => c.attrs.type), ['imaging', 'lab', 'lab', 'prescription', 'prescription']);
     // Un profil se rouvre dans /lab, sous son nom.
     const prof = w.buildDraftChipNode({ kind: 'profile', key: 'prof-anemie' }, 'x');
     assert.deepEqual(prof.attrs.draft, { kind: 'lab', term: w.TR('Bilan anémie') });

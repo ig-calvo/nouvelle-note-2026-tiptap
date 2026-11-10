@@ -44,7 +44,7 @@ test('note de départ : gabarit sans outil, ligne de suivi en tête, problème r
   const chips = [];
   const walk = (n) => { if (n.type === 'chip') chips.push(n); (n.content || []).forEach(walk); };
   walk(doc);
-  assert.deepEqual(chips.map((c) => [c.attrs.type, c.attrs.pending]), [['lab', true]], 'l’analyse d’urine du gabarit, en attente');
+  assert.deepEqual(chips.map((c) => [c.attrs.type, c.attrs.pending]), [['lab', true], ['lab', true]], 'l’analyse et la culture d’urine du gabarit, en attente');
 });
 
 test('note de départ avec outils cliniques, ou sans gabarit', () => {

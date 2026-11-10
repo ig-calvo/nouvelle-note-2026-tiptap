@@ -154,7 +154,7 @@ test('sans outils cliniques, le gabarit ITU propose l’analyse d’urine au lie
   const itu = D.NOTE_TEMPLATES.find((x) => x.key === 'itu');
   const plain = D.templateWithoutTool(itu);
   assert.equal(plain.tool, null);
-  assert.deepEqual(chipsOf(w.buildTemplateBlocks(plain)).map((c) => c.attrs.type), ['lab']);
+  assert.deepEqual(chipsOf(w.buildTemplateBlocks(plain)).map((c) => c.attrs.type), ['lab', 'lab'], 'l’analyse et la culture d’urine');
   assert.equal(itu.tool, 'itu', 'le gabarit d’origine ne change pas');
   const virus = D.NOTE_TEMPLATES.find((x) => x.key === 'virus');
   assert.equal(D.templateWithoutTool(virus), virus);
@@ -163,7 +163,7 @@ test('sans outils cliniques, le gabarit ITU propose l’analyse d’urine au lie
 test('sans outils cliniques : l’item Outils cliniques reste dans « / », mais plus l’outil dans la description du gabarit ITU (liste du « # »)', () => {
   w.__SHOW_CLINICAL_TOOLS = false;
   const tpl = (q) => D.searchTemplates(q, null, { notes: [], sommaire: [] }).find((it) => it.key === 'tpl-itu');
-  assert.equal(tpl('itu').desc, w.TR('Structure + analyse d’urine proposée'));
+  assert.equal(tpl('itu').desc, w.TR('Structure + analyse et culture d’urine proposées'));
   // Le tweak règle la rangée du bas et la description des gabarits, pas l'ajout par « + » ou « / ».
   assert.ok(w.filterSlashItems('').some((it) => it.ctPicker), 'le menu offre toujours d’ajouter un outil clinique');
   assert.ok(w.filterSlashItems('outil').some((it) => it.ctPicker), 'et la recherche le trouve');

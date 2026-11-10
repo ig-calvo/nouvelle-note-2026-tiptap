@@ -30,6 +30,17 @@ test('chaque texte rapide : diagnostics connus, tuiles toutes placées et au cat
   assert.equal(new Set(D.QUICK_TEXTS.map((q) => q.key)).size, D.QUICK_TEXTS.length, 'clés uniques');
 });
 
+test('les gabarits d’exemple montrent chaque sorte de puce : ordonnance, labo, imagerie, référence, consigne, examen, service', () => {
+  const kinds = new Set();
+  D.QUICK_TEXTS.forEach((q) => Object.values(q.tiles || {}).forEach((tile) => {
+    const chip = w.buildPendingChipNode(tile, 'x');
+    assert.ok(chip, `${q.key} : ${tile.kind}/${tile.key} est au catalogue`);
+    assert.ok(!/undefined/.test(chip.attrs.text), `${q.key} : le texte de la puce est complet (${chip.attrs.text})`);
+    kinds.add(chip.attrs.type);
+  }));
+  ['prescription', 'lab', 'imaging', 'referral', 'instructions', 'exam', 'service'].forEach((type) => assert.ok(kinds.has(type), `aucun gabarit d’exemple n’a de puce « ${type} »`));
+});
+
 test('les tuiles arrivent à leur place dans la phrase, en attente et signées', () => withAllergies([], () => {
   const opt = D.dxConclusionOptions(PNEUMONIE, NO_CTX).find((o) => o.id === 'pac-ambu');
   const blocks = w.buildConclusionBlocks(opt);

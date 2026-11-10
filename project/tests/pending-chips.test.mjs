@@ -17,14 +17,15 @@ const chipsIn = (blocks) => {
   return out;
 };
 
-test('le gabarit « Otite moyenne aiguë » propose une ordonnance, en attente, à la suite de « Plan : »', () => {
+test('le gabarit « Otite moyenne aiguë » propose deux ordonnances et une référence, en attente, à la suite de « Plan : »', () => {
   const blocks = w.buildTemplateBlocks(tpl('otite'));
   const chips = chipsIn(blocks);
-  assert.equal(chips.length, 1);
-  assert.equal(chips[0].attrs.pending, true);
-  assert.equal(chips[0].attrs.type, 'prescription');
+  assert.deepEqual(chips.map((c) => c.attrs.type), ['prescription', 'prescription', 'referral']);
+  assert.ok(chips.every((c) => c.attrs.pending === true));
   assert.equal(chips[0].attrs.rx.name, w.TR('Amoxicilline'));
-  assert.ok(!chips[0].attrs.savedAt); // pas encore sauvegardée : rien au Journal
+  assert.equal(chips[1].attrs.rx.name, w.TR('Acetaminophene'));
+  assert.equal(chips[2].attrs.label, w.TR('ORL'));
+  assert.ok(chips.every((c) => !c.attrs.savedAt)); // pas encore sauvegardées : rien au Journal
   const plan = blocks.find((b) => b.type === 'paragraph' && b.content && b.content[0].text === w.L('Impression : \nPlan : ').split('\n')[1]);
   assert.ok(plan, 'la ligne « Plan : » existe');
   assert.equal(plan.content[1].type, 'chip'); // inline, juste après le texte
