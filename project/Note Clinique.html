@@ -398,7 +398,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "templateTextProposed": false,
   "templateDraftLines": true,
   "autoConduct": true,
-  "suggestionStyle": "violet",
+  "suggestionStyle": "bleu",
   "pendingBadge": false,
   "formOpenMode": "auto",
   "groupRequests": false,
@@ -626,7 +626,7 @@ function App() {
               templateTextProposed={t.templateTextProposed === true}
               templateDraftLines={t.templateDraftLines !== false}
               autoConduct={t.autoConduct !== false}
-              suggestionStyle={t.suggestionStyle || 'violet'}
+              suggestionStyle={t.suggestionStyle || 'bleu'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
               inlineFieldEdit={t.inlineFieldEdit !== false}
@@ -773,9 +773,9 @@ function App() {
           <TweakToggle label="Conduite précédente automatique" value={t.autoConduct !== false}
                        onChange={(v) => setTweak('autoConduct', v)} />
           <TweakRadio label="Style des suggestions"
-                      value={t.suggestionStyle || 'violet'}
+                      value={!t.suggestionStyle || t.suggestionStyle === 'violet' ? 'bleu' : t.suggestionStyle}
                       options={[
-                        { value: 'violet', label: 'Mauve' },
+                        { value: 'bleu', label: 'Bleu' },
                         { value: 'tirets', label: 'Tirets' },
                         { value: 'opacite', label: 'Estompé' },
                       ]}

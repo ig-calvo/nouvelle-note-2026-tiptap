@@ -649,10 +649,11 @@ html[data-inline-edit="off"] .chip--rx .chip-rx-poso > span[data-field]:hover { 
 
 /* Tweak « Style des suggestions » (html[data-suggestion-style], posé par
    NoteEditor) — trois propositions de la rencontre inline entity, à tester :
-   « violet » (Xavier, défaut depuis RA-54) : puce mauve, ✓ / ✕ en pastilles
-   rondes à cheval sur le coin supérieur droit ; « tirets » (le contour en
-   tirets et les boutons carrés à la suite, ci-dessus) ; « opacite » (Alex) :
-   puce estompée, ✓ / ✕ sous la puce au survol ou au focus. */
+   « bleu » (Xavier ; défaut depuis RA-55, mauve dans RA-54) : puce bleue, ✓ / ✕
+   en pastilles rondes à cheval sur le coin supérieur droit ; « tirets » (le
+   contour en tirets et les boutons carrés à la suite, ci-dessus) ; « opacite »
+   (Alex) : puce estompée, ✓ / ✕ sous la puce au survol ou au focus. L'ancienne
+   valeur enregistrée « violet » se lit « bleu » (NoteEditor.jsx). */
 .chip--pending { position: relative; }
 /* Ligne à compléter (état 1, buildDraftChipDom) : une suggestion qui se clique
    pour rouvrir sa recherche. */
@@ -669,15 +670,20 @@ html[data-suggestion-style="opacite"] .chip--pending.ProseMirror-selectednode .c
 /* Les pastilles (2 × 20 px + 2 px, dont 8 px hors de la puce) se posent au-dessus
    du coin ; 34 px de marge à droite pour que ✓ ne recouvre jamais la fin du
    texte (« Routine », « R0 »). La ligne à compléter n'a que ✕ : 14 px. */
-html[data-suggestion-style="violet"] .chip--rx.chip--pending { border-style: solid; border-color: light-dark(#7a3ec2, #c4aae4); background: light-dark(#f3ecfb, #2e2340); padding-right: 34px; }
-html[data-suggestion-style="violet"] .chip--rx.chip--pending.chip--draft { padding-right: 14px; }
-html[data-suggestion-style="violet"] .chip--pending .chip-pending-actions { position: absolute; top: -9px; right: -9px; margin: 0; padding: 0; border: 0; gap: 2px; }
-html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#7a3ec2, #c4aae4); color: light-dark(#7a3ec2, #c4aae4); }
-html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn .material-symbols-outlined { font-size: 14px; }
+/* Couleurs de la puce en attente, lues par les règles qui suivent : bleu
+   interactif du DS (--omd-primary-500, 4,7 : 1 sur blanc) et son pendant clair
+   en sombre. La proposition de l'Assistant IA garde le mauve (RA-51 : mauve = IA). */
+html[data-suggestion-style="bleu"] .chip--pending { --pend-c: light-dark(var(--omd-primary-500, #1975d1), #8fbaf0); --pend-bg: light-dark(#ebf3fc, #14263a); }
+html[data-suggestion-style="bleu"] .chip--pending.chip--ai { --pend-c: light-dark(#7a3ec2, #c4aae4); --pend-bg: light-dark(#f3ecfb, #2e2340); }
+html[data-suggestion-style="bleu"] .chip--rx.chip--pending { border-style: solid; border-color: var(--pend-c); background: var(--pend-bg); padding-right: 34px; }
+html[data-suggestion-style="bleu"] .chip--rx.chip--pending.chip--draft { padding-right: 14px; }
+html[data-suggestion-style="bleu"] .chip--pending .chip-pending-actions { position: absolute; top: -9px; right: -9px; margin: 0; padding: 0; border: 0; gap: 2px; }
+html[data-suggestion-style="bleu"] .chip--pending .chip-pending-btn { width: 20px; height: 20px; border-radius: 50%; background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--pend-c); color: var(--pend-c); }
+html[data-suggestion-style="bleu"] .chip--pending .chip-pending-btn .material-symbols-outlined { font-size: 14px; }
 /* Le fond blanc de la pastille vient de la règle ci-dessus (plus spécifique que
    le survol de base) : sans cette règle, rien ne bougerait au survol. */
-html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn:hover,
-html[data-suggestion-style="violet"] .chip--pending .chip-pending-btn:active { background: color-mix(in srgb, currentColor 14%, var(--mat-sys-surface-container-lowest)); }
+html[data-suggestion-style="bleu"] .chip--pending .chip-pending-btn:hover,
+html[data-suggestion-style="bleu"] .chip--pending .chip-pending-btn:active { background: color-mix(in srgb, currentColor 14%, var(--mat-sys-surface-container-lowest)); }
 
 /* Rx search dropdown (commande /rx) */
 .rx-menu { position: fixed; width: 460px; background: var(--mat-sys-surface-container-lowest); border: 1px solid light-dark(#d0d5f0, #242b4c); border-radius: 10px; box-shadow: 0 0 8px rgba(37,36,94,0.12), 0 24px 24px -8px rgba(37,36,94,0.10); overflow: hidden; font-family: var(--font-body); animation: medmenu-in 140ms var(--motion-ease); display: flex; flex-direction: column; }
