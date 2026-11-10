@@ -220,8 +220,8 @@ test('suivant et précédent : dans l’ordre du document, en faisant le tour', 
   assert.equal(w.nextProposedChange([], 0, 1), null);
 });
 
-test('les gabarits du prototype restent lus : « Pneumonie » propose deux complètes et une incomplète', () => {
+test('les gabarits du prototype restent lus : « Pneumonie » propose quatre complètes et une incomplète', () => {
   const cs = scan(doc(...w.buildTemplateBlocks(tpl('pneumonie'))));
-  assert.deepEqual(cs.map((c) => c.state), ['complete', 'complete', 'incomplete']);
+  assert.deepEqual(cs.map((c) => c.state), ['complete', 'complete', 'complete', 'incomplete', 'complete']);
   assert.ok(cs.every((c) => c.author.kind === 'gabarit'));
 });
