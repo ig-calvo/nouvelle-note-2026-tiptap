@@ -141,7 +141,9 @@ function makeDeletionMark() {
 
 // Aplatit les text nodes d'une Slice (contenu avant un remplacement) en
 // runs {text, marks} — insère un espace entre deux blocs pour ne pas
-// coller deux mots de paragraphes différents en un seul run barré.
+// coller deux mots de paragraphes différents en un seul run barré. Une puce
+// (nœud inline) est un run {node, marks} : elle reste en place, barrée
+// (lot 1b, classifyDeletedRun dans proposed-changes.jsx).
 function collectTextRuns(slice) {
   const runs = [];
   let sawBlockBreak = false;
@@ -149,10 +151,10 @@ function collectTextRuns(slice) {
     walkForRuns(node);
   });
   function walkForRuns(node) {
-    if (node.isText) {
+    if (node.isText || node.type.name === 'chip') {
       if (sawBlockBreak && runs.length) { runs.push({ text: ' ', marks: [] }); }
       sawBlockBreak = false;
-      runs.push({ text: node.text, marks: node.marks });
+      runs.push(node.isText ? { text: node.text, marks: node.marks } : { node: node, marks: node.marks });
       return;
     }
     if (node.isBlock && runs.length) sawBlockBreak = true;
@@ -214,15 +216,17 @@ function buildTrackingTr(transactions, oldState, newState, author, TextSelection
       const at0 = toFinal(step.from, idx, -1);
       let at = at0;
       runs.forEach(function (run) {
-        if (!run.text) return;
-        const ownInsertion = run.marks.some(function (m) { return m.type === insType && m.attrs.authorId === author.id; });
-        if (ownInsertion) return; // supprimer sa propre insertion en attente = annulation nette
-        const alreadyDeleted = run.marks.some(function (m) { return m.type === delType; });
-        const marks = alreadyDeleted
+        if (!run.node && !run.text) return;
+        // 'skip' : sa propre insertion en attente (annulation nette), une puce
+        // proposée ou une ligne à compléter (pas encore dans la note) ;
+        // 'keep' : déjà barré ; 'mark' : barré et signé, la puce comprise (Q9).
+        const how = window.classifyDeletedRun(run, author.id);
+        if (how === 'skip') return;
+        const marks = how === 'keep'
           ? run.marks
           : run.marks.filter(function (m) { return m.type !== insType; }).concat(delType.create(deleteAttrs));
-        tr.insert(at, schema.text(run.text, marks));
-        at += run.text.length;
+        tr.insert(at, run.node ? run.node.mark(marks) : schema.text(run.text, marks));
+        at += run.node ? run.node.nodeSize : run.text.length;
       });
       if (pureDelete && at > at0) {
         const backspace = oldState.selection.head >= step.to;
@@ -405,6 +409,7 @@ function proposedPiecesText(summary) {
   if (summary.complete) parts.push(tn('proposed.complete.text', summary.complete));
   if (summary.incomplete) parts.push(tn('proposed.incomplete.text', summary.incomplete));
   if (summary.draft) parts.push(tn('proposed.draft.text', summary.draft));
+  if (summary.removed) parts.push(tn('proposed.removed.text', summary.removed));
   if (summary.text) parts.push(tn('proposed.textRuns.text', summary.text));
   return parts.join(', ');
 }

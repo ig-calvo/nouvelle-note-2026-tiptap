@@ -961,6 +961,7 @@
   'proposed.next.tooltip': 'Next proposed change',
   'proposed.previous.tooltip': 'Previous proposed change',
   'proposed.summary.text': '{total} ({pieces})',
+  'proposed.removed.text': { one: '{n} removed item', other: '{n} removed items' },
   'proposed.textRuns.text': { one: '{n} passage of text', other: '{n} passages of text' },
   'proposed.total.text': { one: '{n} proposed change', other: '{n} proposed changes' },
   'review.accepter.button': 'Accept',

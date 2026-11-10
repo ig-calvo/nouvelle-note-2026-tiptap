@@ -496,6 +496,16 @@ html.dxr-dragging, html.dxr-dragging * { cursor: grabbing !important; user-selec
   border-radius: 2px;
   cursor: pointer;
 }
+/* Puce retirée sous suivi (lot 1b) : elle reste en place, barrée et signée.
+   Le trait du passage ne descend pas dans une puce (c'est un bloc en ligne) :
+   on le pose sur la puce, avec le rouge de la marque. */
+.note-field .ql-editor span.rvw-del .chip,
+.note-field .ql-editor span.rvw-del .chip * {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  color: var(--rvw-c, var(--mat-sys-error));
+}
+.note-field .ql-editor span.rvw-del .chip { border-color: var(--rvw-c, var(--mat-sys-error)); }
 
 /* Inline order chip (℞/lab/img · Name dose · [detail box] · free text) */
 .chip--rx { background: var(--mat-sys-surface-container-lowest); border: 1px solid var(--mat-sys-outline); color: var(--mat-sys-on-surface); border-radius: var(--mat-sys-corner-small); padding: 2px 8px; gap: 6px; margin: 0 3px; font-weight: 500; }

@@ -4,7 +4,9 @@
 //
 // Un « changement proposé » est soit un passage de texte (marque `insertion`
 // ou `deletion`, review-mode.jsx), soit une entité en attente (puce `pending`,
-// editor-schema.jsx). Le stockage reste celui d'avant (Q1) : ce module ne
+// editor-schema.jsx), soit — lot 1b, Q9 — une puce déjà dans la note que le
+// suivi a retirée : elle porte la marque `deletion` et se lit comme un
+// passage retiré (`chips` ≥ 1). Le stockage reste celui d'avant (Q1) : ce module ne
 // fait que LIRE le document d'une seule façon (scanProposedChanges), le
 // RÉSOUDRE d'une seule façon (planProposedResolution → applyProposedOps, en
 // UNE transaction) et le résumer d'une seule façon (summarizeProposedChanges).
@@ -49,6 +51,28 @@ function proposedEntityState(attrs) {
   return proposedEntityIssues(attrs).some(function (i) { return i.kind === 'incomplete'; }) ? 'incomplete' : 'complete';
 }
 
+// Le nom d'une puce dans la liste des changements et dans le popover.
+function proposedChipLabel(attrs) {
+  return (attrs.draft && attrs.draft.term) || attrs.label || (attrs.rx && attrs.rx.name) || '';
+}
+
+// Suppression suivie (lot 1b, Q9) : ce que le traqueur du mode révision fait
+// d'un passage retiré, texte ou puce. `run` : { text } ou { node } (une puce),
+// et `marks` (les marques que le passage portait). `authorId` : qui retire.
+//   'skip' : rien à garder. Une puce proposée ou une ligne à compléter n'était
+//            pas encore dans la note ; ma propre insertion en attente s'annule
+//            net — pas de trace, comme aujourd'hui.
+//   'keep' : déjà barré, il le reste tel quel.
+//   'mark' : il reste en place, barré et signé, jusqu'à ce qu'un relecteur
+//            accepte (il part) ou refuse (il redevient normal).
+function classifyDeletedRun(run, authorId) {
+  if (run.node && run.node.attrs && run.node.attrs.pending) return 'skip';
+  const marks = run.marks || [];
+  if (marks.some(function (m) { return m.type.name === 'insertion' && m.attrs.authorId === authorId; })) return 'skip';
+  if (marks.some(function (m) { return m.type.name === 'deletion'; })) return 'keep';
+  return 'mark';
+}
+
 // ---------------------------------------------------------
 // Scan — `doc` expose `descendants(fn(node, pos))` comme un doc ProseMirror
 // (ou proposedDocLike pour un doc JSON). Texte : un changement = run contigu
@@ -59,13 +83,23 @@ function proposedEntityState(attrs) {
 function scanProposedChanges(doc) {
   const changes = [];
   doc.descendants(function (node, pos) {
-    if (node.isText) {
-      const m = (node.marks || []).find(function (mk) { return mk.type.name === 'insertion' || mk.type.name === 'deletion'; });
+    // Une puce déjà dans la note compte seulement quand elle est barrée
+    // (marque `deletion`, lot 1b) ; sa marque `insertion` éventuelle ne
+    // compte pas. Une puce proposée est une entité, plus bas.
+    const isChip = node.type.name === 'chip';
+    if (node.isText || (isChip && !(node.attrs && node.attrs.pending))) {
+      const kinds = isChip ? ['deletion'] : ['insertion', 'deletion'];
+      const m = (node.marks || []).find(function (mk) { return kinds.indexOf(mk.type.name) >= 0; });
       if (!m) return;
+      // Pour une puce, `text` est son nom, et `chips` en compte une de plus :
+      // un passage retiré qui en contient une est « un élément retiré ».
+      let piece = isChip ? proposedChipLabel(node.attrs || {}) : node.text;
       const last = changes[changes.length - 1];
       if (last && last.to === pos && last.kind === m.type.name && last.authorId === m.attrs.authorId) {
+        if (isChip && last.text && !/\s$/.test(last.text)) piece = ' ' + piece;
         last.to = pos + node.nodeSize;
-        last.text += node.text;
+        last.text += piece;
+        if (isChip) last.chips++;
       } else {
         changes.push({
           id: m.type.name + ':' + pos,
@@ -77,7 +111,8 @@ function scanProposedChanges(doc) {
           authorName: m.attrs.authorName,
           color: m.attrs.color,
           ts: m.attrs.ts,
-          text: node.text,
+          text: piece,
+          chips: isChip ? 1 : 0,
           acceptable: true,
           canAccept: true
         });
@@ -99,7 +134,7 @@ function scanProposedChanges(doc) {
         cid: a.cid,
         entityType: a.type,
         state: state,
-        label: (a.draft && a.draft.term) || a.label || (a.rx && a.rx.name) || '',
+        label: proposedChipLabel(a),
         detail: (state !== 'draft' && a.rx && a.rx.sig) || '',
         warn: a.warn || null,
         // Une alerte d'allergie ne rend pas l'entité incomplète : elle reste
@@ -120,13 +155,15 @@ function scanProposedChanges(doc) {
 // `count`, `chips`, `paragraphs`, `drafts` : la forme de l'ancien
 // pendingSummary (editor-schema.jsx), que ses appelants lisent encore.
 function summarizeProposedChanges(changes) {
-  const s = { total: changes.length, text: 0, entities: 0, draft: 0, incomplete: 0, complete: 0, acceptable: 0, sources: [] };
+  const s = { total: changes.length, text: 0, removed: 0, entities: 0, draft: 0, incomplete: 0, complete: 0, acceptable: 0, sources: [] };
   // Un gabarit signe son texte « Gabarit » et ses puces « Gabarit « Otite… » » :
   // c'est une seule source, nommée par ses puces.
   const entityAuthors = {};
   changes.forEach(function (c) { if (c.kind === 'entity') entityAuthors[c.author.id] = true; });
   changes.forEach(function (c) {
-    if (c.kind === 'entity') { s.entities++; s[c.state]++; } else s.text++;
+    // `removed` : un passage retiré qui contient une puce (suppression suivie,
+    // lot 1b) ; `text` : les autres passages, insérés ou retirés.
+    if (c.kind === 'entity') { s.entities++; s[c.state]++; } else if (c.chips) s.removed++; else s.text++;
     if (c.acceptable) s.acceptable++;
     if (c.kind !== 'entity' && entityAuthors[c.author.id]) return;
     if (c.authorName && s.sources.indexOf(c.authorName) < 0) s.sources.push(c.authorName);
@@ -266,8 +303,8 @@ function resolveProposed(editor, changes, accept, opts) {
 // gardent leur texte.
 // ---------------------------------------------------------
 function resolveProposedInDoc(docJson, accept) {
-  const markOf = function (c) {
-    return (c.marks || []).find(function (m) { return m.type === 'insertion' || m.type === 'deletion'; });
+  const markOf = function (c, only) {
+    return (c.marks || []).find(function (m) { return only ? m.type === only : (m.type === 'insertion' || m.type === 'deletion'); });
   };
   function walk(node) {
     if (!node || !node.content) return node;
@@ -289,7 +326,9 @@ function resolveProposedInDoc(docJson, accept) {
         }
         return;
       }
-      const m = c.type === 'text' ? markOf(c) : null;
+      // Une puce déjà dans la note n'est un changement que barrée (marque
+      // `deletion`, lot 1b) : accepter la retire, refuser lui rend son état.
+      const m = c.type === 'text' ? markOf(c) : (c.type === 'chip' ? markOf(c, 'deletion') : null);
       if (m) {
         const kill = (m.type === 'insertion') !== accept;
         if (kill) return;
@@ -323,7 +362,9 @@ function proposedDocLike(docJson) {
     const kids = (n.content || []).map(wrap);
     const inner = kids.reduce(function (sum, k) { return sum + k.nodeSize; }, 0);
     return {
-      isText: false, type: { name: n.type }, attrs: n.attrs || {}, marks: [], children: kids,
+      isText: false, type: { name: n.type }, attrs: n.attrs || {}, children: kids,
+      // Une puce (nœud inline) peut porter une marque, comme un texte.
+      marks: (n.marks || []).map(function (m) { return { type: { name: m.type }, attrs: m.attrs || {} }; }),
       nodeSize: PROPOSED_LEAF_TYPES.indexOf(n.type) >= 0 ? 1 : inner + 2
     };
   }
@@ -345,6 +386,7 @@ function proposedDocLike(docJson) {
 Object.assign(window, {
   proposedAuthorKind,
   proposedEntityState,
+  classifyDeletedRun,
   scanProposedChanges,
   summarizeProposedChanges,
   proposedShortList,
