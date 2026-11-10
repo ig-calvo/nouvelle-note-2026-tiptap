@@ -2,8 +2,8 @@
 function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef, doctorName, institution, showClinicalTools = true, showDocumentButton = true, allergyWarning = true,
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
-  templateTextProposed = false, suggestionStyle = 'tirets', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = true, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
+  templateTextProposed = false, suggestionStyle = 'violet', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
+  aiProposals = false, pendingBadge = false, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
   autoConduct = true }) {
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
@@ -18,7 +18,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   // (rxAllergyOf), quel que soit ce réglage.
   window.__SHOW_ALLERGY_WARNING = allergyWarning !== false;
   // Tweak « Badge En suspens » (Q-26) : CSS seulement (editor.css).
-  React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge !== false ? 'on' : 'off'); }, [pendingBadge]);
+  React.useEffect(function() { document.documentElement.setAttribute('data-pending-badge', pendingBadge === true ? 'on' : 'off'); }, [pendingBadge]);
   // Tweak « Édition inline des valeurs secondaires (après Q1 2027) » (D-02) :
   // désactivée = portée Q1, un clic sur une valeur secondaire ouvre le
   // formulaire complet. Lu aussi par le clavier des puces (chipKeys) et le CSS.
@@ -74,7 +74,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   const templateTextProposedRef = React.useRef(templateTextProposed);
   templateTextProposedRef.current = templateTextProposed;
   // Tweak « Style des suggestions » : CSS seulement (editor.css).
-  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', suggestionStyle || 'tirets'); }, [suggestionStyle]);
+  React.useEffect(function() { document.documentElement.setAttribute('data-suggestion-style', suggestionStyle || 'violet'); }, [suggestionStyle]);
   const currentReviewAuthor = window.reviewAuthorById ? window.reviewAuthorById(doctorName, reviewAuthor) : null;
 
   // Pont React → extension Tiptap (hors de l'arbre React) — même pattern
