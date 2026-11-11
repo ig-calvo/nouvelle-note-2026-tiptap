@@ -670,10 +670,12 @@ html[data-suggestion-style="opacite"] .chip--pending.ProseMirror-selectednode .c
 /* Les pastilles (2 × 20 px + 2 px, dont 8 px hors de la puce) se posent au-dessus
    du coin ; 34 px de marge à droite pour que ✓ ne recouvre jamais la fin du
    texte (« Routine », « R0 »). La ligne à compléter n'a que ✕ : 14 px. */
-/* Couleurs de la puce en attente, lues par les règles qui suivent : bleu
-   interactif du DS (--omd-primary-500, 4,7 : 1 sur blanc) et son pendant clair
-   en sombre. La proposition de l'Assistant IA garde le mauve (RA-51 : mauve = IA). */
-html[data-suggestion-style="bleu"] .chip--pending { --pend-c: light-dark(var(--omd-primary-500, #1975d1), #8fbaf0); --pend-bg: light-dark(#ebf3fc, #14263a); }
+/* Couleurs de la puce en attente, lues par les règles qui suivent : l'indigo du
+   DS3 (--mat-sys-primary, 8,9 : 1 sur blanc, clair en sombre), celui des
+   pictogrammes de la puce, et son voile à 8 % en fond (RA-55, choix d'Ignacio
+   Calvo le 2026-11-11). La proposition de l'Assistant IA garde le mauve (RA-51 :
+   mauve = IA). */
+html[data-suggestion-style="bleu"] .chip--pending { --pend-c: var(--mat-sys-primary); --pend-bg: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-container-lowest)); }
 html[data-suggestion-style="bleu"] .chip--pending.chip--ai { --pend-c: light-dark(#7a3ec2, #c4aae4); --pend-bg: light-dark(#f3ecfb, #2e2340); }
 html[data-suggestion-style="bleu"] .chip--rx.chip--pending { border-style: solid; border-color: var(--pend-c); background: var(--pend-bg); padding-right: 34px; }
 html[data-suggestion-style="bleu"] .chip--rx.chip--pending.chip--draft { padding-right: 14px; }
