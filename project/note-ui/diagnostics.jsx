@@ -345,10 +345,10 @@ function diagCanRefine(attrs) {
 // 'chapter' / 'block', sans code) — l'id du nœud, retrouvé par son libellé
 // (unique parmi les blocs comme parmi les chapitres ; le nom d'une région ne
 // change qu'avec son level, voir diagRelabelPatches). null pour un texte
-// libre, un diagnostic SNOMED, ou tant que la CIM-10 charge.
+// libre, un diagnostic SNOMED ou Omnimed, ou tant que la CIM-10 charge.
 function dxRegionCimId(region) {
   const r = region || {};
-  if (r.source === 'snomed') return null;
+  if (r.source === 'snomed' || r.source === 'omnimed') return null;
   if (r.code) return r.code;
   if ((r.level !== 'chapter' && r.level !== 'block') || !window.CIM10 || !window.CIM10.ready()) return null;
   const chapters = window.CIM10.children('root').filter(function (n) { return n.kind === 'chapter'; });
@@ -365,10 +365,11 @@ function dxRegionCimId(region) {
 
 // Ce qu'affiche la pastille de code de l'en-tête : le code CIM-10 tel quel,
 // l'identifiant SNOMED CT préfixé (un nombre nu ne dit pas de quel système il
-// vient), rien pour un texte libre ou un chapitre.
+// vient), rien pour un texte libre, un chapitre ou un terme Omnimed (son
+// ID_TERME est un identifiant interne, sans sens à l'écran).
 function diagCodeLabel(attrs) {
   const a = attrs || {};
-  if (!a.code) return '';
+  if (!a.code || a.source === 'omnimed') return '';
   return a.source === 'snomed' ? ('SNOMED ' + a.code) : a.code;
 }
 

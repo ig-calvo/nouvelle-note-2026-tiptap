@@ -290,6 +290,10 @@
   var snomedLoads = [get([SNOMED_FILES[lang], SNOMED_FILES.en], function (d) { window.SNOMED_DATA = d; }, true)];
   if (lang === 'en') snomedLoads.push(get([SNOMED_FILES.fr], function (d) { window.SNOMED_ALT = d; }, false));
   Promise.all(snomedLoads).then(function () { window.dispatchEvent(new Event('snomed:ready')); });
+  // Problèmes et antécédents d'Omnimed (note-ui/problemes-index.jsx) : un seul
+  // fichier bilingue ; un échec ne bloque rien (PROBLEMES.ready() reste faux).
+  get(['note-ui/omnimed-problemes.json'], function (d) { window.PROBLEMES_DATA = d; }, false)
+    .then(function () { window.dispatchEvent(new Event('problemes:ready')); });
 })();
 </script>
 <!-- Chargeur JSX avec anti-cache : ajoute un horodatage à chaque rechargement
@@ -319,6 +323,7 @@
     'note-ui/diagnostics.jsx',
     'note-ui/cim10-index.jsx',
     'note-ui/snomed-index.jsx',
+    'note-ui/problemes-index.jsx',
     'note-ui/dx-picker.jsx',
     'note-ui/proposed-changes.jsx',
     'note-ui/paste-entities.jsx',

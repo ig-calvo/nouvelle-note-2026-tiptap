@@ -773,7 +773,7 @@ function DxRow({ item, term, active, actionFocus, onEvent }) {
       onMouseDown={(e) => { e.preventDefault(); onEvent({ type: 'activate', index: it.idx }); }}>
       <span className="dx-item__lead">
         {it.kind === 'note' ? <span className="dx-num">{it.lead}</span>
-          : (it.kind === 'sommaire' || it.kind === 'snomed' || it.kind === 'cim') ? <span className="material-icons-outlined">{it.lead}</span>
+          : (it.kind === 'sommaire' || it.kind === 'snomed' || it.kind === 'omnimed' || it.kind === 'cim') ? <span className="material-icons-outlined">{it.lead}</span>
           : isNav ? <span className="material-icons-outlined">account_tree</span> : null}
       </span>
       <div className="dx-item__body">
@@ -840,7 +840,7 @@ function DxList({ model, activeIndex, actionFocus, onEvent }) {
               onEvent={onEvent} />
           ))}
           {sec.note && <div className="dx-sec-note">{sec.note}</div>}
-          {sec.more > 0 && <div className="dx-more">{(sec.key === 'snomed' ? window.DX_COPY.moreSnomed : window.DX_COPY.more)(sec.more)}</div>}
+          {sec.more > 0 && <div className="dx-more">{(sec.key === 'snomed' ? window.DX_COPY.moreSnomed : (sec.key === 'probleme' ? window.DX_COPY.moreProblemes : window.DX_COPY.more))(sec.more)}</div>}
         </div>
       ))}
     </div>
@@ -912,10 +912,14 @@ function DxEditPopover({ anchorRect, region, mode, otherMentionsCount, onRelabel
     if (window.SNOMED && window.SNOMED.whenReady && !window.SNOMED.ready()) {
       window.SNOMED.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
     }
+    // Et pour les problèmes et antécédents d'Omnimed (problemes-index.jsx, problemes:ready).
+    if (window.PROBLEMES && window.PROBLEMES.whenReady && !window.PROBLEMES.ready()) {
+      window.PROBLEMES.whenReady(function () { if (!cancelled) bumpCim(function (n) { return n + 1; }); });
+    }
     return () => { cancelled = true; };
   }, []);
 
-  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null, snomed: window.SNOMED || null });
+  const model = window.dxBuildModel(dxState, term, { threads: [], sommaire: [], cim: window.CIM10 || null, snomed: window.SNOMED || null, problemes: window.PROBLEMES || null });
   const activeIndex = window.dxActiveIndex(dxState, model);
 
   function applyResult(result) {

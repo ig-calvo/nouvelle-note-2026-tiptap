@@ -9,7 +9,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadPrototype, readProjectJSON } from './harness.mjs';
 
-const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/cim10-index.jsx', 'note-ui/snomed-index.jsx', 'note-ui/dx-picker.jsx']);
+const w = loadPrototype(['note-ui/note-sections.jsx', 'note-ui/diagnostics.jsx', 'note-ui/cim10-index.jsx', 'note-ui/snomed-index.jsx', 'note-ui/problemes-index.jsx', 'note-ui/dx-picker.jsx']);
 const cimData = readProjectJSON('note-ui/cim10-fr-clinique.json');
 const cimHier = readProjectJSON('note-ui/cim10-hierarchy.json');
 // Façade minimale (ready() en plus du builder brut) — dxBuildModel exige
@@ -506,4 +506,55 @@ test('SNOMED : jamais proposé en « Préciser » ; absent sans données ; un co
   // Un diagnostic SNOMED ne se « précise » pas dans la CIM-10, même avec un code numérique.
   const region = { name: 'Asthma', code: '195967001', source: 'snomed' };
   assert.equal(w.dxRegionCimId(region), null);
+});
+
+// ---------------------------------------------------------------------------
+// Problèmes et antécédents d'Omnimed — troisième dictionnaire, entre la CIM-10
+// et SNOMED CT (problemes-index.jsx)
+// ---------------------------------------------------------------------------
+const PROBLEMES_MINI = {
+  termes: [
+    ['833143', 'Appendicite', 'Appendicitis'],
+    ['1317587', 'Appendicectomie', 'Appendectomy'],
+    ['833067', 'Allergie', 'Allergy'],
+  ],
+};
+const problemesFacade = () => Object.assign({ ready: () => true }, w.buildProblemIndex(PROBLEMES_MINI, { lang: 'fr' }));
+
+test('Omnimed : une section de problèmes et antécédents suit les diagnostics et précède SNOMED CT, avant « Parcourir »', () => {
+  const ctx = Object.assign(ctxWith(null), { snomed: snomedFacade(), problemes: problemesFacade() });
+  const model = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'append', ctx);
+  const keys = model.sections.map((s) => s.key);
+  assert.ok(keys.indexOf('probleme') > keys.indexOf('cim'));
+  assert.ok(keys.indexOf('probleme') < keys.indexOf('browse'));
+  const items = model.flat.filter((it) => it.kind === 'omnimed');
+  assert.deepEqual(items.map((it) => [it.label, it.code, it.selectable, it.nav, it.sub]),
+    [['Appendicite', '833143', true, null, null], ['Appendicectomie', '1317587', true, null, null]]);
+  // SNOMED vient après, quand il répond aussi.
+  const both = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'asthma', ctx).sections.map((s) => s.key);
+  assert.equal(both.indexOf('probleme'), -1); // rien ne correspond : section absente
+});
+
+test('Omnimed : choisir un terme crée le diagnostic avec source « omnimed », l’ID_TERME en code, et aucun code à l’écran', () => {
+  const ctx = Object.assign(ctxWith(null), { problemes: problemesFacade() });
+  const st = w.dxInitState({ kind: 'nouveau' });
+  const model = w.dxBuildModel(st, 'allergie', ctx);
+  const item = model.flat.find((it) => it.kind === 'omnimed');
+  const r = w.dxStep(st, { type: 'activate', index: item.idx }, model);
+  assert.deepEqual(r.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'omnimed', name: 'Allergie', code: '833067', level: null } } }]);
+  const attrs = w.makeDiagRegionAttrs(r.effects[0].payload, { id: 'd9', now: '2026-11-11T12:00:00Z' });
+  assert.deepEqual([attrs.name, attrs.code, attrs.source, attrs.level], ['Allergie', '833067', 'omnimed', null]);
+  assert.equal(w.diagCodeLabel(attrs), '');
+});
+
+test('Omnimed : jamais proposé en « Préciser » ; absent sans données ; un terme déjà dans la note est exclu ; ne se précise pas dans la CIM-10', () => {
+  const ctx = Object.assign(ctxWith(null), { problemes: problemesFacade() });
+  const refine = w.dxInitState({ kind: 'refine', region: { name: 'Asthme', code: 'J45', level: 'category' } });
+  assert.equal(w.dxBuildModel(refine, 'allergie', ctx).sections.some((s) => s.key === 'probleme'), false);
+  const noData = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'allergie', ctxWith(null));
+  assert.equal(noData.sections.some((s) => s.key === 'probleme'), false);
+  const inNote = doc(DX({ id: 'd1', dxKey: 'n:d1', name: 'Allergie', code: '833067', source: 'omnimed' }));
+  const dedup = w.dxBuildModel(w.dxInitState({ kind: 'nouveau' }), 'allergie', Object.assign(ctxWith(inNote), { problemes: problemesFacade() }));
+  assert.equal(dedup.flat.some((it) => it.kind === 'omnimed' && it.code === '833067'), false);
+  assert.equal(w.dxRegionCimId({ name: 'Allergie', code: '833067', source: 'omnimed' }), null);
 });

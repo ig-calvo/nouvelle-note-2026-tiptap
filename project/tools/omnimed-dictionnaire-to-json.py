@@ -16,6 +16,10 @@ liste CIM-10 du prototype. Les lignes à 0 sont des interventions (codes CCI à
 Les parents manquants n'existent plus (`parents` et `ajouts` vides) : tout
 ancêtre d'un code de la feuille est lui-même dans la feuille — vérifié ici.
 
+Onglet « Problème (Omnimed) » (ID_TERME, français, anglais) : écrit
+note-ui/omnimed-problemes.json, lu par note-ui/problemes-index.jsx (section
+« Problèmes et antécédents courants » du sélecteur /dx).
+
 Le lecteur .xlsx n'utilise que la bibliothèque standard.
 """
 import csv, io, json, os, re, sys, zipfile
@@ -361,12 +365,46 @@ def convertir_cim10(rows):
         print('   fréquent', f, '->', c if c else 'écarté')
     return {'codes': len(codes), 'chapitres': len(liste_chap), 'blocs': len(liste_blocs)}
 
+# ---------------------------------------------------------------------------
+# Problèmes et antécédents (onglet « Problème (Omnimed) »)
+# ---------------------------------------------------------------------------
+def convertir_problemes(rows):
+    entete = [propre(c).upper() for c in rows[0][:3]]
+    # L'en-tête de la feuille contient une faute (« FRNAÇAIS ») : on ne lit que la position.
+    assert entete[0] == 'ID_TERME' and entete[2] == 'ANGLAIS', rows[0][:3]
+    termes, vus = [], set()
+    for r in rows[1:]:
+        r = r + [''] * (3 - len(r))
+        ident = propre(r[0])
+        if not ident:
+            continue
+        ident = str(int(float(ident)))
+        fr, en = propre(r[1]), propre(r[2])
+        assert fr and en, ('libellé vide', ident)
+        if ident in vus:
+            continue
+        vus.add(ident)
+        termes.append([ident, fr, en])
+    termes.sort(key=lambda t: t[1].lower())
+    ecrire_json('omnimed-problemes.json', {
+        '_meta': {
+            'source': "Feuille « Dictionnaire : Diagnostics / Impressions diagnostics / Symptômes », onglet « Problème (Omnimed) » (tools/omnimed-dictionnaire-to-json.py)",
+            'count': len(termes),
+            'colonnes': ['ID_TERME', 'français', 'anglais'],
+        },
+        'termes': termes,
+    })
+    print('Problèmes :', len(termes), 'termes')
+
 def main(src):
     classeur = lire_xlsx(src)
-    onglet = next((n for n in classeur if n.strip() == 'CIM10 (Omnimed)'), None)
-    if onglet is None:
-        sys.exit("onglet « CIM10 (Omnimed) » introuvable : " + ', '.join(classeur))
-    convertir_cim10(classeur[onglet])
+    def onglet(nom):
+        n = next((n for n in classeur if n.strip() == nom), None)
+        if n is None:
+            sys.exit('onglet « ' + nom + ' » introuvable : ' + ', '.join(classeur))
+        return classeur[n]
+    convertir_cim10(onglet('CIM10 (Omnimed)'))
+    convertir_problemes(onglet('Problème (Omnimed)'))
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
