@@ -23,6 +23,7 @@ test('par défaut, le menu des fonctions s’ouvre sur « / »', () => {
 
 test('le réglage choisit parmi des caractères connus, « # » (gabarits) n’en fait pas partie', () => {
   assert.ok(D.SLASH_CHARS.includes('*'), 'l’étoile, demandée au test de la modale');
+  assert.ok(D.SLASH_CHARS.includes('='), 'le signe égal, l’autre solution de rechange demandée (2026-11-11)');
   assert.ok(!D.SLASH_CHARS.includes('#'), '« # » ouvre les gabarits');
   D.SLASH_CHARS.forEach((c) => {
     assert.equal(c.length, 1, 'un seul caractère : les positions des textes en dépendent');
@@ -33,6 +34,7 @@ test('le réglage choisit parmi des caractères connus, « # » (gabarits) n’e
 test('un caractère inconnu, vide ou absent revient à « / »', () => {
   ['', null, undefined, '#', 'a', '**', ' ', 8].forEach((c) => assert.equal(D.normalizeSlashChar(c), '/', String(c)));
   assert.equal(D.normalizeSlashChar('*'), '*');
+  assert.equal(D.normalizeSlashChar('='), '=');
 });
 
 test('slashChar() suit le réglage posé par l’éditeur', () => {
@@ -51,13 +53,15 @@ test('la ligne vide de la note nomme le caractère choisi', () => {
 
 // Un faux Tiptap, juste ce que buildSlashExtension touche ; `fn` s'exécute avec
 // le faux Tiptap et le caractère `c` en place (le plugin les relit à chaque frappe).
+// `fakeMatch` : ce que la recherche de Tiptap « trouve » dans la note.
+let fakeMatch = null;
 function withPlugins(c, fn) {
   const seen = [];
   const prev = w.Tiptap;
   w.Tiptap = {
     Extension: { create: (cfg) => cfg },
     Suggestion: (opts) => ({ suggestion: opts }),
-    findSuggestionMatch: (config) => { seen.push(config); return null; },
+    findSuggestionMatch: (config) => { seen.push(config); return fakeMatch; },
     pm: {
       Plugin: class { constructor(spec) { this.spec = spec; } },
       PluginKey: class {},
@@ -86,6 +90,32 @@ test('le plugin « / » cherche son déclencheur avec le caractère du moment, �
     fn.suggestion.findSuggestionMatch({ char: '/' });
     assert.deepEqual(seen.map((c) => c.char), ['/', ';']);
   });
+});
+
+// « TA = 120/80 », « 5 * 3 » : du texte, pas une commande. La commande suit tout
+// de suite le caractère de remplacement (« =rx amox »). « / » garde son comportement.
+test('un caractère de remplacement suivi d’une espace n’ouvre pas le menu, « / » reste comme avant', () => {
+  const found = (query) => ({ range: { from: 3, to: 3 + 1 + query.length }, query, text: '=' + query });
+  try {
+    ['=', '*', ';'].forEach((c) => withPlugins(c, ([fn]) => {
+      fakeMatch = found(' 120/80');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), null, c + ' + espace : du texte libre');
+      fakeMatch = found('\t120');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), null, c + ' + tabulation : idem');
+      fakeMatch = found(c + ' surligné');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), null, c + c + ' : le caractère doublé n’est pas une commande');
+      fakeMatch = found('rx amox');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), fakeMatch, c + 'rx amox : la commande, espaces permises plus loin');
+      fakeMatch = found('');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), fakeMatch, 'le caractère seul (le « + », ou le début de la frappe) ouvre le menu');
+      fakeMatch = null;
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), null, 'rien trouvé : rien');
+    }));
+    withPlugins('/', ([fn]) => {
+      fakeMatch = found(' 120/80');
+      assert.equal(fn.suggestion.findSuggestionMatch({ char: '/' }), fakeMatch, '« / » + espace : comportement inchangé');
+    });
+  } finally { fakeMatch = null; }
 });
 
 test('sans la recherche exportée par Tiptap, le plugin retombe sur « / »', () => {
@@ -119,4 +149,6 @@ test('l’aide « Rechercher … » suit le caractère, et « / » n’y compte 
   assert.ok(hintFor('*', '*' + kbd + ' '), 'étoile : « *' + kbd + ' »');
   assert.equal(hintFor('*', '/' + kbd + ' '), null, 'le slash ne déclenche plus rien');
   assert.equal(hintFor('/', '*' + kbd + ' '), null);
+  assert.ok(hintFor('=', '=' + kbd + ' '), 'signe égal : « =' + kbd + ' »');
+  assert.equal(hintFor('=', '*' + kbd + ' '), null, 'un autre caractère ne déclenche plus rien');
 });

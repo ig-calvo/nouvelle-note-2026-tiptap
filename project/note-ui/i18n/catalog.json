@@ -2297,7 +2297,7 @@
         "note-ui/ClinicalTool.jsx:89",
         "note-ui/DocumentActionPanel.jsx:311",
         "note-ui/editor-schema.jsx:152",
-        "note-ui/editor-schema.jsx:3044",
+        "note-ui/editor-schema.jsx:3050",
         "note-ui/editor-schema.jsx:392",
         "note-ui/editor-schema.jsx:437"
       ]
@@ -2902,7 +2902,7 @@
       "empreinte": "5fb96ee2e73a",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2998"
+        "note-ui/editor-schema.jsx:3004"
       ]
     },
     "date.atTime": {
@@ -5160,7 +5160,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/NoteEditor.jsx:354",
-        "note-ui/editor-schema.jsx:3484"
+        "note-ui/editor-schema.jsx:3490"
       ]
     },
     "noteEditor.masquerEtiquettes.aria": {
@@ -8802,7 +8802,7 @@
       "empreinte": "cc0c5772ef22",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2812"
+        "note-ui/editor-schema.jsx:2818"
       ]
     },
     "schema.cancelledOn.tooltip": {
@@ -8852,7 +8852,7 @@
       "empreinte": "b1be8383fb3b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3093"
+        "note-ui/editor-schema.jsx:3099"
       ]
     },
     "schema.comment.aria": {
@@ -8869,7 +8869,7 @@
       "empreinte": "3fe5942894c3",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2810"
+        "note-ui/editor-schema.jsx:2816"
       ]
     },
     "schema.debutConclusionFlechesHaut.aria": {
@@ -8991,7 +8991,7 @@
       "fichiers": [
         "note-ui/editor-data.jsx:2263",
         "note-ui/editor-schema.jsx:295",
-        "note-ui/editor-schema.jsx:2995"
+        "note-ui/editor-schema.jsx:3001"
       ]
     },
     "schema.fichier.label": {
@@ -8999,7 +8999,7 @@
       "empreinte": "f0fa5745ccc9",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2813"
+        "note-ui/editor-schema.jsx:2819"
       ]
     },
     "schema.frequency.label": {
@@ -9031,7 +9031,7 @@
       "empreinte": "ff429b00a1ec",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3077"
+        "note-ui/editor-schema.jsx:3083"
       ]
     },
     "schema.incomplet.text": {
@@ -9047,7 +9047,7 @@
       "empreinte": "74027d8f894b",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2808"
+        "note-ui/editor-schema.jsx:2814"
       ]
     },
     "schema.interactionHautRisque.text": {
@@ -9072,7 +9072,7 @@
       "contexte": "texte",
       "fichiers": [
         "note-ui/editor-data.jsx:2262",
-        "note-ui/editor-schema.jsx:2994"
+        "note-ui/editor-schema.jsx:3000"
       ]
     },
     "schema.labRequestFull.label": {
@@ -9080,7 +9080,7 @@
       "empreinte": "bb9a2508d8d3",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3077"
+        "note-ui/editor-schema.jsx:3083"
       ]
     },
     "schema.mentionMedicationProfil.tooltip": {
@@ -9128,7 +9128,7 @@
       "empreinte": "2f35a9ae1a30",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2912"
+        "note-ui/editor-schema.jsx:2918"
       ]
     },
     "schema.nameCeasedShort.text": {
@@ -9136,7 +9136,7 @@
       "empreinte": "57dced54276d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2770"
+        "note-ui/editor-schema.jsx:2776"
       ]
     },
     "schema.nameReplaces.text": {
@@ -9144,7 +9144,7 @@
       "empreinte": "105373bf3b0c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2912"
+        "note-ui/editor-schema.jsx:2918"
       ]
     },
     "schema.outilClinique.tooltip": {
@@ -9152,7 +9152,7 @@
       "empreinte": "b1be8383fb3b",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2890"
+        "note-ui/editor-schema.jsx:2896"
       ]
     },
     "schema.outilsCliniques.label": {
@@ -9160,7 +9160,7 @@
       "empreinte": "9e17acf5815e",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2806"
+        "note-ui/editor-schema.jsx:2812"
       ]
     },
     "schema.patientInstructions.text": {
@@ -9168,7 +9168,7 @@
       "empreinte": "c05b9dfd4653",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3010"
+        "note-ui/editor-schema.jsx:3016"
       ]
     },
     "schema.preciser.text": {
@@ -9185,7 +9185,7 @@
       "empreinte": "d7d1c0636806",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2807"
+        "note-ui/editor-schema.jsx:2813"
       ]
     },
     "schema.problemes.label": {
@@ -9193,7 +9193,7 @@
       "empreinte": "17507ac25ae7",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2811"
+        "note-ui/editor-schema.jsx:2817"
       ]
     },
     "schema.proposed.tooltip": {
@@ -9293,7 +9293,7 @@
       "empreinte": "f2e0f9f08e7f",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2809"
+        "note-ui/editor-schema.jsx:2815"
       ]
     },
     "schema.route.label": {
@@ -9325,7 +9325,7 @@
       "empreinte": "212f9846068b",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3075"
+        "note-ui/editor-schema.jsx:3081"
       ]
     },
     "schema.rxIncomplete.text": {
@@ -9405,7 +9405,7 @@
       "empreinte": "71bad9275d88",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2913"
+        "note-ui/editor-schema.jsx:2919"
       ]
     },
     "schema.verbDocumented.text": {
@@ -9413,7 +9413,7 @@
       "empreinte": "6da4c44e9047",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2913"
+        "note-ui/editor-schema.jsx:2919"
       ]
     },
     "schema.verbDocumentedF.text": {
@@ -9421,7 +9421,7 @@
       "empreinte": "059c685155b2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2874"
+        "note-ui/editor-schema.jsx:2880"
       ]
     },
     "schema.verbModified.text": {
@@ -9429,7 +9429,7 @@
       "empreinte": "6ea4efa03614",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:2913"
+        "note-ui/editor-schema.jsx:2919"
       ]
     },
     "sections.conclusion.heading": {
@@ -11309,7 +11309,7 @@
       "empreinte": "abd6ed455496",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/editor-schema.jsx:3318"
+        "note-ui/editor-schema.jsx:3324"
       ]
     },
     "template.lastConclusion.label": {
@@ -11326,7 +11326,7 @@
       "contexte": "libellé",
       "fichiers": [
         "note-ui/editor-data.jsx:1828",
-        "note-ui/editor-schema.jsx:3397"
+        "note-ui/editor-schema.jsx:3403"
       ]
     },
     "topBar.deconnexion.aria": {

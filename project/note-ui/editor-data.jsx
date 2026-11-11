@@ -2634,7 +2634,7 @@ function visitReason(points) {
 // un clavier où le slash est difficile à taper (test de la modale de
 // prescription, 2026-11-11 : clavier Windows en français canadien). Le « + »
 // du curseur insère le même caractère. « # » (gabarits) ne change pas.
-const SLASH_CHARS = ['/', '*', ';'];
+const SLASH_CHARS = ['/', '=', '*', ';'];
 function normalizeSlashChar(c) { return SLASH_CHARS.indexOf(c) >= 0 ? c : '/'; }
 function slashChar() { return normalizeSlashChar(window.__SLASH_CHAR); }
 
