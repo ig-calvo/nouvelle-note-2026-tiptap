@@ -1459,8 +1459,18 @@
   'agent.ligne.aucuneAllergie.text': 'No known allergies.',
   'agent.sources.text': 'Sources: {list}',
   'agent.reponse.rien.text': 'Nothing more to suggest for this request.',
-  'agent.ajouterNote.button': 'Add to the note',
-  'agent.ajoute.button': 'Added',
-  'agent.ajoute.toast': 'Added to the note',
-  'agent.ajouterCurseur.tooltip': 'Add at the cursor'
+  'agent.ajoute.toast': 'Inserted in the note: accept or reject',
+  'agent.bulles.aria': 'Assistant suggestions',
+  'agent.bulles.ouvrir.aria': 'Open the chart assistant',
+  'agent.bulle.inserer.aria': 'Insert in the note: {title}',
+  'agent.bulle.inserer.tooltip': 'Insert in the note, to accept or reject',
+  'agent.bulle.ecarter.aria': 'Dismiss the suggestion: {title}',
+  'agent.insere.text': 'Inserted',
+  'agent.voirNote.button': 'View in the note',
+  'agent.insererNote.button': 'Insert in the note',
+  'agent.insererNouveau.button': 'Insert again',
+  'agent.inserer.button': 'Insert',
+  'agent.inserer.sous.tooltip': 'Insert under “{name}”, to accept or reject',
+  'agent.inserer.curseur.tooltip': 'Insert at the cursor, to accept or reject',
+  'agent.toutInserer.button': 'Insert all ({n})'
 };

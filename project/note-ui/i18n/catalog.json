@@ -3,7 +3,7 @@
     "genere_par": "project/tools/i18n-extract.mjs",
     "avertissement": "Fichier généré : ne pas modifier à la main, relancer l’extraction.",
     "langue_source": "fr",
-    "interface": 1455,
+    "interface": 1465,
     "donnees": 1129
   },
   "interface": {
@@ -71,36 +71,12 @@
         "note-ui/ActionLog.jsx:86"
       ]
     },
-    "agent.ajoute.button": {
-      "fr": "Ajouté",
-      "empreinte": "41200139aee1",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/AgentFab.jsx:541"
-      ]
-    },
     "agent.ajoute.toast": {
-      "fr": "Ajouté à la note",
-      "empreinte": "67bbff66c202",
+      "fr": "Inséré dans la note : à accepter ou refuser",
+      "empreinte": "2e0f84d776da",
       "contexte": "notification",
       "fichiers": [
-        "note-ui/AgentFab.jsx:538"
-      ]
-    },
-    "agent.ajouterCurseur.tooltip": {
-      "fr": "Ajouter au curseur",
-      "empreinte": "ce2342f092db",
-      "contexte": "info-bulle",
-      "fichiers": [
-        "note-ui/AgentFab.jsx:557"
-      ]
-    },
-    "agent.ajouterNote.button": {
-      "fr": "Ajouter à la note",
-      "empreinte": "62c41dd55f76",
-      "contexte": "bouton",
-      "fichiers": [
-        "note-ui/AgentFab.jsx:541"
+        "note-ui/AgentFab.jsx:667"
       ]
     },
     "agent.avertissement.text": {
@@ -108,7 +84,7 @@
       "empreinte": "97ac19491056",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:436"
+        "note-ui/AgentFab.jsx:548"
       ]
     },
     "agent.bloc.commandes.title": {
@@ -116,7 +92,7 @@
       "empreinte": "290b70dec5da",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:197"
+        "note-ui/AgentFab.jsx:228"
       ]
     },
     "agent.bloc.medication.title": {
@@ -124,7 +100,7 @@
       "empreinte": "1b7900684eb2",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:234"
+        "note-ui/AgentFab.jsx:265"
       ]
     },
     "agent.bloc.resume.title": {
@@ -132,7 +108,7 @@
       "empreinte": "8e378b518ae6",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:227"
+        "note-ui/AgentFab.jsx:258"
       ]
     },
     "agent.bloc.suivi.title": {
@@ -140,7 +116,47 @@
       "empreinte": "58797f525854",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:203"
+        "note-ui/AgentFab.jsx:234"
+      ]
+    },
+    "agent.bulle.ecarter.aria": {
+      "fr": "Écarter la suggestion : {title}",
+      "empreinte": "9377a66ce4d9",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:468"
+      ]
+    },
+    "agent.bulle.inserer.aria": {
+      "fr": "Insérer dans la note : {title}",
+      "empreinte": "5fb7599bd8a2",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:456"
+      ]
+    },
+    "agent.bulle.inserer.tooltip": {
+      "fr": "Insérer dans la note, à accepter ou refuser",
+      "empreinte": "497b65239159",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:457"
+      ]
+    },
+    "agent.bulles.aria": {
+      "fr": "Suggestions de l’assistant",
+      "empreinte": "3536bb2eb63f",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:445"
+      ]
+    },
+    "agent.bulles.ouvrir.aria": {
+      "fr": "Ouvrir l’assistant du dossier",
+      "empreinte": "e01553317c0e",
+      "contexte": "texte pour lecteur d’écran (aria-label)",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:447"
       ]
     },
     "agent.envoyer.aria": {
@@ -148,7 +164,7 @@
       "empreinte": "e9ce243b4a8a",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/AgentFab.jsx:432"
+        "note-ui/AgentFab.jsx:544"
       ]
     },
     "agent.fab.aria": {
@@ -156,7 +172,7 @@
       "empreinte": "cca47b0dc150",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/AgentFab.jsx:338"
+        "note-ui/AgentFab.jsx:407"
       ]
     },
     "agent.fab.etendu.contexte.text": {
@@ -167,7 +183,8 @@
       "empreinte": "be5a6b0d72ed",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:336"
+        "note-ui/AgentFab.jsx:405",
+        "note-ui/AgentFab.jsx:443"
       ]
     },
     "agent.fab.etendu.text": {
@@ -178,7 +195,8 @@
       "empreinte": "0bd04e0e8ea7",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:336"
+        "note-ui/AgentFab.jsx:405",
+        "note-ui/AgentFab.jsx:443"
       ]
     },
     "agent.fab.recherche.aria": {
@@ -186,7 +204,7 @@
       "empreinte": "00c304611534",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/AgentFab.jsx:338"
+        "note-ui/AgentFab.jsx:407"
       ]
     },
     "agent.fab.suggestions.aria": {
@@ -197,7 +215,7 @@
       "empreinte": "b3da7bc56799",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/AgentFab.jsx:338"
+        "note-ui/AgentFab.jsx:407"
       ]
     },
     "agent.fermer.aria": {
@@ -205,7 +223,58 @@
       "empreinte": "8e113f5efa79",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/AgentFab.jsx:396"
+        "note-ui/AgentFab.jsx:508"
+      ]
+    },
+    "agent.insere.text": {
+      "fr": "Inséré",
+      "empreinte": "a94559f6f3b0",
+      "contexte": "texte",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:640",
+        "note-ui/AgentFab.jsx:699"
+      ]
+    },
+    "agent.inserer.button": {
+      "fr": "Insérer",
+      "empreinte": "0ae4f1aba470",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:703"
+      ]
+    },
+    "agent.inserer.curseur.tooltip": {
+      "fr": "Insérer au curseur, à accepter ou refuser",
+      "empreinte": "8bea16f34695",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:687"
+      ]
+    },
+    "agent.inserer.sous.tooltip": {
+      "fr": "Insérer sous « {name} », à accepter ou refuser",
+      "empreinte": "e35644493124",
+      "contexte": "info-bulle",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:687"
+      ]
+    },
+    "agent.insererNote.button": {
+      "fr": "Insérer dans la note",
+      "empreinte": "dc805e11fbe5",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:670"
+      ]
+    },
+    "agent.insererNouveau.button": {
+      "fr": "Insérer à nouveau",
+      "empreinte": "93928da28b18",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:670",
+        "note-ui/AgentFab.jsx:703",
+        "note-ui/AgentFab.jsx:704"
       ]
     },
     "agent.invite.placeholder": {
@@ -213,7 +282,7 @@
       "empreinte": "696266c3b910",
       "contexte": "texte d’invite d’un champ",
       "fichiers": [
-        "note-ui/AgentFab.jsx:430"
+        "note-ui/AgentFab.jsx:542"
       ]
     },
     "agent.ligne.allergies.text": {
@@ -221,7 +290,7 @@
       "empreinte": "8ead7b06c92d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:217"
+        "note-ui/AgentFab.jsx:248"
       ]
     },
     "agent.ligne.aucuneAllergie.text": {
@@ -229,7 +298,7 @@
       "empreinte": "38d21672c4fe",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:218"
+        "note-ui/AgentFab.jsx:249"
       ]
     },
     "agent.ligne.medActive.text": {
@@ -237,7 +306,7 @@
       "empreinte": "60d43ad7dfc0",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:231"
+        "note-ui/AgentFab.jsx:262"
       ]
     },
     "agent.ligne.medCessee.text": {
@@ -245,7 +314,7 @@
       "empreinte": "84b42fd2ad08",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:232"
+        "note-ui/AgentFab.jsx:263"
       ]
     },
     "agent.ligne.medication.text": {
@@ -253,7 +322,7 @@
       "empreinte": "6e0dfcedfd5b",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:225"
+        "note-ui/AgentFab.jsx:256"
       ]
     },
     "agent.ligne.note.text": {
@@ -261,7 +330,7 @@
       "empreinte": "464583b342c0",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:223"
+        "note-ui/AgentFab.jsx:254"
       ]
     },
     "agent.ligne.problemes.text": {
@@ -269,7 +338,7 @@
       "empreinte": "c6b5dc8d472e",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:221"
+        "note-ui/AgentFab.jsx:252"
       ]
     },
     "agent.panneau.sousTitre.text": {
@@ -277,7 +346,7 @@
       "empreinte": "c76e79c35536",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:394"
+        "note-ui/AgentFab.jsx:506"
       ]
     },
     "agent.panneau.title": {
@@ -285,8 +354,8 @@
       "empreinte": "cca47b0dc150",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:393",
-        "note-ui/AgentFab.jsx:403"
+        "note-ui/AgentFab.jsx:505",
+        "note-ui/AgentFab.jsx:515"
       ]
     },
     "agent.rapide.commandes.button": {
@@ -294,7 +363,7 @@
       "empreinte": "f4ee1f463f58",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/AgentFab.jsx:30"
+        "note-ui/AgentFab.jsx:43"
       ]
     },
     "agent.rapide.medication.button": {
@@ -302,7 +371,7 @@
       "empreinte": "1b7900684eb2",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/AgentFab.jsx:31"
+        "note-ui/AgentFab.jsx:44"
       ]
     },
     "agent.rapide.resume.button": {
@@ -310,7 +379,7 @@
       "empreinte": "00cc0cbf7591",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/AgentFab.jsx:29"
+        "note-ui/AgentFab.jsx:42"
       ]
     },
     "agent.recherche.source.text": {
@@ -318,7 +387,7 @@
       "empreinte": "a01a177dcb59",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:507"
+        "note-ui/AgentFab.jsx:619"
       ]
     },
     "agent.recherche.title": {
@@ -326,7 +395,7 @@
       "empreinte": "10b99588d0fa",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:464"
+        "note-ui/AgentFab.jsx:576"
       ]
     },
     "agent.redaction.text": {
@@ -334,8 +403,8 @@
       "empreinte": "c1020c401d75",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:464",
-        "note-ui/AgentFab.jsx:507"
+        "note-ui/AgentFab.jsx:576",
+        "note-ui/AgentFab.jsx:619"
       ]
     },
     "agent.reponse.rien.text": {
@@ -343,7 +412,7 @@
       "empreinte": "428c28c1244c",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:520"
+        "note-ui/AgentFab.jsx:632"
       ]
     },
     "agent.source.allergies.label": {
@@ -351,9 +420,9 @@
       "empreinte": "aa19e6578ed7",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:133",
-        "note-ui/AgentFab.jsx:198",
-        "note-ui/AgentFab.jsx:235"
+        "note-ui/AgentFab.jsx:164",
+        "note-ui/AgentFab.jsx:229",
+        "note-ui/AgentFab.jsx:266"
       ]
     },
     "agent.source.allergies.none": {
@@ -361,7 +430,7 @@
       "empreinte": "2b0a2ad10e95",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:134"
+        "note-ui/AgentFab.jsx:165"
       ]
     },
     "agent.source.conduites.label": {
@@ -369,9 +438,10 @@
       "empreinte": "b7d078571478",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:136",
-        "note-ui/AgentFab.jsx:198",
-        "note-ui/AgentFab.jsx:204"
+        "note-ui/AgentFab.jsx:167",
+        "note-ui/AgentFab.jsx:229",
+        "note-ui/AgentFab.jsx:235",
+        "note-ui/SuggestionsColumn.jsx:191"
       ]
     },
     "agent.source.conduites.none": {
@@ -379,7 +449,7 @@
       "empreinte": "30872388e272",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:137"
+        "note-ui/AgentFab.jsx:168"
       ]
     },
     "agent.source.meds.found": {
@@ -390,7 +460,7 @@
       "empreinte": "89914335ff46",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:132"
+        "note-ui/AgentFab.jsx:163"
       ]
     },
     "agent.source.meds.label": {
@@ -398,9 +468,9 @@
       "empreinte": "00dba12543ec",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:132",
-        "note-ui/AgentFab.jsx:228",
-        "note-ui/AgentFab.jsx:235"
+        "note-ui/AgentFab.jsx:163",
+        "note-ui/AgentFab.jsx:259",
+        "note-ui/AgentFab.jsx:266"
       ]
     },
     "agent.source.notes.found": {
@@ -411,7 +481,7 @@
       "empreinte": "b394ae4d9fd3",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:130"
+        "note-ui/AgentFab.jsx:161"
       ]
     },
     "agent.source.notes.label": {
@@ -419,8 +489,8 @@
       "empreinte": "f19eda24cf83",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:130",
-        "note-ui/AgentFab.jsx:228"
+        "note-ui/AgentFab.jsx:161",
+        "note-ui/AgentFab.jsx:259"
       ]
     },
     "agent.source.resultats.label": {
@@ -428,7 +498,7 @@
       "empreinte": "8d26bdd944d7",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:135"
+        "note-ui/AgentFab.jsx:166"
       ]
     },
     "agent.source.resultats.none": {
@@ -436,7 +506,7 @@
       "empreinte": "cc0d887c97a1",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:135"
+        "note-ui/AgentFab.jsx:166"
       ]
     },
     "agent.source.sommaire.found": {
@@ -447,7 +517,7 @@
       "empreinte": "fd6260b3f1de",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:131"
+        "note-ui/AgentFab.jsx:162"
       ]
     },
     "agent.source.sommaire.label": {
@@ -455,9 +525,9 @@
       "empreinte": "e60192a13b99",
       "contexte": "libellé",
       "fichiers": [
-        "note-ui/AgentFab.jsx:131",
-        "note-ui/AgentFab.jsx:204",
-        "note-ui/AgentFab.jsx:228"
+        "note-ui/AgentFab.jsx:162",
+        "note-ui/AgentFab.jsx:235",
+        "note-ui/AgentFab.jsx:259"
       ]
     },
     "agent.sources.text": {
@@ -465,7 +535,7 @@
       "empreinte": "2312325b22e9",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:586"
+        "note-ui/AgentFab.jsx:726"
       ]
     },
     "agent.suggestions.title": {
@@ -473,7 +543,25 @@
       "empreinte": "861edba00547",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/AgentFab.jsx:410"
+        "note-ui/AgentFab.jsx:522"
+      ]
+    },
+    "agent.toutInserer.button": {
+      "fr": "Tout insérer ({n})",
+      "empreinte": "8b3ba4215298",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:714"
+      ]
+    },
+    "agent.voirNote.button": {
+      "fr": "Voir dans la note",
+      "empreinte": "10a12ae408f8",
+      "contexte": "bouton",
+      "fichiers": [
+        "note-ui/AgentFab.jsx:643",
+        "note-ui/AgentFab.jsx:694",
+        "note-ui/AgentFab.jsx:699"
       ]
     },
     "ai.ajouterNote.button": {
@@ -489,6 +577,8 @@
       "empreinte": "94f6f208e9ce",
       "contexte": "texte",
       "fichiers": [
+        "note-ui/AgentFab.jsx:295",
+        "note-ui/AgentFab.jsx:356",
         "note-ui/NoteEditor.jsx:1096",
         "note-ui/editor-schema.jsx:416",
         "note-ui/proposed-changes.jsx:43",
@@ -9665,8 +9755,8 @@
       "empreinte": "7412fb68e8ae",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:234",
-        "note-ui/SuggestionsColumn.jsx:524"
+        "note-ui/SuggestionsColumn.jsx:251",
+        "note-ui/SuggestionsColumn.jsx:541"
       ]
     },
     "suggest.ajouterLigne.tooltip": {
@@ -9674,7 +9764,7 @@
       "empreinte": "a996b7943de2",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:525"
+        "note-ui/SuggestionsColumn.jsx:542"
       ]
     },
     "suggest.ajouterSous.tooltip": {
@@ -9682,9 +9772,8 @@
       "empreinte": "5ba65656ee2c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/AgentFab.jsx:557",
-        "note-ui/SuggestionsColumn.jsx:174",
-        "note-ui/SuggestionsColumn.jsx:525"
+        "note-ui/SuggestionsColumn.jsx:191",
+        "note-ui/SuggestionsColumn.jsx:542"
       ]
     },
     "suggest.appliquerGabarit.tooltip": {
@@ -9692,8 +9781,8 @@
       "empreinte": "f4d6f05dbb63",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:185",
-        "note-ui/SuggestionsColumn.jsx:523"
+        "note-ui/SuggestionsColumn.jsx:202",
+        "note-ui/SuggestionsColumn.jsx:540"
       ]
     },
     "suggest.appliquerGabaritNote.tooltip": {
@@ -9701,7 +9790,7 @@
       "empreinte": "d350f203f85c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:216"
+        "note-ui/SuggestionsColumn.jsx:233"
       ]
     },
     "suggest.aucunGabarit.text": {
@@ -9709,7 +9798,7 @@
       "empreinte": "9a418368277d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:223"
+        "note-ui/SuggestionsColumn.jsx:240"
       ]
     },
     "suggest.barre.aria": {
@@ -9717,7 +9806,7 @@
       "empreinte": "0042987e1015",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:520"
+        "note-ui/SuggestionsColumn.jsx:537"
       ]
     },
     "suggest.barre.clavier.tooltip": {
@@ -9725,7 +9814,7 @@
       "empreinte": "23cead48c604",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:540"
+        "note-ui/SuggestionsColumn.jsx:557"
       ]
     },
     "suggest.barre.tab.text": {
@@ -9733,7 +9822,7 @@
       "empreinte": "fe06eb6459c8",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:540"
+        "note-ui/SuggestionsColumn.jsx:557"
       ]
     },
     "suggest.colonne.aria": {
@@ -9741,8 +9830,8 @@
       "empreinte": "3d0c180f2eff",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:256",
-        "note-ui/SuggestionsColumn.jsx:266"
+        "note-ui/SuggestionsColumn.jsx:273",
+        "note-ui/SuggestionsColumn.jsx:283"
       ]
     },
     "suggest.colonne.title": {
@@ -9750,7 +9839,7 @@
       "empreinte": "861edba00547",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:269"
+        "note-ui/SuggestionsColumn.jsx:286"
       ]
     },
     "suggest.dejaAjoute.tooltip": {
@@ -9758,8 +9847,7 @@
       "empreinte": "c0b70d9c884c",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/AgentFab.jsx:560",
-        "note-ui/SuggestionsColumn.jsx:174"
+        "note-ui/SuggestionsColumn.jsx:191"
       ]
     },
     "suggest.deplier.aria": {
@@ -9767,7 +9855,7 @@
       "empreinte": "ea1c977e2136",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:258"
+        "note-ui/SuggestionsColumn.jsx:275"
       ]
     },
     "suggest.derniereConclusion.text": {
@@ -9792,7 +9880,7 @@
       "empreinte": "2d264a7e8acd",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:234"
+        "note-ui/SuggestionsColumn.jsx:251"
       ]
     },
     "suggest.diagnostics.title": {
@@ -9800,7 +9888,7 @@
       "empreinte": "6265895adc4c",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:230"
+        "note-ui/SuggestionsColumn.jsx:247"
       ]
     },
     "suggest.ecrireRaison.text": {
@@ -9808,7 +9896,7 @@
       "empreinte": "f70d4e8324a2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:223"
+        "note-ui/SuggestionsColumn.jsx:240"
       ]
     },
     "suggest.ecrireRaisonSeule.text": {
@@ -9816,7 +9904,7 @@
       "empreinte": "ad2f6775732d",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:223"
+        "note-ui/SuggestionsColumn.jsx:240"
       ]
     },
     "suggest.gabaritConclusion.title": {
@@ -9824,7 +9912,7 @@
       "empreinte": "e39262defe80",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:181"
+        "note-ui/SuggestionsColumn.jsx:198"
       ]
     },
     "suggest.gabaritDejaPropose.tooltip": {
@@ -9832,7 +9920,7 @@
       "empreinte": "5a2becd8b9ab",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:185"
+        "note-ui/SuggestionsColumn.jsx:202"
       ]
     },
     "suggest.gabaritOmnimed.text": {
@@ -9851,7 +9939,7 @@
       "empreinte": "77d4954bf343",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:228"
+        "note-ui/SuggestionsColumn.jsx:245"
       ]
     },
     "suggest.gabaritsNote.title": {
@@ -9859,7 +9947,8 @@
       "empreinte": "4041f2c746f0",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:221"
+        "note-ui/SuggestionsColumn.jsx:233",
+        "note-ui/SuggestionsColumn.jsx:238"
       ]
     },
     "suggest.gabaritsVisite.title": {
@@ -9867,7 +9956,7 @@
       "empreinte": "b448b6d6f09d",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:221"
+        "note-ui/SuggestionsColumn.jsx:238"
       ]
     },
     "suggest.ignorer.aria": {
@@ -9875,7 +9964,7 @@
       "empreinte": "6a9bfaaa3278",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:542"
+        "note-ui/SuggestionsColumn.jsx:559"
       ]
     },
     "suggest.monGabarit.text": {
@@ -9894,9 +9983,9 @@
       "empreinte": "948156ec41f2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:137",
-        "note-ui/AgentFab.jsx:394",
-        "note-ui/SuggestionsColumn.jsx:251"
+        "note-ui/AgentFab.jsx:168",
+        "note-ui/AgentFab.jsx:506",
+        "note-ui/SuggestionsColumn.jsx:268"
       ]
     },
     "suggest.prescriptions.title": {
@@ -9904,7 +9993,7 @@
       "empreinte": "d7d1c0636806",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:187"
+        "note-ui/SuggestionsColumn.jsx:204"
       ]
     },
     "suggest.replier.aria": {
@@ -9912,7 +10001,7 @@
       "empreinte": "d65f7c01aebc",
       "contexte": "texte pour lecteur d’écran (aria-label)",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:271"
+        "note-ui/SuggestionsColumn.jsx:288"
       ]
     },
     "suggest.requetes.title": {
@@ -9920,7 +10009,7 @@
       "empreinte": "f2e0f9f08e7f",
       "contexte": "titre",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:189"
+        "note-ui/SuggestionsColumn.jsx:206"
       ]
     },
     "suggest.rienPourDiagnostic.text": {
@@ -9928,7 +10017,7 @@
       "empreinte": "e86186f87cf2",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:180"
+        "note-ui/SuggestionsColumn.jsx:197"
       ]
     },
     "suggest.toutAjouter.button": {
@@ -9936,8 +10025,7 @@
       "empreinte": "63eea78bcf85",
       "contexte": "bouton",
       "fichiers": [
-        "note-ui/AgentFab.jsx:574",
-        "note-ui/SuggestionsColumn.jsx:538"
+        "note-ui/SuggestionsColumn.jsx:555"
       ]
     },
     "suggest.toutAjouter.tooltip": {
@@ -9945,7 +10033,7 @@
       "empreinte": "9d4f6b04b92f",
       "contexte": "info-bulle",
       "fichiers": [
-        "note-ui/SuggestionsColumn.jsx:537"
+        "note-ui/SuggestionsColumn.jsx:554"
       ]
     },
     "suggest.vous.text": {
@@ -9953,7 +10041,7 @@
       "empreinte": "ac3daf66ffac",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/AgentFab.jsx:148",
+        "note-ui/AgentFab.jsx:179",
         "note-ui/SuggestionsColumn.jsx:46"
       ]
     },
@@ -11325,6 +11413,7 @@
       "empreinte": "2545b76f4262",
       "contexte": "libellé",
       "fichiers": [
+        "note-ui/SuggestionsColumn.jsx:251",
         "note-ui/editor-data.jsx:1828",
         "note-ui/editor-schema.jsx:3403"
       ]

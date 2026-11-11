@@ -222,6 +222,21 @@ function moveToProposedChange(editor, dir, inclusive) {
   return next;
 }
 
+// Retrouve dans la note ce qu'une insertion de l'Assistant y a posé (RA-57) :
+// une puce par son `cid`, un passage de texte par ses premiers mots (`probe`).
+// Accepté ou encore proposé, c'est là ; refusé ou effacé, ce n'est plus là, et
+// la réponse de l'Assistant redevient « à insérer ». → la position, ou -1.
+function proposedInsertionPos(doc, rec) {
+  let found = -1;
+  if (!rec) return found;
+  doc.descendants(function (node, pos) {
+    if (found >= 0) return false;
+    if (rec.cid) { if (node.type.name === 'chip' && node.attrs && node.attrs.cid === rec.cid) found = pos; }
+    else if (rec.probe && node.isText && node.text.indexOf(rec.probe) >= 0) found = pos;
+  });
+  return found;
+}
+
 // ---------------------------------------------------------
 // Résolution — un plan d'opérations pur, puis une application en une seule
 // transaction (un seul Ctrl+Z ; `reviewAction` : le traqueur du mode révision
@@ -395,6 +410,7 @@ Object.assign(window, {
   nextProposedChange,
   focusProposedChange,
   moveToProposedChange,
+  proposedInsertionPos,
   planProposedResolution,
   proposedEntityDeleteEnd,
   applyProposedOps,

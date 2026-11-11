@@ -62,6 +62,14 @@ function scChipAttrs(kind, item) {
   return kind === 'rx' ? window.orderChipAttrs('rx', item) : window.buildRequestChips([item], item.orderKind || kind)[0];
 }
 
+// Ce qu'une puce ajoutée par une suggestion porte de plus. Ajout direct : le
+// moment et la personne. Changement proposé (`proposeAs`, le nom de qui
+// propose : l'Assistant, RA-57) : une puce en attente, signée, à accepter ou
+// refuser (modèle RA-40) ; rien n'entre dans la note à l'insu de la personne.
+function scAddStamp(proposeAs) {
+  return proposeAs ? { pending: true, proposedBy: proposeAs } : { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+}
+
 // Position et node de la région de diagnostic `id`, ou null.
 function scFindRegion(doc, id) {
   let found = null;
@@ -95,10 +103,14 @@ function scDiagnosesIn(doc) {
 // appliedTemplate : clé du gabarit de début appliqué, dont les diagnostics
 // suggérés suivent (flux de Sacha).
 // Les suggestions du point actif : le contenu de la colonne, que l'agent
-// flottant (AgentFab.jsx) reprend tel quel. → { body, count, context, targeted } ;
+// flottant (AgentFab.jsx) reprend tel quel. → { body, count, context, targeted, items } ;
 // `targeted` est vrai quand elles visent ce qu'on écrit (un diagnostic, une
 // raison de consultation), pas seulement les gabarits de départ génériques.
-function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, appliedTemplate }) {
+// `items` : les mêmes lignes en données ({ key, icon, title, desc, source, done,
+// warn, onClick }), pour les bulles de l'agent flottant (RA-57).
+// proposeAs : le nom de qui propose ; une prescription ou une requête arrive
+// alors en changement proposé, plus posée d'office (voir scAddStamp).
+function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, appliedTemplate, proposeAs = null }) {
   // Re-rendu à chaque déplacement du curseur ou changement du document.
   const [, refresh] = React.useReducer(function (x) { return x + 1; }, 0);
   React.useEffect(function () {
@@ -117,7 +129,7 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
     if (!editor || !region) return;
     const found = scFindRegion(editor.state.doc, region.id);
     if (!found) return;
-    const attrs = Object.assign(scChipAttrs(kind, item), { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+    const attrs = Object.assign(scChipAttrs(kind, item), scAddStamp(proposeAs));
     const chip = { type: 'chip', attrs: attrs };
     const end = found.pos + found.node.nodeSize - 1;
     const last = found.node.lastChild;
@@ -131,8 +143,13 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
   // point actif (et donc les suggestions) resterait sinon perdu.
   function keepFocus(e) { e.preventDefault(); }
 
+  // Les lignes, en données (voir `items` plus haut), dans l'ordre affiché.
+  const items = [];
+
   // `warn` : un avertissement sous la description (allergie au dossier).
-  function suggestionRow(key, icon, title, desc, done, onClick, doneTitle, actionTitle, warn) {
+  // `source` : d'où vient la suggestion, pour les bulles de l'agent.
+  function suggestionRow(key, icon, title, desc, done, onClick, doneTitle, actionTitle, warn, source) {
+    items.push({ key: key, icon: icon, title: title, desc: desc || '', source: source || '', done: done, warn: warn || null, onClick: onClick });
     return (
       <button key={key} type="button" style={Object.assign({}, scS.row, done ? scS.rowAdded : null)}
         disabled={done} onMouseDown={keepFocus} onClick={onClick} title={done ? doneTitle : actionTitle}>
@@ -171,7 +188,7 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
       const icon = window.NOTE_DATA.ORDER_DEFS[kind === 'rx' ? 'rx' : (it.orderKind || kind)].icon;
       return suggestionRow(kind + ':' + it.key, icon, (it.name + ' ' + (it.dose || '')).trim(), it.sig,
         present.indexOf(scChipAttrs(kind, it).label) >= 0, function () { addToRegion(kind, it); },
-        t('suggest.dejaAjoute.tooltip'), t('suggest.ajouterSous.tooltip', { name: region.name }));
+        t('suggest.dejaAjoute.tooltip'), t('suggest.ajouterSous.tooltip', { name: region.name }), null, t('agent.source.conduites.label'));
     };
     count = options.filter(function (o) { return sources.indexOf(o.source) < 0; }).length + rx.length + req.length;
     context = region.name;
@@ -182,7 +199,7 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
         {options.map(function (opt) {
           return suggestionRow(opt.id, SC_OPTION_ICON[opt.kind], opt.name, scOptionDesc(opt), sources.indexOf(opt.source) >= 0,
             function () { fire('note:apply-dx-template', { regionId: region.id, optionId: opt.id }); },
-            t('suggest.gabaritDejaPropose.tooltip'), t('suggest.appliquerGabarit.tooltip'), scOptionWarn(opt));
+            t('suggest.gabaritDejaPropose.tooltip'), t('suggest.appliquerGabarit.tooltip'), scOptionWarn(opt), scOptionDesc(opt));
         })}
         {rx.length > 0 && <div style={scS.group}>{t('suggest.prescriptions.title')}</div>}
         {rx.map(function (it) { return orderRow('rx', it); })}
@@ -213,7 +230,7 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
       const item = (window.NOTE_DATA.SLASH_ITEMS || []).find(function (it) { return it.key === 'tpl-' + tpl.key; }) || {};
       const desc = window.__SHOW_CLINICAL_TOOLS === false && item.descNoTool ? item.descNoTool : item.desc;
       return suggestionRow(tpl.key, item.icon || 'description', tpl.name, desc, false,
-        function () { fire('note:apply-template', { key: tpl.key }); }, '', t('suggest.appliquerGabaritNote.tooltip'));
+        function () { fire('note:apply-template', { key: tpl.key }); }, '', t('suggest.appliquerGabaritNote.tooltip'), null, t('suggest.gabaritsNote.title'));
     };
     body = (tpls.length === 0 && dxs.length === 0)
       ? (
@@ -231,12 +248,12 @@ function useNoteSuggestions({ editor, raison, raisonActive, startOnly = false, a
           {dxs.map(function (d) {
             return suggestionRow('dx:' + d.code, 'local_hospital', d.name, null, dxTaken(d),
               function () { fire('note:add-suggested-dx', { name: d.name, code: d.code }); },
-              t('suggest.diagnosticDejaNote.tooltip'), t('suggest.ajouterDiagnostic.tooltip'));
+              t('suggest.diagnosticDejaNote.tooltip'), t('suggest.ajouterDiagnostic.tooltip'), null, t('template.source.label', { name: dxFrom.name }));
           })}
         </React.Fragment>
       );
   }
-  return { body: body, count: count, context: context, targeted: targeted };
+  return { body: body, count: count, context: context, targeted: targeted, items: items };
 }
 
 function SuggestionsColumn(props) {

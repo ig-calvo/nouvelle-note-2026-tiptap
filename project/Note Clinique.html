@@ -411,7 +411,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "summaryAddToNote": false,
   "suggestionsOn": false,
   "suggestionsPlacement": "curseur",
-  "agentSignal": "pastille",
+  "agentSignal": "bulles",
   "agentOpening": "panneau",
   "agentAnimation": "etapes",
   "agentSize": "petit",
@@ -638,7 +638,7 @@ function App() {
               pendingBadge={t.pendingBadge === true}
               aiProposals={t.aiProposals === true}
               suggestionsPlacement={t.suggestionsOn === true ? (t.suggestionsPlacement || 'curseur') : 'aucune'}
-              agentSignal={t.agentSignal || 'pastille'}
+              agentSignal={t.agentSignal || 'bulles'}
               agentOpening={t.agentOpening || 'panneau'}
               agentAnimation={t.agentAnimation || 'etapes'}
               agentSize={t.agentSize || 'petit'}
@@ -817,8 +817,9 @@ function App() {
           {t.suggestionsOn === true && t.suggestionsPlacement === 'agent' &&
           <React.Fragment>
             <TweakRadio label="Agent : signal"
-                        value={t.agentSignal || 'pastille'}
+                        value={t.agentSignal || 'bulles'}
                         options={[
+                          { value: 'bulles', label: 'Bulles' },
                           { value: 'pastille', label: 'Pastille' },
                           { value: 'etendu', label: 'Étendu' },
                           { value: 'halo', label: 'Halo' },

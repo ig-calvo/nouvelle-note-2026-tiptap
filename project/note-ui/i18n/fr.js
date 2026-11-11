@@ -1569,8 +1569,18 @@
   'agent.ligne.aucuneAllergie.text': 'Aucune allergie connue.',
   'agent.sources.text': 'Sources : {list}',
   'agent.reponse.rien.text': 'Rien de plus à proposer pour cette demande.',
-  'agent.ajouterNote.button': 'Ajouter à la note',
-  'agent.ajoute.button': 'Ajouté',
-  'agent.ajoute.toast': 'Ajouté à la note',
-  'agent.ajouterCurseur.tooltip': 'Ajouter au curseur'
+  'agent.ajoute.toast': 'Inséré dans la note : à accepter ou refuser',
+  'agent.bulles.aria': 'Suggestions de l’assistant',
+  'agent.bulles.ouvrir.aria': 'Ouvrir l’assistant du dossier',
+  'agent.bulle.inserer.aria': 'Insérer dans la note : {title}',
+  'agent.bulle.inserer.tooltip': 'Insérer dans la note, à accepter ou refuser',
+  'agent.bulle.ecarter.aria': 'Écarter la suggestion : {title}',
+  'agent.insere.text': 'Inséré',
+  'agent.voirNote.button': 'Voir dans la note',
+  'agent.insererNote.button': 'Insérer dans la note',
+  'agent.insererNouveau.button': 'Insérer à nouveau',
+  'agent.inserer.button': 'Insérer',
+  'agent.inserer.sous.tooltip': 'Insérer sous « {name} », à accepter ou refuser',
+  'agent.inserer.curseur.tooltip': 'Insérer au curseur, à accepter ou refuser',
+  'agent.toutInserer.button': 'Tout insérer ({n})'
 };

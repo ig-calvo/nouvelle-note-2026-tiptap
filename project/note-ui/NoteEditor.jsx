@@ -3,7 +3,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   saveDraftRef, noteWide = false,
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'bleu', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
-  aiProposals = false, pendingBadge = false, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
+  aiProposals = false, pendingBadge = false, suggestionsPlacement = 'aucune', agentSignal = 'bulles', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
   autoConduct = true, slashChar = '/' }) {
   // Tweak « Caractère du menu des fonctions » : « / » par défaut, ou le
   // caractère de remplacement (ex. « * ») pour un clavier où le slash est
