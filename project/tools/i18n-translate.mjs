@@ -96,12 +96,18 @@ function verifierUniques(entrees) {
 
 // ---------- entrees
 
+// cim10-hierarchy.json version 2 : générée par tools/omnimed-dictionnaire-to-json.py
+// depuis la feuille Omnimed (libellés français ET anglais fournis, pas traduits).
+const cim10DeLaFeuille = (hier) => ((hier._meta && hier._meta.version) || 1) >= 2;
+
 async function entrees(dossier) {
   const lignes = await lire(path.join(NOTE_UI, 'cim10-fr-clinique.json'));
   const hier = await lire(path.join(NOTE_UI, 'cim10-hierarchy.json'));
   const snomed = await lire(path.join(NOTE_UI, 'snomed-diagnostics.json'));
 
-  const cim10 = [
+  // Depuis le 2026-11-11 la CIM-10 vient de la feuille Omnimed, déjà bilingue
+  // (tools/omnimed-dictionnaire-to-json.py) : rien à traduire de ce côté.
+  const cim10 = cim10DeLaFeuille(hier) ? [] : [
     ...lignes.map((r) => ({
       id: idLigne(r),
       texte: r.libelle,
@@ -257,18 +263,21 @@ async function construire(fichierCim10, fichierSnomed) {
   const hier = await lire(path.join(NOTE_UI, 'cim10-hierarchy.json'));
   const snomed = await lire(path.join(NOTE_UI, 'snomed-diagnostics.json'));
 
-  await ecrire(
-    path.join(NOTE_UI, 'cim10-en-clinique.json'),
-    lignes.map((r) => ({ code: r.code, libelle: t(tc, idLigne(r)), ...(r.generic ? { generic: true } : {}) })),
-  );
-  await ecrire(path.join(NOTE_UI, 'cim10-hierarchy-en.json'), {
-    _meta: hier._meta,
-    chapters: hier.chapters.map((c) => ({ ...c, libelle: t(tc, idChapitre(c)) })),
-    blocks: hier.blocks.map((b) => ({ ...b, libelle: t(tc, idBloc(b)) })),
-    parents: hier.parents.map((p) => ({ ...p, libelle: t(tc, idParent(p)) })),
-    ajouts: hier.ajouts.map((a) => ({ ...a, libelle: t(tc, idAjout(a)) })),
-    frequents: hier.frequents,
-  });
+  const cimFeuille = cim10DeLaFeuille(hier);
+  if (!cimFeuille) {
+    await ecrire(
+      path.join(NOTE_UI, 'cim10-en-clinique.json'),
+      lignes.map((r) => ({ code: r.code, libelle: t(tc, idLigne(r)), ...(r.generic ? { generic: true } : {}) })),
+    );
+    await ecrire(path.join(NOTE_UI, 'cim10-hierarchy-en.json'), {
+      _meta: hier._meta,
+      chapters: hier.chapters.map((c) => ({ ...c, libelle: t(tc, idChapitre(c)) })),
+      blocks: hier.blocks.map((b) => ({ ...b, libelle: t(tc, idBloc(b)) })),
+      parents: hier.parents.map((p) => ({ ...p, libelle: t(tc, idParent(p)) })),
+      ajouts: hier.ajouts.map((a) => ({ ...a, libelle: t(tc, idAjout(a)) })),
+      frequents: hier.frequents,
+    });
+  }
   await ecrire(path.join(NOTE_UI, 'snomed-diagnostics-fr.json'), {
     _meta: {
       ...snomed._meta,
@@ -282,8 +291,10 @@ async function construire(fichierCim10, fichierSnomed) {
   const meta = await lire(metaFichier).catch(() => ({}));
   await ecrire(metaFichier, {
     ...meta,
-    'cim10-en-clinique.json': { traduction: 'automatique', sens: 'fr → en-CA', lignes: lignes.length, date: DATE },
-    'cim10-hierarchy-en.json': { traduction: 'automatique', sens: 'fr → en-CA', libelles: hier.chapters.length + hier.blocks.length + hier.parents.length + hier.ajouts.length, date: DATE },
+    ...(cimFeuille ? {} : {
+      'cim10-en-clinique.json': { traduction: 'automatique', sens: 'fr → en-CA', lignes: lignes.length, date: DATE },
+      'cim10-hierarchy-en.json': { traduction: 'automatique', sens: 'fr → en-CA', libelles: hier.chapters.length + hier.blocks.length + hier.parents.length + hier.ajouts.length, date: DATE },
+    }),
     'snomed-diagnostics-fr.json': { traduction: 'automatique', sens: 'en → fr', lignes: snomed.concepts.length, date: DATE },
     methode: 'IA par lots avec glossaire ; contrôles automatiques (couverture, {valeurs}, glossaire). Aucune relecture humaine.',
   });

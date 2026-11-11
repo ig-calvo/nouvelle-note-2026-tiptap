@@ -23,16 +23,25 @@ test('aucune alerte de construction (bloc orphelin, catégorie sans bloc, code s
   assert.deepEqual(ix.stats().warnings, []);
 });
 
-test('2 745 nœuds sélectionnables, 20 chapitres, 149 blocs', () => {
+test('3 675 nœuds sélectionnables (les diagnostics de la feuille Omnimed), 22 chapitres, 263 blocs', () => {
   const s = ix.stats();
-  assert.equal(s.selectable, 2745);
-  assert.equal(s.chapters, 20);
-  assert.equal(s.blocks, 149);
+  assert.equal(s.selectable, 3675);
+  assert.equal(s.chapters, 22);
+  assert.equal(s.blocks, 263);
+  assert.equal(data.filter((r) => r.generic).length, 7);
+  assert.equal(data.filter((r) => !r.generic).length, 3675);
 });
 
-test('les deux fichiers de données restent sous la limite de 256 Kio', () => {
-  assert.ok(fs.statSync(path.join(projectDir, 'note-ui/cim10-fr-clinique.json')).size < 262144);
-  assert.ok(fs.statSync(path.join(projectDir, 'note-ui/cim10-hierarchy.json')).size < 262144);
+test('les fichiers de données (FR, EN, hiérarchies) restent sous la limite de 256 Kio', () => {
+  ['cim10-fr-clinique.json', 'cim10-en-clinique.json', 'cim10-hierarchy.json', 'cim10-hierarchy-en.json'].forEach((f) => {
+    assert.ok(fs.statSync(path.join(projectDir, 'note-ui/' + f)).size < 262144, f);
+  });
+});
+
+test('le français et l’anglais portent les mêmes codes, dans le même ordre', () => {
+  const en = readProjectJSON('note-ui/cim10-en-clinique.json');
+  assert.deepEqual(en.map((r) => r.code), data.map((r) => r.code));
+  assert.ok(en.every((r) => r.libelle));
 });
 
 test('chaque bloc a exactement un chapitre, chaque catégorie exactement un bloc, aucun chevauchement', () => {
@@ -65,12 +74,11 @@ test('chaque nœud sélectionnable est atteignable depuis les racines, une seule
 // ---------------------------------------------------------------------------
 // Navigation dans l'arbre
 // ---------------------------------------------------------------------------
-test('roots() donne Fréquents puis les 20 chapitres (I à XIX, XXI — pas de XX ni XXII)', () => {
+test('roots() donne Fréquents puis les 22 chapitres (I à XXII, dont XX causes externes et XXII codes particuliers)', () => {
   const ids = ix.roots().map((r) => r.id);
   assert.equal(ids[0], 'fav');
-  assert.equal(ids.length, 21);
-  assert.equal(ids.includes('ch:XX'), false);
-  assert.equal(ids.includes('ch:XXII'), false);
+  assert.equal(ids.length, 23);
+  assert.deepEqual(ids.slice(-4), ['ch:XIX', 'ch:XX', 'ch:XXI', 'ch:XXII']);
   assert.deepEqual(ids.slice(1, 4), ['ch:I', 'ch:II', 'ch:III']);
 });
 
@@ -86,9 +94,9 @@ test('children(id) inconnu renvoie []', () => {
   assert.deepEqual(ix.children('XYZ'), []);
 });
 
-test("children('ch:X') donne les 6 blocs du chapitre X, non sélectionnables", () => {
+test("children('ch:X') donne les 10 blocs du chapitre X, non sélectionnables", () => {
   const blocks = ix.children('ch:X');
-  assert.deepEqual(blocks.map((b) => b.id), ['bl:J00-J06', 'bl:J09-J18', 'bl:J20-J22', 'bl:J30-J39', 'bl:J40-J47', 'bl:J60-J70']);
+  assert.deepEqual(blocks.map((b) => b.id), ['bl:J00-J06', 'bl:J09-J18', 'bl:J20-J22', 'bl:J30-J39', 'bl:J40-J47', 'bl:J60-J70', 'bl:J80-J84', 'bl:J85-J86', 'bl:J90-J94', 'bl:J95-J99']);
   assert.ok(blocks.every((b) => b.selectable === false));
 });
 
@@ -103,20 +111,21 @@ test("chapitres et blocs sont choisissables (pickable, level, canRefine) sans de
 });
 
 test("children('bl:J40-J47') donne les catégories dans l'ordre du code", () => {
-  assert.deepEqual(ix.children('bl:J40-J47').map((r) => r.code), ['J40', 'J41', 'J42', 'J44', 'J45']);
+  assert.deepEqual(ix.children('bl:J40-J47').map((r) => r.code), ['J40', 'J41', 'J42', 'J43', 'J44', 'J45', 'J47']);
 });
 
 test('ancestors(code) — le plus proche en premier, sans le nœud lui-même', () => {
-  assert.deepEqual(ix.ancestors('M08.45').map((r) => r.id), ['M08.4', 'M08', 'bl:M05-M14', 'ch:XIII']);
-  assert.deepEqual(ix.ancestors('F00.032').map((r) => r.id), ['F00.03', 'F00.0', 'F00', 'bl:F00-F09', 'ch:V']);
+  assert.deepEqual(ix.ancestors('G82.01').map((r) => r.id), ['G82.0', 'G82', 'bl:G80-G83', 'ch:VI']);
+  assert.deepEqual(ix.ancestors('D37.03').map((r) => r.id), ['D37.0', 'D37', 'bl:D37-D48', 'ch:II']);
 });
 
-test('parent(code) suit la règle du plus long préfixe existant, y compris pour les extensions +/X', () => {
+test('parent(code) suit la règle du plus long préfixe existant, y compris pour des extensions +/X absentes des données', () => {
+  assert.equal(ix.parent('G82.01').id, 'G82.0');
   assert.equal(ix.parent('M45.+0').id, 'M45');
-  assert.equal(ix.parent('M45.X0').id, 'M45.X');
-  assert.equal(ix.parent('I20.0+0').id, 'I20.0');
-  assert.equal(ix.parent('F03.+30').id, 'F03.+3');
-  assert.equal(ix.parent('K63.5+0').id, 'K63.5');
+  assert.equal(ix.parent('M45.X0').id, 'M45');
+  assert.equal(ix.parent('I20.0+0').id, 'I20');
+  assert.equal(ix.parent('F03.+30').id, 'F03');
+  assert.equal(ix.parent('K63.5+0').id, 'K63');
   assert.equal(ix.parent('R53.+2').id, 'R53');
 });
 
@@ -130,46 +139,54 @@ test('placement par plage : quelques cas repères', () => {
   assert.equal(ix.node('H66').path[0].id, 'ch:VIII');
   assert.equal(ix.node('H10').path[0].id, 'ch:VII');
   assert.equal(ix.path('T28')[1].id, 'bl:T26-T28');
+  // Les chapitres ajoutés pour les codes que contient la feuille (XX, XXII).
+  assert.deepEqual(ix.path('V01').map((r) => r.id), ['ch:XX', 'bl:V01-V09', 'V01']);
+  assert.deepEqual(ix.path('Y95').map((r) => r.id), ['ch:XX', 'bl:Y90-Y98', 'Y95']);
+  assert.deepEqual(ix.path('U07').map((r) => r.id), ['ch:XXII', 'bl:U00-U49', 'U07']);
 });
 
 test('resolve(code) tombe sur le plus proche existant, ou null si rien ne correspond', () => {
   assert.equal(ix.resolve('J45.99').code, 'J45.9');
-  assert.equal(ix.resolve('C50.4').code, 'C50');
-  assert.equal(ix.resolve('Q99.9'), null);
+  assert.equal(ix.resolve('C50.99').code, 'C50.9');
+  assert.equal(ix.resolve('Q99.9').code, 'Q99'); // Q99 existe, pas Q99.9
+  assert.equal(ix.resolve('U05.9'), null); // ni U05 ni U05.9
 });
 
 test('levelOf : category seulement pour une catégorie avec enfants ; chapter/block pour les regroupements choisissables', () => {
-  assert.equal(ix.levelOf('H66'), 'category');
+  assert.equal(ix.levelOf('J45'), 'category');
+  assert.equal(ix.levelOf('H66'), 'code'); // H66 n'a pas de sous-codes dans la feuille
   assert.equal(ix.levelOf('I10'), 'code');
-  assert.equal(ix.levelOf('H66.0'), 'code');
+  assert.equal(ix.levelOf('J45.9'), 'code');
   assert.equal(ix.levelOf('bl:H65-H75'), 'block');
   assert.equal(ix.levelOf('ch:VIII'), 'chapter');
   assert.equal(ix.levelOf('fav'), null);
   assert.equal(ix.levelOf('XYZ'), null);
 });
 
-test('canRefine couvre aussi un code profond qui a lui-même des enfants (M08.4 → M08.45)', () => {
-  assert.equal(ix.canRefine('H66'), true);
-  assert.equal(ix.canRefine('M08.4'), true);
+test('canRefine couvre aussi un code profond qui a lui-même des enfants (G82.0 → G82.01)', () => {
+  assert.equal(ix.canRefine('J45'), true);
+  assert.equal(ix.canRefine('G82.0'), true);
   assert.equal(ix.canRefine('I10'), false);
-  assert.equal(ix.canRefine('H66.0'), false);
+  assert.equal(ix.canRefine('G82.01'), false);
 });
 
 // ---------------------------------------------------------------------------
 // Génériques / Fréquents
 // ---------------------------------------------------------------------------
-test('les 7 génériques deviennent un alias du code officiel, sans nœud dupliqué', () => {
-  const n = ix.node('J06.9');
+test('les 7 génériques deviennent un alias de la catégorie officielle de la feuille, sans nœud dupliqué', () => {
+  const n = ix.node('J06'); // la feuille n'a pas J06.9 : le générique s'accroche à la catégorie
   assert.equal(n.alias, 'IVRS / syndrome viral');
   assert.notEqual(n.libelle, n.alias);
   assert.ok(n.libelle.length > 0);
+  assert.equal(ix.node('J06.9'), null);
 });
 
-test("children('fav') affiche les 7 génériques d'abord (ordre du fichier), avec label = alias", () => {
+test("children('fav') affiche les 7 génériques d'abord (ordre du fichier), avec label = alias, puis les fréquents ramenés à un code de la feuille", () => {
   const fav = ix.children('fav');
   assert.equal(fav.length, 30);
-  assert.deepEqual(fav.slice(0, 7).map((r) => r.code), ['J06.9', 'N30.9', 'M54.5', 'A09.9', 'J02.9', 'L30.9', 'Z00.0']);
+  assert.deepEqual(fav.slice(0, 7).map((r) => r.code), ['J06', 'N30', 'M54', 'A09', 'J02', 'L30', 'Z00']);
   assert.ok(fav.slice(0, 7).every((r) => r.label === r.alias));
+  assert.deepEqual(fav.slice(7, 12).map((r) => r.code), ['I10', 'E11', 'E78', 'J45.9', 'J44']);
 });
 
 // ---------------------------------------------------------------------------
@@ -198,47 +215,52 @@ test("search('hypertension') place I10 en tête", () => {
 });
 
 test('search ignore les accents et la casse, sur le code comme sur le libellé', () => {
-  const a = ix.search('Otite Moyenne Aiguë').rows.map((r) => r.code);
-  const b = ix.search('otite moyenne aigue').rows.map((r) => r.code);
+  const a = ix.search('Épisodes dépressifs').rows.map((r) => r.code);
+  const b = ix.search('episodes depressifs').rows.map((r) => r.code);
   assert.deepEqual(a, b);
-  assert.ok(a.every((c) => c.startsWith('H6')));
-  assert.ok(a.includes('H66.0'));
+  assert.deepEqual(a, ['F32']);
 });
 
-test("search('lombalgie') : un seul M54.5, en alias « Lombalgie basse »", () => {
+test("search('lombalgie') : un seul M54, en alias (le générique « Lombalgie commune » s'accroche à la catégorie Dorsalgie)", () => {
   const rows = ix.search('lombalgie').rows;
-  const m545 = rows.filter((r) => r.code === 'M54.5');
-  assert.equal(m545.length, 1);
-  assert.equal(m545[0].matchedOn, 'alias');
-  assert.equal(m545[0].label, 'Lombalgie basse');
+  const m54 = rows.filter((r) => r.code === 'M54');
+  assert.equal(m54.length, 1);
+  assert.equal(m54[0].matchedOn, 'alias');
+  assert.equal(m54[0].label, 'Dorsalgie');
+  assert.equal(m54[0].alias, 'Lombalgie commune');
 });
 
-test("search('infection urinaire') : N30.9 (alias) puis N39.0 (libellé)", () => {
+test("search('infection urinaire') : N30 (alias « Cystite / infection urinaire ») d'abord, puis les codes dont le libellé correspond", () => {
   const rows = ix.search('infection urinaire').rows;
-  const codes = rows.map((r) => r.code);
-  assert.ok(codes.includes('N30.9'));
-  assert.ok(codes.includes('N39.0'));
-  assert.ok(codes.indexOf('N30.9') < codes.indexOf('N39.0'));
+  assert.equal(rows[0].code, 'N30');
+  assert.equal(rows[0].matchedOn, 'alias');
+  assert.ok(rows.some((r) => r.code === 'O23.4'));
 });
 
-test("search('grossesse') trouve Z34.9 (un des codes ajoutés)", () => {
-  assert.ok(ix.search('grossesse').rows.some((r) => r.code === 'Z34.9'));
+test("search('grossesse') trouve Z34 (surveillance d'une grossesse normale)", () => {
+  assert.ok(ix.search('grossesse').rows.some((r) => r.code === 'Z34'));
 });
 
-test("search('depress') : F32 en tête, tronqué, pas de démence F00.x dans les 6 premiers", () => {
+test("search('depress') : F32 puis F33, seuls diagnostics de dépression de la feuille", () => {
   const r = ix.search('depress');
-  assert.equal(r.rows[0].code, 'F32');
-  assert.equal(r.rows[0].matchCount, 12);
-  assert.equal(r.rows[0].hiddenCount, 10);
+  assert.deepEqual(r.rows.slice(0, 2).map((row) => row.code), ['F32', 'F33']);
+  assert.equal(r.truncated, false);
+  assert.equal(r.moreGroups, 0);
+});
+
+test("search('fracture') : S02 en tête, tronqué (15 codes, 13 cachés), d'autres catégories en plus", () => {
+  const r = ix.search('fracture');
+  assert.equal(r.rows[0].code, 'S02');
+  assert.equal(r.rows[0].matchCount, 15);
+  assert.equal(r.rows[0].hiddenCount, 13);
   assert.equal(r.truncated, true);
   assert.ok(r.moreGroups > 0);
-  assert.ok(!r.rows.slice(0, 6).some((row) => row.code.startsWith('F00.0')));
 });
 
 test('within : limite aux descendants du nœud, sans lister le nœud lui-même', () => {
-  const rows = ix.search('otite', { within: 'H66' }).rows;
-  assert.ok(rows.length > 0);
-  assert.ok(rows.every((r) => r.code.startsWith('H66') && r.code !== 'H66'));
+  const rows = ix.search('asthme', { within: 'J45' }).rows;
+  assert.deepEqual(rows.map((r) => r.code), ['J45.9', 'J45.0', 'J45.1', 'J45.8']);
+  assert.ok(rows.every((r) => r.code.startsWith('J45') && r.code !== 'J45'));
 });
 
 test('search met en cache le dernier résultat (même référence pour la même requête)', () => {

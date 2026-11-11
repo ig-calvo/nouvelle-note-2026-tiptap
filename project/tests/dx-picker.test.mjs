@@ -129,15 +129,15 @@ test('sans CIM-10 chargée, la section CIM-10 affiche un message de chargement e
 test('parcourir un nœud sans terme liste ses enfants directs, triés', () => {
   const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'ch:X' }, stack: [], activeIndex: null, actionFocus: 0 };
   const model = w.dxBuildModel(st, '', ctxWith(null));
-  assert.deepEqual(model.sections[0].items.map((it) => it.ref.id), ['bl:J00-J06', 'bl:J09-J18', 'bl:J20-J22', 'bl:J30-J39', 'bl:J40-J47', 'bl:J60-J70']);
+  assert.deepEqual(model.sections[0].items.map((it) => it.ref.id), ['bl:J00-J06', 'bl:J09-J18', 'bl:J20-J22', 'bl:J30-J39', 'bl:J40-J47', 'bl:J60-J70', 'bl:J80-J84', 'bl:J85-J86', 'bl:J90-J94', 'bl:J95-J99']);
   assert.equal(model.defaultIndex, 0);
 });
 
 test('parcourir avec un terme cherche seulement sous ce nœud (within)', () => {
-  const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'H66' }, stack: [], activeIndex: null, actionFocus: 0 };
-  const model = w.dxBuildModel(st, 'otite', ctxWith(null));
+  const st = { intent: { kind: 'nouveau' }, view: { kind: 'browse', nodeId: 'J45' }, stack: [], activeIndex: null, actionFocus: 0 };
+  const model = w.dxBuildModel(st, 'asthme', ctxWith(null));
   assert.ok(model.flat.length > 0);
-  assert.ok(model.flat.every((it) => it.kind !== 'cim' || it.code.startsWith('H66')));
+  assert.ok(model.flat.every((it) => it.kind !== 'cim' || it.code.startsWith('J45')));
 });
 
 test('intent remplacer : bandeau, pas de section note/sommaire, « Même catégorie » pour un code précis', () => {
@@ -150,9 +150,9 @@ test('intent remplacer : bandeau, pas de section note/sommaire, « Même catégo
 });
 
 test('intent remplacer sur une catégorie propose « Plus précis que … »', () => {
-  const target = { kind: 'note', dxKey: 'n:d1', name: 'Otite moyenne', code: 'H66', level: 'category' };
+  const target = { kind: 'note', dxKey: 'n:d1', name: 'Asthme', code: 'J45', level: 'category' };
   const model = w.dxBuildModel({ intent: { kind: 'remplacer', target: target }, view: { kind: 'root' }, stack: [], activeIndex: null, actionFocus: 0 }, '', ctxWith(null));
-  assert.equal(model.sections[0].title, w.t('dx.copy.plusPrecis.text', { name: 'Otite moyenne' }));
+  assert.equal(model.sections[0].title, w.t('dx.copy.plusPrecis.text', { name: 'Asthme' }));
 });
 
 test('texte libre : absent quand le terme est vide, présent avec le bon `kind` selon l’intent', () => {
@@ -162,25 +162,25 @@ test('texte libre : absent quand le terme est vide, présent avec le bon `kind` 
 });
 
 test('intent refine : démarre DANS le code de la région, propose ses enfants, un pick devient un relabel', () => {
-  const region = { id: 'd1', dxKey: 'n:d1', name: 'Otite moyenne suppurée', code: 'H66', level: 'category' };
+  const region = { id: 'd1', dxKey: 'n:d1', name: 'Asthme', code: 'J45', level: 'category' };
   const st = w.dxInitState({ kind: 'refine', region: region });
-  assert.deepEqual(st.view, { kind: 'browse', nodeId: 'H66' });
+  assert.deepEqual(st.view, { kind: 'browse', nodeId: 'J45' });
   const model = w.dxBuildModel(st, '', ctxWith(null));
-  assert.deepEqual(model.sections[0].items.map((it) => it.code).sort(), ['H66.0', 'H66.1', 'H66.2', 'H66.3', 'H66.4', 'H66.9']);
-  const h660 = model.flat.find((it) => it.code === 'H66.0');
-  const r = w.dxStep(st, { type: 'activate', index: h660.idx }, model);
-  assert.deepEqual(r.effects, [{ type: 'relabel', to: { source: 'cim10', name: 'Otite moyenne aiguë suppurée', code: 'H66.0', level: 'code' } }]);
+  assert.deepEqual(model.sections[0].items.map((it) => it.code).sort(), ['J45.0', 'J45.1', 'J45.8', 'J45.9']);
+  const j450 = model.flat.find((it) => it.code === 'J45.0');
+  const r = w.dxStep(st, { type: 'activate', index: j450.idx }, model);
+  assert.deepEqual(r.effects, [{ type: 'relabel', to: { source: 'cim10', name: 'Asthme à prédominance allergique', code: 'J45.0', level: 'code' } }]);
 });
 
 test('intent edit : nom inchangé propose « Plus précis que … » sans texte libre ; nom modifié bascule en recherche + texte libre', () => {
-  const region = { id: 'd1', dxKey: 'n:d1', name: 'Otite moyenne', code: 'H66', level: 'category' };
+  const region = { id: 'd1', dxKey: 'n:d1', name: 'Asthme', code: 'J45', level: 'category' };
   const st = w.dxInitState({ kind: 'edit', region: region });
-  const untouched = w.dxBuildModel(st, 'Otite moyenne', ctxWith(null));
-  assert.deepEqual(untouched.sections.map((s) => s.title), [w.t('dx.copy.plusPrecis.text', { name: 'Otite moyenne' })]);
+  const untouched = w.dxBuildModel(st, 'Asthme', ctxWith(null));
+  assert.deepEqual(untouched.sections.map((s) => s.title), [w.t('dx.copy.plusPrecis.text', { name: 'Asthme' })]);
   assert.equal(untouched.freeText, null);
-  const touched = w.dxBuildModel(st, 'Otite moyenne (renommée)', ctxWith(null));
-  assert.deepEqual(touched.freeText, { name: 'Otite moyenne (renommée)', kind: 'edit', hadCode: true });
-  assert.equal(touched.sections.some((s) => s.title === w.t('dx.copy.plusPrecis.text', { name: 'Otite moyenne' })), false);
+  const touched = w.dxBuildModel(st, 'Asthme (renommé)', ctxWith(null));
+  assert.deepEqual(touched.freeText, { name: 'Asthme (renommé)', kind: 'edit', hadCode: true });
+  assert.equal(touched.sections.some((s) => s.title === w.t('dx.copy.plusPrecis.text', { name: 'Asthme' })), false);
 });
 
 test('texte libre en mode edit/refine porte hadCode (indice « le code sera retiré ») selon que la région avait un code', () => {
@@ -256,20 +256,20 @@ test('actionFocus=1 (Remplacer) bascule l’intent, vide le terme, empile ; Éch
   assert.deepEqual(back.effects, [{ type: 'setTerm', term: 'asthme' }]);
 });
 
-test('une catégorie CIM-10 (H66) est sélectionnable ET navigable (D4) : Entrée la choisit, → descend voir ses codes précis', () => {
+test('une catégorie CIM-10 (J45) est sélectionnable ET navigable (D4) : Entrée la choisit, → descend voir ses codes précis', () => {
   const st = w.dxInitState({ kind: 'nouveau' });
-  const model = w.dxBuildModel(st, 'otite', ctxWith(null));
-  const h66 = model.flat.find((it) => it.code === 'H66');
-  assert.equal(h66.selectable, true);
-  assert.ok(h66.nav, 'a des enfants (codes précis), donc navigable aussi');
+  const model = w.dxBuildModel(st, 'asthme', ctxWith(null));
+  const j45 = model.flat.find((it) => it.code === 'J45');
+  assert.equal(j45.selectable, true);
+  assert.ok(j45.nav, 'a des enfants (codes précis), donc navigable aussi');
 
-  const withIdx = Object.assign({}, st, { activeIndex: h66.idx });
+  const withIdx = Object.assign({}, st, { activeIndex: j45.idx });
   const picked = w.dxStep(withIdx, { type: 'key', key: 'Enter' }, model);
-  assert.deepEqual(picked.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'cim10', name: h66.label, code: 'H66', level: 'category' } } }]);
+  assert.deepEqual(picked.effects, [{ type: 'commit', payload: { action: 'nouveau', pick: { source: 'cim10', name: j45.label, code: 'J45', level: 'category' } } }]);
 
   const drilled = w.dxStep(withIdx, { type: 'key', key: 'ArrowRight' }, model);
   assert.deepEqual(drilled.effects, [{ type: 'setTerm', term: '' }]);
-  assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'H66' });
+  assert.deepEqual(drilled.state.view, { kind: 'browse', nodeId: 'J45' });
 });
 
 test('un chapitre se choisit tel quel (sans code, level « chapter ») ET se parcourt : Entrée le choisit, → descend', () => {
@@ -309,7 +309,7 @@ test('un diagnostic défini par un bloc se précise : démarre DANS le bloc, pro
     assert.equal(w.diagCanRefine(region), true);
     const st = w.dxInitState({ kind: 'refine', region: region });
     assert.deepEqual(st.view, { kind: 'browse', nodeId: 'bl:J40-J47' });
-    assert.deepEqual(w.dxBuildModel(st, '', ctxWith(null)).flat.map((it) => it.code), ['J40', 'J41', 'J42', 'J44', 'J45']);
+    assert.deepEqual(w.dxBuildModel(st, '', ctxWith(null)).flat.map((it) => it.code), ['J40', 'J41', 'J42', 'J43', 'J44', 'J45', 'J47']);
     const edit = w.dxBuildModel(w.dxInitState({ kind: 'edit', region: region }), region.name, ctxWith(null));
     assert.equal(edit.sections[0].title, w.t('dx.copy.dansGroupe.text', { name: block.libelle }));
     // Le même libellé avec un autre level (renommé/re-choisi) ne se précise plus comme un bloc.

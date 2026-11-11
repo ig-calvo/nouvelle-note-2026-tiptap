@@ -761,7 +761,7 @@
       "empreinte": "2b6dd7ac05b5",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/cim10-index.jsx:36"
+        "note-ui/cim10-index.jsx:38"
       ]
     },
     "cim10.count.category": {
@@ -772,7 +772,7 @@
       "empreinte": "0fd5dbdfbb24",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/cim10-index.jsx:35"
+        "note-ui/cim10-index.jsx:37"
       ]
     },
     "cim10.count.code": {
@@ -783,7 +783,7 @@
       "empreinte": "95f65e473ece",
       "contexte": "texte",
       "fichiers": [
-        "note-ui/cim10-index.jsx:34"
+        "note-ui/cim10-index.jsx:36"
       ]
     },
     "clinicalTool.abdomen.label": {
