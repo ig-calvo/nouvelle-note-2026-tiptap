@@ -33,7 +33,7 @@ function openDraftSearch(editor, cid) {
   // Le plugin n'ouvre « / » qu'en début de ligne ou après une espace.
   const prev = editor.state.doc.resolve(found.pos).nodeBefore;
   const space = prev && !(prev.isText && /\s$/.test(prev.text)) ? ' ' : '';
-  const text = '/' + d.kind + ' ' + d.term;
+  const text = window.NOTE_DATA.slashChar() + d.kind + ' ' + d.term;
   const from = found.pos + space.length;
   window.__DRAFT_REOPEN = { attrs: found.node.attrs, from: from };
   editor.chain().focus()
@@ -128,7 +128,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const editor = editorRef.current; if (!editor || !range) return;
       const doc = editor.state.doc;
       if (range.from < 0 || range.to > doc.content.size) return;
-      if (doc.textBetween(range.from, range.to, '\n') !== (char || '/') + query) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== (char || window.NOTE_DATA.slashChar()) + query) return;
       editor.view.dispatch(editor.state.tr.delete(range.from, range.to));
     }, 0);
   }
@@ -141,7 +141,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const editor = editorRef.current; if (!editor || !range) return;
       const doc = editor.state.doc;
       if (range.from < 0 || range.to > doc.content.size) return;
-      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
+      if (doc.textBetween(range.from, range.to, '\n') !== window.NOTE_DATA.slashChar() + query) return;
       editor.view.dispatch(editor.state.tr.replaceWith(range.from, range.to, editor.schema.nodes.chip.create(attrs)));
     }, 0);
   }
@@ -154,8 +154,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
       const editor = editorRef.current; if (!editor || !range) return;
       const doc = editor.state.doc;
       if (range.from < 0 || range.to > doc.content.size) return;
-      if (doc.textBetween(range.from, range.to, '\n') !== '/' + query) return;
-      const stamp = { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
+      if (doc.textBetween(range.from, range.to, '\n') !== window.NOTE_DATA.slashChar() + query) return;
+      const stamp ={ savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null };
       const nodes = [];
       window.buildRequestChips(items, kind).forEach(function (a) {
         nodes.push(editor.schema.nodes.chip.create(Object.assign(a, stamp)), editor.schema.text(' '));
@@ -177,11 +177,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (slashRef.current) { setSlash(null); return; }
     // Le plugin Suggestion n'active « / » que précédé d'un espace ou en début
     // de ligne — insérer '/' seul en plein milieu d'un mot n'ouvre rien et
-    // laisse un caractère parasite (voir le bouton « + »).
+    // laisse un caractère parasite (voir le bouton « + »). « / » ou le
+    // caractère de remplacement choisi dans les réglages (slashChar).
     const { from } = editor.state.selection;
     const before = from > 0 ? editor.state.doc.textBetween(from - 1, from, '\n') : '';
     const needsSpace = from > 0 && before !== ' ' && before !== '\n';
-    editor.chain().focus().insertContent(needsSpace ? ' /' : '/').run();
+    const ch = window.NOTE_DATA.slashChar();
+    editor.chain().focus().insertContent(needsSpace ? ' ' + ch : ch).run();
   }
 
   // Sélection d'un item du menu générique (clic ou clavier) — délègue au
@@ -420,12 +422,12 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     if (it.rxSearch || it.orderSearch) {
       // Bascule vers le mode ordre : réécrit « /query » en « /rx » (garde le
       // « / » — le plugin doit continuer à suivre la requête).
-      editor.chain().focus().insertContentAt(range, '/' + (it.kbd || 'rx') + ' ').run();
+      editor.chain().focus().insertContentAt(range, window.NOTE_DATA.slashChar() + (it.kbd || 'rx') + ' ').run();
       return;
     }
     if (it.diagnosticEntry) {
       // Bascule vers le mode diagnostic : réécrit « /query » en « /dx ».
-      editor.chain().focus().insertContentAt(range, '/dx ').run();
+      editor.chain().focus().insertContentAt(range, window.NOTE_DATA.slashChar() + 'dx ').run();
       return;
     }
     if (it.fileAction) {
@@ -568,7 +570,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     function rewriteDxTerm(term) {
       const editor = editorRef.current;
       if (!editor || !currentRange) { publish(lastQuery); return; }
-      const next = '/dx ' + term;
+      const next = window.NOTE_DATA.slashChar() + 'dx ' + term;
       // drillTo/popStack effacent presque toujours le terme (retour à '') —
       // si le terme AFFICHÉ est déjà celui-là (cas le plus fréquent : ouvrir
       // « Parcourir la CIM-10 » sans avoir tapé de recherche), le texte du

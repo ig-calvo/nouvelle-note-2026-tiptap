@@ -29,6 +29,7 @@ const PRESENTATION_TWEAKS = {
   noteWide: false,
   noteTextSize: 'prototype',
   ftBarPosition: 'haut',
+  slashChar: '/',
   reviewingMode: false,
   checkoutSuggestions: false,
   simulateTxFailure: false,
@@ -263,7 +264,7 @@ function pmStartCommand(command) {
     window.dispatchEvent(new CustomEvent('note:summary-add', { detail: { command: command } }));
     return;
   }
-  var typed = '/' + command + ' ';
+  var typed = window.NOTE_DATA.slashChar() + command + ' ';
   editor.chain().focus()
     .insertContentAt(after, { type: 'paragraph', content: [{ type: 'text', text: typed }] })
     .setTextSelection(after + 1 + typed.length)
@@ -304,10 +305,12 @@ function pmDismiss() {
 // « + » insère à la position du curseur (on en vide le paragraphe, qui reste).
 function pmCleanCommands(editor) {
   var ranges = [];
+  var ch = window.NOTE_DATA.slashChar();
+  var command = new RegExp('^' + ch.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&') + '(dx|rx)\\b');
   editor.state.doc.forEach(function (n, offset) {
     if (n.type.name !== 'paragraph' || n.childCount !== 1 || !n.firstChild.isText) return;
-    if (/^\/(dx|rx)\b/.test(n.textContent)) ranges.push({ from: offset, to: offset + n.nodeSize });
-    else if (n.textContent.trim() === '/') ranges.push({ from: offset + 1, to: offset + n.nodeSize - 1 });
+    if (command.test(n.textContent)) ranges.push({ from: offset, to: offset + n.nodeSize });
+    else if (n.textContent.trim() === ch) ranges.push({ from: offset + 1, to: offset + n.nodeSize - 1 });
   });
   ranges.reverse().forEach(function (r) { editor.chain().deleteRange(r).run(); });
 }

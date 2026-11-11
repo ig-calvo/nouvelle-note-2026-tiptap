@@ -2629,7 +2629,16 @@ function visitReason(points) {
   return (points || []).map(function (p) { return p.short; }).join(' · ');
 }
 
-window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
+// Caractère qui ouvre le menu des fonctions : « / » par défaut. Le réglage
+// caché (Ctrl+0, « Caractère du menu des fonctions ») en propose d'autres pour
+// un clavier où le slash est difficile à taper (test de la modale de
+// prescription, 2026-11-11 : clavier Windows en français canadien). Le « + »
+// du curseur insère le même caractère. « # » (gabarits) ne change pas.
+const SLASH_CHARS = ['/', '*', ';'];
+function normalizeSlashChar(c) { return SLASH_CHARS.indexOf(c) >= 0 ? c : '/'; }
+function slashChar() { return normalizeSlashChar(window.__SLASH_CHAR); }
+
+window.NOTE_DATA = { ENTITY_TYPES, MED_CATALOG, SLASH_ITEMS, SLASH_CHARS, slashChar, normalizeSlashChar, NOTE_TEMPLATES, PATIENT, PHARMACIES, CRDS_REGIONAL,
   RX_FAVS, RX_ITEMS, PATIENT_MEDS, MED_STATUS_LABEL, medActions, documentButtonShown, medStatusText, defaultMedAction, summaryAddDetail,
   medDoseStep, adjustMedDose, medPrescribedText, RX_FILTERS, setRxFilter, getRxFilter, rxCounts, rxFilterCounts, applyRxFilter, searchRx, toggleRxFav, deriveRx,
   setPatientAllergies, getPatientAllergies, rxAllergyOf,

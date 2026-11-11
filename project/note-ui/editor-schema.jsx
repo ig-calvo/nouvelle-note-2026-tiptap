@@ -2542,7 +2542,8 @@ function orderHintPlugin() {
     if (!sel.empty || !PM.Decoration || !PM.DecorationSet) return null;
     const $from = sel.$from;
     const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '\ufffc');
-    const m = /(?:^|\s)\/(rx|lab|img|ref|exam|serv|instr|ant)\s$/i.exec(before);
+    const ch = window.NOTE_DATA.slashChar();
+    const m = new RegExp('(?:^|\\s)' + ch.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&') + '(rx|lab|img|ref|exam|serv|instr|ant)\\s$', 'i').exec(before);
     if (!m || $from.parent.textBetween($from.parentOffset, $from.parent.content.size, undefined, '\ufffc').trim()) return null;
     const D = window.NOTE_DATA;
     const def = D.ORDER_DEFS[D.orderKindForKbd(m[1].toLowerCase()) || m[1].toLowerCase()];
@@ -2576,7 +2577,7 @@ function labPendingAt(state) {
   if (!st || !st.open || !state.selection.empty) return null;
   const $from = state.selection.$from;
   const before = $from.parent.textBetween(0, $from.parentOffset, undefined, '￼');
-  const at = before.toLowerCase().lastIndexOf('/lab ');
+  const at = before.toLowerCase().lastIndexOf(window.NOTE_DATA.slashChar() + 'lab ');
   if (at < 0 || (at > 0 && !/\s/.test(before.charAt(at - 1)))) return null;
   const slashFrom = $from.start() + at;
   return { slashFrom: slashFrom, termFrom: slashFrom + 5, term: before.slice(at + 5), caret: state.selection.from };
@@ -2664,6 +2665,13 @@ function buildSlashExtension(handlers) {
         window.Tiptap.Suggestion({
           editor: this.editor,
           char: '/',
+          // Le caractère est lu à chaque frappe (réglage « Caractère du menu
+          // des fonctions », NOTE_DATA.slashChar) : le plugin ne le garde
+          // qu'une fois pour toutes, mais sa recherche du déclencheur est
+          // un point d'entrée (@tiptap/suggestion 2.11.5).
+          findSuggestionMatch: window.Tiptap.findSuggestionMatch ? function (config) {
+            return window.Tiptap.findSuggestionMatch(Object.assign({}, config, { char: window.NOTE_DATA.slashChar() }));
+          } : undefined,
           allowSpaces: true,
           decorationClass: 'slash-pending',
           items: function (props) {

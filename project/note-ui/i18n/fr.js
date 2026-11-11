@@ -312,7 +312,7 @@
   'noteEditor.ajouterEtiquettes.tooltip': 'Ajouter des étiquettes',
   'noteEditor.masquerEtiquettes.aria': 'Masquer les étiquettes',
   'noteEditor.ajouterEtiquettes.aria': 'Ajouter des étiquettes',
-  'noteEditor.appuyerAfficherCommandes.placeholder': 'Appuyer sur «\u00a0/\u00a0» pour les commandes ou «\u00a0#\u00a0» pour les gabarits',
+  'noteEditor.appuyerAfficherCommandes.placeholder': 'Appuyer sur «\u00a0{char}\u00a0» pour les commandes ou «\u00a0#\u00a0» pour les gabarits',
   'noteEditor.outilsCliniques.tooltip': 'Outils cliniques',
   'noteEditor.assurancePrivee.label': 'Assurance privée',
   'noteEditor.cardiologie.label': 'Cardiologie',
