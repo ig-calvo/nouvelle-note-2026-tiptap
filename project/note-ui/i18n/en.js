@@ -545,7 +545,7 @@
   'noteEditor.ajouterEtiquettes.tooltip': 'Add tags',
   'noteEditor.annulationEnvoyee.toast': 'Cancellation sent',
   'noteEditor.annuler.button': 'Cancel',
-  'noteEditor.appuyerAfficherCommandes.placeholder': 'Press “/” for commands or “#” for templates',
+  'noteEditor.appuyerAfficherCommandes.placeholder': 'Press “{char}” for commands or “#” for templates',
   'noteEditor.assurancePrivee.label': 'Private insurance',
   'noteEditor.aucunElementDossier.text': '• (no items in the record)',
   'noteEditor.aujourdHui.button': 'Today',

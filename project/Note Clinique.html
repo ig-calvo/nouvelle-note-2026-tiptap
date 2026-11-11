@@ -203,6 +203,9 @@
       window.Tiptap = {
         Editor: core.Editor, Node: core.Node, Mark: core.Mark, Extension: core.Extension, mergeAttributes: core.mergeAttributes,
         StarterKit: starterKit.default, Placeholder: placeholder.default, Suggestion: suggestion.default,
+        // Recherche du déclencheur de Suggestion : le caractère du menu des
+        // fonctions se règle à l'exécution (NOTE_DATA.slashChar, editor-schema.jsx).
+        findSuggestionMatch: suggestion.findSuggestionMatch,
         Underline: underline.default, TextStyle: textStyle.default, Color: color.default, Highlight: highlight.default,
         Link: link.default,
         // Decoration/DecorationSet (numérotation des diagnostics par
@@ -390,6 +393,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "noteWide": false,
   "noteTextSize": "prototype",
   "ftBarPosition": "haut",
+  "slashChar": "/",
   "reviewingMode": false,
   "reviewAuthor": "me",
   "checkoutSuggestions": false,
@@ -626,6 +630,7 @@ function App() {
               templateTextProposed={t.templateTextProposed === true}
               templateDraftLines={t.templateDraftLines !== false}
               autoConduct={t.autoConduct !== false}
+              slashChar={t.slashChar || '/'}
               suggestionStyle={t.suggestionStyle || 'bleu'}
               formOpenMode={t.formOpenMode || 'auto'}
               groupRequests={t.groupRequests === true}
@@ -749,6 +754,14 @@ function App() {
                         { value: 'bas', label: 'Bas' },
                       ]}
                       onChange={(v) => setTweak('ftBarPosition', v)} />
+          {/* Caractère qui ouvre le menu des fonctions (« / » par défaut). Pour
+              un clavier où le slash est difficile à taper ; le « + » du curseur
+              insère le même caractère. Gardé d'une utilisation à l'autre (tweaks,
+              localStorage), « # » (gabarits) ne change pas. */}
+          <TweakRadio label="Caractère du menu des fonctions"
+                      value={window.NOTE_DATA.normalizeSlashChar(t.slashChar)}
+                      options={window.NOTE_DATA.SLASH_CHARS.map((c) => ({ value: c, label: c }))}
+                      onChange={(v) => setTweak('slashChar', v)} />
         </TweakSection>
         <TweakSection label="Checkout">
           <TweakToggle label="Suggestions de destinataires (✨)" value={t.checkoutSuggestions === true}

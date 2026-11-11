@@ -4,7 +4,13 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
   reviewingMode = false, reviewAuthor = 'me', checkoutSuggestions = false, simulateTxFailure = false, patientPharmacy = true,
   templateTextProposed = false, suggestionStyle = 'bleu', formOpenMode = 'auto', groupRequests = false, inlineFieldEdit = true,
   aiProposals = false, pendingBadge = false, suggestionsPlacement = 'aucune', agentSignal = 'pastille', agentOpening = 'panneau', agentAnimation = 'etapes', agentSize = 'petit', visitStart = false, templateDraftLines = true,
-  autoConduct = true }) {
+  autoConduct = true, slashChar = '/' }) {
+  // Tweak « Caractère du menu des fonctions » : « / » par défaut, ou le
+  // caractère de remplacement (ex. « * ») pour un clavier où le slash est
+  // difficile à taper. Lu par NOTE_DATA.slashChar() (editor-data.jsx) : le
+  // plugin Suggestion (editor-schema.jsx), le bouton « + » et tout texte que
+  // l'éditeur écrit lui-même (« /rx », « /dx »…). Posé pendant le rendu.
+  window.__SLASH_CHAR = window.NOTE_DATA.normalizeSlashChar(slashChar);
   // Tweak « Note plus large » : la carte (neStyles.cardWide) et le CSS
   // (editor.css, Note Clinique.html) — le « + » et le « Tt » passent dans la marge.
   React.useEffect(function() { document.documentElement.setAttribute('data-note-wide', noteWide ? 'on' : 'off'); }, [noteWide]);
@@ -475,7 +481,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
         var pos = inRegion ? (command === 'dx' ? $from.after(1) : $from.after(2))
           : (inPara && $from.depth === 1 ? $from.after(1) : window.endOfFirstSectionPos(state.doc));
         if (documentAs) window.__DX_DOCUMENT_AS = documentAs;
-        var typed = '/' + command + ' ';
+        var typed = window.NOTE_DATA.slashChar() + command + ' ';
         editor.chain().focus()
           .insertContentAt(pos, { type: 'paragraph', content: [{ type: 'text', text: typed }] })
           .setTextSelection(pos + 1 + typed.length)
@@ -1121,7 +1127,7 @@ function NoteEditor({ isOpen, onOpen, onComplete, onPatchArchivedTx, completeRef
               onNext={function() { goToProposed(1); }} />}
 
           <NoteBody
-            placeholder={t('noteEditor.appuyerAfficherCommandes.placeholder')}
+            placeholder={function() { return t('noteEditor.appuyerAfficherCommandes.placeholder', { char: window.NOTE_DATA.slashChar() }); }}
             initialDoc={initialDocRef.current}
             onReady={handleEditorReady}
             onDocChange={handleDocChange}
