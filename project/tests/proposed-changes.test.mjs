@@ -225,3 +225,26 @@ test('les gabarits du prototype restent lus : « Pneumonie » propose quatre com
   assert.deepEqual(cs.map((c) => c.state), ['complete', 'complete', 'complete', 'incomplete', 'complete']);
   assert.ok(cs.every((c) => c.author.kind === 'gabarit'));
 });
+
+// Réponse de l'Assistant (RA-57) : ce qu'une insertion a posé se retrouve dans la
+// note. Accepté ou encore proposé : « Inséré » ; refusé ou effacé : « à insérer ».
+test('une puce insérée par l’Assistant se retrouve par son cid, proposée ou acceptée, plus une fois refusée', () => {
+  const aiRx = (cid) => { const c = completeRx(cid); return Object.assign({}, c, { attrs: Object.assign({}, c.attrs, { proposedBy: w.t('ai.assistant.name') }) }); };
+  const d = doc(para(txt('Plan : '), aiRx('x1'), txt(' ')));
+  const pos = w.proposedInsertionPos(w.proposedDocLike(d), { cid: 'x1' });
+  assert.ok(pos > 0, 'la puce proposée est là');
+  assert.equal(scan(d)[0].author.kind, 'ia', 'signée « Assistant IA » : c’est une proposition de l’IA');
+  assert.equal(w.proposedInsertionPos(w.proposedDocLike(d), { cid: 'autre' }), -1, 'une autre puce n’est pas la sienne');
+  assert.ok(w.proposedInsertionPos(w.proposedDocLike(w.resolveProposedInDoc(d, true)), { cid: 'x1' }) > 0, 'acceptée : toujours dans la note');
+  assert.equal(w.proposedInsertionPos(w.proposedDocLike(w.resolveProposedInDoc(d, false)), { cid: 'x1' }), -1, 'refusée : retirée');
+});
+
+test('un texte inséré par l’Assistant se retrouve par ses premiers mots, proposé ou accepté, plus une fois refusé', () => {
+  const line = 'Allergies : pénicilline (sévère).';
+  const d = doc(para(txt('Début.')), para(ins(line, 'ai', w.t('ai.assistant.name'))));
+  const probe = { probe: line.slice(0, 24) };
+  assert.ok(w.proposedInsertionPos(w.proposedDocLike(d), probe) > 0, 'proposé : là');
+  assert.ok(w.proposedInsertionPos(w.proposedDocLike(w.resolveProposedInDoc(d, true)), probe) > 0, 'accepté : là');
+  assert.equal(w.proposedInsertionPos(w.proposedDocLike(w.resolveProposedInDoc(d, false)), probe), -1, 'refusé : retiré');
+  assert.equal(w.proposedInsertionPos(w.proposedDocLike(d), null), -1, 'rien d’inséré : rien à retrouver');
+});

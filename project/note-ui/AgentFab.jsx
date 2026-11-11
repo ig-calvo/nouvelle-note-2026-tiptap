@@ -13,8 +13,17 @@
 // une. Elle continue panneau fermé (anneau qui tourne autour du FAB).
 // Réponses SIMULÉES, assemblées à partir des données de démonstration (notes
 // antérieures, sommaire, catalogue des conduites) — à valider cliniquement.
+// Mode passif (RA-57, PROPOSITION-assistant-ia-passif.md) : panneau fermé,
+// quand le point actif a des suggestions ciblées, des bulles-boutons
+// s'affichent au-dessus du FAB (3 au plus). Un clic sur une bulle INSÈRE la
+// suggestion, en changement proposé (puce ou texte mauve, ✓ ✕ ; jamais posée
+// d'office) ; ✕ l'écarte pour la note ; un clic sur l'en-tête des bulles ou
+// sur le FAB OUVRE le panneau. Dans le panneau, un bloc de réponse inséré
+// passe à « Inséré · Voir dans la note » et reste réinsérable ; refusé ou
+// effacé dans la note, il redevient « à insérer ».
 // Variantes (Tweaks) :
-//   signal     'pastille' | 'etendu' | 'halo' : comment le FAB signale ;
+//   signal     'bulles' | 'pastille' | 'etendu' | 'halo' : comment l'assistant
+//              signale ses suggestions (bulles : le mode passif ci-dessus) ;
 //   ouverture  'panneau' | 'tiroir' : panneau ancré au FAB, ou tiroir latéral ;
 //   animation  'etapes' | 'compacte' : les sources une à une, ou une seule ligne ;
 //   taille     'petit' | 'grand' : panneau de 320 × 460 px au plus (laisse voir
@@ -25,6 +34,10 @@ const AG_WRITE_MS = 1100;
 // Le FAB étendu (« 3 suggestions · Migraine ») se replie après ce délai.
 const AG_EXTENDED_MS = 6000;
 const AG_MAX_ORDERS = 5;
+// Bulles de suggestion au-dessus du FAB, et longueur du début de texte qui
+// retrouve un passage inséré dans la note (proposedInsertionPos).
+const AG_BUBBLES = 3;
+const AG_PROBE = 24;
 const AG_QUICK = [
   { intent: 'resume', icon: 'summarize', label: t('agent.rapide.resume.button') },
   { intent: 'commandes', icon: 'prescriptions', label: t('agent.rapide.commandes.button') },
@@ -32,6 +45,20 @@ const AG_QUICK = [
 ];
 
 const AG_CSS = `
+/* Fond en dégradé et bordure plus marquée (RA-57) : de l'indigo du DS3 à son bleu
+   acier, pâles pour les surfaces (texte sombre, plus de 7 : 1), pleins pour
+   les gestes (icône, FAB allumé, texte blanc). Les jetons suivent clair / sombre. */
+:root {
+  --ag-grad: linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
+  --ag-grad-soft: linear-gradient(135deg,
+    color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface-container-lowest)) 0%,
+    color-mix(in srgb, var(--mat-sys-tertiary) 26%, var(--mat-sys-surface-container-lowest)) 100%);
+  --ag-grad-panel: linear-gradient(180deg,
+    color-mix(in srgb, var(--mat-sys-primary) 18%, var(--mat-sys-surface-container-low)) 0%,
+    color-mix(in srgb, var(--mat-sys-tertiary) 10%, var(--mat-sys-surface-container-low)) 30%,
+    var(--mat-sys-surface-container-low) 62%);
+  --ag-border: color-mix(in srgb, var(--mat-sys-primary) 50%, transparent);
+}
 @keyframes ag-spin { to { transform: rotate(360deg); } }
 @keyframes ag-halo {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary) 45%, transparent); }
@@ -79,6 +106,10 @@ const AG_CSS = `
 .ag-glow { animation: ag-glow 1.4s ease-in-out infinite; }
 .ag-row:hover:not(:disabled) { background: var(--mat-sys-surface-container) !important; }
 .ag-chip:hover { background: var(--mat-sys-surface-container-high) !important; }
+.ag-bubble:hover { border-color: var(--mat-sys-primary) !important; box-shadow: var(--mat-sys-level3) !important; }
+.ag-bubble-head:hover { background: color-mix(in srgb, var(--mat-sys-primary) 28%, var(--mat-sys-surface-container-lowest)) !important; }
+.ag-main:focus-visible, .ag-x:focus-visible, .ag-bubble-head:focus-visible, .ag-link:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 2px; }
+.ag-x:hover { background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent) !important; }
 @media (prefers-reduced-motion: reduce) {
   .ag-ring, .ag-halo, .ag-shimmer, .ag-skel, .ag-bar-fill::after, .ag-glow { animation-duration: 6s; }
   .ag-pop, .ag-in, .ag-drawer, .ag-up { animation: none; }
@@ -250,17 +281,45 @@ function agInsertBlocks(editor, nodes) {
   else chain.insertContentAt($f.after(), nodes).run();
 }
 
+// Le texte d'une réponse entre en changement proposé (RA-57) : marques
+// « insertion » signées « Assistant IA », à accepter ou refuser (RA-40).
+function agProposeText(nodes) {
+  return typeof window.markBlocksAsInsertion === 'function' && window.REVIEW_AI_AUTHOR ? window.markBlocksAsInsertion(nodes, window.REVIEW_AI_AUTHOR) : nodes;
+}
+
 // Une prescription ou une requête : sous son diagnostic s'il est dans la note
-// (comme la colonne), sinon sur une ligne au curseur.
+// (comme la colonne), sinon sur une ligne au curseur. Elle entre en puce en
+// attente, signée « Assistant IA » (mauve, ✓ ✕ dans le coin) : jamais posée
+// d'office. → { cid }, de quoi la retrouver dans la note (proposedInsertionPos).
 function agAddOrder(editor, o, regionId) {
-  const attrs = Object.assign(scChipAttrs(o.kind, o.item), { savedAt: new Date().toISOString(), author: window.__CURRENT_AUTHOR || null });
+  const attrs = Object.assign(scChipAttrs(o.kind, o.item), scAddStamp(t('ai.assistant.name')));
   const chip = { type: 'chip', attrs: attrs };
+  const rec = { cid: attrs.cid };
   const found = regionId ? scFindRegion(editor.state.doc, regionId) : null;
-  if (!found) { agInsertBlocks(editor, [{ type: 'paragraph', content: [chip, { type: 'text', text: ' ' }] }]); return; }
+  if (!found) { agInsertBlocks(editor, [{ type: 'paragraph', content: [chip, { type: 'text', text: ' ' }] }]); return rec; }
   const end = found.pos + found.node.nodeSize - 1;
   const last = found.node.lastChild;
   if (last && last.content.size === 0) editor.chain().focus().insertContentAt(end - 1, [chip, { type: 'text', text: ' ' }]).run();
   else editor.chain().focus().insertContentAt(end, { type: 'paragraph', content: [chip, { type: 'text', text: ' ' }] }).run();
+  return rec;
+}
+
+// « Voir dans la note » : le changement inséré, sélectionné et au centre de
+// l'écran. Sans effet s'il n'y est plus.
+function agShowInserted(editor, rec) {
+  const pos = editor && rec ? window.proposedInsertionPos(editor.state.doc, rec) : -1;
+  if (pos < 0) return;
+  const chain = editor.chain().focus();
+  if (rec.cid) chain.setNodeSelection(pos).run(); else chain.setTextSelection(pos + 1).run();
+  try {
+    const dom = editor.view.domAtPos(pos).node;
+    (dom.nodeType === 1 ? dom : dom.parentElement).scrollIntoView({ block: 'center', behavior: 'smooth' });
+  } catch (e) {}
+}
+
+// Ce qu'une réponse a posé est-il encore dans la note ? (accepté ou encore proposé)
+function agIsInserted(editor, rec) {
+  return !!editor && !!rec && window.proposedInsertionPos(editor.state.doc, rec) >= 0;
 }
 
 // Les demandes au dossier : chacune passe par « searching » (une source de
@@ -287,29 +346,39 @@ function useAgentSearch(editor) {
       patch(id, function (x) { return { status: 'done', blocks: agAnswer(intent, x.target, editor) }; });
     }, steps.length * AG_STEP_MS + AG_WRITE_MS));
   }
-  function markAdded(id, key) { patch(id, function (x) { const a = Object.assign({}, x.added); a[key] = true; return { added: a }; }); }
+  // `rec` : de quoi retrouver l'insertion dans la note ({ cid } ou { probe }).
+  function markAdded(id, key, rec) { patch(id, function (x) { const a = Object.assign({}, x.added); a[key] = rec; return { added: a }; }); }
   return { turns: turns, ask: ask, markAdded: markAdded };
 }
 
-function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pastille', opening = 'panneau', animation = 'etapes', size = 'petit' }) {
-  const sugg = window.useNoteSuggestions({ editor: editor, raison: raison, raisonActive: raisonActive, appliedTemplate: appliedTemplate });
+function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'bulles', opening = 'panneau', animation = 'etapes', size = 'petit' }) {
+  // Ce que l'assistant insère entre en changement proposé, signé « Assistant IA » (RA-57).
+  const sugg = window.useNoteSuggestions({ editor: editor, raison: raison, raisonActive: raisonActive, appliedTemplate: appliedTemplate, proposeAs: t('ai.assistant.name') });
   const search = useAgentSearch(editor);
   const [open, setOpen] = React.useState(false);
   // Nouvelles suggestions, ou réponse arrivée, depuis la dernière ouverture.
   const [fresh, setFresh] = React.useState(false);
   const [extended, setExtended] = React.useState(false);
+  // Suggestions écartées par ✕ : elles ne reviennent pas en bulle pour cette note
+  // (elles restent dans le panneau).
+  const [dismissed, setDismissed] = React.useState({});
   const lastSig = React.useRef('');
   const lastDone = React.useRef(0);
 
-  const n = sugg.targeted ? sugg.count : 0;
+  const bulles = signal === 'bulles';
+  const dismissKey = function (it) { return (sugg.context || '') + '|' + it.key; };
+  // Bulles : ce qui reste à proposer au point actif (ni déjà dans la note, ni écarté).
+  const live = bulles && sugg.targeted ? sugg.items.filter(function (it) { return !it.done && !dismissed[dismissKey(it)]; }) : [];
+  const n = bulles ? live.length : (sugg.targeted ? sugg.count : 0);
   const searching = search.turns.some(function (x) { return x.status === 'searching'; });
   const doneCount = search.turns.filter(function (x) { return x.status === 'done'; }).length;
 
-  // Le FAB s'allume quand le point actif change et a des suggestions ciblées.
+  // Le FAB s'allume quand le point actif change et a des suggestions ciblées
+  // (en mode bulles, ce sont elles qui le disent : pas de point en plus).
   const sig = n > 0 ? (sugg.context || '') + '|' + n : '';
   React.useEffect(function () {
     if (sig && sig !== lastSig.current && !open) {
-      setFresh(true);
+      if (!bulles) setFresh(true);
       if (signal === 'etendu') setExtended(true);
     }
     if (!sig) { setFresh(false); setExtended(false); }
@@ -342,6 +411,9 @@ function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pas
   return (
     <React.Fragment>
       <style>{AG_CSS}</style>
+      {bulles && !open && live.length > 0 &&
+        <AgentBubbles items={live.slice(0, AG_BUBBLES)} total={live.length} context={sugg.context} onOpen={toggle}
+          onDismiss={function (it) { setDismissed(function (d) { const k = dismissKey(it); return Object.assign({}, d, { [k]: true }); }); }} />}
       {!(drawer && open) &&
         <button type="button" data-agent-fab="" onMouseDown={function (e) { e.preventDefault(); }} onClick={toggle}
           aria-label={aria} title={aria} aria-expanded={open} aria-haspopup="dialog"
@@ -360,6 +432,46 @@ function AgentFab({ editor, raison, raisonActive, appliedTemplate, signal = 'pas
         <AgentPanel drawer={drawer} large={size === 'grand'} animation={animation} editor={editor} sugg={sugg} search={search}
           onClose={function () { setOpen(false); }} />}
     </React.Fragment>
+  );
+}
+
+// Les bulles du mode passif : l'en-tête OUVRE le panneau, chaque bulle INSÈRE sa
+// suggestion (en changement proposé), ✕ l'écarte. Au-dessus du FAB, à la place
+// qu'occupera le panneau ; le curseur reste dans la note (onMouseDown).
+function AgentBubbles({ items, total, context, onOpen, onDismiss }) {
+  function keepFocus(e) { e.preventDefault(); }
+  const head = context ? tn('agent.fab.etendu.contexte.text', total, { name: context }) : tn('agent.fab.etendu.text', total);
+  return (
+    <div role="group" aria-label={t('agent.bulles.aria')} style={agS.bubbles}>
+      <button type="button" className="ag-bubble-head ag-up" style={agS.bubbleHead} onMouseDown={keepFocus} onClick={onOpen}
+        aria-label={t('agent.bulles.ouvrir.aria')} title={t('agent.bulles.ouvrir.aria')}>
+        <span className="material-symbols-outlined" aria-hidden="true" style={agS.bubbleHeadIcon}>auto_awesome</span>
+        <span style={agS.bubbleHeadText}>{head}</span>
+        <span className="material-icons-outlined" aria-hidden="true" style={agS.bubbleHeadIcon}>open_in_full</span>
+      </button>
+      {items.map(function (it, i) {
+        return (
+          <div key={it.key} className="ag-bubble ag-up" style={Object.assign({}, agS.bubble, { animationDelay: (i * 70) + 'ms' })}>
+            <button type="button" className="ag-main" style={agS.bubbleMain} onMouseDown={keepFocus} onClick={it.onClick}
+              aria-label={t('agent.bulle.inserer.aria', { title: it.title })}
+              title={t('agent.bulle.inserer.tooltip') + (it.desc ? ' : ' + it.title + ' — ' + it.desc : ' : ' + it.title)}>
+              <span style={agS.bubbleIcon} aria-hidden="true">
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{it.icon}</span>
+              </span>
+              <span style={agS.bubbleText}>
+                <span style={agS.bubbleTitle}>{it.title}</span>
+                {it.source && <span style={agS.bubbleSource}>{it.source}</span>}
+              </span>
+              <span className="material-icons-outlined" aria-hidden="true" style={agS.bubbleAdd}>add</span>
+            </button>
+            <button type="button" className="ag-x" style={agS.bubbleX} onMouseDown={keepFocus} onClick={function () { onDismiss(it); }}
+              aria-label={t('agent.bulle.ecarter.aria', { title: it.title })} title={t('agent.bulle.ecarter.aria', { title: it.title })}>
+              <span className="material-icons" aria-hidden="true" style={{ fontSize: 16 }}>close</span>
+            </button>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -518,10 +630,26 @@ function AgentSearchCompact({ turn }) {
 function AgentAnswer({ turn, editor, onAdded }) {
   function keepFocus(e) { e.preventDefault(); }
   if (!turn.blocks.length) return <div style={agS.card} className="ag-up"><p style={agS.empty}>{t('agent.reponse.rien.text')}</p></div>;
+  // Pas de « fait » une fois pour toutes : ce qui a été inséré se relit dans la
+  // note à chaque rendu (accepté ou encore proposé : inséré ; refusé ou effacé :
+  // à insérer de nouveau, RA-57).
+  function status(rec) {
+    return (
+      <div style={agS.status} role="status">
+        <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 16 }}>check_circle</span>
+        <span>{t('agent.insere.text')}</span>
+        <span aria-hidden="true">·</span>
+        <button type="button" className="ag-link" style={agS.link} onMouseDown={keepFocus} onClick={function () { agShowInserted(editor, rec); }}>
+          {t('agent.voirNote.button')}
+        </button>
+      </div>
+    );
+  }
   return turn.blocks.map(function (b, bi) {
     const delay = { animationDelay: (bi * 120) + 'ms' };
     if (b.kind === 'text') {
-      const done = !!turn.added[b.id];
+      const rec = turn.added[b.id];
+      const inserted = agIsInserted(editor, rec);
       return (
         <div key={b.id} className="ag-up" style={Object.assign({}, agS.card, delay)}>
           <div style={agS.blockHead}>
@@ -530,22 +658,23 @@ function AgentAnswer({ turn, editor, onAdded }) {
           </div>
           <ul style={agS.lines}>{b.lines.map(function (l, i) { return <li key={i}>{l}</li>; })}</ul>
           <AgentCites cites={b.cites} />
+          {inserted && status(rec)}
           <div style={agS.actions}>
-            <button type="button" className={done ? 'ds-btn ds-btn--outlined' : 'ds-btn ds-btn--tonal'} disabled={done} onMouseDown={keepFocus}
+            <button type="button" className={inserted ? 'ds-btn ds-btn--outlined' : 'ds-btn ds-btn--tonal'} onMouseDown={keepFocus}
               onClick={function () {
-                agInsertBlocks(editor, b.lines.map(function (l) { return { type: 'paragraph', content: [{ type: 'text', text: l }] }; }));
-                onAdded(turn.id, b.id);
+                agInsertBlocks(editor, agProposeText(b.lines.map(function (l) { return { type: 'paragraph', content: [{ type: 'text', text: l }] }; })));
+                onAdded(turn.id, b.id, { probe: b.lines[0].slice(0, AG_PROBE) });
                 if (window.toast) window.toast(t('agent.ajoute.toast'));
               }}>
-              <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 18 }}>{done ? 'check' : 'note_add'}</span>
-              {done ? t('agent.ajoute.button') : t('agent.ajouterNote.button')}
+              <span className="material-icons-outlined" aria-hidden="true" style={{ fontSize: 18 }}>{inserted ? 'refresh' : 'note_add'}</span>
+              {inserted ? t('agent.insererNouveau.button') : t('agent.insererNote.button')}
             </button>
           </div>
         </div>
       );
     }
-    const left = b.items.filter(function (o) { return !turn.added[b.id + o.id]; });
-    function add(o) { agAddOrder(editor, o, b.regionId); onAdded(turn.id, b.id + o.id); }
+    const left = b.items.filter(function (o) { return !agIsInserted(editor, turn.added[b.id + o.id]); });
+    function add(o) { onAdded(turn.id, b.id + o.id, agAddOrder(editor, o, b.regionId)); }
     return (
       <div key={b.id} className="ag-up" style={Object.assign({}, agS.card, delay)}>
         <div style={agS.blockHead}>
@@ -553,25 +682,36 @@ function AgentAnswer({ turn, editor, onAdded }) {
           <span style={{ flex: 1 }}>{b.title}</span>
         </div>
         {b.items.map(function (o) {
-          const done = !!turn.added[b.id + o.id];
-          const action = b.regionId ? t('suggest.ajouterSous.tooltip', { name: b.dxName }) : t('agent.ajouterCurseur.tooltip');
+          const rec = turn.added[b.id + o.id];
+          const inserted = agIsInserted(editor, rec);
+          const action = b.regionId ? t('agent.inserer.sous.tooltip', { name: b.dxName }) : t('agent.inserer.curseur.tooltip');
+          // Une ligne : son corps insère (ou, une fois insérée, montre où) ; le bouton
+          // de droite insère, ou insère à nouveau.
           return (
-            <button key={o.id} type="button" className="ag-row" style={Object.assign({}, scS.row, agS.orderRow, done ? scS.rowAdded : null)}
-              disabled={done} onMouseDown={keepFocus} onClick={function () { add(o); }} title={done ? t('suggest.dejaAjoute.tooltip') : action}>
-              <span className="material-symbols-outlined" aria-hidden="true" style={scS.rowIcon}>{o.icon}</span>
-              <span style={scS.rowText}>
-                <span style={scS.rowTitle}>{o.label}</span>
-                {o.desc && <span style={scS.rowDesc}>{o.desc}</span>}
-              </span>
-              <span className="material-icons-outlined" aria-hidden="true" style={scS.rowAction}>{done ? 'check' : 'add'}</span>
-            </button>
+            <div key={o.id} className="ag-row" style={Object.assign({}, scS.row, agS.orderRow, agS.orderBox)}>
+              <button type="button" className="ag-main" style={agS.orderMain} onMouseDown={keepFocus}
+                onClick={function () { if (inserted) agShowInserted(editor, rec); else add(o); }}
+                title={inserted ? t('agent.voirNote.button') : action}>
+                <span className="material-symbols-outlined" aria-hidden="true" style={scS.rowIcon}>{inserted ? 'check_circle' : o.icon}</span>
+                <span style={scS.rowText}>
+                  <span style={scS.rowTitle}>{o.label}</span>
+                  {o.desc && <span style={scS.rowDesc}>{o.desc}</span>}
+                  {inserted && <span style={agS.rowStatus}>{t('agent.insere.text')} · {t('agent.voirNote.button')}</span>}
+                </span>
+              </button>
+              <button type="button" className="ag-x" style={agS.orderAdd} onMouseDown={keepFocus} onClick={function () { add(o); }}
+                aria-label={(inserted ? t('agent.insererNouveau.button') : t('agent.inserer.button')) + ' : ' + o.label}
+                title={inserted ? t('agent.insererNouveau.button') : action}>
+                <span className="material-icons-outlined" aria-hidden="true" style={scS.rowAction}>add</span>
+              </button>
+            </div>
           );
         })}
         <AgentCites cites={b.cites} />
         {left.length >= 2 &&
           <div style={agS.actions}>
             <button type="button" className="ds-btn ds-btn--tonal" onMouseDown={keepFocus} onClick={function () { left.forEach(add); }}>
-              {t('suggest.toutAjouter.button', { n: left.length })}
+              {t('agent.toutInserer.button', { n: left.length })}
             </button>
           </div>}
       </div>
@@ -591,45 +731,46 @@ function AgentCites({ cites }) {
 const agS = {
   fab: {
     position: 'fixed', right: 24, bottom: 24, zIndex: 60, height: 56, minWidth: 56, padding: 0, boxSizing: 'border-box',
-    borderRadius: 'var(--mat-sys-corner-large)', border: 0, cursor: 'pointer',
+    borderRadius: 'var(--mat-sys-corner-large)', border: '1.5px solid transparent', backgroundOrigin: 'border-box', cursor: 'pointer',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 'var(--ds-spacing-xs)',
     transition: 'background 200ms, box-shadow 200ms, padding 200ms, min-width 200ms',
   },
-  // Passif : une surface neutre, sans ombre marquée — il ne réclame rien.
-  fabQuiet: { background: 'var(--mat-sys-surface-container-high)', boxShadow: 'var(--mat-sys-level1)' },
-  fabLit: { background: 'var(--mat-sys-primary-container)', boxShadow: 'var(--mat-sys-level3)' },
-  fabOpen: { background: 'var(--mat-sys-primary-container)', boxShadow: 'var(--mat-sys-level2)' },
+  // Passif : un dégradé pâle et une bordure nette (RA-57, plus de contraste
+  // qu'avant) — il ne réclame rien. Allumé ou ouvert : le dégradé plein.
+  fabQuiet: { background: 'var(--ag-grad-soft)', borderColor: 'var(--ag-border)', boxShadow: 'var(--mat-sys-level2)' },
+  fabLit: { background: 'var(--ag-grad)', boxShadow: 'var(--mat-sys-level3)' },
+  fabOpen: { background: 'var(--ag-grad)', boxShadow: 'var(--mat-sys-level2)' },
   fabExtended: { padding: '0 20px 0 16px' },
-  fabIcon: { fontSize: 24, color: 'var(--mat-sys-on-surface-variant)', transition: 'color 200ms' },
-  fabIconLit: { color: 'var(--mat-sys-on-primary-container)' },
-  fabLabel: { font: 'var(--mat-sys-label-large)', color: 'var(--mat-sys-on-primary-container)', whiteSpace: 'nowrap', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' },
+  fabIcon: { fontSize: 24, color: 'var(--mat-sys-primary)', transition: 'color 200ms' },
+  fabIconLit: { color: 'var(--mat-sys-on-primary)' },
+  fabLabel: { font: 'var(--mat-sys-label-large)', color: 'var(--mat-sys-on-primary)', whiteSpace: 'nowrap', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis' },
   badge: {
     position: 'absolute', top: -4, right: -4, minWidth: 20, height: 20, padding: '0 6px', boxSizing: 'border-box', borderRadius: 10,
     background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', font: '600 11px/20px var(--font-body)', textAlign: 'center',
   },
-  dot: { position: 'absolute', top: 6, right: 6, width: 10, height: 10, borderRadius: '50%', background: 'var(--mat-sys-primary)', border: '2px solid var(--mat-sys-primary-container)' },
+  dot: { position: 'absolute', top: 4, right: 4, width: 12, height: 12, borderRadius: '50%', background: 'var(--mat-sys-on-primary)', border: '2px solid var(--mat-sys-primary)' },
 
   // Panneau : à peu près la largeur du Sommaire, et la hauteur de son contenu
   // (460 px au plus), pour en laisser voir le haut.
   panel: {
     position: 'fixed', right: 24, bottom: 92, zIndex: 60, width: 320, maxWidth: 'calc(100vw - 48px)',
     maxHeight: 'min(460px, calc(100vh - 140px))', boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
-    background: 'var(--mat-sys-surface-container-low)', border: '1px solid var(--mat-sys-outline-variant)',
+    background: 'var(--ag-grad-panel)', border: '1.5px solid var(--ag-border)',
     borderRadius: 'var(--mat-sys-corner-large)', boxShadow: 'var(--mat-sys-level3)', overflow: 'hidden',
   },
   panelLarge: { width: 400, maxHeight: 'none', height: 'min(640px, calc(100vh - 140px))' },
   drawerLarge: { width: 400 },
   drawer: {
     position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 60, width: 360, maxWidth: '100vw', boxSizing: 'border-box',
-    display: 'flex', flexDirection: 'column', background: 'var(--mat-sys-surface-container-low)',
-    borderLeft: '1px solid var(--mat-sys-outline-variant)', boxShadow: 'var(--mat-sys-level3)',
+    display: 'flex', flexDirection: 'column', background: 'var(--ag-grad-panel)',
+    borderLeft: '1.5px solid var(--ag-border)', boxShadow: 'var(--mat-sys-level3)',
   },
-  head: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: '8px 8px 8px 12px', borderBottom: '1px solid var(--mat-sys-outline-variant)' },
+  head: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: '8px 8px 8px 12px', borderBottom: '1px solid var(--ag-border)' },
   avatar: {
     position: 'relative', width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-    background: 'linear-gradient(135deg, var(--mat-sys-primary-container), var(--mat-sys-tertiary-container, var(--mat-sys-secondary-container)))',
+    background: 'var(--ag-grad)',
   },
-  avatarIcon: { fontSize: 20, color: 'var(--mat-sys-on-primary-container)' },
+  avatarIcon: { fontSize: 20, color: 'var(--mat-sys-on-primary)' },
   headText: { display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 },
   title: { font: 'var(--mat-sys-title-small)', color: 'var(--mat-sys-on-surface)' },
   subtitle: { font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -640,11 +781,12 @@ const agS = {
   turn: { display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)', marginTop: 'var(--ds-spacing-12)' },
   prompt: {
     alignSelf: 'flex-end', maxWidth: '85%', padding: '8px 12px', borderRadius: '16px 16px 4px 16px',
-    background: 'var(--mat-sys-primary-container)', color: 'var(--mat-sys-on-primary-container)', font: 'var(--mat-sys-body-medium)',
+    background: 'var(--ag-grad)', color: 'var(--mat-sys-on-primary)', font: 'var(--mat-sys-body-medium)',
   },
   card: {
     display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-12)',
-    borderRadius: 'var(--mat-sys-corner-medium)', background: 'var(--mat-sys-surface-container-lowest)', border: '1px solid var(--mat-sys-outline-variant)',
+    borderRadius: 'var(--mat-sys-corner-medium)', background: 'var(--mat-sys-surface-container-lowest)',
+    border: '1px solid color-mix(in srgb, var(--mat-sys-primary) 30%, var(--mat-sys-outline-variant))',
   },
   searchHead: { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)' },
   miniAvatar: { position: 'relative', width: 28, height: 28, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'var(--mat-sys-surface-container)' },
@@ -674,7 +816,7 @@ const agS = {
   quickRow: { display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none', margin: '0 -12px', padding: '0 12px' },
   quickChip: {
     display: 'inline-flex', alignItems: 'center', gap: 4, height: 32, padding: '0 12px 0 8px', borderRadius: 'var(--mat-sys-corner-small)',
-    border: '1px solid var(--mat-sys-outline-variant)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)',
+    border: '1px solid var(--ag-border)', background: 'var(--mat-sys-surface-container-lowest)', color: 'var(--mat-sys-on-surface)',
     font: 'var(--mat-sys-label-large)', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
   },
   quickIcon: { fontSize: 18, color: 'var(--mat-sys-primary)' },
@@ -686,6 +828,52 @@ const agS = {
   send: { width: 36, height: 36, borderRadius: '50%', border: 0, background: 'var(--mat-sys-primary)', color: 'var(--mat-sys-on-primary)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   sendOff: { background: 'var(--mat-sys-surface-container-highest)', color: 'var(--mat-sys-on-surface-variant)', cursor: 'default' },
   disclaimer: { margin: 0, font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', textAlign: 'center' },
+
+  // Bulles du mode passif : au-dessus du FAB (56 px + 24 de marge + 12 d'écart),
+  // à la place qu'occupera le panneau.
+  bubbles: {
+    position: 'fixed', right: 24, bottom: 92, zIndex: 59, display: 'flex', flexDirection: 'column', alignItems: 'flex-end',
+    gap: 8, maxWidth: 'calc(100vw - 48px)',
+  },
+  bubbleHead: {
+    display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 32, padding: '0 12px', boxSizing: 'border-box', borderRadius: 999,
+    border: '1.5px solid var(--ag-border)', background: 'color-mix(in srgb, var(--mat-sys-primary) 16%, var(--mat-sys-surface-container-lowest))',
+    color: 'var(--mat-sys-on-surface)', font: 'var(--mat-sys-label-large)', cursor: 'pointer', boxShadow: 'var(--mat-sys-level1)',
+  },
+  bubbleHeadIcon: { fontSize: 16, color: 'var(--mat-sys-primary)' },
+  bubbleHeadText: { whiteSpace: 'nowrap' },
+  bubble: {
+    display: 'flex', alignItems: 'flex-start', width: 300, maxWidth: '100%', boxSizing: 'border-box',
+    borderRadius: 'var(--mat-sys-corner-large)', border: '1.5px solid var(--ag-border)', background: 'var(--ag-grad-soft)',
+    boxShadow: 'var(--mat-sys-level2)', transition: 'border-color 150ms, box-shadow 150ms',
+  },
+  bubbleMain: {
+    flex: 1, minWidth: 0, minHeight: 52, display: 'flex', alignItems: 'center', gap: 10, padding: '6px 4px 6px 8px', border: 0,
+    background: 'transparent', cursor: 'pointer', textAlign: 'left', color: 'var(--mat-sys-on-surface)', borderRadius: 'var(--mat-sys-corner-large)',
+  },
+  bubbleIcon: {
+    width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    background: 'var(--ag-grad)', color: 'var(--mat-sys-on-primary)',
+  },
+  bubbleText: { display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 },
+  bubbleTitle: { font: 'var(--mat-sys-body-medium)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  bubbleSource: { font: 'var(--mat-sys-body-small)', color: 'var(--mat-sys-on-surface-variant)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  bubbleAdd: { fontSize: 20, color: 'var(--mat-sys-primary)', flexShrink: 0 },
+  bubbleX: {
+    width: 28, height: 28, margin: '4px 4px 0 0', flexShrink: 0, border: 0, borderRadius: '50%', background: 'transparent',
+    color: 'var(--mat-sys-on-surface-variant)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+  },
+
+  // Réponse : « Inséré · Voir dans la note », et la ligne d'une conduite insérée.
+  status: { display: 'flex', alignItems: 'center', gap: 6, font: 'var(--mat-sys-label-large)', color: 'var(--mat-sys-primary)' },
+  link: { border: 0, background: 'transparent', padding: 0, color: 'var(--mat-sys-primary)', font: 'inherit', textDecoration: 'underline', cursor: 'pointer' },
+  rowStatus: { font: 'var(--mat-sys-label-medium)', color: 'var(--mat-sys-primary)' },
+  orderBox: { padding: 0, gap: 0, alignItems: 'stretch', cursor: 'default' },
+  orderMain: {
+    flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-xs)', padding: 'var(--ds-spacing-xxs) var(--ds-spacing-xs)',
+    border: 0, background: 'transparent', cursor: 'pointer', textAlign: 'left', color: 'var(--mat-sys-on-surface)', borderRadius: 'var(--mat-sys-corner-small)',
+  },
+  orderAdd: { width: 44, flexShrink: 0, border: 0, background: 'transparent', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', borderRadius: 'var(--mat-sys-corner-small)' },
 };
 
 window.AgentFab = AgentFab;

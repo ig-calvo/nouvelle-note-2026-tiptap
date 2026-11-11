@@ -42,7 +42,7 @@ const PRESENTATION_TWEAKS = {
   summaryAddToNote: false,
   suggestionsOn: false,
   suggestionsPlacement: 'curseur',
-  agentSignal: 'pastille',
+  agentSignal: 'bulles',
   agentOpening: 'panneau',
   agentAnimation: 'etapes',
   agentSize: 'petit',
