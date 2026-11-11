@@ -2668,9 +2668,15 @@ function buildSlashExtension(handlers) {
           // Le caractère est lu à chaque frappe (réglage « Caractère du menu
           // des fonctions », NOTE_DATA.slashChar) : le plugin ne le garde
           // qu'une fois pour toutes, mais sa recherche du déclencheur est
-          // un point d'entrée (@tiptap/suggestion 2.11.5).
+          // un point d'entrée (@tiptap/suggestion 2.11.5). Un caractère de
+          // remplacement suivi d'une espace n'est pas une commande (« TA = 120/80 »,
+          // « 5 * 3 ») : la commande suit tout de suite le caractère (« =rx »).
+          // Le même caractère deux fois (« == », le surlignage du texte) non plus.
+          // Ça ne touche pas « / », qui garde son comportement.
           findSuggestionMatch: window.Tiptap.findSuggestionMatch ? function (config) {
-            return window.Tiptap.findSuggestionMatch(Object.assign({}, config, { char: window.NOTE_DATA.slashChar() }));
+            const ch = window.NOTE_DATA.slashChar();
+            const match = window.Tiptap.findSuggestionMatch(Object.assign({}, config, { char: ch }));
+            return match && ch !== '/' && (/^\s/.test(match.query) || match.query.charAt(0) === ch) ? null : match;
           } : undefined,
           allowSpaces: true,
           decorationClass: 'slash-pending',

@@ -757,10 +757,12 @@ function App() {
           {/* Caractère qui ouvre le menu des fonctions (« / » par défaut). Pour
               un clavier où le slash est difficile à taper ; le « + » du curseur
               insère le même caractère. Gardé d'une utilisation à l'autre (tweaks,
-              localStorage), « # » (gabarits) ne change pas. */}
-          <TweakRadio label="Caractère du menu des fonctions"
+              localStorage), « # » (gabarits) ne change pas. À quatre choix, le
+              panneau bascule en liste déroulante : chaque caractère y porte son nom,
+              pour le reconnaître d'un coup d'œil. */}
+          <TweakSelect label="Caractère du menu des fonctions"
                       value={window.NOTE_DATA.normalizeSlashChar(t.slashChar)}
-                      options={window.NOTE_DATA.SLASH_CHARS.map((c) => ({ value: c, label: c }))}
+                      options={window.NOTE_DATA.SLASH_CHARS.map((c) => ({ value: c, label: c + ' ' + ({ '/': '(barre oblique)', '=': '(égal)', '*': '(étoile)', ';': '(point-virgule)' }[c] || '') }))}
                       onChange={(v) => setTweak('slashChar', v)} />
         </TweakSection>
         <TweakSection label="Checkout">
