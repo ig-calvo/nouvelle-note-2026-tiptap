@@ -536,6 +536,13 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
     let labMultiHand = false;
     // La recherche ouverte montre-t-elle le contexte d'un diagnostic (pas de panneau /lab) ?
     let orderInContext = false;
+    // Compteurs du rail de /rx. Sous un diagnostic (liste en contexte), « Tout » compte
+    // les lignes affichées : le contexte puis les médications au dossier.
+    function rxRailCounts(term, results, inContext) {
+      const counts = window.NOTE_DATA.rxCounts(term);
+      if (!inContext) return counts;
+      return Object.assign({}, counts, { tout: results.contexte.length + (results.profil || []).length });
+    }
     function checkUid(it, kind) { return (it.orderKind || kind) + ':' + it.key; }
     function toggleChecked(it, kind) {
       const u = checkUid(it, kind);
@@ -634,7 +641,8 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
         currentBatch = window.NOTE_DATA.orderBatch(parsed.kind, parsed.term);
         const term = currentBatch ? currentBatch.current : (parsed.term || '').trim();
         // Ouverte sous un diagnostic, sans rien de tapé : la liste en contexte
-        // de ce diagnostic (searchOrder) ; le rail de filtres se cache alors.
+        // de ce diagnostic (searchOrder). Le rail de /rx reste là : un filtre
+        // (autre que Tout) en fait une recherche normale ; /lab et /ref perdent leur panneau.
         const results = window.NOTE_DATA.searchOrder(parsed.kind, term, window.dxRegionAtSelection(editorRef.current && editorRef.current.state));
         const inContext = !!(results.contexte && results.contexte.length);
         orderInContext = inContext;
@@ -656,7 +664,7 @@ function NoteBody({ placeholder, initialDoc, onReady, onDocChange, onChipClick, 
           railFocus: railKind && railFocus,
           labRail: viewRail ? window.NOTE_DATA.orderRail(parsed.kind, term) : null,
           batch: currentBatch ? currentBatch.picks : null,
-          counts: parsed.kind === 'rx' && !inContext ? window.NOTE_DATA.rxCounts(term) : null, query: term, results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
+          counts: parsed.kind === 'rx' ? rxRailCounts(term, results, inContext) : null, query: term, results: results, activeIndex: selectedIndex, rect: currentClientRect ? currentClientRect() : null,
           labMulti: labMulti,
           checked: checked.map(function (c) { return checkUid(c, c.__kind); }) });
         return;
