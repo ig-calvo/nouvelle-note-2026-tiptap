@@ -39,6 +39,7 @@ const DX_COPY = {
     // les sections et le fil d'Ariane se nomment par les libellés.
     cim: t('dx.copy.secDiagnostics.text'),
     snomed: t('dx.copy.secSnomed.text'),
+    probleme: t('dx.copy.secProblemes.text'),
     browseRoot: t('dx.copy.browseRoot.text'),
     plusPrecis: function (name) { return t('dx.copy.plusPrecis.text', { name: name }); },
     memeCategorie: function (name) { return t('dx.copy.memeCategorie.text', { name: name }); },
@@ -72,6 +73,7 @@ const DX_COPY = {
   },
   more: function (n) { return t('dx.copy.more.text', { n: n }); },
   moreSnomed: function (n) { return t('dx.copy.moreSnomed.text', { n: n }); },
+  moreProblemes: function (n) { return t('dx.copy.moreProblemes.text', { n: n }); },
   foot: {
     nav: t('dx.copy.footNav.text'),
     note: t('dx.copy.footNote.text'),
@@ -137,6 +139,16 @@ function dxSnomedItem(r) {
     tags: [], actions: [], selectable: true, nav: null, ref: r
   };
 }
+// Problème ou antécédent du dictionnaire Omnimed (problemes-index.jsx) : plat,
+// comme SNOMED CT — l'ID_TERME est gardé dans `code` (source:'omnimed' le
+// distingue d'un code CIM-10, voir diagCodeLabel : il ne s'affiche pas).
+function dxProblemeItem(r) {
+  return {
+    key: 'omnimed:' + r.id, idx: 0, kind: 'omnimed', label: r.label, code: r.id,
+    lead: 'list_alt', sub: null,
+    tags: [], actions: [], selectable: true, nav: null, ref: r
+  };
+}
 function dxNavItem(id, label) {
   return { key: 'nav:' + id, idx: 0, kind: 'nav', label: label, code: null, lead: null, sub: null, tags: [], actions: [], selectable: false, nav: id, ref: null };
 }
@@ -168,15 +180,21 @@ function dxMatch(q, label, code) {
 // Ajoute la ou les sections CIM-10 (Fréquents + CIM-10, ou juste CIM-10 pour
 // Remplacer/Préciser) — `taken` exclut un code déjà utilisé ailleurs (pas
 // deux fois la même identité sous deux numéros différents).
-function dxPushCim(sections, cim, term, taken, includeFrequent, snomed) {
+function dxPushCim(sections, cim, term, taken, includeFrequent, snomed, problemes) {
   if (!cim) { sections.push(dxSec('cim', DX_COPY.sec.cim, [], DX_COPY.loading)); return; }
   if (term && term.length >= 2) {
     const res = cim.search(term, { maxGroups: 4 });
     const rows = res.rows.filter(function (r) { return r.selectable && !(r.code && taken.has(r.code)); });
     sections.push(dxSec('cim', DX_COPY.sec.cim, rows.map(dxCimItem),
       rows.length ? null : DX_COPY.empty.cim(term), res.moreGroups));
-    // SNOMED CT juste après la CIM-10, avant « Parcourir » : section absente
-    // (pas de message « aucun résultat ») quand rien ne correspond.
+    // Problèmes et antécédents d'Omnimed, puis SNOMED CT, juste après la CIM-10
+    // et avant « Parcourir » : sections absentes (pas de message « aucun
+    // résultat ») quand rien ne correspond.
+    if (problemes) {
+      const pres = problemes.search(term, { limit: 6 });
+      const prows = pres.rows.filter(function (r) { return !taken.has(r.id); });
+      sections.push(dxSec('probleme', DX_COPY.sec.probleme, prows.map(dxProblemeItem), null, pres.more));
+    }
     if (snomed) {
       const sres = snomed.search(term, { limit: 6 });
       const srows = sres.rows.filter(function (r) { return !taken.has(r.id); });
@@ -209,7 +227,7 @@ function dxBreadcrumb(cim, nodeId) {
 // ---------------------------------------------------------
 // dxBuildModel — LE modèle affiché et navigué au clavier.
 // state = { intent, view, stack, activeIndex, actionFocus } (voir dxInitState/dxStep)
-// ctx   = { threads: diagnosticThreads(doc).threads, sommaire: getSommaireDiagnostics(), cim: window.CIM10|null }
+// ctx   = { threads: diagnosticThreads(doc).threads, sommaire: getSommaireDiagnostics(), cim: window.CIM10|null, snomed, problemes }
 // ---------------------------------------------------------
 function dxBuildModel(state, rawTerm, ctx) {
   const term = (rawTerm || '').trim();
@@ -218,6 +236,7 @@ function dxBuildModel(state, rawTerm, ctx) {
   const sommaire = ctx.sommaire || [];
   const cim = (ctx.cim && ctx.cim.ready && ctx.cim.ready()) ? ctx.cim : null;
   const snomed = (ctx.snomed && ctx.snomed.ready && ctx.snomed.ready()) ? ctx.snomed : null;
+  const problemes = (ctx.problemes && ctx.problemes.ready && ctx.problemes.ready()) ? ctx.problemes : null;
   const intent = state.intent, view = state.view;
   const sections = [];
   let banner = null, crumbs = null, freeText = null, empty = null;
@@ -253,7 +272,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     const somAnt = sommaire.filter(function (r) { return r.sommaireKind === 'antecedent' && !linked.has(r.sommaireId); })
       .map(dxSommaireItem).filter(function (it) { return dxMatch(q, it.label, it.code); });
     sections.push(dxSec('somAnt', DX_COPY.sec.somAntecedents, somAnt));
-    dxPushCim(sections, cim, term, taken, true, snomed);
+    dxPushCim(sections, cim, term, taken, true, snomed, problemes);
     if (term) freeText = { name: term, kind: 'nouveau' };
     const hits = sections.reduce(function (n, sec) { return n + sec.items.length; }, 0);
     if (term.length >= 2 && !hits) empty = { text: DX_COPY.empty.none(term), hint: DX_COPY.empty.noneHint };
@@ -267,7 +286,7 @@ function dxBuildModel(state, rawTerm, ctx) {
         sections.push(dxSec('near', t.level === 'category' ? DX_COPY.sec.plusPrecis(t.name) : DX_COPY.sec.memeCategorie(dxNodeLabel(cim.node(base))), list.map(dxCimItem)));
       }
     }
-    dxPushCim(sections, cim, term, dxTakenCodes([], [], [t.code]), false, snomed);
+    dxPushCim(sections, cim, term, dxTakenCodes([], [], [t.code]), false, snomed, problemes);
     if (term) freeText = { name: term, kind: 'remplacer' };
     if (!term) { const hits = sections.reduce(function (n, sec) { return n + sec.items.length; }, 0); if (!hits) empty = { text: DX_COPY.empty.replace }; }
   } else if (intent.kind === 'edit' || intent.kind === 'refine') {
@@ -281,7 +300,7 @@ function dxBuildModel(state, rawTerm, ctx) {
     }
     if (!untouched) {
       // « Préciser » descend dans la CIM-10 : pas de SNOMED, plat, à cet endroit.
-      dxPushCim(sections, cim, term, dxTakenCodes([], [], [r.code]), false, intent.kind === 'refine' ? null : snomed);
+      dxPushCim(sections, cim, term, dxTakenCodes([], [], [r.code]), false, intent.kind === 'refine' ? null : snomed, intent.kind === 'refine' ? null : problemes);
       if (term) freeText = { name: term, kind: 'edit', hadCode: !!r.code };
     }
   }
@@ -373,8 +392,8 @@ function dxStep(state, event, model) {
   }
   function commitPick(item, freeName) {
     const pick = item
-      ? { source: item.kind === 'snomed' ? 'snomed' : 'cim10', name: item.label, code: item.code,
-          level: item.kind === 'snomed' ? null : ((item.ref && item.ref.level) || null) }
+      ? { source: item.kind === 'snomed' ? 'snomed' : (item.kind === 'omnimed' ? 'omnimed' : 'cim10'), name: item.label, code: item.code,
+          level: (item.kind === 'snomed' || item.kind === 'omnimed') ? null : ((item.ref && item.ref.level) || null) }
       : { source: 'libre', name: freeName, code: null, level: null };
     if (s.intent.kind === 'remplacer') effects.push({ type: 'commit', payload: { action: 'remplacer', target: s.intent.target, pick: pick } });
     else if (s.intent.kind === 'edit' || s.intent.kind === 'refine') effects.push({ type: 'relabel', to: pick });
@@ -383,7 +402,7 @@ function dxStep(state, event, model) {
   function activate(item, action) {
     if (!item) return;
     if (item.kind === 'nav' || (!item.selectable && item.nav)) { drillTo(item.nav); return; }
-    if (item.kind === 'cim' || item.kind === 'snomed') { commitPick(item, null); return; }
+    if (item.kind === 'cim' || item.kind === 'snomed' || item.kind === 'omnimed') { commitPick(item, null); return; }
     const a = action || item.actions[0] || 'reprendre';
     if (a === 'remplacer') { startReplace(item.ref); return; }
     if (a === 'cesser') { effects.push({ type: 'commit', payload: { action: 'cesser', target: item.ref } }); return; }

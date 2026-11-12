@@ -5,10 +5,12 @@
 //
 // Construit un arbre Chapitre → Bloc → Catégorie → Code à partir de deux
 // fichiers JSON :
-//  - note-ui/cim10-fr-clinique.json   (liste plate existante, 2 435 codes)
-//  - note-ui/cim10-hierarchy.json     (chapitres, blocs, catégories et codes
-//                                       intermédiaires manquants, codes
-//                                       fréquents — voir _meta.sources)
+//  - note-ui/cim10-fr-clinique.json   (liste plate : 3 675 diagnostics de la
+//                                       feuille Omnimed + 7 génériques)
+//  - note-ui/cim10-hierarchy.json     (chapitres, blocs, codes fréquents — voir
+//                                       _meta.sources ; `parents` et `ajouts`
+//                                       sont vides depuis la feuille Omnimed)
+// Les deux fichiers sont générés par tools/omnimed-dictionnaire-to-json.py.
 //
 // La logique pure vit dans buildCim10Index(rows, hier), sans dépendance à
 // `window` : c'est ce que chargent les tests. La façade window.CIM10 (en bas
